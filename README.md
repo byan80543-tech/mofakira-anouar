@@ -21,6 +21,8 @@
 - [PROVENANCE.md](PROVENANCE.md): بيانات النسبة وسجل المصدر.
 - [EVIDENCE.md](EVIDENCE.md): لقطة الأدلة الرقمية ومعرّفات Git.
 - [SECURITY.md](SECURITY.md): سياسة الأمان والإبلاغ.
+- [SECURITY-AUDIT.md](SECURITY-AUDIT.md): نتائج المراجعة الأمنية وحدودها.
+- [TEST-PLAN.md](TEST-PLAN.md): اختبارات القبول والجودة المطلوبة.
 - [ARCHITECTURE.md](ARCHITECTURE.md): البنية التقنية وحدودها.
 - [ASSET-REGISTER.md](ASSET-REGISTER.md): سجل الاعتماديات والأصول الخارجية.
 - [CHANGELOG.md](CHANGELOG.md): سجل التغييرات المرصودة.
