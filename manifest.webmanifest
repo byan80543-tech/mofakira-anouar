@@ -3,7 +3,7 @@
   "id": "/mofakira-anouar/",
   "name": "مفكرة أنوار",
   "short_name": "أنوار",
-  "description": "مفكرتك الأدبية ومكتبتك الصوتية",
+  "description": "مفكرة أنوار — تطبيق أدبي من تطوير وصاحب مشروع Anouar Oumlili، الحسيمة، المملكة المغربية.",
   "lang": "ar",
   "dir": "rtl",
   "start_url": "/mofakira-anouar/",
@@ -11,18 +11,12 @@
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#f7f3ea",
-  "theme_color": "#c9a96a",
+  "theme_color": "#09264d",
   "icons": [
     {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
       "purpose": "any"
     }
   ]
