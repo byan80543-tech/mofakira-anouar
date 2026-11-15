@@ -317,6 +317,7 @@ const PROMPTS=['اكتب عن رائحة المطر على أول تراب بع�
 let S={notes:[],theme:'',days:[]},cur=null,flt='all',tm,speaking=false,saved=null;
 const $=id=>document.getElementById(id),pg=$('pg');
 const esc=s=>String(s??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
+function safeHttpsURL(value){try{const u=new URL(String(value));return u.protocol==='https:'?u.href:''}catch(e){return ''}}
 function san(h){
  const t=document.createElement('template');t.innerHTML=String(h||'');
  const allowed=new Set(['DIV','P','BR','SPAN','B','STRONG','I','EM','U','UL','OL','LI','BLOCKQUOTE','FONT','H1','H2','H3','H4','HR']);
@@ -349,7 +350,7 @@ function normalizeState(data){
  return {notes:Array.isArray(d.notes)?d.notes.map(cleanNote).filter(Boolean):[],theme:d.theme==='dark'?'dark':d.theme==='light'?'light':'',days:Array.isArray(d.days)?d.days.filter(x=>typeof x==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x)).slice(-400):[]};
 }
 function load(){try{const r=localStorage.getItem('anwar_v1');if(r)S=normalizeState(JSON.parse(r))}catch(e){S={notes:[],theme:'',days:[]}}}
-function save(){try{localStorage.setItem('anwar_v1',JSON.stringify(S))}catch(e){}}
+function save(){try{localStorage.setItem('anwar_v1',JSON.stringify(S))}catch(e){console.warn('تعذّر حفظ بيانات مفكرة أنوار محلياً',e);toast('تعذّر الحفظ: مساحة التخزين غير متاحة أو ممتلئة. صدّر أعمالك المهمة.',5000)}}
 function toast(m,d){const t=$('toast');t.textContent=m;t.classList.add('s');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('s'),d||2000)}
 const iso=d=>d.toISOString().slice(0,10);
 function streak(){const d=new Set(S.days);let n=0,c=new Date();if(!d.has(iso(c)))c.setDate(c.getDate()-1);while(d.has(iso(c))){n++;c.setDate(c.getDate()-1)}return n}
@@ -546,8 +547,8 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  X.forEach(x=>{if(!R.some(r=>r[0]===x[0]))R.push(x)});
  const rr=$('rr'),rsu=$('rsu'),st=$('rst'),pp=$('rpp'),rb=$('rb'),au=new Audio();let n=1,started=false,wd,cr=0,sl;
  au.preload='none';au.volume=.8;
- rr.innerHTML=R.map((r,i)=>`<option value="${i}">${r[0]}</option>`).join('');
- rsu.innerHTML=SU.map((s,i)=>`<option value="${i+1}">${i+1}. ${s}</option>`).join('');
+ rr.innerHTML=R.map((r,i)=>`<option value="${i}">${esc(r[0])}</option>`).join('');
+ rsu.innerHTML=SU.map((s,i)=>`<option value="${i+1}">${i+1}. ${esc(s)}</option>`).join('');
  const mode=()=>document.querySelector('input[name=rm]:checked').value;
  function ui(){const on=started&&!au.paused;pp.textContent=on?'⏸':'▶';rb.textContent=on?'⏸':'▶';rb.classList.toggle('on',on);if(on)st.textContent=mode()==='l'?'بث مباشر: '+($('rl').selectedOptions[0]||{text:''}).text:'يُتلى الآن: سورة '+SU[n-1]+' — '+R[cr][0]}
  function play(){started=true;const u=mode()==='l'?($('rl').value||''):R[cr][1]+String(n).padStart(3,'0')+'.mp3';au.src=u;$('ro').href=u;rsu.value=n;st.textContent='جارٍ التحميل…';clearTimeout(wd);wd=setTimeout(()=>{if(au.paused||au.readyState<2){st.textContent='لم يبدأ الصوت: غالبًا تمنعه المنصة داخل هذه الصفحة. استخدم رابط «افتح الصوت في نافذة مستقلة» أدناه.';setRadioPanel(true)}},9000);au.play().catch(e=>{if(e&&e.name==='NotAllowedError')st.textContent='اضغط تشغيل مرة أخرى'});ui()}
@@ -555,14 +556,14 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  au.addEventListener('playing',()=>{clearTimeout(wd);ui()});au.addEventListener('pause',ui);
  au.addEventListener('ended',()=>{if(mode()==='l'){play()}else if(mode()==='c'){n=n%114+1;play()}else{started=false;ui();st.textContent='انتهت السورة'}});
  au.addEventListener('error',()=>{if(!au.src)return;started=false;ui();st.textContent='تعذّر تشغيل الصوت: غالبًا تمنعه المنصة داخل هذه الصفحة. استخدم رابط «افتح الصوت في نافذة مستقلة» أدناه.';toast('تعذّر تشغيل الإذاعة',3000);clearTimeout(wd);setRadioPanel(true)});
- function fill(){const v=+rr.value||0,q=($('rq').value||'').trim(),L=R.map((r,i)=>[r,i]).filter(([r])=>!q||r[0].includes(q));rr.innerHTML=L.map(([r,i])=>`<option value="${i}">${r[0]}</option>`).join('');rr.value=L.some(([,i])=>i===v)?v:(L[0]?L[0][1]:0);const s=+rsu.value||1;rsu.innerHTML=SU.map((x,i)=>`<option value="${i+1}">${i+1}. ${x}</option>`).join('');rsu.value=s}
+ function fill(){const v=+rr.value||0,q=($('rq').value||'').trim(),L=R.map((r,i)=>[r,i]).filter(([r])=>!q||r[0].includes(q));rr.innerHTML=L.map(([r,i])=>`<option value="${i}">${esc(r[0])}</option>`).join('');rr.value=L.some(([,i])=>i===v)?v:(L[0]?L[0][1]:0);const s=+rsu.value||1;rsu.innerHTML=SU.map((x,i)=>`<option value="${i+1}">${i+1}. ${esc(x)}</option>`).join('');rsu.value=s}
  async function J(u){const c=new AbortController(),t=setTimeout(()=>c.abort(),7000);try{const r=await fetch(u,{signal:c.signal});if(!r.ok)throw 0;return await r.json()}finally{clearTimeout(t)}}
  (async()=>{
   const B='https://www.mp3quran.net/api/v3/',q=await Promise.allSettled([J(B+'reciters?language=ar'),J(B+'suwar?language=ar'),J(B+'radios?language=ar')]);
   let ok=0;
-  if(q[0].status==='fulfilled'){const L=[];(q[0].value.reciters||[]).forEach(r=>{const m=(r.moshaf||[]).find(m=>+m.surah_total===114&&/حفص|Hafs/.test(m.name))||(r.moshaf||[]).find(m=>+m.surah_total===114);if(m&&m.server)L.push([r.name,m.server.replace(/\/?$/,'/')])});if(L.length>20){L.forEach(x=>{if(!R.some(y=>y[0]===x[0]))R.push(x)});R.sort((a,b)=>a[0].localeCompare(b[0],'ar'));ok++}}
+  if(q[0].status==='fulfilled'){const L=[];(q[0].value.reciters||[]).forEach(r=>{const m=(r.moshaf||[]).find(m=>+m.surah_total===114&&/حفص|Hafs/.test(m.name))||(r.moshaf||[]).find(m=>+m.surah_total===114);const server=m&&safeHttpsURL(m.server);if(m&&server)L.push([String(r.name||'قارئ').slice(0,100),server.replace(/\/?$/,'/')])});if(L.length>20){L.forEach(x=>{if(!R.some(y=>y[0]===x[0]))R.push(x)});R.sort((a,b)=>a[0].localeCompare(b[0],'ar'));ok++}}
   if(q[1].status==='fulfilled'){const L=(q[1].value.suwar||[]).map(s=>String(s.name).trim());if(L.length===114){SU.length=0;SU.push(...L);ok++}}
-  if(q[2].status==='fulfilled'){const L=(q[2].value.radios||[]).filter(x=>x.url);if(L.length){$('rl').innerHTML=L.map(x=>`<option value="${x.url}">${x.name}</option>`).join('');$('rl').style.display='';$('rlb').style.display='flex';ok++}}
+  if(q[2].status==='fulfilled'){const L=(q[2].value.radios||[]).map(x=>({name:String(x.name||'إذاعة').slice(0,100),url:safeHttpsURL(x.url)})).filter(x=>x.url);if(L.length){$('rl').innerHTML=L.map(x=>`<option value="${esc(x.url)}">${esc(x.name)}</option>`).join('');$('rl').style.display='';$('rlb').style.display='flex';ok++}}
   fill();
   $('src').textContent=ok?`تم جلب ${R.length} قارئًا والإذاعات من mp3quran.net ✓`:'قائمة مدمجة: المنصة تمنع الاتصال بالمصدر من داخل هذه الصفحة';
  })();
