@@ -19,7 +19,7 @@
 - [LICENSE.md](LICENSE.md): إشعار الحقوق وعدم منح ترخيص عام.
 - [COPYRIGHT.md](COPYRIGHT.md): نطاق حقوق الملكية الفكرية.
 - [PROVENANCE.md](PROVENANCE.md): بيانات النسبة وسجل المصدر.
-- [EVIDENCE.md](EVIDENCE.md): لقطة الأدلة الرقمية ومعرّفات Git.
+- [EVIDENCE.md](EVIDENCE.md): لقطة الأدلة الرقمية ومعرّفات Git.\n- [OWNERSHIP-DECLARATION.md](OWNERSHIP-DECLARATION.md): مسودة إقرار ملكية خاصة للتوقيع والحفظ.\n- [EVIDENCE-PROTOCOL.md](EVIDENCE-PROTOCOL.md): بروتوكول حفظ الأدلة وسلسلة الحيازة.
 - [SECURITY.md](SECURITY.md): سياسة الأمان والإبلاغ.
 - [SECURITY-AUDIT.md](SECURITY-AUDIT.md): نتائج المراجعة الأمنية وحدودها.
 - [TEST-PLAN.md](TEST-PLAN.md): اختبارات القبول والجودة المطلوبة.
