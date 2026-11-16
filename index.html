@@ -1531,10 +1531,12 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  function openCountryModal(countryKey){
   const key=countryKey||countrySelect.value;if(!key)return Promise.resolve([]);
   countrySelect.value=key;updateCountryDirectory();
+  countryQuickPanel.hidden=true;countryQuickToggle.setAttribute('aria-expanded','false');countryQuickToggle.classList.remove('is-open');
   abortCountryPageRequest();abortCountryProfileRequest();
   activeCountryKey=key;activeCountryRows=[];activeCountryPage=1;countryTotalPages=1;countryTotalCount=0;countrySearch.value='';countryLoadToken++;countryPlayToken++;countryPageBusy=false;
   countryPrev.disabled=true;countryNext.disabled=true;
-  countryPreviousOverflow=document.body.style.overflow;countryModal.hidden=false;document.body.classList.add('country-reader-open');document.body.style.overflow='hidden';
+  if(countryModal.hidden)countryPreviousOverflow=document.body.style.overflow;
+  countryModal.hidden=false;document.body.classList.add('country-reader-open');document.body.style.overflow='hidden';
   const entry=countryDirectory[key];
   $('countryModalTitle').textContent='قرّاء '+(entry?entry.name:countrySelect.selectedOptions[0].textContent.split('·')[0].trim());
   $('countryModalSub').textContent=entry?'فهرس '+entry.name+' من الطريق إلى القرآن · تُحمّل صفحة واحدة في كل مرة':'لا توجد قائمة موثقة لهذه الدولة';
@@ -1748,6 +1750,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  async function playRandomCountryReader(){
   if(countryRandomBusy)return;
   countryRandomBusy=true;countryRandomButton.disabled=true;
+  countryRandomButton.setAttribute('aria-busy','true');
   countryRandomButton.textContent='… جارٍ اختيار قارئ';
   const keys=shuffleCountryKeys();
   const cached=keys.filter(key=>countryCache.get(key)?.pages?.get(1)?.length);
@@ -1775,6 +1778,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
    countryStatusBox.textContent='تعذّر اختيار قارئ عشوائي الآن. يمكنك اختيار الدولة يدويًا.';
   }finally{
    countryRandomBusy=false;countryRandomButton.disabled=false;
+   countryRandomButton.removeAttribute('aria-busy');
    countryRandomButton.textContent='🎲 استمع إلى قارئ عشوائي';
   }
  }
