@@ -1009,7 +1009,8 @@ dialog[open]>.float-head{display:none!important}
 
 <section id="libraryPage" hidden aria-hidden="true" aria-label="المكتبة" role="dialog" aria-modal="true">
  <div class="library-shell">
-  <header class="library-top" aria-label="أدوات المكتبة">
+  <header class="library-top" aria-label="مكتبة أنوار">
+   <div class="library-brand"><span class="library-mark" aria-hidden="true">📖</span><div class="library-brand-copy"><strong>مكتبة أنوار</strong><small>رفوف من المعرفة العربية</small></div></div>
    <div class="library-top-actions">
     <button type="button" id="librarySaved" aria-label="محفوظاتي" title="محفوظاتي" aria-pressed="false"><span aria-hidden="true">♡</span></button>
     <button type="button" id="libraryTheme" aria-label="تغيير لون المكتبة" title="تغيير لون المكتبة"><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18h1.2a2 2 0 0 0 1.5-3.3 1.8 1.8 0 0 1 1.4-3h1.1A4.8 4.8 0 0 0 22 9.9C22 6.1 17.5 3 12 3Z"/><path d="M7.5 10h.01M10 6.8h.01M15 7.2h.01M17.5 10.5h.01"/></svg></button>
@@ -1020,7 +1021,7 @@ dialog[open]>.float-head{display:none!important}
    <span id="libraryHeroTitle">الكتب</span>
    <span id="libraryHeroText"></span>
   </div>
-  <label class="library-search"><span aria-hidden="true">⌕</span><input id="librarySearch" type="search" placeholder="ابحث عن كتاب…" autocomplete="off" aria-label="ابحث عن كتاب"></label>
+  <label class="library-search"><span aria-hidden="true">⌕</span><input id="librarySearch" type="search" placeholder="ابحث عن كتاب أو مؤلف…" autocomplete="off" aria-label="ابحث عن كتاب"></label>
   <section id="libraryHome">
    <div id="libraryBooks" class="library-books" aria-label="كتب المكتبة"></div>
   </section>
@@ -1643,6 +1644,85 @@ button:focus:not(:focus-visible){outline:none}
  #libraryPage .library-book-save{width:29px;height:29px;top:6px;inset-inline-end:6px}
 }
 @media(min-width:850px){#libraryPage .library-books{grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:22px}}
+
+/* تنقيح مكتبة أنوار: لوحة ألوان فعلية للواجهة والقارئ والأغلفة */
+#libraryPage{
+ background:var(--lib-bg,#f1f6fa)!important;
+ color:var(--lib-text,#233b50)!important
+}
+#libraryPage .library-top{
+ background:var(--lib-bg,#f1f6fa)!important;
+ border-bottom-color:var(--lib-line,#cbd9e4)!important;
+ box-shadow:0 4px 14px var(--lib-shadow,rgba(35,59,80,.08))!important
+}
+#libraryPage .library-brand-copy strong{color:var(--lib-text,#233b50)!important}
+#libraryPage .library-brand-copy small{color:var(--lib-muted,#71869a)!important}
+#libraryPage .library-mark{
+ background:var(--lib-gold-soft,#edf3f7)!important;
+ color:var(--lib-text,#233b50)!important;
+ border-color:var(--lib-gold,#9a7840)!important
+}
+#libraryPage .library-top-actions button{
+ background:var(--lib-card,#fff)!important;
+ color:var(--lib-text,#233b50)!important;
+ border-color:var(--lib-line,#cbd9e4)!important;
+ box-shadow:0 2px 7px var(--lib-shadow,rgba(35,59,80,.08))!important
+}
+#libraryPage .library-top-actions button[aria-pressed="true"]{
+ background:var(--lib-gold-soft,#edf3f7)!important;
+ border-color:var(--lib-gold,#9a7840)!important
+}
+#libraryPage .library-search{
+ background:var(--lib-card,#fff)!important;
+ border-color:var(--lib-line,#cbd9e4)!important;
+ box-shadow:0 4px 12px var(--lib-shadow,rgba(35,59,80,.08))!important
+}
+#libraryPage .library-search span{color:var(--lib-gold,#9a7840)!important}
+#libraryPage .library-search input{color:var(--lib-text,#233b50)!important}
+#libraryPage .library-book-caption strong{color:var(--lib-text,#233b50)!important}
+#libraryPage .library-book-caption small{color:var(--lib-muted,#71869a)!important}
+#libraryPage .library-book-save{
+ background:var(--lib-card,#fff)!important;
+ color:var(--lib-gold,#9a7840)!important;
+ border-color:var(--lib-gold,#9a7840)!important;
+ box-shadow:0 2px 6px var(--lib-shadow,rgba(35,59,80,.08))!important
+}
+#libraryPage .library-books .library-empty{
+ background:var(--lib-card,#fff)!important;
+ border-color:var(--lib-line,#cbd9e4)!important;
+ color:var(--lib-muted,#71869a)!important
+}
+#libraryReaderView .pdf-reader-toolbar{
+ background:var(--lib-bg,#f1f6fa)!important;
+ color:var(--lib-text,#233b50)!important;
+ border-bottom-color:var(--lib-gold,#9a7840)!important
+}
+#libraryReaderView .pdf-reader-heading strong{color:var(--lib-text,#233b50)!important}
+#libraryReaderView .pdf-reader-heading small{color:var(--lib-muted,#71869a)!important}
+#libraryReaderView .pdf-reader-toolbar button{
+ background:var(--lib-card,#fff)!important;
+ color:var(--lib-text,#233b50)!important;
+ border-color:var(--lib-line,#cbd9e4)!important
+}
+#libraryReaderView .pdf-reader-retry{
+ width:38px;min-width:38px;padding:6px!important;font-size:18px!important
+}
+#libraryReaderView .pdf-reader-badge{
+ color:var(--lib-text,#233b50)!important;
+ border-color:var(--lib-line,#cbd9e4)!important
+}
+#libraryPage .library-book-cover{border-color:var(--lib-gold,#9a7840)}
+#libraryPage .library-book-card:focus-within .library-book-cover{
+ outline:2px solid var(--lib-gold,#9a7840);outline-offset:3px
+}
+@media(max-width:380px){
+ #libraryPage .library-brand-copy small{display:none}
+ #libraryPage .library-top-actions{gap:5px}
+ #libraryPage .library-top-actions button{min-width:35px;padding-inline:7px}
+ #libraryReaderView .pdf-reader-toolbar{gap:5px;padding-inline:6px}
+ #libraryReaderView .pdf-reader-toolbar button{padding-inline:7px;font-size:10px}
+ #libraryReaderView .pdf-reader-retry{width:34px;min-width:34px}
+}
 </style></head><body>${$('pa').innerHTML}\x3Cscript>onload=function(){setTimeout(function(){print()},900)}<\/script>
 
 
@@ -2947,27 +3027,29 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
    {id:'mushaf-madinah',title:'مصحف المدينة النبوية — رواية حفص',author:'مجمع الملك فهد لطباعة المصحف الشريف',description:'المصحف الشريف بالرسم العثماني، رواية حفص عن عاصم.',source:'واحة الإتقان · ملف PDF مجاني',pages:605,size:'5.3 MB',pdfUrl:'https://wahatalitqan.com/downloads/mushaf-madinah.pdf',tags:'القرآن الكريم المصحف حفص المدينة النبوية'}
   ]},
   {id:'hadith',name:'السنة النبوية',short:'كتب الحديث وشروح السنة',icon:'📜',description:'مصادر الحديث النبوي، ونضيف بقية الكتب والمجلدات تباعا.',resources:[
-   {id:'sahih-bukhari-vol1',title:'صحيح البخاري — الجزء الأول',author:'الإمام محمد بن إسماعيل البخاري',description:'الجزء الأول من طبعة دار الشعب، ويضم أبواب بدء الوحي والإيمان والعلم وغيرها.',source:'المكتبة الوقفية · PDF',pages:875,size:'ضمن مجموعة المجلدات',pdfUrl:'https://archive.org/download/FP1636/01_sabush.pdf',tags:'السنة الحديث صحيح البخاري البخاري'}
+   {id:'sahih-bukhari-vol1',title:'صحيح البخاري — الجزء الأول',author:'الإمام محمد بن إسماعيل البخاري',description:'الجزء الأول من طبعة دار الشعب، ويضم أبواب بدء الوحي والإيمان والعلم وغيرها.',source:'ويكي مصدر · نسخة قديمة في الملكية العامة',pages:2048,size:'51.96 MB',pdfUrl:'https://upload.wikimedia.org/wikisource/ar/c/c0/%D8%B5%D8%AD%D9%8A%D8%AD_%D8%A7%D9%84%D8%A8%D8%AE%D8%A7%D8%B1%D9%8A.pdf',tags:'السنة الحديث صحيح البخاري البخاري'},
+   {id:'riyad-salihin',title:'رياض الصالحين',author:'الإمام يحيى بن شرف النووي',description:'نسخة مصورة قديمة من كتاب رياض الصالحين، متاحة في الملكية العامة.',source:'ويكيميديا كومنز · PDF',pages:536,size:'13.44 MB',pdfUrl:'https://upload.wikimedia.org/wikipedia/commons/f/f1/%D8%B1%D9%8A%D8%A7%D8%B6_%D8%A7%D9%84%D8%B5%D8%A7%D9%84%D8%AD%D9%8A%D9%86_%28%D8%AF%D8%A7%D8%B1_%D8%A7%D9%84%D8%B1%D9%8A%D8%A7%D9%86%29.pdf',tags:'السنة الحديث رياض الصالحين النووي'}
   ]},
   {id:'grammar',name:'النحو والصرف',short:'أمهات كتب النحو وقواعد العربية',icon:'✒️',description:'كتب النحو والصرف، من أصول الصناعة إلى المتون والشروح.',resources:[
    {id:'kitab-sibawayh-vol1',title:'الكتاب لسيبويه — المجلد الأول',author:'سيبويه · تحقيق عبد السلام هارون',description:'المجلد الأول من كتاب سيبويه في أصول النحو العربي.',source:'المكتبة الوقفية · PDF',size:'ضمن مجموعة المجلدات',pdfUrl:'https://archive.org/download/WAQ54211/01_54211.pdf',tags:'النحو الصرف سيبويه الكتاب'}
   ]},
   {id:'balagha',name:'البلاغة',short:'المعاني والبيان والبديع',icon:'✨',description:'كتب البلاغة العربية وأمهات مباحث البيان والمعاني.',resources:[
-   {id:'balagha-wadiha',title:'البلاغة الواضحة',author:'علي الجارم ومصطفى أمين',description:'كتاب تعليمي في علوم البلاغة، من طبعة دار المعارف.',source:'المكتبة الوقفية · PDF',pages:468,size:'17 MB للنسخة الكاملة',pdfUrl:'https://archive.org/download/WAQblwa/blwa.pdf',tags:'بلاغة بيان معاني بديع الجارم أمين'},
-   {id:'dalail-ijaz',title:'دلائل الإعجاز',author:'عبد القاهر الجرجاني · تحقيق محمود محمد شاكر',description:'من أمهات كتب النظم والبيان والإعجاز اللغوي.',source:'المكتبة الوقفية · PDF',pages:711,size:'10 MB',pdfUrl:'https://www.archive.org/download/waq4438/4438.pdf',tags:'بلاغة إعجاز الجرجاني النظم'}
+   {id:'balagha-wadiha',title:'البلاغة الواضحة — المجلد الثاني',author:'علي الجارم ومصطفى أمين',description:'المجلد الخاص بكتاب البلاغة الواضحة من طبعة دار المعارف.',source:'المكتبة الوقفية · PDF',size:'ضمن طبعة من مجلدين',pdfUrl:'https://archive.org/download/WAQblwa/blwa.pdf',tags:'بلاغة بيان معاني بديع الجارم أمين'},
+   {id:'dalil-balagha-wadiha',title:'دليل البلاغة الواضحة — المجلد الأول',author:'علي الجارم',description:'الدليل المرافق لكتاب البلاغة الواضحة من طبعة دار المعارف.',source:'المكتبة الوقفية · PDF',pdfUrl:'https://archive.org/download/WAQblwa/dablwa.pdf',tags:'بلاغة بيان معاني بديع دليل الجارم'},
+   {id:'dalail-ijaz',title:'دلائل الإعجاز',author:'عبد القاهر الجرجاني · تحقيق محمود محمد شاكر',description:'من أمهات كتب النظم والبيان والإعجاز اللغوي.',source:'Arabic Collections Online · جامعة نيويورك',size:'48.09 MB · نسخة منخفضة الدقة',pdfUrl:'https://mc.dlib.nyu.edu/files/books/auc_aco000865/auc_aco000865_lo.pdf',tags:'بلاغة إعجاز الجرجاني النظم'}
   ]},
   {id:'arood',name:'علم العروض والقافية',short:'الأوزان والزحافات والعلل',icon:'⚖️',description:'كتب علم الخليل وأوزان الشعر والقافية وتطبيقاتها.',resources:[
    {id:'dirasat-arood',title:'دراسات في العروض والقافية',author:'عبد الله درويش',description:'مدخل دراسي إلى العروض والقافية في ملف مصور.',source:'المكتبة الوقفية · PDF',pages:149,size:'2 MB',pdfUrl:'https://archive.org/download/waq80595/80595.pdf',tags:'العروض القافية البحور الشعر'}
   ]},
   {id:'adab',name:'الأدب العربي',short:'النثر والرسائل والنوادر',icon:'📚',description:'مصنفات الأدب العربي القديم والنثر والبيان وأخبار العرب.',resources:[
-   {id:'bayan-tabyin-vol1',title:'البيان والتبيين — المجلد الأول',author:'الجاحظ · تحقيق عبد السلام هارون',description:'المجلد الأول من كتاب الجاحظ في البيان والبلاغة وفنون القول.',source:'المكتبة الوقفية · PDF',size:'ضمن مجموعة المجلدات',pdfUrl:'https://archive.org/download/WAQ54207/01_54207.pdf',tags:'الأدب الجاحظ البيان التبيين النثر البلاغة'},
-   {id:'uyun-akhbar-vol1',title:'عيون الأخبار — المجلد الأول',author:'ابن قتيبة الدينوري',description:'كتاب أدبي تراثي يجمع أبوابا في السلطان والحرب والسؤدد والأخلاق.',source:'المكتبة الوقفية · PDF',size:'ضمن مجموعة المجلدات',pdfUrl:'https://archive.org/download/waq11629/01_11629.pdf',tags:'الأدب ابن قتيبة أخبار نوادر'}
+   {id:'bayan-tabyin-vol1',title:'البيان والتبيين — المجلد الأول',author:'الجاحظ · تحقيق عبد السلام هارون',description:'المجلد الأول من كتاب الجاحظ في البيان والبلاغة وفنون القول.',source:'ويكي مصدر · نسخة قديمة في الملكية العامة',pages:264,size:'4.06 MB',pdfUrl:'https://upload.wikimedia.org/wikisource/ar/7/75/%D8%A7%D9%84%D8%A8%D9%8A%D8%A7%D9%86_%D9%88%D8%A7%D9%84%D8%AA%D8%A8%D9%8A%D9%8A%D9%861.pdf',tags:'الأدب الجاحظ البيان التبيين النثر البلاغة'},
+   {id:'uyun-akhbar',title:'عيون الأخبار',author:'ابن قتيبة الدينوري',description:'نسخة مصورة تضم أربعة مجلدات من كتاب عيون الأخبار.',source:'ويكي مصدر · نسخة قديمة في الملكية العامة',pages:505,size:'19.46 MB',pdfUrl:'https://upload.wikimedia.org/wikisource/ar/4/40/%D8%B9%D9%8A%D9%88%D9%86_%D8%A7%D9%84%D8%A3%D8%AE%D8%A8%D8%A7%D8%B1.pdf',tags:'الأدب ابن قتيبة أخبار نوادر'}
   ]},
   {id:'maqamat',name:'المقامات والنوادر',short:'مقامات الحريري والهمذاني',icon:'🪶',description:'المقامات الأدبية والنثر المسجوع والحكايات والنوادر.',resources:[
-   {id:'maqamat-hariri',title:'مقامات الحريري',author:'القاسم بن علي الحريري',description:'المقامات المشهورة، في نسخة PDF مصورة من 430 صفحة.',source:'المكتبة الوقفية · PDF',pages:430,size:'8 MB',pdfUrl:'https://archive.org/download/fp121261_202603/121261.pdf',tags:'المقامات الحريري الهمذاني نوادر نثر'}
+   {id:'maqamat-hariri',title:'مقامات الحريري',author:'القاسم بن علي الحريري',description:'المقامات المشهورة، في نسخة PDF مصورة من 430 صفحة.',source:'ويكي مصدر · طبعة قديمة',pages:500,size:'32.96 MB',pdfUrl:'https://upload.wikimedia.org/wikisource/ar/c/c1/%D9%85%D9%82%D8%A7%D9%85%D8%A7%D8%AA_%D8%A7%D9%84%D8%AD%D8%B1%D9%8A%D8%B1%D9%8A.pdf',tags:'المقامات الحريري الهمذاني نوادر نثر'}
   ]},
   {id:'ibn-taymiyyah',name:'كتب ابن تيمية',short:'مؤلفات شيخ الإسلام ورسائله',icon:'📘',description:'نبدأ بمجلد من مجموع الفتاوى، وتضاف بقية المجلدات والرسائل تدريجيا.',resources:[
-   {id:'majmoo-fatawa-vol1',title:'مجموع الفتاوى — الجزء الأول',author:'شيخ الإسلام أحمد بن تيمية',description:'المجلد الأول من مجموع الفتاوى، ضمن الطبعة المصورة المتاحة للقراءة.',source:'المكتبة الوقفية · PDF',pdfUrl:'https://archive.org/download/FP86811/mfsiaitm01.pdf',tags:'ابن تيمية مجموع الفتاوى فتاوى عقيدة'}
+   {id:'majmoo-fatawa-vol1',title:'مجموع الفتاوى — الجزء الأول',author:'شيخ الإسلام أحمد بن تيمية',description:'المجلد الأول من مجموع الفتاوى، ضمن الطبعة المصورة المتاحة للقراءة.',source:'المكتبة الوقفية · PDF',pdfUrl:'https://archive.org/download/mfsiaitmmfsiaitm/mfsiaitm01.pdf',tags:'ابن تيمية مجموع الفتاوى فتاوى عقيدة'}
   ]},
   {id:'ibn-alqayyim',name:'كتب ابن القيم الجوزية',short:'المؤلفات والتهذيب والسلوك',icon:'📗',description:'نبدأ بمدارج السالكين، وتضاف بقية الكتب والمجلدات تباعا.',resources:[
    {id:'madarij-salikin-vol1',title:'مدارج السالكين — المجلد الأول',author:'الإمام ابن قيم الجوزية',description:'المجلد الأول من مدارج السالكين في منازل السائرين.',source:'المكتبة الوقفية · PDF',size:'ضمن مجموعة المجلدات',pdfUrl:'https://archive.org/download/WAQ140248/01_140248.pdf',tags:'ابن القيم ابن قيم الجوزية مدارج السالكين'}
@@ -2978,7 +3060,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  readerView.className='library-pdf-reader';
  readerView.hidden=true;
  readerView.setAttribute('aria-label','قارئ الكتب PDF');
- readerView.innerHTML='<header class="pdf-reader-toolbar"><button type="button" id="readerBack" aria-label="العودة إلى قائمة الكتب">‹ العودة</button><div class="pdf-reader-heading"><strong id="readerTitle"></strong><small id="readerMeta">ملف PDF</small></div><span class="pdf-reader-badge">PDF</span></header><iframe id="readerFrame" class="pdf-reader-frame" title="قارئ ملف PDF" loading="eager" allow="fullscreen"></iframe>';
+ readerView.innerHTML='<header class="pdf-reader-toolbar"><button type="button" id="readerBack" aria-label="العودة إلى الكتب">‹ الكتب</button><div class="pdf-reader-heading"><strong id="readerTitle"></strong><small id="readerMeta">ملف PDF</small></div><button type="button" id="readerRetry" class="pdf-reader-retry" aria-label="إعادة تحميل ملف PDF">↻</button><span class="pdf-reader-badge">PDF</span></header><iframe id="readerFrame" class="pdf-reader-frame" title="قارئ ملف PDF" loading="eager" referrerpolicy="no-referrer" allow="fullscreen"></iframe>';
  const libraryShell=page.querySelector('.library-shell')||page;
  libraryShell.append(readerView);
  let activeReader=null;
@@ -2990,17 +3072,18 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   $('readerTitle').textContent=book.title;
   $('readerMeta').textContent=[book.author,book.pages?book.pages+' صفحة':'ملف PDF',book.source].filter(Boolean).join(' · ');
   $('readerFrame').title='قراءة '+book.title;
-  $('readerFrame').src=book.pdfUrl+'#toolbar=1&navpanes=0&view=FitH';
+  const pdfSource=book.pdfUrl+'#toolbar=1&navpanes=0&view=FitH';
+  if($('readerFrame').dataset.pdfSource!==pdfSource){$('readerFrame').dataset.pdfSource=pdfSource;$('readerFrame').src=pdfSource;}
   readerView.hidden=false;
   $('readerBack').focus();
  }
  function closeReader(){
   if(readerView.hidden)return;
-  $('readerFrame').src='about:blank';
   readerView.hidden=true;
   show(readerReturnView||'libraryHome');
  }
  $('readerBack').addEventListener('click',closeReader);
+ $('readerRetry').addEventListener('click',()=>{if(activeReader){const frame=$('readerFrame');const src=activeReader.pdfUrl+'#toolbar=1&navpanes=0&view=FitH';frame.dataset.pdfSource=src;frame.src=src}});
  const saveKey='anwar_library_saved_v1';
  const libraryThemeKey='anwar_library_theme_v1';
  const libraryThemes=['white','cream','pearl','blue'];
@@ -3088,7 +3171,8 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  }
  function close(){
   if(page.hidden)return;
-  if(!readerView.hidden){$('readerFrame').src='about:blank';readerView.hidden=true}
+  if(!readerView.hidden){readerView.hidden=true}
+ $('readerFrame').src='about:blank';$('readerFrame').dataset.pdfSource='';
   page.hidden=true;page.setAttribute('aria-hidden','true');app.removeAttribute('aria-hidden');app.inert=false;
   document.body.style.overflow=previousOverflow;
   (previousFocus&&previousFocus.focus?previousFocus:openButton).focus();
