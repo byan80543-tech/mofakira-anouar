@@ -1109,25 +1109,32 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   const groups=new Map();
   R.forEach((r,i)=>{
    const name=readerIdentity(r[0]),key=readerKey(name);
-   if(!groups.has(key))groups.set(key,{name,variants:[],seen:new Set()});
+   if(!groups.has(key))groups.set(key,{name,variants:[],seen:new Map()});
    const group=groups.get(key),url=String(r[1]||'').replace(/\/+$/,'').toLowerCase();
    const variantKey=url;
-   if(group.seen.has(variantKey))return;
-   group.seen.add(variantKey);
-   group.variants.push({index:i,label:readerVariantLabel(r[0],group.variants.length,1)});
+   if(group.seen.has(variantKey)){
+    const previous=group.seen.get(variantKey),oldSurahs=R[previous.index][2],newSurahs=r[2];
+    if(Array.isArray(oldSurahs)&&oldSurahs.length&&Array.isArray(newSurahs)&&newSurahs.length)
+     R[previous.index][2]=[...new Set(oldSurahs.concat(newSurahs))].sort((a,b)=>a-b);
+    else R[previous.index][2]=[];
+    return;
+   }
+   const variant={index:i,label:readerVariantLabel(r[0],group.variants.length,1)};
+   group.seen.set(variantKey,variant);group.variants.push(variant);
   });
   for(const g of groups.values()){
    if(g.variants.length>1)g.variants.forEach((v,i)=>{if(v.label==='استمع')v.label='تسجيل '+(i+1)});
   }
   return [...groups.values()].sort((a,b)=>a.name.localeCompare(b.name,'ar'));
  }
+ function uniqueRecitationCount(){return groupedReciters().reduce((sum,g)=>sum+g.variants.length,0)}
  function fill(){
   const v=+rr.value||0,q=($('rq').value||'').trim().toLocaleLowerCase('ar'),all=groupedReciters();
   rr.innerHTML=R.map((r,i)=>`<option value="${i}">${esc(r[0])}</option>`).join('');rr.value=String(v);
   const surah=+rsu.value||1;rsu.innerHTML=SU.map((x,i)=>`<option value="${i+1}">${i+1}. ${esc(x)}</option>`).join('');rsu.value=surah;
   const L=all.filter(g=>!q||g.name.toLocaleLowerCase('ar').includes(q)||g.variants.some(v=>String(R[v.index][0]).toLocaleLowerCase('ar').includes(q)));
   $('reciterGrid').innerHTML=L.length?L.map(g=>`<div class="reciter-card" role="listitem"><span class="reciter-seal" aria-hidden="true">🌷</span><div class="reciter-body"><span class="reciter-name">${esc(g.name)}</span><div class="reciter-variants">${g.variants.map(v=>`<button type="button" class="${g.variants.length>1?'reciter-version':'reciter-play'}" data-reciter-play="${v.index}" data-play-label="${esc(g.variants.length>1?v.label:'▶')}" aria-label="تشغيل ${esc(g.name)} — ${esc(v.label)}">${g.variants.length>1?esc(v.label):'▶'}</button>`).join('')}</div></div></div>`).join(''):'<div class="reciter-empty">لا توجد نتائج بهذا الاسم.</div>';
-  const count=$('reciterCount');if(count)count.textContent='القرّاء '+new Intl.NumberFormat('ar').format(L.length)+' من '+new Intl.NumberFormat('ar').format(all.length)+' · التسجيلات '+new Intl.NumberFormat('ar').format(R.length);
+  const count=$('reciterCount');if(count)count.textContent='القرّاء '+new Intl.NumberFormat('ar').format(L.length)+' من '+new Intl.NumberFormat('ar').format(all.length)+' · التسجيلات '+new Intl.NumberFormat('ar').format(uniqueRecitationCount());
   ui();
  }
  async function J(u){const c=new AbortController(),t=setTimeout(()=>c.abort(),7000);try{const r=await fetch(u,{signal:c.signal});if(!r.ok)throw 0;return await r.json()}finally{clearTimeout(t)}}
@@ -1138,7 +1145,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   if(q[1].status==='fulfilled'){const L=(q[1].value.suwar||[]).map(s=>String(s.name).trim());if(L.length===114){SU.length=0;SU.push(...L);ok++}}
   if(q[2].status==='fulfilled'){const L=(q[2].value.radios||[]).map(x=>({name:String(x.name||'إذاعة').slice(0,100),url:safeHttpsURL(x.url)})).filter(x=>x.url);if(L.length){$('rl').innerHTML=L.map(x=>`<option value="${esc(x.url)}">${esc(x.name)}</option>`).join('');$('liveStationArea').hidden=false;ok++}}
   fill();
-  $('src').textContent=ok?`تضم القائمة ${groupedReciters().length} قارئًا فريدًا و${R.length} خيار تلاوة، مع تحديث حي من mp3quran.net ✓`:'قائمة مدمجة: المنصة تمنع الاتصال بالمصدر من داخل هذه الصفحة';
+  $('src').textContent=ok?`تضم القائمة ${groupedReciters().length} قارئًا فريدًا و${uniqueRecitationCount()} خيار تلاوة بعد إزالة التكرار، مع تحديث حي من mp3quran.net ✓`:'قائمة مدمجة: المنصة تمنع الاتصال بالمصدر من داخل هذه الصفحة';
  })();
  document.querySelectorAll('input[name=rm]').forEach(x=>x.addEventListener('change',()=>{if(started)play()}));
  $('rl').addEventListener('change',()=>{if(started)play()});
@@ -1273,7 +1280,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   const allFailed=result.failed.map(index=>pageNumbers[index-1]).filter(Number.isFinite);
   failedCountryPages=allFailed.length?allFailed:[];
   activeCountryRows=dedupeCountryRows(combined);
-  countryCache.set(key,{rawRows:combined,rows:activeCountryRows});
+  countryCache.set(key,{rawRows:combined,rows:activeCountryRows,failed:failedCountryPages.slice()});
   countryRetry.hidden=!failedCountryPages.length;
   countrySearch.value='';activeCountryPage=0;renderCountryRows();
   const duplicates=Math.max(0,combined.length-activeCountryRows.length);
@@ -1299,8 +1306,11 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
    countryCountBox.textContent='0';countryStatusBox.textContent='لا يحتوي الدليل الذي نستخدمه على صفحة مستقلة لهذه الدولة حتى الآن. لم نضع قائمة تخمينية.';
    countryPageBox.textContent='—';countryPrev.disabled=true;countryNext.disabled=true;
   }else if(countryCache.has(key)){
-   activeCountryRows=countryCache.get(key).rows;failedCountryPages=[];
-   renderCountryRows();countryStatusBox.textContent='قائمة محفوظة في الذاكرة لهذه الجلسة · '+activeCountryRows.length+' اسمًا بعد إزالة التكرار.';
+   const cached=countryCache.get(key);
+   activeCountryRows=cached.rows;failedCountryPages=(cached.failed||[]).slice();
+   countryRetry.hidden=!failedCountryPages.length;
+   renderCountryRows();
+   countryStatusBox.textContent='قائمة محفوظة في الذاكرة لهذه الجلسة · '+activeCountryRows.length+' اسمًا بعد إزالة التكرار.'+(failedCountryPages.length?' · ما زالت '+failedCountryPages.length+' صفحة تحتاج إلى إعادة تحميل.':'');
   }else{
    loadCountryReaders(key,false).catch(error=>{
     countryStatusBox.textContent='تعذر جلب القائمة الآن. تحقق من الاتصال ثم اضغط إعادة المحاولة.';
