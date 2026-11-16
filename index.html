@@ -3028,6 +3028,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  }
  function close(){
   if(page.hidden)return;
+  if(!readerView.hidden){$('readerFrame').src='about:blank';readerView.hidden=true}
   page.hidden=true;page.setAttribute('aria-hidden','true');app.removeAttribute('aria-hidden');app.inert=false;
   document.body.style.overflow=previousOverflow;
   (previousFocus&&previousFocus.focus?previousFocus:openButton).focus();
