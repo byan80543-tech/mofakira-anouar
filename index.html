@@ -682,6 +682,8 @@ dialog[open]>.float-head{display:none!important}
     </optgroup>
     <optgroup label="القرن الأفريقي والجزر">
      <option value="somalia">الصومال</option>
+     <option value="djibouti">جيبوتي</option>
+     <option value="comoros">جزر القمر</option>
     </optgroup>
    </select>
    <button id="reciterCountryOpen" class="reciter-country-open" type="button" disabled>عرض القرّاء داخل أنوار</button>
@@ -1289,7 +1291,9 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   'oman':{name:'سلطنة عُمان',code:'OM',marker:'عماني'},
   'mauritania':{name:'موريتانيا',code:'MR',marker:'موريتاني'},
   'lebanon':{name:'لبنان',code:'LB',marker:'لبناني'},
-  'somalia':{name:'الصومال',code:'SO',marker:'صومالي'}
+  'somalia':{name:'الصومال',code:'SO',marker:'صومالي'},
+  'djibouti':{name:'جيبوتي',code:'DJ',marker:'جيبوتي'},
+  'comoros':{name:'جزر القمر',code:'KM',marker:'قمري'}
  };
  const countryModal=$('reciterCountryModal'),countryDialog=countryModal.querySelector('.country-reader-dialog');
  const countrySearch=$('countryReaderSearch'),countryList=$('countryReaderList'),countryStatusBox=$('countryReaderStatus');
@@ -1580,6 +1584,10 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   const slug=card.dataset.countryReciter||'',profileUrl=card.dataset.countryProfile||'';
   if(!slug||!profileUrl)return Promise.reject(new Error('رابط صفحة القارئ غير موجود'));
   if(countryProfileCache.has(slug))return countryProfileCache.get(slug);
+  if(countryProfileCache.size>=16){
+   const oldest=countryProfileCache.keys().next().value;
+   if(oldest)countryProfileCache.delete(oldest);
+  }
   const promise=fetchCountryHtml(profileUrl).then(html=>{
    const urls=countryAudioCandidates(html);
    if(!urls.length)throw new Error('لم تُعثر على روابط MP3 مباشرة');
