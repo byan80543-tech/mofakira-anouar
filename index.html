@@ -1095,7 +1095,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  }
  function readerKey(name){
   return readerIdentity(name).normalize('NFKC').replace(/[\u064B-\u065F\u0670\u0640]/g,'')
-   .replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/[\u200e\u200f]/g,'')
+   .replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/ؤ/g,'و').replace(/ئ/g,'ي').replace(/[\u200e\u200f]/g,'')
    .replace(/[\sـ،؛:,.()[\]{}'"]/g,'').toLowerCase();
  }
  function readerVariantLabel(name,index,total){
@@ -1178,11 +1178,11 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  const countryModal=$('reciterCountryModal'),countryDialog=countryModal.querySelector('.country-reader-dialog');
  const countrySearch=$('countryReaderSearch'),countryList=$('countryReaderList'),countryStatusBox=$('countryReaderStatus');
  const countryCountBox=$('countryReaderCount'),countryPageBox=$('countryReaderPage'),countryPrev=$('countryReaderPrev'),countryNext=$('countryReaderNext'),countryRetry=$('countryReaderRetry');
- const countryCache=new Map();let activeCountryKey='',activeCountryRows=[],activeCountryPage=0,failedCountryPages=[];
+ const countryCache=new Map();let activeCountryKey='',activeCountryRows=[],activeCountryPage=0,failedCountryPages=[],countryPreviousOverflow='';
  const COUNTRY_PAGE_SIZE=40,COUNTRY_BASE='https://etilawa.com/countries/';
  function countryNorm(v){
   return String(v||'').normalize('NFKC').replace(/[\u064B-\u065F\u0670\u0640]/g,'')
-   .replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/[\u200e\u200f]/g,'')
+   .replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/ؤ/g,'و').replace(/ئ/g,'ي').replace(/[\u200e\u200f]/g,'')
    .replace(/\s+/g,'').replace(/[ـ،؛:,.]/g,'').toLowerCase();
  }
  function countryDigits(v){
@@ -1194,7 +1194,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
    let u;try{u=new URL(a.getAttribute('href'),COUNTRY_BASE)}catch(_e){return}
    if(u.hostname!=='etilawa.com')return;
    const m=u.pathname.match(/^\/reciters\/([^/]+)\/?$/);if(!m)return;
-   let raw=(a.textContent||'').replace(/[\u064B-\u065F\u0670]/g,'').replace(/\s+/g,' ').trim();
+   let raw=(a.textContent||a.getAttribute('aria-label')||a.getAttribute('title')||'').replace(/[\u064B-\u065F\u0670]/g,'').replace(/\s+/g,' ').trim();
    const recordingMatch=raw.match(/(\d+|[٠-٩]+)\s*تسجيل/);
    const recordings=/تسجيلان/.test(raw)?2:recordingMatch?Math.max(1,Number(countryDigits(recordingMatch[1]))||1):1;
    const name=raw.replace(/\s*(?:تسجيل واحد|تسجيلان|(?:\d+|[٠-٩]+)\s*تسجيل(?:ات|ا)?)\s*$/,'').trim();
@@ -1297,7 +1297,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  function openCountryModal(){
   const key=countrySelect.value;if(!key)return;
   activeCountryKey=key;activeCountryPage=0;countrySearch.value='';
-  countryModal.hidden=false;document.body.classList.add('country-reader-open');document.body.style.overflow='hidden';
+  countryPreviousOverflow=document.body.style.overflow;countryModal.hidden=false;document.body.classList.add('country-reader-open');document.body.style.overflow='hidden';
   const entry=countryDirectory[key];
   $('countryModalTitle').textContent='قرّاء '+(entry?entry.name:countrySelect.selectedOptions[0].textContent.split('·')[0].trim());
   $('countryModalSub').textContent=entry?new Intl.NumberFormat('ar').format(entry.count)+' اسمًا في المصدر · عرض داخلي داخل أنوار':'لا توجد قائمة مستقلة موثقة لهذه الدولة';
@@ -1321,7 +1321,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   requestAnimationFrame(()=>countryDialog.focus());
  }
  function closeCountryModal(){
-  countryModal.hidden=true;document.body.classList.remove('country-reader-open');document.body.style.overflow='';
+  countryModal.hidden=true;document.body.classList.remove('country-reader-open');document.body.style.overflow=countryPreviousOverflow;
   countryOpen.focus();
  }
  countryOpen.addEventListener('click',openCountryModal);
@@ -1332,8 +1332,6 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  countryPrev.addEventListener('click',()=>{activeCountryPage=Math.max(0,activeCountryPage-1);renderCountryRows()});
  countryNext.addEventListener('click',()=>{activeCountryPage++;renderCountryRows()});
  countryRetry.addEventListener('click',()=>loadCountryReaders(activeCountryKey,true).catch(()=>{countryStatusBox.textContent='تعذّرت إعادة المحاولة؛ تحقق من الاتصال وحاول مجددًا.';countryRetry.hidden=false}));
- countrySelect.addEventListener('change',updateCountryDirectory);
- updateCountryDirectory();
  countrySelect.addEventListener('change',updateCountryDirectory);
  updateCountryDirectory();
 
