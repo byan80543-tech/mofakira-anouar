@@ -3208,16 +3208,28 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   $('readerPdfSheet').hidden=true;
   $('readerFallback').hidden=true;
  }
+ function readerErrorMessage(error){
+  const name=String(error&&error.name||'');
+  const message=String(error&&error.message||'');
+  const response=message.match(/Unexpected server response\s*\((\d{3})\)/i);
+  if(name==='InvalidPDFException')return 'الملف الذي أعاده المصدر ليس نسخة PDF صالحة أو أن بياناته تالفة.';
+  if(name==='MissingPDFException')return 'لم يعثر المصدر على ملف الكتاب؛ قد يكون الرابط قد تغير أو حُذف.';
+  if(name==='PasswordException')return 'هذه النسخة محمية بكلمة مرور ولا يمكن فتحها في القارئ الحالي.';
+  if(response)return 'رفض مصدر الكتاب الطلب وأعاد حالة HTTP '+response[1]+'.';
+  if(/failed to fetch|networkerror|network request failed|cors/i.test(message))return 'تعذر الوصول إلى مصدر الكتاب من المتصفح؛ قد يكون اتصال المصدر متوقفًا أو يمنع القراءة المضمنة.';
+  if(/worker|import|module/i.test(message))return 'تعذر تحميل محرك قراءة PDF. تحقق من الاتصال ثم أعد المحاولة.';
+  return 'تعذر على القارئ قراءة هذه النسخة. قد يكون الملف غير متاح أو تالفًا أو لا يسمح مصدره بالوصول المباشر.';
+ }
  function showReaderFallback(error){
   $('readerLoading').hidden=true;
   $('readerPdfSheet').hidden=true;
   $('readerFallback').hidden=false;
-  $('readerFallbackTitle').textContent='تعذّر العرض المباشر لهذا الملف';
-  $('readerFallbackText').textContent='لم يسمح مصدر النسخة بقراءتها عبر العارض الداخلي المتقدم. جرّب القارئ المضمن البديل؛ لن يبدأ تنزيل الملف تلقائيا.';
+  $('readerFallbackTitle').textContent='تعذّر فتح النسخة داخل القارئ';
+  $('readerFallbackText').textContent=readerErrorMessage(error)+' يمكنك تجربة القارئ المضمن البديل؛ ولن يبدأ تنزيل الملف تلقائيا.';
   $('readerFrame').hidden=true;
   $('readerFrame').src='about:blank';
   $('readerGoogleFallback').hidden=false;
-  setReaderStatus('تعذر العرض المباشر · عارض بديل متاح');
+  setReaderStatus('تعذر فتح النسخة · عارض بديل متاح');
   console.warn('Anwar PDF viewer fallback:',error);
  }
  function ensurePdfEngine(){
@@ -3275,7 +3287,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
    const fitScale=Math.min(1.75,available/base.width);
    const scale=Math.max(.35,Math.min(4.0,fitScale*readerZoom));
    const viewport=page.getViewport({scale});
-   const outputScale=Math.max(1,Math.min(1.5,window.devicePixelRatio||1));
+   const outputScale=Math.max(1,Math.min(1.25,window.devicePixelRatio||1));
    const canvas=$('readerCanvas'),context=canvas.getContext('2d',{alpha:false});
    canvas.width=Math.ceil(viewport.width*outputScale);
    canvas.height=Math.ceil(viewport.height*outputScale);
@@ -3349,7 +3361,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   ['libraryHome','librarySearchView','librarySavedView'].forEach(id=>$(id).hidden=true);
   readerView.hidden=false;
   $('readerTitle').textContent=book.title;
-  $('readerMeta').textContent=[book.author,book.source].filter(Boolean).join(' · ')+' · قراءة داخل المفكرة';
+  $('readerMeta').textContent=[book.author,book.pages?book.pages+' صفحة':'',book.size||'',book.source].filter(Boolean).join(' · ')+' · قراءة داخل المفكرة';
   $('readerFrame').src='about:blank';$('readerFrame').hidden=true;
   $('readerBookmarkPanel').hidden=true;$('readerContentsPanel').hidden=true;
   $('readerGoogleFallback').hidden=false;
@@ -3477,7 +3489,8 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   cover.append(imprint,title,author,format);
   const caption=document.createElement('span');caption.className='library-book-caption';
   const captionTitle=document.createElement('strong');captionTitle.textContent=r.title;
-  const captionAuthor=document.createElement('small');captionAuthor.textContent=r.author||'';
+  const captionAuthor=document.createElement('small');
+  captionAuthor.textContent=[r.author,r.pages?r.pages+' صفحة':'',r.size||''].filter(Boolean).join(' · ');
   caption.append(captionTitle,captionAuthor);open.append(cover,caption);
   const bookmark=document.createElement('button');bookmark.type='button';bookmark.className='library-book-save';bookmark.dataset.saveResource=r.id;
   const isSaved=saved.includes(r.id);bookmark.textContent=isSaved?'★':'♡';
@@ -3515,8 +3528,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   app.setAttribute('aria-hidden','true');app.inert=true;
   page.hidden=false;page.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
   goHome();$('libraryClose').focus();
-  // سخّن محرك القراءة بعد دخول المكتبة، لا أثناء تحميل الصفحة الرئيسية.
-  ensurePdfEngine().catch(()=>{});
+  // يبقى محرك PDF مؤجلا حتى يختار القارئ كتابا؛ فتفتح المكتبة دون تحميل مكتبة القراءة مسبقا.
  }
  function close(){
   if(page.hidden)return;
