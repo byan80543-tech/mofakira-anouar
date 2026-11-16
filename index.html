@@ -987,7 +987,7 @@ dialog[open]>.float-head{display:none!important}
  <div class="library-shell">
   <header class="library-top" aria-label="أدوات المكتبة">
    <div class="library-top-actions">
-    <button type="button" id="librarySaved" aria-pressed="false"><span aria-hidden="true">♡</span> محفوظاتي</button>
+    <button type="button" id="librarySaved" aria-label="محفوظاتي" title="محفوظاتي" aria-pressed="false"><span aria-hidden="true">♡</span></button>
     <button type="button" id="libraryTheme" aria-label="تغيير لون المكتبة" title="تغيير لون المكتبة">◐</button>
     <button type="button" id="libraryClose" aria-label="إغلاق المكتبة">✕</button>
    </div>
@@ -1460,6 +1460,11 @@ button:focus:not(:focus-visible){outline:none}
  border-radius:11px;box-shadow:var(--lib-shadow)!important
 }
 #libraryPage .library-resource-copy{min-width:0;display:flex;align-items:center}
+#libraryPage .library-resource-icon{
+ width:30px;height:30px;min-width:30px;display:grid;place-items:center;margin-inline-end:8px;
+ border:1px solid var(--lib-line);border-radius:9px;background:var(--lib-gold-soft);
+ color:var(--lib-gold);font-size:17px;line-height:1
+}
 #libraryPage .library-resource-copy strong{color:var(--lib-text)!important;font:700 11px/1.5 Cairo,Tahoma,sans-serif;overflow-wrap:anywhere}
 #libraryPage .library-resource-copy p,#libraryPage .library-resource-copy small{display:none!important}
 #libraryPage .library-resource-actions{display:flex;flex-direction:row;align-items:center;gap:5px;flex:none}
@@ -2799,13 +2804,13 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  if(!page||!openButton)return;
  const $=id=>document.getElementById(id);
  const categories=[
-  {id:'quran',name:'القرآن',short:'المصحف والتلاوة وعلوم القرآن',icon:'۞',description:'مصحف للقراءة والاستماع، ومراجع للتفسير والتجويد والقراءات وعلوم القرآن.',resources:[
+  {id:'quran',name:'القرآن',short:'المصحف والتلاوة وعلوم القرآن',icon:'🌷',description:'مصحف للقراءة والاستماع، ومراجع للتفسير والتجويد والقراءات وعلوم القرآن.',resources:[
    {id:'quran-com',title:'مصحف Quran.com',description:'قراءة القرآن الكريم والاستماع إلى التلاوات والبحث في السور والآيات.',source:'Quran.com · منصة القرآن',url:'https://quran.com/ar',tags:'قرآن مصحف سورة آية قراءة استماع تلاوة'},
    {id:'waqfeya-qiraat',title:'كتب التجويد والقراءات',description:'فهرس متخصص في التجويد وأصول القراءات والروايات ومتون هذا العلم.',source:'المكتبة الوقفية · 211.8',url:'https://waqfeya.net/categories/2118-%D9%83%D8%AA%D8%A8-%D8%A7%D9%84%D8%AA%D8%AC%D9%88%D9%8A%D8%AF-%D9%88%D8%A7%D9%84%D9%82%D8%B1%D8%A7%D8%A1%D8%A7%D8%AA-30c210734d3448c2943410705ac6d73a',tags:'تجويد قراءات روايات ورش حفص شاطبية'},
    {id:'waqfeya-quran-sciences',title:'كتب علوم القرآن',description:'مباحث علوم القرآن والرسم والوقف والابتداء وغريب القرآن.',source:'المكتبة الوقفية · 211',url:'https://waqfeya.net/categories/211-%D9%83%D8%AA%D8%A8-%D8%B9%D9%84%D9%88%D9%85-%D8%A7%D9%84%D9%82%D8%B1%D8%A2%D9%86-575be67c490742e4b3f38cc8201b1f44',tags:'علوم القرآن رسم عثماني غريب القرآن'},
    {id:'waqfeya-tafsir',title:'كتب التفسير',description:'فهرس التفاسير ومصنفات شرح معاني الآيات وأسباب النزول.',source:'المكتبة الوقفية · 212',url:'https://waqfeya.net/categories/212-%D9%83%D8%AA%D8%A8-%D8%A7%D9%84%D8%AA%D9%81%D8%A7%D8%B3%D9%8A%D8%B1-edcaae95b59b4ce7af1338766f873ac3',tags:'تفسير ابن كثير طبري قرطبي السعدي'},
   ]},
-  {id:'sharia',name:'العلوم الشرعية',short:'التوحيد والعقيدة والفقه',icon:'۩',description:'مصادر العقيدة والتوحيد والفقه والتزكية، وفهارس مؤلفات العلماء وشروح المتون.',resources:[
+  {id:'sharia',name:'العلوم الشرعية',short:'التوحيد والعقيدة والفقه',icon:'📚',description:'مصادر العقيدة والتوحيد والفقه والتزكية، وفهارس مؤلفات العلماء وشروح المتون.',resources:[
    {id:'waqfeya-tawhid',title:'كتب التوحيد والعقيدة',description:'تصنيف مستقل لكتب التوحيد والعقيدة، يضم متونًا وشروحًا ومؤلفات في الاعتقاد.',source:'المكتبة الوقفية · 214',url:'https://waqfeya.net/categories/214-%D9%83%D8%AA%D8%A8-%D8%A7%D9%84%D8%AA%D9%88%D8%AD%D9%8A%D8%AF-%D9%88%D8%A7%D9%84%D8%B9%D9%82%D9%8A%D8%AF%D8%A9-0b4e3c3007aa4c0089b238a24ce66bea',tags:'توحيد عقيدة ابن تيمية ابن القيم ابن الجوزي'},
    {id:'shamela',title:'المكتبة الشاملة',description:'مكتبة رقمية واسعة للكتب الإسلامية والتراثية، مع البحث في النصوص.',source:'المكتبة الشاملة · الموقع الرسمي',url:'https://shamela.ws/',tags:'ابن تيمية ابن القيم ابن الجوزي فقه عقيدة كتب'},
    {id:'waqfeya-books',title:'الكتب الفقهية والشرعية',description:'تصفّح الكتب المصوّرة حسب الفن والمؤلف والقرن الهجري.',source:'المكتبة الوقفية',url:'https://waqfeya.net/books',tags:'فقه فتاوى تزكية شرعي'},
@@ -2813,24 +2818,24 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
    {id:'ibn-alqayyim',title:'مؤلفات ابن قيم الجوزية',description:'فهرس كتب ابن قيم الجوزية، مع بيانات الكتب والطبعات المتاحة.',source:'المكتبة الوقفية · المؤلفون',url:'https://waqfeya.net/authors/%D8%A7%D8%A8%D9%86-%D9%82%D9%8A%D9%85-%D8%A7%D9%84%D8%AC%D9%88%D8%B2%D9%8A%D8%A9-%D9%85%D8%AD%D9%85%D8%AF-%D8%A8%D9%86-%D8%A3%D8%A8%D9%8A-%D8%A8%D9%83%D8%B1-%D8%A8%D9%86-%D8%A3%D9%8A%D9%88%D8%A8-%D8%A8%D9%86-%D8%B3%D8%B9%D8%AF-%D8%A7%D9%84%D8%B2%D8%B1%D8%B9%D9%8A-%D8%A7%D9%84%D8%AF%D9%85%D8%B4%D9%82%D9%8A-%D8%A3%D8%A8%D9%88-%D8%B9%D8%A8%D8%AF-%D8%A7%D9%84%D9%84%D9%87-%D8%B4%D9%85%D8%B3-%D8%A7%D9%84%D8%AF%D9%8A%D9%86-fa1bf7bdbfbe42d2a45efe90d6c831b0',tags:'ابن القيم ابن قيم الجوزية مؤلفات'},
    {id:'ibn-aljawzi',title:'مؤلفات ابن الجوزي',description:'فهرس كتب الإمام ابن الجوزي ورسائله ضمن المكتبة الوقفية.',source:'المكتبة الوقفية · المؤلفون',url:'https://waqfeya.net/authors/%D8%A7%D8%A8%D9%86-%D8%A7%D9%84%D8%AC%D9%88%D8%B2%D9%8A-%D8%B9%D8%A8%D8%AF-%D8%A7%D9%84%D8%B1%D8%AD%D9%85%D9%86-%D8%A8%D9%86-%D8%B9%D9%84%D9%8A-%D8%A8%D9%86-%D9%85%D8%AD%D9%85%D8%AF-%D8%A7%D9%84%D8%AC%D9%88%D8%B2%D9%8A-%D8%A7%D9%84%D9%82%D8%B1%D8%B4%D9%8A-%D8%A7%D9%84%D8%A8%D8%BA%D8%AF%D8%A7%D8%AF%D9%8A-%D8%A3%D8%A8%D9%88-%D8%A7%D9%84%D9%81%D8%B1%D8%AC-dd06f4c2d41745f38d00ca339def487c',tags:'ابن الجوزي مؤلفات'}
   ]},
-  {id:'hadith',name:'الحديث والسنة',short:'الكتب الستة وعلوم الحديث',icon:'۞',description:'متون السنّة وشروحها وكتب مصطلح الحديث والتخريج، مع الرجوع إلى أحكام المحدّثين ومصادرها.',resources:[
+  {id:'hadith',name:'الحديث والسنة',short:'الكتب الستة وعلوم الحديث',icon:'📖',description:'متون السنّة وشروحها وكتب مصطلح الحديث والتخريج، مع الرجوع إلى أحكام المحدّثين ومصادرها.',resources:[
    {id:'waqfeya-six-books',title:'الكتب الستة وشروحها',description:'فهرس لصحيح البخاري وصحيح مسلم والسنن وشروحها ومختصراتها.',source:'المكتبة الوقفية · 213.4',url:'https://waqfeya.net/categories/2134-%D9%83%D8%AA%D8%A8-%D8%A7%D9%84%D9%83%D8%AA%D8%A8-%D8%A7%D9%84%D8%B3%D8%AA%D8%A9-df773095ff774f00a8dc70173954dbed',tags:'البخاري مسلم أبو داود الترمذي النسائي ابن ماجه'},
    {id:'waqfeya-hadith-rest',title:'بقية مجموعات الحديث',description:'المسانيد والأجزاء الحديثية والمصنفات الحديثية المتنوعة.',source:'المكتبة الوقفية · 213.7',url:'https://waqfeya.net/categories/2137-%D8%A8%D8%A7%D9%82%D9%8A-%D9%85%D8%AC%D9%85%D9%88%D8%B9%D8%A7%D8%AA-%D8%A7%D9%84%D8%AD%D8%AF%D9%8A%D8%AB-2568ee70e9f743aba97934b36a4da418',tags:'حديث مسانيد مصنفات أجزاء'},
    {id:'waqfeya-hadith-science',title:'مصطلح الحديث',description:'كتب أصول الرواية ومصطلحات المحدّثين ومناهج النقد الحديثي.',source:'المكتبة الوقفية · 213.1',url:'https://waqfeya.net/categories/2131-%D9%83%D8%AA%D8%A8-%D9%85%D8%B5%D8%B7%D9%84%D8%AD-%D8%A7%D9%84%D8%AD%D8%AF%D9%8A%D8%AB-539a6de75f3b4498879d5d35a2987a6f',tags:'مصطلح الحديث أصول الرواية نقد الحديث'},
    {id:'dorar-hadith',title:'الموسوعة الحديثية',description:'البحث في الأحاديث مع عرض الراوي والمحدّث والمصدر وخلاصة الحكم.',source:'الدرر السنية',url:'https://dorar.net/',tags:'حديث تخريج صحيح حسن ضعيف'}
   ]},
-  {id:'adab',name:'الأدب العربي',short:'الشعر والنثر والمقامات',icon:'✒',description:'دواوين الشعر وكتب الأدب والنثر والمقامات والنوادر والرسائل التراثية.',resources:[
+  {id:'adab',name:'الأدب العربي',short:'الشعر والنثر والمقامات',icon:'🌷',description:'دواوين الشعر وكتب الأدب والنثر والمقامات والنوادر والرسائل التراثية.',resources:[
    {id:'waqfeya-adab',title:'كتب الأدب العربي',description:'مصنفات الأدب والنثر والنوادر والرسائل والمختارات الأدبية.',source:'المكتبة الوقفية · 810',url:'https://waqfeya.net/categories/810-%D9%83%D8%AA%D8%A8-%D8%A7%D9%84%D8%A3%D8%AF%D8%A8-866e302b71cc46b699b7dfd06264e7c9',tags:'أدب نثر مقامات نوادر رسائل الجاحظ'},
    {id:'waqfeya-diwan',title:'دواوين الشعر',description:'دواوين الشعراء ومختارات الشعر القديم وشروح القصائد.',source:'المكتبة الوقفية · 811',url:'https://waqfeya.net/categories/%D8%AF%D9%88%D8%A7%D9%88%D9%8A%D9%86-%D8%A7%D9%84%D8%B4%D8%B9%D8%B1-7f8b09bed9f14723b8f45fa51d7154d6',tags:'دواوين شعر شعراء قصائد'},
    {id:'shamela-adab',title:'الأدب والنوادر في المكتبة الشاملة',description:'ابحث في كتب الأدب والنوادر والبلاغة والمصنفات التراثية.',source:'المكتبة الشاملة',url:'https://shamela.ws/',tags:'مقامات الجاحظ نوادر شعر بلاغة'}
   ]},
-  {id:'language',name:'علوم اللغة',short:'النحو والعروض والبلاغة',icon:'ٱ',description:'علوم العربية: النحو والصرف والعروض والقافية والبلاغة والبيان والبديع.',resources:[
+  {id:'language',name:'علوم اللغة',short:'النحو والعروض والبلاغة',icon:'🎓',description:'علوم العربية: النحو والصرف والعروض والقافية والبلاغة والبيان والبديع.',resources:[
    {id:'waqfeya-grammar',title:'كتب النحو والصرف',description:'المتون النحوية وشروحها وكتب الإعراب والتصريف.',source:'المكتبة الوقفية · 415',url:'https://waqfeya.net/categories/415-%D9%83%D8%AA%D8%A8-%D8%A7%D9%84%D9%86%D8%AD%D9%88-%D9%88%D8%A7%D9%84%D8%B5%D8%B1%D9%81-881c18c5a5c745a589ac0e827975387f',tags:'نحو صرف إعراب سيبويه ابن مالك'},
    {id:'waqfeya-arood',title:'كتب العروض والقافية',description:'علم الخليل وأوزان الشعر والزحافات والعلل والقوافي.',source:'المكتبة الوقفية · 416',url:'https://waqfeya.net/categories/416-%D9%83%D8%AA%D8%A8-%D8%A7%D9%84%D8%B9%D8%B1%D9%88%D8%B6-a87ad35a23154716a630d22b6ed7ea52',tags:'عروض قافية أوزان الشعر الخليل'},
    {id:'waqfeya-balagha',title:'كتب البلاغة',description:'المعاني والبيان والبديع وأسرار البلاغة ونقد الكلام.',source:'المكتبة الوقفية · 414',url:'https://waqfeya.net/categories/414-%D9%83%D8%AA%D8%A8-%D8%A7%D9%84%D8%A8%D9%84%D8%A7%D8%BA%D8%A9-3c25ff153e33493994181ddf9720b175',tags:'بلاغة بيان معاني بديع'},
    {id:'shamela-language',title:'علوم العربية في المكتبة الشاملة',description:'مصادر إضافية في اللغة والنحو والصرف والأدب.',source:'المكتبة الشاملة',url:'https://shamela.ws/',tags:'لغة عربية نحو صرف أدب'}
   ]},
-  {id:'heritage',name:'التراث والمخطوطات',short:'المصنفات القديمة والفهارس',icon:'▤',description:'كتب التراث والمصنفات القديمة والفهارس ومداخل إلى المخطوطات والطبعات المصوّرة.',resources:[
+  {id:'heritage',name:'التراث والمخطوطات',short:'المصنفات القديمة والفهارس',icon:'📚',description:'كتب التراث والمصنفات القديمة والفهارس ومداخل إلى المخطوطات والطبعات المصوّرة.',resources:[
    {id:'waqfeya-heritage',title:'فهرس الكتب المصوّرة',description:'تصفّح الكتب حسب التصنيف والمؤلف والقرن الهجري، مع بيانات النسخ المصوّرة.',source:'المكتبة الوقفية',url:'https://waqfeya.net/books',tags:'تراث كتب مصورة مؤلفين قرون'},
    {id:'shamela-heritage',title:'المكتبة الشاملة للتراث',description:'نصوص رقمية قابلة للبحث والنسخ في طيف واسع من كتب التراث.',source:'المكتبة الشاملة',url:'https://shamela.ws/',tags:'تراث مصنفات أمهات الكتب'},
    {id:'waqfeya-search',title:'فهرس المؤلفين والكلمات المفتاحية',description:'مدخل للبحث بحسب المؤلف أو موضوع الكتاب أو القرن الهجري.',source:'المكتبة الوقفية',url:'https://waqfeya.net/search.php',tags:'مؤلفين بحث مخطوطات فهرسة'}
@@ -2871,8 +2876,11 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  function makeResourceCard(r){
   const article=document.createElement('article');article.className='library-resource';
   const copy=document.createElement('div');copy.className='library-resource-copy';
+  const icon=document.createElement('span');icon.className='library-resource-icon';
+  const resourceIcons={quran:'🌷',sharia:'📚',hadith:'📖',adab:'🌷',language:'🎓',heritage:'📚'};
+  icon.textContent=resourceIcons[r.categoryId]||'📚';icon.setAttribute('aria-hidden','true');
   const title=document.createElement('strong');title.textContent=r.title;
-  copy.append(title);
+  copy.append(icon,title);
   const actions=document.createElement('div');actions.className='library-resource-actions';
   const a=document.createElement('a');a.href=r.url;a.target='_blank';a.rel='noopener noreferrer';a.textContent='فتح';
   a.setAttribute('aria-label','فتح '+r.title+' في تبويب جديد');
@@ -2883,7 +2891,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  function openCategory(id){
   const c=category(id);if(!c)return;
   currentCategory=id;$('libraryCategoryMark').textContent=c.icon;$('libraryCategoryTitle').textContent=c.name;$('libraryCategoryDescription').textContent=c.description;
-  const list=$('libraryResources');list.replaceChildren();c.resources.forEach(r=>list.append(makeResourceCard({...r,categoryName:c.name})));
+  const list=$('libraryResources');list.replaceChildren();c.resources.forEach(r=>list.append(makeResourceCard({...r,categoryId:id,categoryName:c.name})));
   show('libraryCategoryView');$('librarySearch').value='';$('libraryHeroTitle').textContent=c.name;$('libraryHeroText').textContent='';
  }
  function goHome(){
