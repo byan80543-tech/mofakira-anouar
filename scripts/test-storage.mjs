@@ -10,7 +10,8 @@ const between=(start,end)=>{
 const extracted=[
   between('function cleanNote(n){','function createNoteId(){'),
   between('function showStorageRecoveryNotice(','function exportStorageRecovery()'),
-  between('function save(){','function toast(')
+  between('function save(){','function toast('),
+  between('let pendingBefore=null;','function saveSel(){')
 ].join('\n');
 
 function makeHarness(initial={}){
@@ -46,14 +47,14 @@ function makeHarness(initial={}){
     safeFontName:v=>typeof v==='string'&&['Amiri','Tajawal'].includes(v)?v:'Amiri',
     localStorage:storage,
     S:{notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[]},
-    cur:null,tm:null,pendingBefore:null,
+    cur:null,tm:null,pendingBefore:null,pg:{innerHTML:''},clearTimeout(){},
     storageRecoveryBlocked:false,storageRecoveryRaw:null,storageRecoveryExported:false,
     $:id=>elements[id]||(elements[id]={hidden:false,disabled:false}),
     toast:m=>messages.push(String(m)),
     confirm:()=>true,
     openNote(){},theme(){},chips(){}
   };
-  vm.runInNewContext(extracted+"\nthis.api={load,save,startFreshNotebook,snapshot:()=>({S,storageRecoveryBlocked,storageRecoveryRaw,storageRecoveryExported})};",sandbox,{timeout:3000});
+  vm.runInNewContext(extracted+"\nthis.api={load,save,startFreshNotebook,snapshot:()=>({S,storageRecoveryBlocked,storageRecoveryRaw,storageRecoveryExported}),\n      activateEdit:(note,previous,html)=>{cur=note;pendingBefore=previous;pg.innerHTML=html},\n      flushPendingEdit};",sandbox,{timeout:3000});
   return {api:sandbox.api,storage,elements,messages};
 }
 const assert=(condition,message)=>{
@@ -120,5 +121,18 @@ assert(h.api.save()===true&&JSON.parse(h.storage.getItem('anwar_v1')).notes[0].i
 h=makeHarness();
 h.storage.failKey='anwar_v1';
 assert(h.api.save()===false,'unwritable primary storage reports a failed save');
+
+
+h=makeHarness();
+const edited=note('debounced','قبل التعديل','<div>النص القديم</div>');
+h.api.snapshot().S.notes.push(edited);
+h.api.activateEdit(edited,{
+  title:'قبل التعديل',type:'poem',html:'<div>النص القديم</div>',ts:1700000000000,font:'Amiri',size:20
+},'<div>آخر كتابة</div>');
+edited.title='بعد التعديل';
+assert(h.api.flushPendingEdit(false)===true,'pending edit flush reports a successful save');
+const flushed=JSON.parse(h.storage.getItem('anwar_v1')).notes[0];
+assert(flushed.html==='<div>آخر كتابة</div>'&&flushed.title==='بعد التعديل','latest editor content and title are saved before navigation');
+assert(flushed.history.length===1&&flushed.history[0].html==='<div>النص القديم</div>','flush preserves the previous version in note history');
 
 console.log('\nAll storage regression tests passed.');
