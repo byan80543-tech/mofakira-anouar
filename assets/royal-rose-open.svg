@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+<defs>
+ <radialGradient id="core" cx="38%" cy="25%" r="78%"><stop stop-color="#FFB5CB"/><stop offset=".48" stop-color="#E83F78"/><stop offset="1" stop-color="#8E1649"/></radialGradient>
+ <linearGradient id="petalA" x1="12" y1="4" x2="34" y2="36" gradientUnits="userSpaceOnUse"><stop stop-color="#FFE8EF"/><stop offset=".32" stop-color="#F68EAE"/><stop offset=".72" stop-color="#E63D78"/><stop offset="1" stop-color="#A51D56"/></linearGradient>
+ <linearGradient id="petalB" x1="8" y1="15" x2="39" y2="34" gradientUnits="userSpaceOnUse"><stop stop-color="#FFD8E5"/><stop offset=".5" stop-color="#F05D8D"/><stop offset="1" stop-color="#B71F5B"/></linearGradient>
+ <linearGradient id="leaf" x1="14" y1="29" x2="36" y2="44" gradientUnits="userSpaceOnUse"><stop stop-color="#C4D99B"/><stop offset="1" stop-color="#3E754F"/></linearGradient>
+</defs>
+<!-- stem and two compact leaves -->
+<path d="M24 31C24 36 25 40 22 46" stroke="#628C5F" stroke-width="1.8" stroke-linecap="round"/>
+<path d="M23 39c-7-7-12-6-12-2 1 4 7 6 12 4" fill="url(#leaf)" stroke="#527E54" stroke-width=".65"/>
+<path d="M24 40c6-8 12-8 13-4 1 4-6 7-13 7" fill="url(#leaf)" stroke="#527E54" stroke-width=".65"/>
+<!-- broad outer petals form a compact circular crown -->
+<path d="M24 30C13 33 5 27 6 20c1-6 6-9 12-9 7 0 11 8 6 19Z" fill="url(#petalB)" stroke="#B52B60" stroke-width=".7"/>
+<path d="M24 30C35 33 43 27 42 20c-1-6-6-9-12-9-7 0-11 8-6 19Z" fill="url(#petalB)" stroke="#B52B60" stroke-width=".7"/>
+<path d="M24 28C15 22 13 13 18 7c2-3 4-4 6-5 3 2 6 5 7 9 2 7-1 13-7 17Z" fill="url(#petalA)" stroke="#B52B60" stroke-width=".7"/>
+<path d="M24 30C14 29 9 23 11 16c1-4 4-7 8-8 6 6 8 14 5 22Z" fill="url(#petalA)" stroke="#B52B60" stroke-width=".7"/>
+<path d="M24 30C34 29 39 23 37 16c-1-4-4-7-8-8-6 6-8 14-5 22Z" fill="url(#petalA)" stroke="#B52B60" stroke-width=".7"/>
+<!-- inner rose spiral -->
+<path d="M24 27C18 25 16 20 19 16c2-3 5-4 7-4 5 3 7 7 5 11-1 3-4 5-7 6Z" fill="url(#core)" stroke="#A91F56" stroke-width=".65"/>
+<path d="M24 27c-3-4-2-8 1-10 3-2 6-1 7 2-3 0-5 2-5 4 0 2 1 3 3 4-2 2-4 2-6 0Z" fill="#F9A1BA" stroke="#B52B60" stroke-width=".6"/>
+<path d="M22 16c-1 2-1 4 1 5M30 15c-2 1-3 3-3 5M11 20c4-1 8 1 11 5M37 20c-4-1-8 1-11 5" stroke="#FFEAF0" stroke-width=".8" stroke-linecap="round" opacity=".8"/>
+<path d="M24 29c-5-1-8-3-11-7 5 1 8 3 11 7 3-4 7-6 11-7-2 4-6 6-11 7Z" fill="#5D8D5B" stroke="#47774F" stroke-width=".65"/>
+</svg>
