@@ -1138,7 +1138,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   if(q[1].status==='fulfilled'){const L=(q[1].value.suwar||[]).map(s=>String(s.name).trim());if(L.length===114){SU.length=0;SU.push(...L);ok++}}
   if(q[2].status==='fulfilled'){const L=(q[2].value.radios||[]).map(x=>({name:String(x.name||'إذاعة').slice(0,100),url:safeHttpsURL(x.url)})).filter(x=>x.url);if(L.length){$('rl').innerHTML=L.map(x=>`<option value="${esc(x.url)}">${esc(x.name)}</option>`).join('');$('liveStationArea').hidden=false;ok++}}
   fill();
-  $('src').textContent=ok?`تم جلب ${groupedReciters().length} قارئًا فريدًا و${R.length} تسجيلًا صوتيًا من mp3quran.net ✓`:'قائمة مدمجة: المنصة تمنع الاتصال بالمصدر من داخل هذه الصفحة';
+  $('src').textContent=ok?`تضم القائمة ${groupedReciters().length} قارئًا فريدًا و${R.length} خيار تلاوة، مع تحديث حي من mp3quran.net ✓`:'قائمة مدمجة: المنصة تمنع الاتصال بالمصدر من داخل هذه الصفحة';
  })();
  document.querySelectorAll('input[name=rm]').forEach(x=>x.addEventListener('change',()=>{if(started)play()}));
  $('rl').addEventListener('change',()=>{if(started)play()});
@@ -1176,7 +1176,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  function countryNorm(v){
   return String(v||'').normalize('NFKC').replace(/[\u064B-\u065F\u0670\u0640]/g,'')
    .replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/[\u200e\u200f]/g,'')
-   .replace(/[\sـ،؛:,.()[\]{}'"+String.fromCharCode(34)+"]/g,'').toLowerCase();
+   .replace(/\s+/g,'').replace(/[ـ،؛:,.]/g,'').toLowerCase();
  }
  function countryDigits(v){
   return String(v||'').replace(/[٠-٩]/g,d=>String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)));
@@ -1189,7 +1189,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
    const m=u.pathname.match(/^\/reciters\/([^/]+)\/?$/);if(!m)return;
    let raw=(a.textContent||'').replace(/\s+/g,' ').trim();
    const recordingMatch=raw.match(/(\d+|[٠-٩]+)\s*تسجيل/);
-   const recordings=recordingMatch?Math.max(1,Number(countryDigits(recordingMatch[1]))||1):1;
+   const recordings=/تسجيلان/.test(raw)?2:recordingMatch?Math.max(1,Number(countryDigits(recordingMatch[1]))||1):1;
    const name=raw.replace(/\s*(?:تسجيل واحد|تسجيلان|(?:\d+|[٠-٩]+)\s*تسجيلات?)\s*$/,'').trim();
    if(!name||name.length>120)return;
    rows.push({name,slug:m[1],recordings});
@@ -1253,11 +1253,13 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  }
  async function loadCountryReaders(key,retryOnly){
   const entry=countryDirectory[key];if(!entry)return;
-  let urls;
+  let urls,pageNumbers;
   if(retryOnly&&failedCountryPages.length){
-   urls=failedCountryPages.map(page=>COUNTRY_BASE+key+'/page/'+page+'/');
+   pageNumbers=failedCountryPages.slice();
+   urls=pageNumbers.map(page=>COUNTRY_BASE+key+'/page/'+page+'/');
   }else{
-   urls=Array.from({length:entry.pages},(_,i)=>i===0?COUNTRY_BASE+key+'/':COUNTRY_BASE+key+'/page/'+(i+1)+'/');
+   pageNumbers=Array.from({length:entry.pages},(_,i)=>i+1);
+   urls=pageNumbers.map(page=>page===1?COUNTRY_BASE+key+'/':COUNTRY_BASE+key+'/page/'+page+'/');
    countryCache.delete(key);
    activeCountryRows=[];activeCountryPage=0;failedCountryPages=[];
   }
@@ -1267,7 +1269,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
    countryStatusBox.textContent='تحميل صفحات '+entry.name+': '+done+' من '+total+(failed?' · تعثّر '+failed:'');
   });
   const combined=retryOnly&&countryCache.has(key)?countryCache.get(key).rawRows.concat(result.rows):result.rows;
-  const allFailed=retryOnly?result.failed.map(n=>urls.indexOf(urls[n-1])>=0?failedCountryPages[n-1]:n):result.failed;
+  const allFailed=result.failed.map(index=>pageNumbers[index-1]).filter(Number.isFinite);
   failedCountryPages=allFailed.length?allFailed:[];
   activeCountryRows=dedupeCountryRows(combined);
   countryCache.set(key,{rawRows:combined,rows:activeCountryRows});
