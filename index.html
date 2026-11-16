@@ -1075,7 +1075,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   usul:{name:'شرح ثلاثة الأصول (1429هـ)',count:17,url:i=>'https://al-badr.net/download/esound/choroohat/tsalatsatul-ushul/'+String(i+1).padStart(2,'0')+'.mp3',source:'https://al-badr.net/sub/196',direct:true},
   usul2:{name:'شرح الأصول الثلاثة وأدلتها (1434هـ)',count:9,url:i=>'https://al-badr.net/download/esound/choroohat/tsalatsatul-ushul-1434h/'+String(i+1).padStart(2,'0')+'.mp3',source:'https://al-badr.net/sub/303',direct:true},
   qawaid:{name:'شرح القواعد الأربع',count:3,url:i=>'https://al-badr.net/download/esound/choroohat/kawaid-alarbaa/'+String(i+1).padStart(3,'0')+'.mp3',source:'https://al-badr.net/sub/59',direct:true},
-    nawqid:{name:'شرح نواقض الإسلام (1431هـ)',count:11,source:'https://al-badr.net/sub/215'},
+    nawqid:{name:'شرح نواقض الإسلام (1431هـ)',count:11,url:i=>'https://al-badr.net/download/esound/choroohat/nawaqidlul-islam/'+String(i+1).padStart(2,'0')+'.mp3',source:'https://al-badr.net/sub/215',direct:true},
   kashf:{name:'شرح كشف الشبهات (1428–1429هـ)',count:11,url:i=>'https://al-badr.net/download/esound/choroohat/Kashf-Alshubuhat/'+String(i+1).padStart(2,'0')+'.mp3',source:'https://al-badr.net/sub/80',direct:true},
   masail:{name:'شرح مسائل الجاهلية',count:11,url:i=>'https://al-badr.net/download/esound/choroohat/masail-aljahilia/'+String(i+1).padStart(3,'0')+'.mp3',source:'https://al-badr.net/sub/60',direct:true},
   usulIman:{name:'شرح كتاب أصول الإيمان',count:30,url:i=>'https://al-badr.net/download/esound/choroohat/usul-aliman/'+String(i+1).padStart(3,'0')+'.mp3',source:'https://al-badr.net/sub/56',direct:true},
@@ -1084,8 +1084,8 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   sharia:{name:'شرح كتاب الشريعة للآجري',count:140,url:i=>'https://archive.org/download/fawaid_051/'+String(i+1).padStart(3,'0')+'.mp3',source:'https://www.ajurry.com/vb/forum/منابر-المتون-العلمية-وشروحها/منبر-المنهج-السلفي-وأصوله/شـروح-منهجية/43507-شرح-كتاب-الشريعة-للآجري-للشيخ-عبد-الرزاق-البدر-حفظه-الله',direct:true},
   maarij:{name:'تعليق على معارج القبول',count:280,url:i=>'https://al-badr.net/download/esound/choroohat/ma3arijul-qobul/'+String(i+1).padStart(3,'0')+'.mp3',source:'https://al-badr.net/sub/362',direct:true},
   // Official subject indexes expose further audio series beyond this curated selector.
-  jawhara:{name:'شرح الجوهرة الفريدة في تحقيق العقيدة (6 دروس)',count:6,source:'https://way2allah.com/khotab-series-12255.htm',embed:true},
-  allAqidah:{name:'فهرس بقية صوتيات الشيخ وسلاسله',count:0,source:'https://way2allah.com/khotab-audio-211.htm',embed:true},
+  jawhara:{name:'شرح الجوهرة الفريدة في تحقيق العقيدة (6 دروس)',count:6,trackNames:['من البيت 1 إلى 57','من البيت 58 إلى 91','من البيت 92 إلى 135','من البيت 136 إلى 196','من البيت 197 إلى 248','من البيت 249 إلى 296'],url:i=>'https://way2allah.com/khotab-download-'+(211967+i)+'.htm',source:'https://way2allah.com/khotab-series-12255.htm',sourceLabel:'↗ فهرس سلسلة الجوهرة الفريدة (يفتح خارج المفكرة)',direct:true},
+  allAqidah:{name:'فهرس بقية صوتيات الشيخ وسلاسله',count:0,source:'https://way2allah.com/khotab-audio-211.htm',sourceLabel:'↗ فتح فهرس بقية صوتيات الشيخ في تبويب مستقل'},
  };
  const groups=[
   ['tawhid'],
@@ -1096,13 +1096,13 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  const groupNames=['شرح كتاب التوحيد','شروح كتب العقيدة والعلوم الشرعية','شروح أخرى','فهرس بقية الصوتيات'];
  series.innerHTML=groups.map((g,i)=>`<optgroup label="${groupNames[i]}">${g.map(k=>`<option value="${k}">${catalog[k].name}${catalog[k].count?' ('+catalog[k].count+' درسًا)':''}</option>`).join('')}</optgroup>`).join('');
  let current=0;
- function renderSource(c){links.replaceChildren();const sourceLink=document.createElement('a');sourceLink.href=c.source;sourceLink.target='_blank';sourceLink.rel='noopener noreferrer';sourceLink.textContent='↗ فهرس المصدر الرسمي (يفتح خارج المفكرة): '+c.name;links.append(sourceLink);if(frame){frame.removeAttribute('src');frame.hidden=true;frame.style.display='none';const mayEmbed=series.value!=='maarij'&&(c.embed||!c.direct);if(mayEmbed){frame.hidden=false;frame.src=c.source;frame.style.display='block';}}}
+ function renderSource(c){links.replaceChildren();const sourceLink=document.createElement('a');sourceLink.href=c.source;sourceLink.target='_blank';sourceLink.rel='noopener noreferrer';sourceLink.textContent=c.sourceLabel||('↗ فهرس المصدر الرسمي (يفتح خارج المفكرة): '+c.name);links.append(sourceLink);if(frame){frame.removeAttribute('src');frame.hidden=true;frame.style.display='none';const mayEmbed=!!c.embed&&series.value!=='maarij';if(mayEmbed){frame.hidden=false;frame.src=c.source;frame.style.display='block';}}}
   function renderMaarijFileLink(c,index){if(series.value!=='maarij')return;const fileLink=document.createElement('a');fileLink.href=c.url(index);fileLink.target='_blank';fileLink.rel='noopener noreferrer';fileLink.textContent='↗ فتح ملف الدرس '+String(index+1).padStart(3,'0')+' خارج المفكرة';links.append(fileLink);}
  function fill(){
   const c=catalog[series.value];current=0;audio.pause();audio.removeAttribute('src');audio.preload=series.value==='maarij'?'metadata':'none';audio.load();play.textContent='▶';audio.style.display=c.direct?'block':'none';if(frame){frame.removeAttribute('src');frame.hidden=true;frame.style.display='none';}
-  track.innerHTML=c.count?Array.from({length:c.count},(_,i)=>`<option value="${i}">الدرس ${String(i+1).padStart(2,'0')} من ${c.count}</option>`).join(''):'<option value="0">افتح فهرس الدروس من المصدر الرسمي</option>';
+  track.innerHTML=c.count?Array.from({length:c.count},(_,i)=>`<option value="${i}">${c.trackNames?.[i]||('الدرس '+String(i+1).padStart(2,'0')+' من '+c.count)}</option>`).join(''):'<option value="0">افتح فهرس الدروس من المصدر الرسمي</option>';
   track.disabled=!c.count;renderSource(c);
-  status.textContent=c.direct?'قائمة كاملة: '+c.count+' درسًا. اختر الدرس للتشغيل الداخلي أو شغّل السلسلة للانتقال التلقائي.':c.count?'تتوفر '+c.count+' مادة؛ تظهر صفحة السلسلة داخل المفكرة إذا سمح المصدر بالتضمين.':'فهرس صوتيات الشيخ؛ تصفح السلاسل من الصفحة المعروضة داخل المفكرة.';
+  status.textContent=c.direct?'قائمة كاملة: '+c.count+' درسًا. اختر الدرس للتشغيل الداخلي أو شغّل السلسلة للانتقال التلقائي.':c.count?'تتوفر '+c.count+' مادة صوتية في هذه السلسلة.':'هذا فهرس للسلاسل الصوتية؛ افتح رابطه في تبويب مستقل لتصفح بقية الصوتيات.';
  }
  function loadTrack(auto){
   const c=catalog[series.value];current=+track.value||0;
@@ -1112,7 +1112,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  }
  series.addEventListener('change',fill);track.addEventListener('change',()=>loadTrack(false));
  audio.addEventListener('play',()=>{const radio=window.__anwarRadioAudio;if(radio&&!radio.paused)radio.pause()});
- play.addEventListener('click',()=>{const radio=window.__anwarRadioAudio;if(radio&&!radio.paused)radio.pause();const c=catalog[series.value];if(!c.direct){renderSource(c);status.textContent='اختر الدرس وشغّله من المشغل المضمّن داخل المفكرة؛ إن لم يظهر بسبب قيود المصدر فافتح الرابط الأصلي.';return;}if(!audio.src)loadTrack(false);if(audio.paused)audio.play().then(()=>play.textContent='⏸').catch(()=>status.textContent='تعذر تشغيل الملف؛ افتح المصدر الأصلي.');else{audio.pause();play.textContent='▶';}});
+ play.addEventListener('click',()=>{const radio=window.__anwarRadioAudio;if(radio&&!radio.paused)radio.pause();const c=catalog[series.value];if(!c.direct){renderSource(c);status.textContent='هذا فهرس للسلاسل وليس درساً صوتياً مستقلاً؛ افتح رابط الفهرس في تبويب مستقل لتصفح بقية الصوتيات.';return;}if(!audio.src)loadTrack(false);if(audio.paused)audio.play().then(()=>play.textContent='⏸').catch(()=>status.textContent='تعذر تشغيل الملف؛ افتح المصدر الأصلي.');else{audio.pause();play.textContent='▶';}});
  $('lessonPrev').addEventListener('click',()=>{if(!catalog[series.value].direct)return;current=Math.max(0,(+track.value||0)-1);track.value=current;loadTrack(true)});
  $('lessonNext').addEventListener('click',()=>{if(!catalog[series.value].direct)return;current=Math.min(catalog[series.value].count-1,(+track.value||0)+1);track.value=current;loadTrack(true)});
  audio.addEventListener('playing',()=>{
