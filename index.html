@@ -3286,7 +3286,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   if(!activePdfDocument)return;
   const target=Math.max(1,Math.min(activePdfDocument.numPages,Math.round(Number(pageNumber)||1)));
   activePdfPage=target;
-  await renderReaderPage();
+  try{await renderReaderPage()}catch(error){showReaderFallback(error)}
  }
  async function loadReaderOutline(){
   readerOutline=[];
@@ -3314,6 +3314,8 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  }
  async function openReader(book){
   if(!book||!book.pdfUrl)return;
+  if(activePdfLoadingTask){try{activePdfLoadingTask.destroy()}catch(e){}activePdfLoadingTask=null}
+  if(activePdfDocument){try{await activePdfDocument.destroy()}catch(e){}activePdfDocument=null}
   activeReader=book;
   readerReturnView=activeLibraryView;
   ['libraryHome','librarySearchView','librarySavedView'].forEach(id=>$(id).hidden=true);
@@ -3324,7 +3326,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   $('readerBookmarkPanel').hidden=true;$('readerContentsPanel').hidden=true;
   $('readerGoogleFallback').hidden=false;
   readerZoom=1;readerTone='day';activePdfPage=savedPageFor(book);
-  $('readerTheme').textContent='☾';$('readerTheme').setAttribute('aria-label','تفعيل الوضع الليلي');
+  setReaderTone();
   setReaderLoading('جارٍ فتح الكتاب داخل مكتبة أنوار…');
   setReaderStatus('اتصال بمصدر الكتاب');
   $('readerBack').focus();
@@ -3349,6 +3351,8 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
    await renderReaderPage();
   }catch(error){
    if(activeReader!==book)return;
+   if(activePdfLoadingTask){try{activePdfLoadingTask.destroy()}catch(e){}activePdfLoadingTask=null}
+   if(activePdfDocument){try{await activePdfDocument.destroy()}catch(e){}activePdfDocument=null}
    showReaderFallback(error);
   }
  }
@@ -3360,16 +3364,17 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  }
  function setReaderTone(){
   const canvas=$('readerCanvas');
+  $('readerStage').dataset.tone=readerTone;
   if(readerTone==='night'){canvas.style.filter='invert(.88) hue-rotate(180deg)';$('readerTheme').textContent='◐';$('readerTheme').setAttribute('aria-label','تفعيل الوضع النهاري')}
-  else if(readerTone==='sepia'){canvas.style.filter='sepia(.58) brightness(.92)';$('readerTheme').textContent='☼';$('readerTheme').setAttribute('aria-label','تفعيل الوضع الليلي')}
+  else if(readerTone==='sepia'){canvas.style.filter='sepia(.58) brightness(.92)';$('readerTheme').textContent='☼';$('readerTheme').setAttribute('aria-label','تفعيل الوضع النهاري')}
   else{canvas.style.filter='none';$('readerTheme').textContent='☾';$('readerTheme').setAttribute('aria-label','تفعيل الوضع الليلي')}
  }
  $('readerBack').addEventListener('click',closeReader);
  $('readerPrev').addEventListener('click',()=>goToReaderPage(activePdfPage-1));
  $('readerNext').addEventListener('click',()=>goToReaderPage(activePdfPage+1));
  $('readerPage').addEventListener('change',e=>goToReaderPage(e.target.value));
- $('readerZoomOut').addEventListener('click',()=>{readerZoom=Math.max(.65,readerZoom-.15);renderReaderPage()});
- $('readerZoomIn').addEventListener('click',()=>{readerZoom=Math.min(2.5,readerZoom+.15);renderReaderPage()});
+ $('readerZoomOut').addEventListener('click',()=>{readerZoom=Math.max(.65,readerZoom-.15);goToReaderPage(activePdfPage)});
+ $('readerZoomIn').addEventListener('click',()=>{readerZoom=Math.min(2.5,readerZoom+.15);goToReaderPage(activePdfPage)});
  $('readerBookmark').addEventListener('click',saveBookmark);
  $('readerBookmarks').addEventListener('click',()=>{drawBookmarkPanel();$('readerBookmarkPanel').hidden=!$('readerBookmarkPanel').hidden;$('readerContentsPanel').hidden=true});
  $('readerContents').addEventListener('click',()=>{$('readerContentsPanel').hidden=!$('readerContentsPanel').hidden;$('readerBookmarkPanel').hidden=true});
@@ -3392,7 +3397,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   if(Math.abs(dx)>80&&Math.abs(dy)<70){if(dx<0)goToReaderPage(activePdfPage+1);else goToReaderPage(activePdfPage-1)}
  },{passive:true});
  window.addEventListener('resize',()=>{
-  if(!readerView.hidden&&activePdfDocument)renderReaderPage();
+  if(!readerView.hidden&&activePdfDocument)goToReaderPage(activePdfPage);
  });
  window.addEventListener('anwar-pdf-engine-ready',()=>{
   if(!readerView.hidden&&activeReader&&!activePdfDocument)openReader(activeReader);
