@@ -3361,6 +3361,9 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  function closeReader(){
   if(readerView.hidden)return;
   readerOpenRequest++;
+  if(readerRenderTask){try{readerRenderTask.cancel()}catch(e){}readerRenderTask=null}
+  if(activePdfLoadingTask){try{activePdfLoadingTask.destroy()}catch(e){}activePdfLoadingTask=null}
+  if(activePdfDocument){try{activePdfDocument.destroy()}catch(e){}activePdfDocument=null}
   readerView.hidden=true;
   $('readerBookmarkPanel').hidden=true;$('readerContentsPanel').hidden=true;
   show(readerReturnView||'libraryHome');
@@ -3490,6 +3493,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  }
  function close(){
   if(page.hidden)return;
+  readerOpenRequest++;
   if(!readerView.hidden){readerView.hidden=true}
   if(readerRenderTask){try{readerRenderTask.cancel()}catch(e){}readerRenderTask=null}
   if(activePdfLoadingTask){try{activePdfLoadingTask.destroy()}catch(e){}activePdfLoadingTask=null}
