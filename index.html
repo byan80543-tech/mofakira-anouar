@@ -1170,7 +1170,9 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   if(m&&/(ورش|قالون|حفص|الدوري|شعبة|البزي|قنبل|المجود|المرتل|المعلم|رواية)/.test(m[1]))return m[1].trim();
   return total>1?'تسجيل '+(index+1):'استمع';
  }
+ let reciterGroupsCache=null;
  function groupedReciters(){
+  if(reciterGroupsCache)return reciterGroupsCache;
   const groups=new Map();
   R.forEach((r,i)=>{
    const name=readerIdentity(r[0]),key=readerKey(name);
@@ -1192,7 +1194,8 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   for(const g of groups.values()){
    if(g.variants.length>1)g.variants.forEach((v,i)=>{if(v.label==='استمع')v.label='تسجيل '+(i+1)});
   }
-  return [...groups.values()].sort((a,b)=>a.name.localeCompare(b.name,'ar'));
+  reciterGroupsCache=[...groups.values()].sort((a,b)=>a.name.localeCompare(b.name,'ar'));
+  return reciterGroupsCache;
  }
  function uniqueRecitationCount(){return groupedReciters().reduce((sum,g)=>sum+g.variants.length,0)}
  let reciterDisplayLimit=36;
@@ -1241,6 +1244,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
     });
    });
    R.sort((a,b)=>a[0].localeCompare(b[0],'ar'));
+   reciterGroupsCache=null;
    if(currentReciter){
     const currentIndex=R.findIndex(item=>item[0]===currentReciter.name&&item[1]===currentReciter.server);
     if(currentIndex>=0){cr=currentIndex;rr.value=String(currentIndex)}
@@ -1644,6 +1648,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  function countryProfileAudio(card){
   const slug=card.dataset.countryReciter||'',profileUrl=card.dataset.countryProfile||'';
   if(!slug||!profileUrl)return Promise.reject(new Error('رابط صفحة القارئ غير موجود'));
+  if(countryProfileController&&countryProfileSlug!==slug)abortCountryProfileRequest();
   if(countryProfileCache.has(slug))return countryProfileCache.get(slug);
   abortCountryProfileRequest();
   if(countryProfileCache.size>=16){
