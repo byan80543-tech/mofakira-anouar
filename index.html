@@ -3376,6 +3376,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  $('readerPrev').addEventListener('click',()=>goToReaderPage(activePdfPage-1));
  $('readerNext').addEventListener('click',()=>goToReaderPage(activePdfPage+1));
  $('readerPage').addEventListener('change',e=>goToReaderPage(e.target.value));
+ $('readerPage').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();goToReaderPage(e.currentTarget.value);e.currentTarget.blur()}});
  $('readerZoomOut').addEventListener('click',()=>{readerZoom=Math.max(.65,readerZoom-.15);goToReaderPage(activePdfPage)});
  $('readerZoomIn').addEventListener('click',()=>{readerZoom=Math.min(2.5,readerZoom+.15);goToReaderPage(activePdfPage)});
  $('readerBookmark').addEventListener('click',saveBookmark);
