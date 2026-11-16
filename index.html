@@ -1292,18 +1292,18 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=san(pg.innerHTML)}save()})
   return reciterApiPromise;
  }
  function ensureRadioCatalog(){
-  if($('rl').options.length)return Promise.resolve($('rl').options.length);
+  if($('rl').value)return Promise.resolve(1);
   if(radioApiPromise)return radioApiPromise;
   radioApiPromise=J('https://www.mp3quran.net/api/v3/radios?language=ar').then(data=>{
-   const list=(data.radios||[]).map(item=>({name:String(item.name||'إذاعة').slice(0,100),url:safeHttpsURL(item.url)})).filter(item=>item.url);
-   if(list.length){
-    $('rl').innerHTML=list.map(item=>'<option value="'+esc(item.url)+'">'+esc(item.name)+'</option>').join('');
+   const first=(data.radios||[]).map(item=>({name:String(item.name||'إذاعة القرآن').slice(0,100),url:safeHttpsURL(item.url)})).find(item=>item.url);
+   if(first){
+    $('rl').innerHTML='<option value="'+esc(first.url)+'">'+esc(first.name)+'</option>';
     $('liveStationArea').hidden=false;
     $('liveRadioPlay').textContent='استمع إلى الإذاعة　▶';
    }
-   return list.length;
+   return first?1:0;
   }).catch(error=>{
-   radioApiPromise=null;$('liveRadioPlay').textContent='تعذّر تحميل المحطات؛ أعد المحاولة';
+   radioApiPromise=null;$('liveRadioPlay').textContent='تعذّر تحميل البث؛ أعد المحاولة';
    return 0;
   });
   return radioApiPromise;
