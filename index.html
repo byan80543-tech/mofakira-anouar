@@ -1230,8 +1230,11 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   const workers=Array.from({length:Math.min(4,urls.length)},async()=>{
    while(true){
     const index=cursor++;if(index>=urls.length)return;
-    try{results[index]=parseCountryPage(await fetchCountryHtml(urls[index]))}
-    catch(error){results[index]=[];errors.push(index+1)}
+    try{
+     const parsed=parseCountryPage(await fetchCountryHtml(urls[index]));
+     if(!parsed.length)throw new Error('لم نعثر على أسماء قرّاء في الصفحة');
+     results[index]=parsed;
+    }catch(error){results[index]=[];errors.push(index+1)}
     done++;onProgress(done,urls.length,errors.length);
    }
   });
