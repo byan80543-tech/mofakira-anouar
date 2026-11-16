@@ -109,6 +109,13 @@ dialog textarea{width:100%;height:140px;background:var(--bg);color:var(--tx);bor
 #rd .lesson-tulip{width:30px;height:30px;display:grid;place-items:center;flex:none;overflow:hidden;border-radius:50%;border:1px solid #dfc58d;background:linear-gradient(145deg,#fffaf0,#f0e2c1);box-shadow:inset 0 1px 2px #ffffffb8,0 1px 3px #18334b12}#rd .lesson-tulip img{display:block;width:25px;height:29px;object-fit:contain;object-position:center bottom}
 #rd .lesson-item-name{flex:1;min-width:0;font-size:12px;font-weight:700}
 #rd .lesson-item-radio{width:29px;height:29px;display:grid;place-items:center;flex:none;border:1px solid #c9a96a;border-radius:9px;background:linear-gradient(135deg,#12395f,#1b6680);color:#fff;font-size:15px;box-shadow:0 2px 5px #12395f22}
+/* Unified Anwar playback control */
+#rb,#rpp,.reciter-play,.country-reader-play,#lessonPlay,#rd .lesson-item-radio{position:relative;display:inline-grid;place-items:center;flex:none;border:1px solid #d8bd7c!important;border-radius:50%!important;background:linear-gradient(135deg,#12395f,#1b6680)!important;color:transparent!important;font-size:0!important;box-shadow:inset 0 1px 2px #ffffff30,0 3px 8px #12395f25!important;}
+#rb::before,#rpp::before,.reciter-play::before,.country-reader-play::before,#lessonPlay::before,#rd .lesson-item-radio::before{content:'';display:block;width:0;height:0;border-top:7px solid transparent;border-bottom:7px solid transparent;border-left:10px solid #fff;transform:translateX(1px);}
+#rb[data-playing="true"]::before,#rpp[data-playing="true"]::before,.reciter-play[data-playing="true"]::before,.country-reader-play[data-playing="true"]::before,#lessonPlay[data-playing="true"]::before,#rd .lesson-item-radio[data-playing="true"]::before{width:11px;height:14px;border:0;border-radius:1px;background:linear-gradient(90deg,#fff 0 3px,transparent 3px 7px,#fff 7px 10px);transform:none;}
+#rb:focus-visible,#rpp:focus-visible,.reciter-play:focus-visible,.country-reader-play:focus-visible,#lessonPlay:focus-visible{outline:3px solid #d8bd7c;outline-offset:2px}
+#rb{width:38px;height:38px}#rpp{width:42px;height:42px}.reciter-play,.country-reader-play,#lessonPlay{width:38px;height:38px}#rd .lesson-item-radio{width:29px;height:29px}
+
 #rd .lesson-empty{padding:12px;text-align:center;color:var(--mu);font-size:12px}#rd .lesson-box a{display:block;color:var(--ac);text-decoration:none;border:1px solid var(--bd);border-radius:7px;padding:8px;background:var(--sf);font-size:12px}#rd .lesson-box audio{width:100%;height:38px}#rd .lesson-note{font-size:11px;color:var(--mu);line-height:1.7}
 #rd select{border:1px solid var(--bd);border-radius:6px;padding:5px;background:var(--bg);color:var(--tx)}
 #rd label{font-size:12px;display:flex;gap:6px;align-items:flex-start}
@@ -948,7 +955,12 @@ button:focus:not(:focus-visible){outline:none}
 }
 @media(prefers-reduced-motion:reduce){.card{transition:none}}
 
-</style></head><body>${$('pa').innerHTML}\x3Cscript>onload=function(){setTimeout(function(){print()},900)}<\/script></body></html>`;
+</style></head><body>${$('pa').innerHTML}\x3Cscript>onload=function(){setTimeout(function(){print()},900)}<\/script>
+<script>
+// Keep the same custom play/pause glyph across every internal audio control.
+(()=>{const selector='#rb,#rpp,.reciter-play,.country-reader-play,#lessonPlay,#rd .lesson-item-radio';const sync=()=>document.querySelectorAll(selector).forEach(el=>{el.dataset.playing=/[⏸Ⅱ]/.test(el.textContent)?'true':'false'});sync();new MutationObserver(sync).observe(document.body,{subtree:true,childList:true,characterData:true});})();
+</script>
+</body></html>`;
  try{await dl.save({filename:((cur.title||'أنوار').replace(/[\\/:*?"<>|]/g,'-').slice(0,60))+'.html',data:new Blob([h],{type:'text/html'})});toast('افتح الملف المنزَّل وستظهر نافذة الطباعة تلقائيًا',5000)}catch(e){}
 }
 async function doPrint(){
