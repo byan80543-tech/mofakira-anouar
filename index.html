@@ -886,6 +886,31 @@ async function printFile(){
  const f=cur.font||'Amiri',h=`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>${esc(cur.title||'أنوار')}</title><link href="https://fonts.googleapis.com/css2?family=${f.replace(/ /g,'+')}&display=swap" rel="stylesheet"><style>@page{margin:16mm}body{margin:0 auto;max-width:794px;padding:24px;font-family:'${f}',Amiri,serif;font-size:${cur.size||20}px;line-height:2;color:#000}h1{text-align:center;font-size:34px;margin:0 0 4px;font-weight:400}.m{text-align:center;color:#777;font-size:13px;font-family:Tahoma,sans-serif}hr{border:0;border-top:1px solid #c9a24a;width:120px;margin:12px auto 24px}.v{display:flex;gap:48px;justify-content:center;text-align:center}.v span{flex:1}.f{margin-top:36px;color:#aaa;font-size:11px;text-align:center;font-family:Tahoma,sans-serif}
 
 
+
+/* تحسين تموضع بطاقات القراء: زر التشغيل في الطرف المقابل للزهرة */
+.reciter-grid{width:100%;box-sizing:border-box}
+.reciter-card{
+ display:grid!important;
+ grid-template-columns:40px minmax(0,1fr) 46px;
+ grid-template-areas:"seal body play";
+ align-items:center;
+ direction:rtl;
+ width:100%;
+ min-width:0;
+ min-height:78px;
+ box-sizing:border-box;
+ padding:12px 15px!important;
+ gap:12px!important;
+}
+.reciter-seal{grid-area:seal;justify-self:center}
+.reciter-body{grid-area:body;width:100%;min-width:0}
+.reciter-play{grid-area:play;justify-self:center;align-self:center;width:43px;height:43px}
+.reciter-variants-menu{width:100%;min-width:0}
+@media(max-width:520px){
+ .reciter-card{grid-template-columns:40px minmax(0,1fr) 46px;min-height:80px;padding:12px 15px!important;gap:12px!important}
+ .reciter-play{width:43px;height:43px}
+}
+
 </style></head><body>${$('pa').innerHTML}\x3Cscript>onload=function(){setTimeout(function(){print()},900)}<\/script></body></html>`;
  try{await dl.save({filename:((cur.title||'أنوار').replace(/[\\/:*?"<>|]/g,'-').slice(0,60))+'.html',data:new Blob([h],{type:'text/html'})});toast('افتح الملف المنزَّل وستظهر نافذة الطباعة تلقائيًا',5000)}catch(e){}
 }
@@ -1177,7 +1202,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   const surah=+rsu.value||1;rsu.innerHTML=SU.map((x,i)=>'<option value="'+(i+1)+'">'+(i+1)+'. '+esc(x)+'</option>').join('');rsu.value=String(surah);
   const L=all.filter(g=>!q||g.name.toLocaleLowerCase('ar').includes(q)||g.variants.some(v=>String(R[v.index][0]).toLocaleLowerCase('ar').includes(q)));
   const shown=L.slice(0,reciterDisplayLimit);
-  $('reciterGrid').innerHTML=shown.length?shown.map(g=>'<div class="reciter-card" role="listitem"><span class="reciter-seal" aria-hidden="true">🌷</span><div class="reciter-body"><span class="reciter-name">'+esc(g.name)+'</span>'+(g.variants.length>1?'<details class="reciter-variants-menu"><summary>الروايات والتسجيلات ('+g.variants.length+')</summary><div class="reciter-variants">'+g.variants.map(v=>'<button type="button" class="reciter-version" data-reciter-play="'+v.index+'" data-play-label="'+esc(v.label)+'" aria-label="تشغيل '+esc(g.name)+' — '+esc(v.label)+'">▶ '+esc(v.label)+'</button>').join('')+'</div></details>':'<button type="button" class="reciter-play" data-reciter-play="'+g.variants[0].index+'" aria-label="تشغيل '+esc(g.name)+'">▶</button>')+'</div></div>').join(''):'<div class="reciter-empty">لا توجد نتائج بهذا الاسم.</div>';
+  $('reciterGrid').innerHTML=shown.length?shown.map(g=>'<div class="reciter-card" role="listitem"><span class="reciter-seal" aria-hidden="true">🌷</span><div class="reciter-body"><span class="reciter-name">'+esc(g.name)+'</span>'+(g.variants.length>1?'<details class="reciter-variants-menu"><summary>الروايات والتسجيلات ('+g.variants.length+')</summary><div class="reciter-variants">'+g.variants.map(v=>'<button type="button" class="reciter-version" data-reciter-play="'+v.index+'" data-play-label="'+esc(v.label)+'" aria-label="تشغيل '+esc(g.name)+' — '+esc(v.label)+'">▶ '+esc(v.label)+'</button>').join('')+'</div></details>':'')+'</div>'+(g.variants.length===1?'<button type="button" class="reciter-play" data-reciter-play="'+g.variants[0].index+'" aria-label="تشغيل '+esc(g.name)+'">▶</button>':'')+'</div>').join(''):'<div class="reciter-empty">لا توجد نتائج بهذا الاسم.</div>';
   const count=$('reciterCount');if(count)count.textContent='القرّاء '+new Intl.NumberFormat('ar').format(L.length)+' من '+new Intl.NumberFormat('ar').format(all.length)+' · التسجيلات '+new Intl.NumberFormat('ar').format(uniqueRecitationCount());
   const more=$('reciterMore');
   if(more){more.hidden=L.length<=shown.length;more.textContent='عرض المزيد من القرّاء · '+new Intl.NumberFormat('ar').format(Math.max(0,L.length-shown.length))+' متبقٍ';}
