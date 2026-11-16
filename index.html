@@ -1104,6 +1104,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  function moveSurah(step){const a=availableSurahs(),i=a.indexOf(n),next=i<0?0:(i+step+a.length)%a.length;n=a[next];rsu.value=String(n);play()}
  function play(){
   const lesson=$('lessonAudio');if(lesson&&!lesson.paused)lesson.pause();
+  if(countryActiveAudio&&!countryActiveAudio.paused)stopCountryAudio();
   started=true;
   const available=availableSurahs();
   if(!available.includes(n))n=available[0]||1;
@@ -1320,12 +1321,14 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
    const heading=a.querySelector('h2,h3,h4,[data-reciter-name]');
    let name=(heading?.textContent||raw).trim();
    const latinAt=name.search(/[A-Za-z]/);
-   if(latinAt>0)name=name.slice(0,latinAt);
-   name=name.replace(/(?:مختار|مصري|سعودي|مغربي|جزائري|عراقي|يمني|سوري|فلسطيني|كويتي|إماراتي|قطري|ليبي|بحريني|أردني|سوداني|تونسي|عُماني|موريتاني|لبناني|صومالي).*$/,'').trim();
+   if(latinAt>0)name=name.slice(0,latinAt).trim();
+   if(!heading){
+    name=name.replace(/\s*[|·،,]\s*(?:مختار|مصري|سعودي|مغربي|جزائري|عراقي|يمني|سوري|فلسطيني|كويتي|إماراتي|قطري|ليبي|بحريني|أردني|سوداني|تونسي|عُماني|موريتاني|لبناني|صومالي).*$/,'').trim();
+   }
    name=name.replace(/^[\s·،,]+|[\s·،,]+$/g,'');
    if(!name||name.length>120)return;
    const digits=raw.match(/([0-9٠-٩]+)\s*(?:قراءة|قراءات|قراءتان)/);
-   const recordings=/قراءتان/.test(raw)?2:digits?Math.max(1,Number(countryDigits(digits[1]))||1):1;
+   const recordings=/قراءتان/.test(raw)?2:digits?Math.max(1,Number(countryDigits(digits[1]))||1):0;
    rows.push({name,slug:match[1],profileUrl:u.href,recordings});
   });
   return rows;
@@ -1358,7 +1361,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   const controllers=[];
   const jobs=proxies.map(async proxy=>{
    const controller=new AbortController();controllers.push(controller);
-   const timer=setTimeout(()=>controller.abort(),7000);
+   const timer=setTimeout(()=>controller.abort(),5000);
    try{
     const response=await fetch(proxy,{signal:controller.signal,cache:'force-cache',credentials:'omit',referrerPolicy:'no-referrer'});
     if(!response.ok)throw new Error('HTTP '+response.status);
@@ -1374,13 +1377,14 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  function dedupeCountryRows(rows){
   const byIdentity=new Map();
   rows.forEach(row=>{
-   const key=countryNorm(row.name)||countryNorm(row.slug);
-   if(!byIdentity.has(key))byIdentity.set(key,{...row,aliases:1});
+   const key=String(row.slug||countryNorm(row.name)).toLowerCase();
+   if(!byIdentity.has(key))byIdentity.set(key,{...row});
    else{
-    const old=byIdentity.get(key);old.recordings=Math.max(old.recordings,row.recordings||1);old.aliases++;
+    const old=byIdentity.get(key);
+    old.recordings=Math.max(old.recordings||0,row.recordings||0);
    }
   });
-  return [...byIdentity.values()].sort((a,b)=>a.name.localeCompare(b.name,'ar'));
+  return [...byIdentity.values()].sort((a,b)=>a.name.localeCompare(b.name,'ar')||a.slug.localeCompare(b.slug,'ar'));
  }
  function countryPageMeta(html){
   const doc=new DOMParser().parseFromString(html,'text/html');
@@ -1402,7 +1406,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  function renderCountryRows(){
   const q=countryNorm(countrySearch.value);
   const filtered=activeCountryRows.filter(row=>!q||countryNorm(row.name).includes(q));
-  countryList.innerHTML=filtered.length?filtered.map(r=>'<div class="country-reader-item" role="listitem" data-country-reciter="'+esc(r.slug)+'" data-country-profile="'+esc(r.profileUrl)+'"><span class="country-reader-seal" aria-hidden="true">🌷</span><span class="country-reader-name">'+esc(r.name)+'</span><small>'+(r.recordings>1?new Intl.NumberFormat('ar').format(r.recordings)+' تلاوات':'تلاوة')+'</small><button type="button" class="country-reader-play" data-country-play aria-label="تشغيل تلاوة '+esc(r.name)+' داخل المفكرة" title="تشغيل داخل أنوار">▶</button></div>').join(''):'<div class="country-reader-empty">'+(q?'لا توجد أسماء مطابقة في هذه الصفحة. انتقل إلى الصفحة التالية أو غيّر البحث.':'لا توجد أسماء في هذه الصفحة.')+'</div>';
+  countryList.innerHTML=filtered.length?filtered.map(r=>'<div class="country-reader-item" role="listitem" data-country-reciter="'+esc(r.slug)+'" data-country-profile="'+esc(r.profileUrl)+'"><span class="country-reader-seal" aria-hidden="true">🌷</span><span class="country-reader-name">'+esc(r.name)+'</span><small>'+(r.recordings>1?new Intl.NumberFormat('ar').format(r.recordings)+' تلاوات':(r.recordings===1?'تلاوة':'قارئ'))+'</small><button type="button" class="country-reader-play" data-country-play aria-label="تشغيل تلاوة '+esc(r.name)+' داخل المفكرة" title="تشغيل داخل أنوار">▶</button></div>').join(''):'<div class="country-reader-empty">'+(q?'لا توجد أسماء مطابقة في هذه الصفحة. انتقل إلى الصفحة التالية أو غيّر البحث.':'لا توجد أسماء في هذه الصفحة.')+'</div>';
   countryCountBox.textContent=new Intl.NumberFormat('ar').format(filtered.length)+(countryTotalCount?' / '+new Intl.NumberFormat('ar').format(countryTotalCount):'');
   countryPageBox.textContent=activeCountryPage+' / '+countryTotalPages;
   countryPrev.disabled=activeCountryPage<=1||countryPageBusy;
@@ -1415,6 +1419,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   activeCountryKey=key;
   const cache=countryCache.get(key)||{pages:new Map(),totalPages:1,totalCount:0};
   if(cache.pages.has(targetPage)&&!force){
+   countryPageBusy=false;
    activeCountryRows=cache.pages.get(targetPage);
    activeCountryPage=targetPage;countryTotalPages=cache.totalPages;countryTotalCount=cache.totalCount;
    countryRetry.hidden=true;renderCountryRows();
@@ -1435,7 +1440,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
    countryCache.set(key,cache);
    if(token!==countryLoadToken||activeCountryKey!==key)return;
    activeCountryRows=rows;activeCountryPage=targetPage;countryTotalPages=cache.totalPages;countryTotalCount=cache.totalCount;
-   countrySearch.value='';renderCountryRows();
+   renderCountryRows();
    countryStatusBox.textContent='عُثر على '+new Intl.NumberFormat('ar').format(rows.length)+' قارئًا في هذه الصفحة من '+entry.name+'. لم تُحمّل الصفحات الأخرى بعد.';
   }catch(error){
    if(token!==countryLoadToken||activeCountryKey!==key)return;
@@ -1478,6 +1483,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  }
  function closeCountryModal(){
   countryLoadToken++;countryPageBusy=false;
+  if(countryActiveAudio)stopCountryAudio();
   countryModal.hidden=true;document.body.classList.remove('country-reader-open');document.body.style.overflow=countryPreviousOverflow;
   countryOpen.focus();
  }
@@ -1525,12 +1531,20 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   return extras.length?extras:urls.slice(0,1).map((url,i)=>({url,label:'التلاوة '+(i+1)}));
  }
  function stopCountryAudio(){
-  if(countryActiveAudio){countryActiveAudio.pause();countryActiveAudio.remove()}
+  if(countryActiveAudio){
+   countryActiveAudio.pause();
+   countryActiveAudio.removeAttribute('src');
+   countryActiveAudio.load();
+   countryActiveAudio.remove();
+  }
   if(countryActiveButton)countryActiveButton.textContent='▶';
   if(countryActiveCard)countryActiveCard.querySelector('.country-reader-audio-wrap')?.remove();
   countryActiveAudio=null;countryActiveButton=null;countryActiveCard=null;
  }
  function mountCountryAudio(card,button,name,urls,sourceLabel){
+  const mainRadio=window.__anwarRadioAudio,lessonAudio=$('lessonAudio');
+  if(mainRadio&&!mainRadio.paused)mainRadio.pause();
+  if(lessonAudio&&!lessonAudio.paused)lessonAudio.pause();
   stopCountryAudio();
   const tracks=countryTrackOptions(urls);
   if(!tracks.length)throw new Error('لم توجد ملفات صوت صالحة');
@@ -1544,7 +1558,9 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
    select.addEventListener('change',()=>{
     const track=tracks[Number(select.value)||0];
     audio.pause();audio.src=track.url;audio.load();
-    countryStatusBox.textContent='تم اختيار '+track.label+' للقارئ '+name+'؛ اضغط تشغيل داخل المشغّل.';
+    countryStatusBox.textContent='جارٍ تشغيل '+track.label+' للقارئ '+name+' داخل أنوار…';
+    const attempt=audio.play();
+    if(attempt&&attempt.catch)attempt.catch(()=>{countryStatusBox.textContent='تم اختيار السورة؛ اضغط ▶ في مشغّل الصوت.'});
    });
    wrap.append(label,select);
   }
@@ -1561,7 +1577,12 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   },{once:true});
   audio.load();
   button.textContent='▶';
-  countryStatusBox.textContent='تم تجهيز '+tracks.length+' رابط تلاوة للقارئ '+name+' داخل أنوار. اضغط تشغيل في المشغّل؛ لن يُحمّل إلا الملف المختار.';
+  countryStatusBox.textContent='تم العثور على '+tracks.length+' رابط تلاوة للقارئ '+name+'؛ جارٍ بدء الملف الأول داخل أنوار…';
+  const attempt=audio.play();
+  if(attempt&&typeof attempt.catch==='function')attempt.catch(error=>{
+   if(error&&error.name==='NotAllowedError')countryStatusBox.textContent='المشغّل جاهز داخل أنوار؛ اضغط ▶ في شريط الصوت لبدء التلاوة.';
+   else countryStatusBox.textContent='لم يبدأ الملف تلقائيًا؛ اضغط ▶ في مشغّل الصوت داخل البطاقة.';
+  });
  }
  function countryProfileAudio(card){
   const slug=card.dataset.countryReciter||'',profileUrl=card.dataset.countryProfile||'';
@@ -1825,7 +1846,11 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  const lessonList=$('lessonList');
  function markLessonPlaying(){if(!lessonList)return;lessonList.querySelectorAll('[data-lesson-index]').forEach(btn=>{const active=+btn.dataset.lessonIndex===current&&!!audio.src;btn.setAttribute('aria-current',String(active));const icon=btn.querySelector('.lesson-item-radio');if(icon)icon.textContent=active&&!audio.paused?'Ⅱ':'▶';});}
  if(lessonList)lessonList.addEventListener('click',e=>{const btn=e.target.closest('[data-lesson-index]');if(!btn)return;current=+btn.dataset.lessonIndex;track.value=String(current);loadTrack(true);markLessonPlaying();});
- audio.addEventListener('play',()=>{const radio=window.__anwarRadioAudio;if(radio&&!radio.paused)radio.pause();markLessonPlaying()});
+ audio.addEventListener('play',()=>{
+  const radio=window.__anwarRadioAudio;if(radio&&!radio.paused)radio.pause();
+  if(typeof stopCountryAudio==='function'&&countryActiveAudio&&!countryActiveAudio.paused)stopCountryAudio();
+  markLessonPlaying();
+ });
  audio.addEventListener('pause',markLessonPlaying);
  audio.addEventListener('playing',markLessonPlaying);
  play.addEventListener('click',()=>{const radio=window.__anwarRadioAudio;if(radio&&!radio.paused)radio.pause();const c=catalog[series.value];if(!c.direct){renderSource(c);status.textContent='هذا فهرس للسلاسل وليس درساً صوتياً مستقلاً؛ افتح رابط الفهرس في تبويب مستقل لتصفح بقية الصوتيات.';return;}if(!audio.src)loadTrack(false);if(audio.paused)audio.play().then(()=>play.textContent='⏸').catch(()=>status.textContent='تعذر تشغيل الملف؛ افتح المصدر الأصلي.');else{audio.pause();play.textContent='▶';}});
