@@ -497,15 +497,17 @@ dialog[open]>.float-head{display:none!important}
 .country-reader-footer span{min-width:58px;text-align:center;color:var(--mu);font-size:10px}
 #countryReaderRetry{border-color:#c8a763;background:#fff5da;color:#624819}
 .country-reader-source{padding:0 12px 10px;color:var(--mu);font-size:9px;line-height:1.6;text-align:center}
-.reciter-body{flex:1;min-width:0;display:grid;gap:6px}
-.reciter-name{display:block;min-width:0;overflow-wrap:anywhere}
-.reciter-variants-menu{position:relative;min-width:0;width:100%;max-width:100%}
-.reciter-variants-menu>summary{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-height:34px;padding:6px 10px;border:1px solid #c9a96a;border-radius:10px;background:linear-gradient(145deg,#fff8e8,#ead39a);color:#263b50;font:700 11px Cairo,Tahoma,sans-serif;cursor:pointer;list-style:none;box-sizing:border-box}
+.reciter-body{flex:1;min-width:0;display:flex;align-items:center;gap:8px}
+.reciter-name{display:block;flex:1;min-width:0;overflow-wrap:anywhere}
+.reciter-variants-menu{position:relative;flex:none;width:30px;height:30px}
+.reciter-variants-menu>summary{display:grid;place-items:center;width:30px;height:30px;padding:0;border:1px solid #d5bd83;border-radius:50%;background:linear-gradient(145deg,#fff9e9,#ead39a);box-shadow:inset 0 1px 2px #ffffffb8,0 2px 5px #18334b12;cursor:pointer;list-style:none;box-sizing:border-box}
 .reciter-variants-menu>summary::-webkit-details-marker{display:none}
-.reciter-variants-menu>summary::after{content:'🔽';flex:none;font-size:11px}
-.reciter-variants-menu[open]>summary{border-radius:10px 10px 0 0;background:#ead39a}
-.reciter-variants{display:grid;grid-template-columns:minmax(0,1fr);gap:5px;min-width:0;max-width:100%;padding:7px;border:1px solid #c9a96a;border-top:0;border-radius:0 0 10px 10px;background:var(--sf);box-shadow:0 5px 14px #00000012}
+.reciter-variants-menu[open]>summary::after{transform:rotate(225deg) translate(-1px,-1px)}
+.reciter-variants-menu>summary::after{content:'';width:8px;height:8px;border-right:2px solid #72572e;border-bottom:2px solid #72572e;transform:rotate(45deg) translateY(-2px);transition:transform .18s}
+.reciter-variants-menu[open]>summary{background:linear-gradient(145deg,#f4e3b8,#d7b86e);border-color:#b8944f}
+.reciter-variants{position:absolute;z-index:30;top:calc(100% + 7px);inset-inline-end:0;display:grid;grid-template-columns:minmax(0,1fr);gap:5px;width:min(220px,72vw);max-height:210px;overflow:auto;padding:7px;border:1px solid #c9a96a;border-radius:12px;background:var(--sf);box-shadow:0 8px 22px #102f5030}
 .reciter-version{display:block;width:100%;max-width:100%;min-width:0;min-height:32px;padding:6px 9px;border:1px solid #d8c28f;border-radius:8px;background:linear-gradient(145deg,#fffaf0,#f2e5c7);color:#263b50;font:700 11px Cairo,Tahoma,sans-serif;text-align:right;white-space:normal;overflow-wrap:anywhere;word-break:normal;line-height:1.55;box-sizing:border-box}
+.reciter-version{min-height:36px;border-radius:9px}
 .reciter-version:active{transform:scale(.99)}
 @media(max-width:520px){
  .country-reader-modal{padding:0}
@@ -1238,8 +1240,8 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=san(pg.innerHTML)}save()})
   const surah=+rsu.value||1;rsu.innerHTML=SU.map((x,i)=>'<option value="'+(i+1)+'">'+(i+1)+'. '+esc(x)+'</option>').join('');rsu.value=String(surah);
   const L=all.filter(g=>!q||g.name.toLocaleLowerCase('ar').includes(q)||g.variants.some(v=>String(R[v.index][0]).toLocaleLowerCase('ar').includes(q)));
   const shown=L.slice(0,reciterDisplayLimit);
-  $('reciterGrid').innerHTML=shown.length?shown.map(g=>'<div class="reciter-card" role="listitem"><span class="reciter-seal" aria-hidden="true">🌷</span><div class="reciter-body"><span class="reciter-name">'+esc(g.name)+'</span>'+(g.variants.length>1?'<details class="reciter-variants-menu"><summary>الروايات والتسجيلات ('+g.variants.length+')</summary><div class="reciter-variants">'+g.variants.map(v=>'<button type="button" class="reciter-version" data-reciter-play="'+v.index+'" data-play-label="'+esc(v.label)+'" aria-label="تشغيل '+esc(g.name)+' — '+esc(v.label)+'">▶ '+esc(v.label)+'</button>').join('')+'</div></details>':'')+'</div>'+(g.variants.length===1?'<button type="button" class="reciter-play" data-reciter-play="'+g.variants[0].index+'" aria-label="تشغيل '+esc(g.name)+'">▶</button>':'')+'</div>').join(''):'<div class="reciter-empty">لا توجد نتائج بهذا الاسم.</div>';
-  const count=$('reciterCount');if(count)count.textContent='القرّاء '+new Intl.NumberFormat('ar').format(L.length)+' من '+new Intl.NumberFormat('ar').format(all.length)+' · التسجيلات '+new Intl.NumberFormat('ar').format(uniqueRecitationCount());
+  $('reciterGrid').innerHTML=shown.length?shown.map(g=>'<div class="reciter-card" role="listitem"><span class="reciter-seal" aria-hidden="true">🌷</span><div class="reciter-body"><span class="reciter-name">'+esc(g.name)+'</span>'+(g.variants.length>1?'<details class="reciter-variants-menu"><summary aria-label="عرض الروايات والتسجيلات" title="الروايات والتسجيلات"></summary><div class="reciter-variants">'+g.variants.map(v=>'<button type="button" class="reciter-version" data-reciter-play="'+v.index+'" data-play-label="'+esc(v.label)+'" aria-label="تشغيل '+esc(g.name)+' — '+esc(v.label)+'">▶ '+esc(v.label)+'</button>').join('')+'</div></details>':'')+'</div><button type="button" class="reciter-play" data-reciter-play="'+g.variants[0].index+'" aria-label="تشغيل '+esc(g.name)+'">▶</button></div>').join(''):'<div class="reciter-empty">لا توجد نتائج بهذا الاسم.</div>';
+  const count=$('reciterCount');if(count)count.textContent='القرّاء '+new Intl.NumberFormat('ar').format(L.length)+' من '+new Intl.NumberFormat('ar').format(all.length);
   const more=$('reciterMore');
   if(more){more.hidden=L.length<=shown.length;more.textContent='عرض المزيد من القرّاء · '+new Intl.NumberFormat('ar').format(Math.max(0,L.length-shown.length))+' متبقٍ';}
   ui();
