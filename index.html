@@ -1264,7 +1264,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   let urls,pageNumbers;
   if(retryOnly&&failedCountryPages.length){
    pageNumbers=failedCountryPages.slice();
-   urls=pageNumbers.map(page=>COUNTRY_BASE+key+'/page/'+page+'/');
+   urls=pageNumbers.map(page=>page===1?COUNTRY_BASE+key+'/':COUNTRY_BASE+key+'/page/'+page+'/');
   }else{
    pageNumbers=Array.from({length:entry.pages},(_,i)=>i+1);
    urls=pageNumbers.map(page=>page===1?COUNTRY_BASE+key+'/':COUNTRY_BASE+key+'/page/'+page+'/');
@@ -1284,7 +1284,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   countryRetry.hidden=!failedCountryPages.length;
   countrySearch.value='';activeCountryPage=0;renderCountryRows();
   const duplicates=Math.max(0,combined.length-activeCountryRows.length);
-  countryStatusBox.textContent='عُثر على '+new Intl.NumberFormat('ar').format(activeCountryRows.length)+' قارئًا بعد إزالة '+new Intl.NumberFormat('ar').format(duplicates)+' تكرارات'+(failedCountryPages.length?' · لم تكتمل '+failedCountryPages.length+' صفحة، ويمكن إعادة المحاولة.':' · اكتمل تحميل جميع صفحات الدولة.');
+  countryStatusBox.textContent='عُثر على '+new Intl.NumberFormat('ar').format(activeCountryRows.length)+' اسمًا بعد إزالة '+new Intl.NumberFormat('ar').format(duplicates)+' تكرارات · العدد المعلن في المصدر: '+new Intl.NumberFormat('ar').format(entry.count)+(failedCountryPages.length?' · لم تكتمل '+failedCountryPages.length+' صفحة، ويمكن إعادة المحاولة.':' · اكتمل جلب صفحات الدولة.');
  }
  function updateCountryDirectory(){
   const key=countrySelect.value,entry=countryDirectory[key];
