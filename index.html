@@ -3120,7 +3120,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   if(saveButton){
    const id=saveButton.dataset.saveResource;
    saved=saved.includes(id)?saved.filter(x=>x!==id):[...saved,id];
-   persist();saveButton.textContent=saved.includes(id)?'★ محفوظ':'♡ حفظ';saveButton.setAttribute('aria-pressed',String(saved.includes(id)));
+   persist();saveButton.textContent=saved.includes(id)?'★':'♡';saveButton.setAttribute('aria-pressed',String(saved.includes(id)));
    if(activeLibraryView==='librarySavedView')showSaved();
   }
  });
