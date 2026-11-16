@@ -106,7 +106,7 @@ dialog textarea{width:100%;height:140px;background:var(--bg);color:var(--tx);bor
 #rd .lesson-item{display:flex;align-items:center;gap:9px;width:100%;min-height:43px;padding:7px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--sf);color:var(--tx);text-align:right}
 #rd .lesson-item:active{transform:scale(.995)}
 #rd .lesson-item[aria-current="true"]{border-color:#b58a42;background:linear-gradient(110deg,#fff5d9,#f2e2bd);color:#173d5c;box-shadow:inset 0 0 0 1px #d8bd7c}
-#rd .lesson-tulip{font-size:18px;line-height:1;flex:none}
+#rd .lesson-tulip{width:30px;height:30px;display:grid;place-items:center;flex:none;overflow:hidden;border-radius:50%;border:1px solid #dfc58d;background:linear-gradient(145deg,#fffaf0,#f0e2c1);box-shadow:inset 0 1px 2px #ffffffb8,0 1px 3px #18334b12}#rd .lesson-tulip img{display:block;width:25px;height:29px;object-fit:contain;object-position:center bottom}
 #rd .lesson-item-name{flex:1;min-width:0;font-size:12px;font-weight:700}
 #rd .lesson-item-radio{width:29px;height:25px;display:grid;place-items:center;flex:none;border-radius:6px;background:#173d5c;color:#f7dfaa;font-size:14px}
 #rd .lesson-empty{padding:12px;text-align:center;color:var(--mu);font-size:12px}#rd .lesson-box a{display:block;color:var(--ac);text-decoration:none;border:1px solid var(--bd);border-radius:7px;padding:8px;background:var(--sf);font-size:12px}#rd .lesson-box audio{width:100%;height:38px}#rd .lesson-note{font-size:11px;color:var(--mu);line-height:1.7}
@@ -2019,7 +2019,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=san(pg.innerHTML)}save()})
   track.disabled=!c.count;
   const lessonList=$('lessonList');
   if(lessonList){
-   lessonList.innerHTML=c.count?Array.from({length:c.count},(_,i)=>`<button type="button" class="lesson-item" role="listitem" data-lesson-index="${i}" aria-current="false"><span class="lesson-tulip" aria-hidden="true">🌷</span><span class="lesson-item-name">${c.trackNames?.[i]||('الدرس '+String(i+1).padStart(2,'0')+' من '+c.count)}</span><span class="lesson-item-radio" aria-hidden="true">▶</span></button>`).join(''):'<div class="lesson-empty">لا تتوفر قائمة تشغيل مباشرة لهذه المادة؛ افتح فهرس المصدر أدناه.</div>';
+   lessonList.innerHTML=c.count?Array.from({length:c.count},(_,i)=>`<button type="button" class="lesson-item" role="listitem" data-lesson-index="${i}" aria-current="false"><span class="lesson-tulip" aria-hidden="true"><img src="assets/tulip-cutout.svg" alt=""></span><span class="lesson-item-name">${c.trackNames?.[i]||('الدرس '+String(i+1).padStart(2,'0')+' من '+c.count)}</span><span class="lesson-item-radio" aria-hidden="true">▶</span></button>`).join(''):'<div class="lesson-empty">لا تتوفر قائمة تشغيل مباشرة لهذه المادة؛ افتح فهرس المصدر أدناه.</div>';
   }
   renderSource(c);
   status.textContent=c.direct?'قائمة كاملة: '+c.count+' درسًا. اختر الدرس للتشغيل الداخلي أو شغّل السلسلة للانتقال التلقائي.':c.count?'تتوفر '+c.count+' مادة صوتية في هذه السلسلة.':'هذا فهرس للسلاسل الصوتية؛ افتح رابطه في تبويب مستقل لتصفح بقية الصوتيات.';
