@@ -3543,18 +3543,20 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
 })();
 </script>
 
-<script type="module">
-try{
- const pdfjs=await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/6.5.438/pdf.min.mjs');
- pdfjs.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/6.5.438/pdf.worker.min.mjs';
- window.AnwarPdfEngine={
-  getDocument(options){return pdfjs.getDocument(options)}
- };
- window.dispatchEvent(new Event('anwar-pdf-engine-ready'));
-}catch(error){
- window.AnwarPdfEngineError=error&&error.message?error.message:'تعذر تحميل محرك PDF.js';
- window.dispatchEvent(new Event('anwar-pdf-engine-error'));
-}
+<script>
+(async()=>{
+ try{
+  const pdfjs=await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/6.5.438/pdf.min.mjs');
+  pdfjs.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/6.5.438/pdf.worker.min.mjs';
+  window.AnwarPdfEngine={
+   getDocument(options){return pdfjs.getDocument(options)}
+  };
+  window.dispatchEvent(new Event('anwar-pdf-engine-ready'));
+ }catch(error){
+  window.AnwarPdfEngineError=error&&error.message?error.message:'تعذر تحميل محرك PDF.js';
+  window.dispatchEvent(new Event('anwar-pdf-engine-error'));
+ }
+})();
 </script>
 </body>
 </html>
