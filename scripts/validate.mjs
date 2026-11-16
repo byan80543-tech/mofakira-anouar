@@ -11,7 +11,8 @@ const ok=(condition,message)=>{if(!condition)failures.push(message);else console
 ok(manifest.name==='مفكرة أنوار' && manifest.short_name==='مفكرة أنوار','PWA name and short_name');
 ok(manifest.start_url==='/mofakira-anouar/' && manifest.scope==='/mofakira-anouar/','GitHub Pages start_url and scope');
 ok(html.includes('manifest.webmanifest?v=20261116-4'),'HTML references the versioned manifest');
-ok(html.includes('icon-144.jpg?v=20261116-4'),'browser and Apple touch icons reference the current blue brand icon');
+ok(html.includes('<link rel="icon" type="image/jpeg" href="icon-144.jpg?v=20261116-4"'),'browser favicon references the current blue brand icon');
+ok(html.includes('<link rel="apple-touch-icon" href="icon-144.jpg?v=20261116-4"'),'Apple touch icon references the current blue brand icon');
 ok(!html.includes('Object.hasOwn('),'storage normalization avoids unsupported Object.hasOwn calls');
 
 const required=[
