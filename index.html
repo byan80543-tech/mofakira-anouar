@@ -407,7 +407,15 @@ dialog[open]>.float-head{display:none!important}
   overflow-y:auto!important;
   background:var(--sf)!important;
 }
-#rib.open>.mobile-layer-header{grid-column:1/-1}
+#rib.open>.mobile-layer-header{
+  display:flex!important;
+  grid-column:1/-1;
+  position:sticky;
+  top:calc(-12px - env(safe-area-inset-top,0px));
+  z-index:20;
+  margin-top:calc(-12px - env(safe-area-inset-top,0px));
+  padding-top:calc(10px + env(safe-area-inset-top,0px));
+}
 #rib.open .g{min-width:0!important;width:100%!important}
 #rib.open .g>div{flex-wrap:wrap!important}
 #rib.open .g .b{min-height:38px}
