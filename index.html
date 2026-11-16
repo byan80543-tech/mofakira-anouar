@@ -1450,7 +1450,11 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   },{once:true});
   audio.load();
   button.textContent='▶';
-  countryStatusBox.textContent='تم تجهيز '+tracks.length+' ملفًا صوتيًا للقارئ '+name+' داخل المفكرة. اضغط ▶ في المشغّل، أو اضغط زر القارئ مرة أخرى لبدء الاستماع.';
+  countryStatusBox.textContent='تم تجهيز '+tracks.length+' ملفًا صوتيًا للقارئ '+name+' داخل المفكرة. جارٍ محاولة بدء الصوت هنا…';
+  const playAttempt=audio.play();
+  if(playAttempt&&typeof playAttempt.catch==='function')playAttempt.catch(error=>{
+   if(error&&error.name==='NotAllowedError')countryStatusBox.textContent='المشغّل جاهز داخل أنوار؛ اضغط ▶ في شريط الصوت للسماح بالتشغيل.';
+  });
  }
  countryList.addEventListener('click',async e=>{
   const button=e.target.closest('[data-country-play]');if(!button)return;
