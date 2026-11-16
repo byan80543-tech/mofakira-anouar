@@ -467,6 +467,17 @@ dialog[open]>.float-head{display:none!important}
 .reciter-catalog-note{display:block;padding:0 5px;color:var(--mu);font-size:10px;line-height:1.6}
 
 .reciter-count{padding:4px 9px;border:1px solid #ddc995;border-radius:999px;background:#fffdf6;color:#72572e;font-size:10px;font-weight:700;white-space:nowrap}
+.reciter-country-browser{display:grid;gap:8px;margin:9px 0;padding:11px;border:1px solid #d8c28f;border-radius:13px;background:linear-gradient(145deg,#fffaf0,var(--sf));box-shadow:0 2px 8px rgba(8,38,77,.045)}
+.reciter-country-title{font-size:13px;font-weight:800;color:var(--ac)}
+.reciter-country-controls{display:flex;align-items:stretch;gap:8px;min-width:0}
+.reciter-country-controls select{flex:1;min-width:0;min-height:42px;padding:7px 10px;border:1px solid var(--bd);border-radius:9px;background:var(--sf);color:var(--tx);font:inherit;font-size:12px}
+.reciter-country-open{display:flex;align-items:center;justify-content:center;flex:none;min-width:104px;padding:8px 10px;border-radius:9px;background:linear-gradient(110deg,#12395f,#1b6680);color:#fff;text-decoration:none;text-align:center;font-size:11px;font-weight:800}
+.reciter-country-status{display:block;color:var(--mu);font-size:10px;line-height:1.7}
+.reciter-country-foot{display:flex;flex-wrap:wrap;align-items:center;gap:4px 9px;padding-top:6px;border-top:1px solid var(--bd);font-size:10px}
+.reciter-country-foot a{color:var(--ac);font-weight:800;text-decoration:none}
+.reciter-country-foot span{color:var(--mu)}
+@media(max-width:420px){.reciter-country-controls{flex-direction:column}.reciter-country-open{min-height:38px;width:100%}}
+
 .reciter-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-height:min(48dvh,460px);min-height:200px;padding:4px 3px 10px;scrollbar-gutter:stable;scroll-padding-block:8px}
 .reciter-card{min-height:62px;gap:10px;padding:10px 12px;border-radius:13px;background:linear-gradient(145deg,var(--sf),var(--bg));box-shadow:0 2px 7px rgba(8,38,77,.055);transition:border-color .18s,box-shadow .18s,transform .18s}
 .reciter-card:has(.reciter-play:active){transform:scale(.99)}
@@ -578,7 +589,50 @@ dialog[open]>.float-head{display:none!important}
  <div class="live-station" id="liveStationArea" hidden><div><b>البث الإذاعي المباشر</b><small>محطات قرآنية متاحة للاستماع</small></div><select id="rl" aria-label="اختر المحطة الإذاعية"></select><button type="button" id="liveRadioPlay">استمع إلى الإذاعة　▶</button></div>
  <input id="rq" type="search" placeholder="ابحث عن اسم القارئ…" aria-label="ابحث عن قارئ">
  <div class="reciter-list-head"><span class="reciter-list-title">موسوعة القرّاء والروايات</span><span class="reciter-count" id="reciterCount">جارٍ التحميل…</span></div>
- <small class="reciter-catalog-note">كل مصحف ورواية متاحة يظهران كخيار مستقل، وقد تختلف السور المتاحة من رواية إلى أخرى.</small>
+ <small class="reciter-catalog-note">كل مصحف ورواية متاحة يظهران كخيار مستقل، وقد تختلف السور المتاحة من رواية إلى أخرى. والبحث أعلاه يخص قائمة التشغيل داخل أنوار.</small>
+
+ <section class="reciter-country-browser" aria-label="فهرس القراء حسب الدول العربية">
+  <div class="reciter-country-title">تصفّح القرّاء حسب الدولة العربية</div>
+  <div class="reciter-country-controls">
+   <select id="reciterCountry" aria-label="اختر دولة عربية">
+    <option value="">جميع الدول العربية — اختر دولة</option>
+    <optgroup label="الخليج والجزيرة العربية">
+     <option value="saudi-arabia">المملكة العربية السعودية · 797 قارئًا</option>
+     <option value="kuwait">الكويت · 76 قارئًا</option>
+     <option value="bahrain">البحرين · 38 قارئًا</option>
+     <option value="qatar">قطر · 51 قارئًا</option>
+     <option value="united-arab-emirates">الإمارات العربية المتحدة · 65 قارئًا</option>
+     <option value="oman">سلطنة عُمان · 20 قارئًا</option>
+     <option value="yemen">اليمن · 111 قارئًا</option>
+    </optgroup>
+    <optgroup label="بلاد الشام والعراق">
+     <option value="palestine">فلسطين · 82 قارئًا</option>
+     <option value="jordan">الأردن · 32 قارئًا</option>
+     <option value="lebanon">لبنان · 10 قرّاء</option>
+     <option value="syria">سوريا · 83 قارئًا</option>
+     <option value="iraq">العراق · 130 قارئًا</option>
+    </optgroup>
+    <optgroup label="شمال أفريقيا ووادي النيل">
+     <option value="egypt">مصر · 686 قارئًا</option>
+     <option value="libya">ليبيا · 41 قارئًا</option>
+     <option value="tunisia">تونس · 25 قارئًا</option>
+     <option value="algeria">الجزائر · 42 قارئًا</option>
+     <option value="morocco">المغرب · 232 قارئًا</option>
+     <option value="mauritania">موريتانيا · 20 قارئًا</option>
+     <option value="sudan">السودان · 26 قارئًا</option>
+    </optgroup>
+    <optgroup label="القرن الأفريقي والجزر">
+     <option value="somalia">الصومال · 6 قرّاء</option>
+     <option value="djibouti">جيبوتي · لا يظهر لها قسم مستقل</option>
+     <option value="comoros">جزر القمر · لا يظهر لها قسم مستقل</option>
+    </optgroup>
+   </select>
+   <a id="reciterCountryOpen" class="reciter-country-open" href="https://etilawa.com/countries/" target="_blank" rel="noopener noreferrer">فتح فهرس الدول</a>
+  </div>
+  <small id="reciterCountryStatus" class="reciter-country-status">اختر دولة لفتح قائمتها الموسّعة وأسماء قرّائها في دليل التلاوة الخارجي. لا تُعرض صفحة خارجية داخل المفكرة.</small>
+  <div class="reciter-country-foot"><a href="https://etilawa.com/countries/" target="_blank" rel="noopener noreferrer">الدليل القطري الكامل · 54 بلدًا</a> <span>الأعداد بحسب بيانات الدليل، وآخر تحديث معلن 11 نوفمبر 2026.</span></div>
+ </section>
+
  <div id="reciterGrid" class="reciter-grid" role="list" aria-label="قائمة القراء"><div class="reciter-loading">جارٍ تجهيز قائمة القراء…</div></div>
  <select id="rr" aria-label="القارئ" hidden></select><select id="rsu" aria-label="السورة" hidden></select>
  <label hidden><input type="radio" name="rm" value="c" checked> إذاعة متواصلة</label><label hidden><input type="radio" name="rm" value="s"> سورة واحدة</label><label id="rlb" hidden><input type="radio" name="rm" value="l"> بث مباشر</label>
@@ -988,6 +1042,49 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  document.querySelectorAll('input[name=rm]').forEach(x=>x.addEventListener('change',()=>{if(started)play()}));
  $('rl').addEventListener('change',()=>{if(started)play()});
  $('rq').addEventListener('input',fill);
+
+ const countrySelect=$('reciterCountry'),countryOpen=$('reciterCountryOpen'),countryStatus=$('reciterCountryStatus');
+ const countryDirectory={
+  'saudi-arabia':{name:'المملكة العربية السعودية',count:797},
+  'kuwait':{name:'الكويت',count:76},
+  'bahrain':{name:'البحرين',count:38},
+  'qatar':{name:'قطر',count:51},
+  'united-arab-emirates':{name:'الإمارات العربية المتحدة',count:65},
+  'oman':{name:'سلطنة عُمان',count:20},
+  'yemen':{name:'اليمن',count:111},
+  'palestine':{name:'فلسطين',count:82},
+  'jordan':{name:'الأردن',count:32},
+  'lebanon':{name:'لبنان',count:10},
+  'syria':{name:'سوريا',count:83},
+  'iraq':{name:'العراق',count:130},
+  'egypt':{name:'مصر',count:686},
+  'libya':{name:'ليبيا',count:41},
+  'tunisia':{name:'تونس',count:25},
+  'algeria':{name:'الجزائر',count:42},
+  'morocco':{name:'المغرب',count:232},
+  'mauritania':{name:'موريتانيا',count:20},
+  'sudan':{name:'السودان',count:26},
+  'somalia':{name:'الصومال',count:6}
+ };
+ function updateCountryDirectory(){
+  const key=countrySelect.value,entry=countryDirectory[key],base='https://etilawa.com/countries/';
+  if(entry){
+   countryOpen.href=base+key+'/';
+   countryOpen.textContent='عرض قرّاء الدولة';
+   countryStatus.textContent='قائمة '+entry.name+' في الدليل الخارجي: '+new Intl.NumberFormat('ar').format(entry.count)+' قارئًا مسجّلًا. يفتح الرابط القائمة مباشرة مع صفحاتها.';
+  }else if(key==='djibouti'||key==='comoros'){
+   countryOpen.href=base;
+   countryOpen.textContent='فتح فهرس البلدان';
+   countryStatus.textContent='لم يظهر '+(key==='djibouti'?'لجيبوتي':'لجزر القمر')+' قسم مستقل في دليل التلاوة الذي راجعناه؛ يفتح الرابط فهرس البلدان العام دون افتراض عدم وجود قرّاء.';
+  }else{
+   countryOpen.href=base;
+   countryOpen.textContent='فتح فهرس الدول';
+   countryStatus.textContent='يضم الدليل الخارجي 54 بلدًا، ويمكنك اختيار الدولة والبحث في قوائم القرّاء المسجّلة فيها.';
+  }
+ }
+ countrySelect.addEventListener('change',updateCountryDirectory);
+ updateCountryDirectory();
+
  $('reciterGrid').addEventListener('click',e=>{const b=e.target.closest('[data-reciter-play]');if(!b)return;const i=+b.dataset.reciterPlay;if(started&&!au.paused&&mode()==='c'&&cr===i){au.pause();st.textContent='أوقفت التلاوة مؤقتاً';ui();return;}cr=i;rr.value=String(i);n=availableSurahs()[0]||1;rsu.value=String(n);document.querySelector('input[name=rm][value="c"]').checked=true;play()});
  $('liveRadioPlay').addEventListener('click',()=>{if(!$('rl').value){st.textContent='لا توجد محطة بث مباشر متاحة حالياً؛ اختر قارئاً من القائمة.';return;}document.querySelector('input[name=rm][value="l"]').checked=true;play()});
  $('rpv').addEventListener('click',()=>moveSurah(-1));
