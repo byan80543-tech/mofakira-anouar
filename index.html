@@ -3222,21 +3222,8 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  }
  function ensurePdfEngine(){
   if(window.AnwarPdfEngine)return Promise.resolve(window.AnwarPdfEngine);
-  if(window.AnwarPdfEngineError)return Promise.reject(new Error(window.AnwarPdfEngineError));
-  return new Promise((resolve,reject)=>{
-   let finished=false;
-   const done=(error)=>{
-    if(finished)return;finished=true;clearTimeout(timer);
-    window.removeEventListener('anwar-pdf-engine-ready',ready);
-    window.removeEventListener('anwar-pdf-engine-error',failed);
-    if(error)reject(error);else resolve(window.AnwarPdfEngine);
-   };
-   const ready=()=>done(null);
-   const failed=()=>done(new Error(window.AnwarPdfEngineError||'تعذر تحميل محرك PDF.js'));
-   const timer=setTimeout(()=>done(new Error('انتهت مهلة تحميل محرك القراءة')),18000);
-   window.addEventListener('anwar-pdf-engine-ready',ready,{once:true});
-   window.addEventListener('anwar-pdf-engine-error',failed,{once:true});
-  });
+  if(typeof window.loadAnwarPdfEngine!=='function')return Promise.reject(new Error('محرك القراءة غير متاح'));
+  return window.loadAnwarPdfEngine();
  }
  function savedPageFor(book){const state=readLibraryObject(readerProgressKey,{});const page=Number(state[book.id]);return Number.isInteger(page)&&page>0?page:1}
  function saveReaderProgress(){
@@ -3288,7 +3275,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
    const fitScale=Math.min(1.75,available/base.width);
    const scale=Math.max(.35,Math.min(4.0,fitScale*readerZoom));
    const viewport=page.getViewport({scale});
-   const outputScale=Math.max(1,Math.min(2,window.devicePixelRatio||1));
+   const outputScale=Math.max(1,Math.min(1.5,window.devicePixelRatio||1));
    const canvas=$('readerCanvas'),context=canvas.getContext('2d',{alpha:false});
    canvas.width=Math.ceil(viewport.width*outputScale);
    canvas.height=Math.ceil(viewport.height*outputScale);
@@ -3374,7 +3361,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   try{
    const engine=await ensurePdfEngine();
    if(activeReader!==book||request!==readerOpenRequest)return;
-   activePdfLoadingTask=engine.getDocument({url:book.pdfUrl,rangeChunkSize:65536,disableStream:false,disableAutoFetch:false});
+   activePdfLoadingTask=engine.getDocument({url:book.pdfUrl,rangeChunkSize:65536,disableRange:false,disableStream:true,disableAutoFetch:true});
    activePdfLoadingTask.onProgress=progress=>{
     if(activeReader===book&&progress?.total){
      const percent=Math.round(progress.loaded/progress.total*100);
@@ -3387,8 +3374,8 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
    activePdfPage=Math.min(activePdfPage,activePdfDocument.numPages||1);
    $('readerPages').textContent=String(activePdfDocument.numPages);
    readerBookmarks=getBookmarks();
-   await loadReaderOutline();
    await renderReaderPage();
+   loadReaderOutline().catch(()=>{});
   }catch(error){
    if(activeReader!==book||request!==readerOpenRequest)return;
    if(activePdfLoadingTask){try{await activePdfLoadingTask.destroy()}catch(e){}activePdfLoadingTask=null}
@@ -3528,6 +3515,8 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   app.setAttribute('aria-hidden','true');app.inert=true;
   page.hidden=false;page.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
   goHome();$('libraryClose').focus();
+  // سخّن محرك القراءة بعد دخول المكتبة، لا أثناء تحميل الصفحة الرئيسية.
+  ensurePdfEngine().catch(()=>{});
  }
  function close(){
   if(page.hidden)return;
@@ -3582,19 +3571,21 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
 </script>
 
 <script>
-(async()=>{
- try{
+window.loadAnwarPdfEngine=()=>{
+ if(window.AnwarPdfEngine)return Promise.resolve(window.AnwarPdfEngine);
+ if(window.AnwarPdfEnginePromise)return window.AnwarPdfEnginePromise;
+ window.AnwarPdfEnginePromise=(async()=>{
   const pdfjs=await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/6.5.438/pdf.min.mjs');
   pdfjs.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/6.5.438/pdf.worker.min.mjs';
-  window.AnwarPdfEngine={
-   getDocument(options){return pdfjs.getDocument(options)}
-  };
-  window.dispatchEvent(new Event('anwar-pdf-engine-ready'));
- }catch(error){
+  window.AnwarPdfEngine={getDocument(options){return pdfjs.getDocument(options)}};
+  return window.AnwarPdfEngine;
+ })().catch(error=>{
+  window.AnwarPdfEnginePromise=null;
   window.AnwarPdfEngineError=error&&error.message?error.message:'تعذر تحميل محرك PDF.js';
-  window.dispatchEvent(new Event('anwar-pdf-engine-error'));
- }
-})();
+  throw error;
+ });
+ return window.AnwarPdfEnginePromise;
+};
 </script>
 </body>
 </html>
