@@ -560,6 +560,22 @@ dialog[open]>.float-head{display:none!important}
 .reciter-more{display:block;width:100%;min-height:40px;margin:8px 0;padding:8px 12px;border:1px solid #c9a96a;border-radius:10px;background:linear-gradient(110deg,#fff7e5,#ead39a);color:#173b58;font:700 12px Cairo,Tahoma,sans-serif}
 .reciter-more[hidden]{display:none!important}
 .country-reader-status{line-height:1.6}
+
+/* فهرس قرّاء الدول: نقطة دخول واحدة لا تزاحم قائمة القرّاء */
+.reciter-country-quick{display:grid;gap:7px;margin:7px 0 9px}
+.country-quick-trigger{display:inline-flex;align-items:center;justify-content:flex-start;gap:8px;justify-self:start;min-height:37px;padding:6px 11px;border:1px solid #d8c28f;border-radius:10px;background:linear-gradient(115deg,#fff8e8,#f0e1bd);color:#173b58;font:700 12px Cairo,Tahoma,sans-serif;cursor:pointer;box-shadow:0 1px 4px #0000000b}
+.country-quick-icon{font-size:17px;line-height:1}
+.country-quick-chevron{margin-inline-start:4px;font-size:14px;transition:transform .18s ease}
+.country-quick-trigger.is-open .country-quick-chevron{transform:rotate(180deg)}
+.country-quick-panel{display:grid;gap:8px;padding:10px;border:1px solid var(--bd);border-radius:11px;background:var(--sf);box-shadow:0 3px 10px #0000000b}
+.country-quick-panel[hidden]{display:none!important}
+.country-random-button{width:100%;min-height:39px;padding:8px 12px;border:1px solid #c9a96a;border-radius:9px;background:linear-gradient(110deg,#173c5f,#286b7d);color:#fff;font:700 12px Cairo,Tahoma,sans-serif}
+.country-random-button:disabled{opacity:.6;cursor:wait}
+.country-quick-panel .reciter-country-controls{display:flex;gap:7px;min-width:0}
+.country-quick-panel .reciter-country-controls select{flex:1;min-width:0;min-height:39px}
+.country-quick-panel .reciter-country-open{min-width:82px;min-height:39px}
+.country-quick-panel .reciter-country-status{font-size:10px;line-height:1.6}
+@media(max-width:520px){.country-quick-panel{padding:8px}.country-quick-panel .reciter-country-controls{gap:6px}.country-quick-panel .reciter-country-open{min-width:76px;padding-inline:7px}}
 </style>
 </head>
 <body>
@@ -650,46 +666,52 @@ dialog[open]>.float-head{display:none!important}
  <div class="reciter-list-head"><span class="reciter-list-title">موسوعة القرّاء والروايات</span><span class="reciter-count" id="reciterCount">جارٍ التحميل…</span></div>
  <small class="reciter-catalog-note">كل مصحف ورواية متاحة يظهران كخيار مستقل، وقد تختلف السور المتاحة من رواية إلى أخرى. والبحث أعلاه يخص قائمة التشغيل داخل أنوار.</small>
 
- <section class="reciter-country-browser" aria-label="فهرس القراء حسب الدول العربية">
-  <div class="reciter-country-title">تصفّح القرّاء حسب الدولة العربية</div>
-  <div class="reciter-country-controls">
-   <select id="reciterCountry" aria-label="اختر دولة عربية">
-    <option value="">جميع الدول العربية — اختر دولة</option>
-    <optgroup label="الخليج والجزيرة العربية">
-     <option value="saudi-arabia">المملكة العربية السعودية</option>
-     <option value="kuwait">الكويت</option>
-     <option value="bahrain">البحرين</option>
-     <option value="qatar">قطر</option>
-     <option value="united-arab-emirates">الإمارات العربية المتحدة</option>
-     <option value="oman">سلطنة عُمان</option>
-     <option value="yemen">اليمن</option>
-    </optgroup>
-    <optgroup label="بلاد الشام والعراق">
-     <option value="palestine">فلسطين</option>
-     <option value="jordan">الأردن</option>
-     <option value="lebanon">لبنان</option>
-     <option value="syria">سوريا</option>
-     <option value="iraq">العراق</option>
-    </optgroup>
-    <optgroup label="شمال أفريقيا ووادي النيل">
-     <option value="egypt">مصر</option>
-     <option value="libya">ليبيا</option>
-     <option value="tunisia">تونس</option>
-     <option value="algeria">الجزائر</option>
-     <option value="morocco">المغرب</option>
-     <option value="mauritania">موريتانيا</option>
-     <option value="sudan">السودان</option>
-    </optgroup>
-    <optgroup label="القرن الأفريقي والجزر">
-     <option value="somalia">الصومال</option>
-     <option value="djibouti">جيبوتي</option>
-     <option value="comoros">جزر القمر</option>
-    </optgroup>
-   </select>
-   <button id="reciterCountryOpen" class="reciter-country-open" type="button" disabled>عرض القرّاء داخل أنوار</button>
+ <section class="reciter-country-quick" aria-label="قراء الدول العربية">
+  <button type="button" id="countryQuickToggle" class="country-quick-trigger" aria-expanded="false" aria-controls="countryQuickPanel">
+   <span class="country-quick-icon" aria-hidden="true">🌍</span>
+   <span>قرّاء الدول</span>
+   <span class="country-quick-chevron" aria-hidden="true">⌄</span>
+  </button>
+  <div id="countryQuickPanel" class="country-quick-panel" hidden>
+   <button type="button" id="countryRandomPlay" class="country-random-button">🎲 استمع إلى قارئ عشوائي</button>
+   <div class="reciter-country-controls">
+    <select id="reciterCountry" aria-label="اختر دولة عربية">
+     <option value="">اختر دولة للاستماع إلى قرّائها</option>
+     <optgroup label="الخليج والجزيرة العربية">
+      <option value="saudi-arabia">المملكة العربية السعودية</option>
+      <option value="kuwait">الكويت</option>
+      <option value="bahrain">البحرين</option>
+      <option value="qatar">قطر</option>
+      <option value="united-arab-emirates">الإمارات العربية المتحدة</option>
+      <option value="oman">سلطنة عُمان</option>
+      <option value="yemen">اليمن</option>
+     </optgroup>
+     <optgroup label="بلاد الشام والعراق">
+      <option value="palestine">فلسطين</option>
+      <option value="jordan">الأردن</option>
+      <option value="lebanon">لبنان</option>
+      <option value="syria">سوريا</option>
+      <option value="iraq">العراق</option>
+     </optgroup>
+     <optgroup label="شمال أفريقيا ووادي النيل">
+      <option value="egypt">مصر</option>
+      <option value="libya">ليبيا</option>
+      <option value="tunisia">تونس</option>
+      <option value="algeria">الجزائر</option>
+      <option value="morocco">المغرب</option>
+      <option value="mauritania">موريتانيا</option>
+      <option value="sudan">السودان</option>
+     </optgroup>
+     <optgroup label="القرن الأفريقي والجزر">
+      <option value="somalia">الصومال</option>
+      <option value="djibouti">جيبوتي</option>
+      <option value="comoros">جزر القمر</option>
+     </optgroup>
+    </select>
+    <button id="reciterCountryOpen" class="reciter-country-open" type="button" disabled>عرض القائمة</button>
+   </div>
+   <small id="reciterCountryStatus" class="reciter-country-status">اختر قارئًا عشوائيًا، أو حدّد دولة لعرض أسمائها.</small>
   </div>
-  <small id="reciterCountryStatus" class="reciter-country-status">اختر دولة ثم اعرض قائمتها داخل المفكرة. ستُجلب الأسماء وتُعرض هنا دون فتح موقع آخر.</small>
-  <div class="reciter-country-foot"><span>فهرس الدول: الطريق إلى القرآن · تُحمّل النتائج بحسب البلد والصفحة عند الطلب</span></div>
  </section>
  <section id="reciterCountryModal" class="country-reader-modal" hidden aria-modal="true" role="dialog" aria-labelledby="countryModalTitle">
   <div class="country-reader-dialog" tabindex="-1">
@@ -1315,6 +1337,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  const countryModal=$('reciterCountryModal'),countryDialog=countryModal.querySelector('.country-reader-dialog');
  const countrySearch=$('countryReaderSearch'),countryList=$('countryReaderList'),countryStatusBox=$('countryReaderStatus');
  const countryCountBox=$('countryReaderCount'),countryPageBox=$('countryReaderPage'),countryPrev=$('countryReaderPrev'),countryNext=$('countryReaderNext'),countryRetry=$('countryReaderRetry');
+ const countryQuickToggle=$('countryQuickToggle'),countryQuickPanel=$('countryQuickPanel'),countryRandomButton=$('countryRandomPlay');
  const countryCache=new Map(),countryProfileCache=new Map();let activeCountryKey='',activeCountryRows=[],activeCountryPage=1,countryTotalPages=1,countryTotalCount=0,countryPageBusy=false,countryLoadToken=0,countryPlayToken=0,countryPageController=null,countryProfileController=null,countryProfileSlug='',failedCountryPage=1,countryPreviousOverflow='';
  const COUNTRY_BASE='https://way2quran.com/ar/reciters';
  function countryNorm(v){
@@ -1453,7 +1476,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
    activeCountryPage=targetPage;countryTotalPages=cache.totalPages;countryTotalCount=cache.totalCount;
    countryRetry.hidden=true;renderCountryRows();
    countryStatusBox.textContent='صفحة محفوظة لهذه الجلسة من الطريق إلى القرآن · تُحمّل بقية الصفحات عند طلبها.';
-   return;
+   return activeCountryRows;
   }
   countryPageBusy=true;countryRetry.hidden=true;countryPrev.disabled=true;countryNext.disabled=true;
   countryPageController=new AbortController();
@@ -1479,6 +1502,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
    countryStatusBox.textContent=rows.length
     ?'عُثر على '+new Intl.NumberFormat('ar').format(rows.length)+' قارئًا في صفحة '+targetPage+' من '+entry.name+'. لم تُحمّل الصفحات الأخرى بعد.'
     :'لم يعرض المصدر قرّاء في هذه الصفحة من '+entry.name+'. يمكنك الانتقال إلى الصفحة التالية إن وُجدت.';
+   return rows;
   }catch(error){
    if(token!==countryLoadToken||activeCountryKey!==key)return;
    failedCountryPage=targetPage;
@@ -1487,6 +1511,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
    countryStatusBox.textContent=String(error&&error.message||'').includes('لم يؤكد البلد المطلوب')
     ?'لم يؤكد المصدر أن النتائج تخص '+entry.name+'؛ لم نعرض أسماء قد تكون من دولة أخرى.'
     :'تعذّر جلب الصفحة '+targetPage+' خلال المهلة المحددة. يمكنك إعادة المحاولة.';
+   return [];
   }finally{
    if(countryPageController&&countryPageController.signal===pageSignal)countryPageController=null;
    if(token===countryLoadToken){
@@ -1499,12 +1524,13 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  function updateCountryDirectory(){
   const key=countrySelect.value,entry=countryDirectory[key];
   countryOpen.disabled=!key;
-  countryOpen.textContent='عرض القرّاء داخل أنوار';
-  if(entry)countryStatus.textContent='اختر «عرض القرّاء داخل أنوار» لجلب قائمة '+entry.name+' من مكتبة الطريق إلى القرآن، مع روابط التلاوة المباشرة.';
-  else countryStatus.textContent='اختر دولة عربية، ثم افتح قائمة قرّائها داخل المفكرة.';
+  countryOpen.textContent='عرض القائمة';
+  if(entry)countryStatus.textContent='ستُحمّل صفحة واحدة من قرّاء '+entry.name+' عند فتح القائمة.';
+  else countryStatus.textContent='اختر قارئًا عشوائيًا، أو حدّد دولة لعرض أسمائها.';
  }
- function openCountryModal(){
-  const key=countrySelect.value;if(!key)return;
+ function openCountryModal(countryKey){
+  const key=countryKey||countrySelect.value;if(!key)return Promise.resolve([]);
+  countrySelect.value=key;updateCountryDirectory();
   abortCountryPageRequest();abortCountryProfileRequest();
   activeCountryKey=key;activeCountryRows=[];activeCountryPage=1;countryTotalPages=1;countryTotalCount=0;countrySearch.value='';countryLoadToken++;countryPlayToken++;countryPageBusy=false;
   countryPrev.disabled=true;countryNext.disabled=true;
@@ -1514,13 +1540,15 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   $('countryModalSub').textContent=entry?'فهرس '+entry.name+' من الطريق إلى القرآن · تُحمّل صفحة واحدة في كل مرة':'لا توجد قائمة موثقة لهذه الدولة';
   countryList.replaceChildren();countryRetry.hidden=true;
   countryCountBox.textContent='—';countryPageBox.textContent='—';
+  let loadPromise=Promise.resolve([]);
   if(!entry){
    countryCountBox.textContent='0';countryStatusBox.textContent='لا توجد قائمة موثقة لهذه الدولة في الفهرس الحالي.';
    countryPrev.disabled=true;countryNext.disabled=true;
   }else{
-   loadCountryReaders(key,1).catch(()=>{});
+   loadPromise=loadCountryReaders(key,1).catch(()=>[]);
   }
   requestAnimationFrame(()=>countryDialog.focus());
+  return loadPromise;
  }
  function closeCountryModal(){
   countryLoadToken++;countryPlayToken++;countryPageBusy=false;
@@ -1708,6 +1736,55 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
    }
   }finally{button.disabled=false}
  });
+ let countryRandomBusy=false;
+ function shuffleCountryKeys(){
+  const keys=Object.keys(countryDirectory);
+  for(let i=keys.length-1;i>0;i--){
+   const j=Math.floor(Math.random()*(i+1));
+   [keys[i],keys[j]]=[keys[j],keys[i]];
+  }
+  return keys;
+ }
+ async function playRandomCountryReader(){
+  if(countryRandomBusy)return;
+  countryRandomBusy=true;countryRandomButton.disabled=true;
+  countryRandomButton.textContent='… جارٍ اختيار قارئ';
+  const keys=shuffleCountryKeys();
+  const cached=keys.filter(key=>countryCache.get(key)?.pages?.get(1)?.length);
+  const order=cached.length?cached.concat(keys.filter(key=>!cached.includes(key))):keys;
+  let selected=false;
+  try{
+   for(const key of order.slice(0,5)){
+    countryRandomButton.textContent='… جارٍ البحث عن قارئ';
+    const rows=await openCountryModal(key);
+    if(!rows.length)continue;
+    const row=rows[Math.floor(Math.random()*rows.length)];
+    const cards=[...countryList.querySelectorAll('[data-country-reciter]')];
+    const card=cards.find(item=>item.dataset.countryReciter===row.slug);
+    const button=card?.querySelector('[data-country-play]');
+    if(!button)continue;
+    countryStatusBox.textContent='اختير عشوائيًا: '+row.name+' · '+countryDirectory[key].name+'؛ جارٍ تجهيز الصوت داخل أنوار.';
+    button.click();
+    selected=true;
+    break;
+   }
+   if(!selected){
+    countryStatusBox.textContent='لم نعثر على قارئ متاح في المحاولات الحالية. جرّب الاختيار اليدوي من قائمة الدول.';
+   }
+  }catch(error){
+   countryStatusBox.textContent='تعذّر اختيار قارئ عشوائي الآن. يمكنك اختيار الدولة يدويًا.';
+  }finally{
+   countryRandomBusy=false;countryRandomButton.disabled=false;
+   countryRandomButton.textContent='🎲 استمع إلى قارئ عشوائي';
+  }
+ }
+ countryQuickToggle.addEventListener('click',()=>{
+  const open=countryQuickPanel.hidden;
+  countryQuickPanel.hidden=!open;
+  countryQuickToggle.setAttribute('aria-expanded',String(open));
+  countryQuickToggle.classList.toggle('is-open',open);
+ });
+ countryRandomButton.addEventListener('click',playRandomCountryReader);
  countryOpen.addEventListener('click',openCountryModal);
  $('countryModalClose').addEventListener('click',closeCountryModal);
  countryModal.addEventListener('click',e=>{if(e.target===countryModal)closeCountryModal()});
