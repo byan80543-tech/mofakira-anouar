@@ -665,8 +665,6 @@ dialog[open]>.float-head{display:none!important}
     </optgroup>
     <optgroup label="القرن الأفريقي والجزر">
      <option value="somalia">الصومال · 6 قرّاء</option>
-     <option value="djibouti">جيبوتي · لا يظهر لها قسم مستقل</option>
-     <option value="comoros">جزر القمر · لا يظهر لها قسم مستقل</option>
     </optgroup>
    </select>
    <button id="reciterCountryOpen" class="reciter-country-open" type="button" disabled>عرض القرّاء داخل أنوار</button>
@@ -1332,33 +1330,102 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   countryModal.hidden=true;document.body.classList.remove('country-reader-open');document.body.style.overflow=countryPreviousOverflow;
   countryOpen.focus();
  }
- let countryActiveAudio=null;
+ let countryActiveAudio=null,countryActiveButton=null,countryActiveCard=null;
+ function countryMp3QuranSource(name){
+  const key=readerKey(name);
+  const matches=R.filter(r=>readerKey(r[0])===key&&/^https:\/\//i.test(String(r[1]||''))&&/\.mp3quran\.net$/i.test((()=>{try{return new URL(r[1]).hostname}catch(_e){return ''}})()));
+  if(!matches.length)return '';
+  const match=matches.find(r=>Array.isArray(r[2])&&r[2].includes(1))||matches.find(r=>Array.isArray(r[2])&&r[2].length)||matches[0];
+  const folder=safeHttpsURL(match[1]);if(!folder)return '';
+  const available=Array.isArray(match[2])?match[2].filter(n=>Number.isInteger(+n)&&+n>=1&&+n<=114).map(Number):[];
+  const surah=available.includes(1)?1:(available[0]||1);
+  return folder.replace(/\/?$/,'/')+String(surah).padStart(3,'0')+'.mp3';
+ }
  function countryAudioCandidates(html){
   const doc=new DOMParser().parseFromString(html,'text/html'),found=[];
-  const add=value=>{if(!value)return;let u;try{u=new URL(String(value).replace(/\\\//g,'/'),'https://etilawa.com/')}catch(_e){return}if(u.protocol==='https:'&&/\.mp3(?:$|[?#])/i.test(u.href)&&!found.includes(u.href))found.push(u.href)};
-  doc.querySelectorAll('audio[src],audio source[src],source[src],a[href],[data-audio],[data-src],[data-url]').forEach(el=>{['src','href','data-audio','data-src','data-url'].forEach(k=>add(el.getAttribute(k)))});
-  const raw=html.replace(/\\\//g,'/').replace(/\\u0026/gi,'&');
-  (raw.match(/https?:[^\s\"'<>\\]+?\.mp3(?:\?[^\s\"'<>\\]*)?/gi)||[]).forEach(add);
-  return found;
+  const add=(value,allowNoExtension=false)=>{
+   if(!value)return;
+   const decoded=String(value).trim().replace(/\\\//g,'/').replace(/\\u0026/gi,'&').replace(/&amp;/gi,'&').replace(/\\x26/gi,'&');
+   const candidates=decoded.match(/(?:https?:)?\/\/[^\s\"'<>\\\\]+|^\/[^\s\"'<>\\\\]+/g)||[decoded];
+   candidates.forEach(candidate=>{
+    let u;try{u=new URL(candidate,'https://etilawa.com/')}catch(_e){return}
+    const audioFile=/\.(?:mp3|m4a|aac|ogg|wav|m3u8)(?:$|[?#])/i.test(u.href);
+    const audioPath=allowNoExtension&&/(?:audio|stream|download|media)/i.test(u.pathname);
+    if(u.protocol==='https:'&&(audioFile||audioPath)&&!found.includes(u.href))found.push(u.href);
+   });
+  };
+  doc.querySelectorAll('audio[src],audio source[src],audio source[data-src],source[src],source[data-src],a[href],[data-audio-url],[data-audio],[data-mp3],[data-file],[data-media],[data-src],[data-url]').forEach(el=>{
+   ['src','href','data-audio-url','data-audio','data-mp3','data-file','data-media','data-src','data-url'].forEach(k=>add(el.getAttribute(k),k.startsWith('data-')));
+  });
+  const raw=html.replace(/\\\//g,'/').replace(/\\u0026/gi,'&').replace(/&amp;/gi,'&').replace(/\\x26/gi,'&');
+  const matches=raw.match(/(?:https?:)?\/\/[^\s\"'<>\\\\]+?\.(?:mp3|m4a|aac|ogg|wav|m3u8)(?:[?#][^\s\"'<>\\\\]*)?/gi)||[];
+  matches.forEach(x=>add(x));
+  doc.querySelectorAll('script:not([src])').forEach(script=>{
+   const body=script.textContent||'';
+   const embedded=body.match(/(?:https?:)?\/\/[^\s\"'<>\\\\]+?\.(?:mp3|m4a|aac|ogg|wav|m3u8)(?:[?#][^\s\"'<>\\\\]*)?/gi)||[];
+   embedded.forEach(x=>add(x));
+  });
+  return found.sort((a,b)=>Number(!/\.mp3(?:$|[?#])/i.test(a))-Number(!/\.mp3(?:$|[?#])/i.test(b)));
+ }
+ function stopCountryAudio(){
+  if(countryActiveAudio){countryActiveAudio.pause();countryActiveAudio.remove()}
+  if(countryActiveButton&&!countryActiveButton.dataset.countryOpen)countryActiveButton.textContent='▶';
+  countryActiveAudio=null;countryActiveButton=null;countryActiveCard=null;
+ }
+ function mountCountryAudio(card,button,name,urls,autoPlay,sourceLabel){
+  stopCountryAudio();
+  const wrap=document.createElement('div');wrap.className='country-reader-audio-wrap';
+  const audio=document.createElement('audio');audio.className='country-reader-audio';audio.controls=true;audio.preload='auto';audio.setAttribute('playsinline','');audio.setAttribute('aria-label','تلاوة '+name);
+  audio.src=urls[0];wrap.append(audio);card.append(wrap);
+  countryActiveAudio=audio;countryActiveButton=button;countryActiveCard=card;
+  audio.addEventListener('play',()=>{button.textContent='⏸'});
+  audio.addEventListener('pause',()=>{button.textContent='▶'});
+  audio.addEventListener('ended',()=>{button.textContent='▶'});
+  audio.addEventListener('waiting',()=>{countryStatusBox.textContent='جارٍ تحميل التلاوة: '+name+'…'});
+  audio.addEventListener('playing',()=>{button.textContent='⏸';countryStatusBox.textContent='يُشغَّل الآن: '+name+' · المصدر: '+sourceLabel});
+  audio.addEventListener('error',()=>{
+   button.textContent='↗';button.dataset.countryOpen='true';button.title='فتح صفحة القارئ في مصدره الأصلي';
+   button.setAttribute('aria-label','فتح صفحة القارئ '+name+' في المصدر الأصلي');
+   countryStatusBox.textContent='لم يقبل مشغّل الهاتف ملف الصوت من '+sourceLabel+' لهذا القارئ. يمكنك فتح صفحته الأصلية من زر السهم.';
+  },{once:true});
+  audio.load();
+  if(autoPlay){
+   const attempt=audio.play();
+   if(attempt&&typeof attempt.catch==='function')attempt.catch(error=>{
+    if(error&&error.name==='NotAllowedError')countryStatusBox.textContent='تم العثور على ملف '+name+'؛ اضغط ▶ في المشغّل أسفل البطاقة لبدء الصوت.';
+    else countryStatusBox.textContent='تعذّر بدء صوت '+name+' تلقائيًا؛ استخدم زر التشغيل في المشغّل أسفل البطاقة.';
+   });
+  }else{
+   countryStatusBox.textContent='تم تجهيز ملف '+name+' من صفحة القارئ. اضغط ▶ في المشغّل أسفل البطاقة، أو زر البطاقة لبدء الاستماع.';
+  }
  }
  countryList.addEventListener('click',async e=>{
   const button=e.target.closest('[data-country-play]');if(!button)return;
   const card=button.closest('[data-country-reciter]');if(!card)return;
   const slug=card.dataset.countryReciter,name=card.querySelector('.country-reader-name')?.textContent||'القارئ';
+  const profileUrl='https://etilawa.com/reciters/'+encodeURIComponent(slug)+'/';
+  if(button.dataset.countryOpen==='true'){window.open(profileUrl,'_blank','noopener,noreferrer');return}
+  if(countryActiveAudio&&card.contains(countryActiveAudio)){
+   if(countryActiveAudio.paused){const p=countryActiveAudio.play();if(p&&p.catch)p.catch(()=>{countryStatusBox.textContent='اضغط زر التشغيل داخل المشغّل لبدء التلاوة.'})}
+   else countryActiveAudio.pause();
+   return;
+  }
   button.disabled=true;button.textContent='…';
   try{
-   const html=await fetchCountryHtml('https://etilawa.com/reciters/'+encodeURIComponent(slug)+'/');
+   const direct=countryMp3QuranSource(name);
+   if(direct){
+    mountCountryAudio(card,button,name,[direct],true,'MP3Quran');
+    return;
+   }
+   const html=await fetchCountryHtml(profileUrl);
    const urls=countryAudioCandidates(html);
-   if(!urls.length)throw new Error('لم يعثر المصدر على رابط صوت مباشر');
-   if(countryActiveAudio){countryActiveAudio.pause();countryActiveAudio.remove()}
-   const wrap=document.createElement('div');wrap.className='country-reader-audio-wrap';
-   const audio=document.createElement('audio');audio.className='country-reader-audio';audio.controls=true;audio.preload='none';audio.src=urls[0];audio.setAttribute('aria-label','تلاوة '+name);
-   wrap.append(audio);card.append(wrap);countryActiveAudio=audio;
-   await audio.play();button.textContent='⏸';
-   audio.addEventListener('play',()=>{button.textContent='⏸'});audio.addEventListener('pause',()=>{button.textContent='▶'});audio.addEventListener('ended',()=>{button.textContent='▶'});
-   countryStatusBox.textContent='يُشغَّل الآن: '+name+' · يمكنك التحكم بالصوت من المشغّل أسفل البطاقة.';
-  }catch(error){countryStatusBox.textContent='تعذّر تشغيل '+name+' داخل المفكرة: لم يُستخرج ملف صوت مباشر من صفحة القارئ أو منع المصدر الوصول إليه. جرّب قارئًا آخر.';button.textContent='▶'}
-  finally{button.disabled=false}
+   if(!urls.length)throw new Error('لم يظهر ملف صوت مباشر في صفحة القارئ');
+   mountCountryAudio(card,button,name,urls,false,'صفحة القارئ');
+  }catch(error){
+   button.textContent='↗';button.dataset.countryOpen='true';button.title='فتح صفحة القارئ في مصدره الأصلي';
+   button.setAttribute('aria-label','فتح صفحة القارئ '+name+' في المصدر الأصلي');
+   countryStatusBox.textContent='لم يتوفر رابط صوت مباشر قابل للاستخراج لهذا القارئ. زر السهم يفتح صفحة القارئ الأصلية للاستماع من مصدرها.';
+  }finally{button.disabled=false}
  });
  countryOpen.addEventListener('click',openCountryModal);
  $('countryModalClose').addEventListener('click',closeCountryModal);
