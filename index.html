@@ -845,7 +845,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   if(b.dataset.paletteChoice){S.palette=b.dataset.paletteChoice;}
   else if(b.dataset.wall){S.wallColor=b.dataset.wall;}
   else if(b.dataset.paper){S.paperColor=b.dataset.paper;}
-  else if(b.id==='unifiedColor'){S.paperColor='cream';S.wallColor='cream';}
+  else if(b.id==='unifiedColor'){S.paperColor=({mist:'gray',slate:'gray'}[S.wallColor]||S.wallColor||'cream');}
   else return;
   save();theme();refresh();toast('تم تطبيق الألوان وحفظها على هذا الجهاز');
  });
