@@ -1115,145 +1115,7 @@ button:focus:not(:focus-visible){outline:none}
 @media(prefers-reduced-motion:reduce){.card{transition:none}}
 
 </style></head><body>${$('pa').innerHTML}\x3Cscript>onload=function(){setTimeout(function(){print()},900)}<\/script>
-<script>
-(()=> {
- const page=document.getElementById('libraryPage');
- const openButton=document.getElementById('libraryToggle');
- const app=document.getElementById('app');
- if(!page||!openButton)return;
- const $=id=>document.getElementById(id);
- const categories=[
-  {id:'quran',name:'الرواق القرآني',short:'المصحف والتلاوة والتفسير',icon:'۞',description:'مصادر لقراءة القرآن الكريم والاستماع إلى التلاوات، والتعرّف إلى التفسير وعلوم القرآن.',resources:[
-   {id:'quran-com',title:'مصحف Quran.com',description:'قراءة القرآن والاستماع إلى التلاوات مع أدوات للمتابعة والبحث.',source:'منصة القرآن الكريم',url:'https://quran.com/ar',tags:'قرآن مصحف تلاوة قراءة استماع'},
-   {id:'quran-developers',title:'مشاريع وتقنيات القرآن',description:'تعريف بمشاريع Quran.com المفتوحة ومصادر المطورين لبناء تجارب قرآنية.',source:'Quran.com · المطورون',url:'https://quran.com/ar/developers',tags:'قرآن واجهات برمجية تطبيقات'}
-  ]},
-  {id:'sharia',name:'رواق العلوم الشرعية',short:'التوحيد والعقيدة والفقه',icon:'۩',description:'فهارس كتب العقيدة والتوحيد والفقه والتفسير والتزكية، ومن بينها مؤلفات أئمة وعلماء التراث.',resources:[
-   {id:'shamela',title:'المكتبة الشاملة',description:'مكتبة رقمية للكتب الإسلامية والتراثية والبحث في النصوص.',source:'المكتبة الشاملة · الموقع الرسمي',url:'https://shamela.ws/',tags:'ابن تيمية ابن القيم ابن الجوزي عقيدة فقه تفسير توحيد كتب'},
-   {id:'waqfeya-tawhid',title:'كتب التوحيد والعقيدة',description:'فهرس متخصص لكتب التوحيد والعقيدة ضمن المكتبة الوقفية.',source:'المكتبة الوقفية',url:'https://waqfeya.net/books',tags:'توحيد عقيدة'},
-   {id:'waqfeya-books',title:'مكتبة الكتب المصوّرة',description:'تصفّح الكتب حسب القسم والمؤلف والقرن والكلمات المفتاحية.',source:'المكتبة الوقفية',url:'https://waqfeya.net/books',tags:'كتب فقه تفسير عقيدة'}
-  ]},
-  {id:'hadith',name:'رواق الحديث والسنّة',short:'الكتب الستة وشروح الحديث',icon:'۞',description:'مداخل إلى كتب السنّة ومصادر الحديث وشروحه، مع ضرورة الرجوع إلى تخريج الحديث وحكمه ومصدره.',resources:[
-   {id:'dorar-hadith',title:'الموسوعة الحديثية',description:'البحث في الأحاديث مع عرض الراوي والمحدّث والمصدر وخلاصة الحكم وروابط الشرح.',source:'الدرر السنية',url:'https://dorar.net/',tags:'حديث سنة تخريج صحيح البخاري مسلم سنن'},
-   {id:'shamela-hadith',title:'كتب الحديث وشروحها',description:'تصفّح كتب السنن والمتون والشروح ضمن المكتبة الشاملة.',source:'المكتبة الشاملة',url:'https://shamela.ws/',tags:'البخاري مسلم أبو داود الترمذي النسائي ابن ماجه حديث'}
-  ]},
-  {id:'adab',name:'رواق الأدب العربي',short:'الشعر والنثر والمقامات',icon:'✒',description:'مختارات الأدب العربي ودواوين الشعر وكتب البيان والنوادر والمقامات والتراث الأدبي.',resources:[
-   {id:'waqfeya-adab',title:'فهرس كتب الأدب',description:'تصفّح مؤلفات الأدب العربي والكتب المصنفة في المكتبة الوقفية.',source:'المكتبة الوقفية',url:'https://waqfeya.net/books',tags:'أدب شعر نثر مقامات دواوين'},
-   {id:'shamela-adab',title:'الأدب واللغة في المكتبة الشاملة',description:'ابحث في كتب الأدب والنوادر والدواوين ومصنفات التراث.',source:'المكتبة الشاملة',url:'https://shamela.ws/',tags:'مقامات الجاحظ نوادر شعر بلاغة'}
-  ]},
-  {id:'language',name:'رواق علوم اللغة',short:'النحو والعروض والبلاغة',icon:'ٱ',description:'أروقة متخصصة في النحو والصرف والعروض والقافية والبلاغة وعلوم العربية.',resources:[
-   {id:'waqfeya-grammar',title:'كتب النحو والصرف',description:'فهرس متخصص يضم كتب النحو والصرف وشروح المتون.',source:'المكتبة الوقفية · 415',url:'https://waqfeya.net/categories/415-%D9%83%D8%AA%D8%A8-%D8%A7%D9%84%D9%86%D8%AD%D9%88-%D9%88%D8%A7%D9%84%D8%B5%D8%B1%D9%81-881c18c5a5c745a589ac0e827975387f',tags:'نحو صرف إعراب سيبويه ابن مالك'},
-   {id:'waqfeya-arood',title:'كتب العروض والقافية',description:'فهرس كتب علمي الخليل العروض والقافية وأوزان الشعر.',source:'المكتبة الوقفية · 416',url:'https://waqfeya.net/categories/416-%D9%83%D8%AA%D8%A8-%D8%A7%D9%84%D8%B9%D8%B1%D9%88%D8%B6-a87ad35a23154716a630d22b6ed7ea52',tags:'عروض قافية أوزان الشعر'},
-   {id:'waqfeya-balagha',title:'كتب البلاغة',description:'فهرس كتب المعاني والبيان والبديع وعلوم البلاغة.',source:'المكتبة الوقفية · 414',url:'https://waqfeya.net/categories/414-%D9%83%D8%AA%D8%A8-%D8%A7%D9%84%D8%A8%D9%84%D8%A7%D8%BA%D8%A9-3c25ff153e33493994181ddf9720b175',tags:'بلاغة بيان معاني بديع'},
-   {id:'shamela-language',title:'علوم العربية في المكتبة الشاملة',description:'ابحث في كتب اللغة والنحو والصرف والأدب.',source:'المكتبة الشاملة',url:'https://shamela.ws/',tags:'لغة عربية نحو صرف أدب'}
-  ]},
-  {id:'heritage',name:'رواق التراث والمخطوطات',short:'المصنفات القديمة والمخطوطات',icon:'▤',description:'مساحة لاكتشاف الكتب القديمة والمخطوطات والفهارس والطبعات المصوّرة.',resources:[
-   {id:'waqfeya-heritage',title:'المكتبة الوقفية',description:'كتب مصوّرة وفهارس مرتبة حسب القرن الهجري والمؤلف والتصنيف.',source:'المكتبة الوقفية',url:'https://waqfeya.net/books',tags:'تراث مخطوطات كتب قديمة مصورات'},
-   {id:'shamela-heritage',title:'المكتبة الشاملة للتراث',description:'نصوص رقمية قابلة للبحث والنسخ في طيف واسع من كتب التراث.',source:'المكتبة الشاملة',url:'https://shamela.ws/',tags:'تراث مصنفات أمهات الكتب'}
-  ]}
- ];
- const saveKey='anwar_library_saved_v1';
- let saved=[];
- try{const raw=localStorage.getItem(saveKey);const parsed=raw?JSON.parse(raw):[];if(Array.isArray(parsed))saved=parsed.filter(x=>typeof x==='string')}catch(e){}
- let currentCategory=null,previousOverflow='',previousFocus=null;
- const resources=()=>categories.flatMap(c=>c.resources.map(r=>({...r,categoryId:c.id,categoryName:c.name})));
- const category=id=>categories.find(c=>c.id===id);
- const resource=id=>resources().find(r=>r.id===id);
- const persist=()=>{try{localStorage.setItem(saveKey,JSON.stringify(saved))}catch(e){setNotice('تعذّر حفظ المحفوظات على هذا الجهاز؛ قد تكون مساحة التخزين غير متاحة.')}};
- function setNotice(message){$('libraryHeroText').textContent=message}
- function show(view){
-  ['libraryHome','libraryCategoryView','librarySearchView','librarySavedView'].forEach(id=>$(id).hidden=id!==view);
-  $('librarySaved').setAttribute('aria-pressed',String(view==='librarySavedView'));
- }
- function makeCategoryCard(c){
-  const b=document.createElement('button');b.type='button';b.className='library-category';b.dataset.category=c.id;
-  const icon=document.createElement('span');icon.className='library-category-icon';icon.textContent=c.icon;
-  const copy=document.createElement('span');copy.className='library-category-copy';
-  const title=document.createElement('strong');title.textContent=c.name;
-  const desc=document.createElement('small');desc.textContent=c.short;
-  const arrow=document.createElement('span');arrow.className='library-category-arrow';arrow.textContent='‹';
-  copy.append(title,desc);b.append(icon,copy,arrow);return b;
- }
- function makeResourceCard(r){
-  const article=document.createElement('article');article.className='library-resource';
-  const copy=document.createElement('div');copy.className='library-resource-copy';
-  const title=document.createElement('strong');title.textContent=r.title;
-  const desc=document.createElement('p');desc.textContent=r.description;
-  const source=document.createElement('small');source.textContent=r.source+(r.categoryName?' · '+r.categoryName:'');
-  copy.append(title,desc,source);
-  const actions=document.createElement('div');actions.className='library-resource-actions';
-  const a=document.createElement('a');a.href=r.url;a.target='_blank';a.rel='noopener noreferrer';a.textContent='فتح المصدر';
-  a.setAttribute('aria-label','فتح '+r.title+' في تبويب جديد');
-  const bookmark=document.createElement('button');bookmark.type='button';bookmark.dataset.saveResource=r.id;
-  const isSaved=saved.includes(r.id);bookmark.textContent=isSaved?'★ محفوظ':'♡ حفظ';bookmark.setAttribute('aria-pressed',String(isSaved));
-  actions.append(a,bookmark);article.append(copy,actions);return article;
- }
- function openCategory(id){
-  const c=category(id);if(!c)return;
-  currentCategory=id;$('libraryCategoryMark').textContent=c.icon;$('libraryCategoryTitle').textContent=c.name;$('libraryCategoryDescription').textContent=c.description;
-  const list=$('libraryResources');list.replaceChildren();c.resources.forEach(r=>list.append(makeResourceCard({...r,categoryName:c.name})));
-  show('libraryCategoryView');$('librarySearch').value='';$('libraryHeroTitle').textContent=c.name;$('libraryHeroText').textContent=c.description;
- }
- function goHome(){
-  currentCategory=null;$('librarySearch').value='';$('libraryHeroTitle').textContent='افتح كتابًا، وافتح معه عالمًا';$('libraryHeroText').textContent='أروقة هادئة تجمع المصحف الشريف والعلوم الشرعية والأدب العربي وعلوم اللغة وكنوز التراث.';
-  show('libraryHome');$('librarySearch').focus();
- }
- function showSaved(){
-  currentCategory=null;$('librarySearch').value='';
-  const list=$('librarySavedResults');list.replaceChildren();
-  const items=saved.map(resource).filter(Boolean);
-  if(!items.length){const empty=document.createElement('div');empty.className='library-empty';empty.textContent='لم تحفظ مصادر بعد. اضغط «حفظ» بجانب أي مصدر ليظهر هنا.';list.append(empty)}
-  else items.forEach(r=>list.append(makeResourceCard(r)));
-  $('libraryHeroTitle').textContent='رفّك المحفوظ';$('libraryHeroText').textContent='مصادرك التي احتفظت بها للعودة إليها لاحقًا على هذا الجهاز.';
-  show('librarySavedView');
- }
- function search(q){
-  const term=q.trim().toLocaleLowerCase('ar');
-  if(!term){goHome();return}
-  const matches=resources().filter(r=>(r.title+' '+r.description+' '+r.source+' '+r.tags+' '+r.categoryName).toLocaleLowerCase('ar').includes(term));
-  const list=$('librarySearchResults');list.replaceChildren();$('librarySearchCount').textContent=matches.length+' مصدر';
-  if(!matches.length){const empty=document.createElement('div');empty.className='library-empty';empty.textContent='لم نعثر على نتيجة مطابقة. جرّب اسم مؤلف أو علمًا آخر.';list.append(empty)}
-  else matches.forEach(r=>list.append(makeResourceCard(r)));
-  $('libraryHeroTitle').textContent='ابحث في أروقة المعرفة';$('libraryHeroText').textContent='تظهر هنا الفهارس والمصادر التي تطابق كلمات البحث.';
-  show('librarySearchView');
- }
- function open(){
-  if(!page.hidden)return;
-  previousFocus=document.activeElement;previousOverflow=document.body.style.overflow;
-  const radio=$('rd');if(radio?.classList.contains('o')){radio.classList.remove('o');document.body.classList.remove('radio-open');$('rg')?.setAttribute('aria-expanded','false')}
-  $('rib')?.classList.remove('open');$('toolsToggle')?.setAttribute('aria-expanded','false');
-  app.setAttribute('aria-hidden','true');app.inert=true;
-  page.hidden=false;page.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
-  goHome();$('libraryClose').focus();
- }
- function close(){
-  if(page.hidden)return;
-  page.hidden=true;page.setAttribute('aria-hidden','true');app.removeAttribute('aria-hidden');app.inert=false;
-  document.body.style.overflow=previousOverflow;
-  (previousFocus&&previousFocus.focus?previousFocus:openButton).focus();
- }
- function renderCategories(){
-  const grid=$('libraryCategories');grid.replaceChildren();categories.forEach(c=>grid.append(makeCategoryCard(c)));
- }
- renderCategories();
- openButton.addEventListener('click',open);
- $('libraryClose').addEventListener('click',close);
- $('libraryBack').addEventListener('click',goHome);
- $('librarySaved').addEventListener('click',showSaved);
- $('librarySearch').addEventListener('input',e=>search(e.target.value));
- page.addEventListener('click',e=>{
-  const categoryButton=e.target.closest('[data-category]');
-  if(categoryButton){openCategory(categoryButton.dataset.category);return}
-  const saveButton=e.target.closest('[data-save-resource]');
-  if(saveButton){
-   const id=saveButton.dataset.saveResource;
-   saved=saved.includes(id)?saved.filter(x=>x!==id):[...saved,id];
-   persist();saveButton.textContent=saved.includes(id)?'★ محفوظ':'♡ حفظ';saveButton.setAttribute('aria-pressed',String(saved.includes(id)));
-   if($('librarySavedView')&&!$('librarySavedView').hidden)showSaved();
-  }
- });
- document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!page.hidden){e.preventDefault();e.stopImmediatePropagation();close()}},true);
-})();
-</script>
+
 
 </body></html>`;
  try{await dl.save({filename:((cur.title||'أنوار').replace(/[\\/:*?"<>|]/g,'-').slice(0,60))+'.html',data:new Blob([h],{type:'text/html'})});toast('افتح الملف المنزَّل وستظهر نافذة الطباعة تلقائيًا',5000)}catch(e){}
@@ -2540,6 +2402,145 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
 <script>
 // Sync the closed/open tulip only from playback UI state.
 (()=>{const selector='#rb,#rpp,.reciter-play,.country-reader-play,#lessonPlay,#rd .lesson-item-radio,.reciter-version';const sync=()=>document.querySelectorAll(selector).forEach(el=>{if(!el.classList.contains('reciter-version'))el.dataset.playing=/[⏸Ⅱ]/.test(el.textContent)?'true':'false'});sync();new MutationObserver(sync).observe(document.body,{subtree:true,childList:true,characterData:true});})();
+</script>
+<script>
+(()=> {
+ const page=document.getElementById('libraryPage');
+ const openButton=document.getElementById('libraryToggle');
+ const app=document.getElementById('app');
+ if(!page||!openButton)return;
+ const $=id=>document.getElementById(id);
+ const categories=[
+  {id:'quran',name:'الرواق القرآني',short:'المصحف والتلاوة والتفسير',icon:'۞',description:'مصادر لقراءة القرآن الكريم والاستماع إلى التلاوات، والتعرّف إلى التفسير وعلوم القرآن.',resources:[
+   {id:'quran-com',title:'مصحف Quran.com',description:'قراءة القرآن والاستماع إلى التلاوات مع أدوات للمتابعة والبحث.',source:'منصة القرآن الكريم',url:'https://quran.com/ar',tags:'قرآن مصحف تلاوة قراءة استماع'},
+   {id:'quran-developers',title:'مشاريع وتقنيات القرآن',description:'تعريف بمشاريع Quran.com المفتوحة ومصادر المطورين لبناء تجارب قرآنية.',source:'Quran.com · المطورون',url:'https://quran.com/ar/developers',tags:'قرآن واجهات برمجية تطبيقات'}
+  ]},
+  {id:'sharia',name:'رواق العلوم الشرعية',short:'التوحيد والعقيدة والفقه',icon:'۩',description:'فهارس كتب العقيدة والتوحيد والفقه والتفسير والتزكية، ومن بينها مؤلفات أئمة وعلماء التراث.',resources:[
+   {id:'shamela',title:'المكتبة الشاملة',description:'مكتبة رقمية للكتب الإسلامية والتراثية والبحث في النصوص.',source:'المكتبة الشاملة · الموقع الرسمي',url:'https://shamela.ws/',tags:'ابن تيمية ابن القيم ابن الجوزي عقيدة فقه تفسير توحيد كتب'},
+   {id:'waqfeya-tawhid',title:'كتب التوحيد والعقيدة',description:'فهرس متخصص لكتب التوحيد والعقيدة ضمن المكتبة الوقفية.',source:'المكتبة الوقفية',url:'https://waqfeya.net/books',tags:'توحيد عقيدة'},
+   {id:'waqfeya-books',title:'مكتبة الكتب المصوّرة',description:'تصفّح الكتب حسب القسم والمؤلف والقرن والكلمات المفتاحية.',source:'المكتبة الوقفية',url:'https://waqfeya.net/books',tags:'كتب فقه تفسير عقيدة'}
+  ]},
+  {id:'hadith',name:'رواق الحديث والسنّة',short:'الكتب الستة وشروح الحديث',icon:'۞',description:'مداخل إلى كتب السنّة ومصادر الحديث وشروحه، مع ضرورة الرجوع إلى تخريج الحديث وحكمه ومصدره.',resources:[
+   {id:'dorar-hadith',title:'الموسوعة الحديثية',description:'البحث في الأحاديث مع عرض الراوي والمحدّث والمصدر وخلاصة الحكم وروابط الشرح.',source:'الدرر السنية',url:'https://dorar.net/',tags:'حديث سنة تخريج صحيح البخاري مسلم سنن'},
+   {id:'shamela-hadith',title:'كتب الحديث وشروحها',description:'تصفّح كتب السنن والمتون والشروح ضمن المكتبة الشاملة.',source:'المكتبة الشاملة',url:'https://shamela.ws/',tags:'البخاري مسلم أبو داود الترمذي النسائي ابن ماجه حديث'}
+  ]},
+  {id:'adab',name:'رواق الأدب العربي',short:'الشعر والنثر والمقامات',icon:'✒',description:'مختارات الأدب العربي ودواوين الشعر وكتب البيان والنوادر والمقامات والتراث الأدبي.',resources:[
+   {id:'waqfeya-adab',title:'فهرس كتب الأدب',description:'تصفّح مؤلفات الأدب العربي والكتب المصنفة في المكتبة الوقفية.',source:'المكتبة الوقفية',url:'https://waqfeya.net/books',tags:'أدب شعر نثر مقامات دواوين'},
+   {id:'shamela-adab',title:'الأدب واللغة في المكتبة الشاملة',description:'ابحث في كتب الأدب والنوادر والدواوين ومصنفات التراث.',source:'المكتبة الشاملة',url:'https://shamela.ws/',tags:'مقامات الجاحظ نوادر شعر بلاغة'}
+  ]},
+  {id:'language',name:'رواق علوم اللغة',short:'النحو والعروض والبلاغة',icon:'ٱ',description:'أروقة متخصصة في النحو والصرف والعروض والقافية والبلاغة وعلوم العربية.',resources:[
+   {id:'waqfeya-grammar',title:'كتب النحو والصرف',description:'فهرس متخصص يضم كتب النحو والصرف وشروح المتون.',source:'المكتبة الوقفية · 415',url:'https://waqfeya.net/categories/415-%D9%83%D8%AA%D8%A8-%D8%A7%D9%84%D9%86%D8%AD%D9%88-%D9%88%D8%A7%D9%84%D8%B5%D8%B1%D9%81-881c18c5a5c745a589ac0e827975387f',tags:'نحو صرف إعراب سيبويه ابن مالك'},
+   {id:'waqfeya-arood',title:'كتب العروض والقافية',description:'فهرس كتب علمي الخليل العروض والقافية وأوزان الشعر.',source:'المكتبة الوقفية · 416',url:'https://waqfeya.net/categories/416-%D9%83%D8%AA%D8%A8-%D8%A7%D9%84%D8%B9%D8%B1%D9%88%D8%B6-a87ad35a23154716a630d22b6ed7ea52',tags:'عروض قافية أوزان الشعر'},
+   {id:'waqfeya-balagha',title:'كتب البلاغة',description:'فهرس كتب المعاني والبيان والبديع وعلوم البلاغة.',source:'المكتبة الوقفية · 414',url:'https://waqfeya.net/categories/414-%D9%83%D8%AA%D8%A8-%D8%A7%D9%84%D8%A8%D9%84%D8%A7%D8%BA%D8%A9-3c25ff153e33493994181ddf9720b175',tags:'بلاغة بيان معاني بديع'},
+   {id:'shamela-language',title:'علوم العربية في المكتبة الشاملة',description:'ابحث في كتب اللغة والنحو والصرف والأدب.',source:'المكتبة الشاملة',url:'https://shamela.ws/',tags:'لغة عربية نحو صرف أدب'}
+  ]},
+  {id:'heritage',name:'رواق التراث والمخطوطات',short:'المصنفات القديمة والمخطوطات',icon:'▤',description:'مساحة لاكتشاف الكتب القديمة والمخطوطات والفهارس والطبعات المصوّرة.',resources:[
+   {id:'waqfeya-heritage',title:'المكتبة الوقفية',description:'كتب مصوّرة وفهارس مرتبة حسب القرن الهجري والمؤلف والتصنيف.',source:'المكتبة الوقفية',url:'https://waqfeya.net/books',tags:'تراث مخطوطات كتب قديمة مصورات'},
+   {id:'shamela-heritage',title:'المكتبة الشاملة للتراث',description:'نصوص رقمية قابلة للبحث والنسخ في طيف واسع من كتب التراث.',source:'المكتبة الشاملة',url:'https://shamela.ws/',tags:'تراث مصنفات أمهات الكتب'}
+  ]}
+ ];
+ const saveKey='anwar_library_saved_v1';
+ let saved=[];
+ try{const raw=localStorage.getItem(saveKey);const parsed=raw?JSON.parse(raw):[];if(Array.isArray(parsed))saved=parsed.filter(x=>typeof x==='string')}catch(e){}
+ let currentCategory=null,previousOverflow='',previousFocus=null;
+ const resources=()=>categories.flatMap(c=>c.resources.map(r=>({...r,categoryId:c.id,categoryName:c.name})));
+ const category=id=>categories.find(c=>c.id===id);
+ const resource=id=>resources().find(r=>r.id===id);
+ const persist=()=>{try{localStorage.setItem(saveKey,JSON.stringify(saved))}catch(e){setNotice('تعذّر حفظ المحفوظات على هذا الجهاز؛ قد تكون مساحة التخزين غير متاحة.')}};
+ function setNotice(message){$('libraryHeroText').textContent=message}
+ function show(view){
+  ['libraryHome','libraryCategoryView','librarySearchView','librarySavedView'].forEach(id=>$(id).hidden=id!==view);
+  $('librarySaved').setAttribute('aria-pressed',String(view==='librarySavedView'));
+ }
+ function makeCategoryCard(c){
+  const b=document.createElement('button');b.type='button';b.className='library-category';b.dataset.category=c.id;
+  const icon=document.createElement('span');icon.className='library-category-icon';icon.textContent=c.icon;
+  const copy=document.createElement('span');copy.className='library-category-copy';
+  const title=document.createElement('strong');title.textContent=c.name;
+  const desc=document.createElement('small');desc.textContent=c.short;
+  const arrow=document.createElement('span');arrow.className='library-category-arrow';arrow.textContent='‹';
+  copy.append(title,desc);b.append(icon,copy,arrow);return b;
+ }
+ function makeResourceCard(r){
+  const article=document.createElement('article');article.className='library-resource';
+  const copy=document.createElement('div');copy.className='library-resource-copy';
+  const title=document.createElement('strong');title.textContent=r.title;
+  const desc=document.createElement('p');desc.textContent=r.description;
+  const source=document.createElement('small');source.textContent=r.source+(r.categoryName?' · '+r.categoryName:'');
+  copy.append(title,desc,source);
+  const actions=document.createElement('div');actions.className='library-resource-actions';
+  const a=document.createElement('a');a.href=r.url;a.target='_blank';a.rel='noopener noreferrer';a.textContent='فتح المصدر';
+  a.setAttribute('aria-label','فتح '+r.title+' في تبويب جديد');
+  const bookmark=document.createElement('button');bookmark.type='button';bookmark.dataset.saveResource=r.id;
+  const isSaved=saved.includes(r.id);bookmark.textContent=isSaved?'★ محفوظ':'♡ حفظ';bookmark.setAttribute('aria-pressed',String(isSaved));
+  actions.append(a,bookmark);article.append(copy,actions);return article;
+ }
+ function openCategory(id){
+  const c=category(id);if(!c)return;
+  currentCategory=id;$('libraryCategoryMark').textContent=c.icon;$('libraryCategoryTitle').textContent=c.name;$('libraryCategoryDescription').textContent=c.description;
+  const list=$('libraryResources');list.replaceChildren();c.resources.forEach(r=>list.append(makeResourceCard({...r,categoryName:c.name})));
+  show('libraryCategoryView');$('librarySearch').value='';$('libraryHeroTitle').textContent=c.name;$('libraryHeroText').textContent=c.description;
+ }
+ function goHome(){
+  currentCategory=null;$('librarySearch').value='';$('libraryHeroTitle').textContent='افتح كتابًا، وافتح معه عالمًا';$('libraryHeroText').textContent='أروقة هادئة تجمع المصحف الشريف والعلوم الشرعية والأدب العربي وعلوم اللغة وكنوز التراث.';
+  show('libraryHome');$('librarySearch').focus();
+ }
+ function showSaved(){
+  currentCategory=null;$('librarySearch').value='';
+  const list=$('librarySavedResults');list.replaceChildren();
+  const items=saved.map(resource).filter(Boolean);
+  if(!items.length){const empty=document.createElement('div');empty.className='library-empty';empty.textContent='لم تحفظ مصادر بعد. اضغط «حفظ» بجانب أي مصدر ليظهر هنا.';list.append(empty)}
+  else items.forEach(r=>list.append(makeResourceCard(r)));
+  $('libraryHeroTitle').textContent='رفّك المحفوظ';$('libraryHeroText').textContent='مصادرك التي احتفظت بها للعودة إليها لاحقًا على هذا الجهاز.';
+  show('librarySavedView');
+ }
+ function search(q){
+  const term=q.trim().toLocaleLowerCase('ar');
+  if(!term){goHome();return}
+  const matches=resources().filter(r=>(r.title+' '+r.description+' '+r.source+' '+r.tags+' '+r.categoryName).toLocaleLowerCase('ar').includes(term));
+  const list=$('librarySearchResults');list.replaceChildren();$('librarySearchCount').textContent=matches.length+' مصدر';
+  if(!matches.length){const empty=document.createElement('div');empty.className='library-empty';empty.textContent='لم نعثر على نتيجة مطابقة. جرّب اسم مؤلف أو علمًا آخر.';list.append(empty)}
+  else matches.forEach(r=>list.append(makeResourceCard(r)));
+  $('libraryHeroTitle').textContent='ابحث في أروقة المعرفة';$('libraryHeroText').textContent='تظهر هنا الفهارس والمصادر التي تطابق كلمات البحث.';
+  show('librarySearchView');
+ }
+ function open(){
+  if(!page.hidden)return;
+  previousFocus=document.activeElement;previousOverflow=document.body.style.overflow;
+  const radio=$('rd');if(radio?.classList.contains('o')){radio.classList.remove('o');document.body.classList.remove('radio-open');$('rg')?.setAttribute('aria-expanded','false')}
+  $('rib')?.classList.remove('open');$('toolsToggle')?.setAttribute('aria-expanded','false');
+  app.setAttribute('aria-hidden','true');app.inert=true;
+  page.hidden=false;page.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
+  goHome();$('libraryClose').focus();
+ }
+ function close(){
+  if(page.hidden)return;
+  page.hidden=true;page.setAttribute('aria-hidden','true');app.removeAttribute('aria-hidden');app.inert=false;
+  document.body.style.overflow=previousOverflow;
+  (previousFocus&&previousFocus.focus?previousFocus:openButton).focus();
+ }
+ function renderCategories(){
+  const grid=$('libraryCategories');grid.replaceChildren();categories.forEach(c=>grid.append(makeCategoryCard(c)));
+ }
+ renderCategories();
+ openButton.addEventListener('click',open);
+ $('libraryClose').addEventListener('click',close);
+ $('libraryBack').addEventListener('click',goHome);
+ $('librarySaved').addEventListener('click',showSaved);
+ $('librarySearch').addEventListener('input',e=>search(e.target.value));
+ page.addEventListener('click',e=>{
+  const categoryButton=e.target.closest('[data-category]');
+  if(categoryButton){openCategory(categoryButton.dataset.category);return}
+  const saveButton=e.target.closest('[data-save-resource]');
+  if(saveButton){
+   const id=saveButton.dataset.saveResource;
+   saved=saved.includes(id)?saved.filter(x=>x!==id):[...saved,id];
+   persist();saveButton.textContent=saved.includes(id)?'★ محفوظ':'♡ حفظ';saveButton.setAttribute('aria-pressed',String(saved.includes(id)));
+   if($('librarySavedView')&&!$('librarySavedView').hidden)showSaved();
+  }
+ });
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!page.hidden){e.preventDefault();e.stopImmediatePropagation();close()}},true);
+})();
 </script>
 </body>
 </html>
