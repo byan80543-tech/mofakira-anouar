@@ -783,6 +783,31 @@ dialog[open]>.float-head{display:none!important}
  #libraryPage .library-category-arrow{top:calc(50% - 11px)}
 }
 
+
+/* ضبط نهائي للمكتبة */
+#libraryPage .library-section-heading,
+#libraryPage #librarySearchView .library-section-heading,
+#libraryPage #librarySavedView .library-section-heading{display:none!important}
+#libraryPage .library-hero{display:none!important}
+#libraryPage #libraryTheme{color:var(--lib-gold)!important}
+#libraryPage #libraryTheme svg{display:block;width:19px;height:19px}
+#libraryPage .library-category-icon.library-real-rose,
+#libraryPage .library-resource-icon.library-real-rose{
+ position:relative;background-image:none!important;overflow:hidden
+}
+#libraryPage .library-category-icon.library-real-rose::before,
+#libraryPage .library-resource-icon.library-real-rose::before{
+ content:"";display:block;width:78%;height:78%;
+ background:url("assets/royal-rose-closed.svg") center/contain no-repeat
+}
+#libraryPage .library-category-icon.library-real-rose{background-color:#fff8f1!important}
+#libraryPage .library-resource-icon.library-real-rose{background-color:var(--lib-gold-soft)!important;border-color:var(--lib-line)!important}
+#libraryPage[data-library-theme="blue"]{
+ --lib-bg:#f1f6fa;--lib-card:#ffffff;--lib-text:#233b50;--lib-muted:#71869a;
+ --lib-line:#cbd9e4;--lib-gold:#9a7840;--lib-gold-soft:#edf3f7;
+ --lib-shadow:0 4px 13px rgba(35,59,80,.08)
+}
+
 </style>
 </head>
 <body>
@@ -988,7 +1013,7 @@ dialog[open]>.float-head{display:none!important}
   <header class="library-top" aria-label="أدوات المكتبة">
    <div class="library-top-actions">
     <button type="button" id="librarySaved" aria-label="محفوظاتي" title="محفوظاتي" aria-pressed="false"><span aria-hidden="true">♡</span></button>
-    <button type="button" id="libraryTheme" aria-label="تغيير لون المكتبة" title="تغيير لون المكتبة">◐</button>
+    <button type="button" id="libraryTheme" aria-label="تغيير لون المكتبة" title="تغيير لون المكتبة"><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18h1.2a2 2 0 0 0 1.5-3.3 1.8 1.8 0 0 1 1.4-3h1.1A4.8 4.8 0 0 0 22 9.9C22 6.1 17.5 3 12 3Z"/><path d="M7.5 10h.01M10 6.8h.01M15 7.2h.01M17.5 10.5h.01"/></svg></button>
     <button type="button" id="libraryClose" aria-label="إغلاق المكتبة">✕</button>
    </div>
   </header>
@@ -2843,8 +2868,8 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  ];
  const saveKey='anwar_library_saved_v1';
  const libraryThemeKey='anwar_library_theme_v1';
- const libraryThemes=['white','cream','pearl'];
- const libraryThemeNames={white:'أبيض وذهبي',cream:'عاجي وذهبي',pearl:'لؤلؤي وذهبي'};
+ const libraryThemes=['white','cream','pearl','blue'];
+ const libraryThemeNames={white:'أبيض وذهبي',cream:'عاجي وذهبي',pearl:'لؤلؤي وذهبي',blue:'أزرق هادئ وذهبي'};
  let libraryThemeIndex=0;
  try{const savedTheme=localStorage.getItem(libraryThemeKey);const savedIndex=libraryThemes.indexOf(savedTheme);if(savedIndex>=0)libraryThemeIndex=savedIndex}catch(e){}
  function applyLibraryTheme(){
@@ -2868,7 +2893,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  }
  function makeCategoryCard(c){
   const b=document.createElement('button');b.type='button';b.className='library-category';b.dataset.category=c.id;
-  const icon=document.createElement('span');icon.className='library-category-icon';icon.textContent=c.icon;icon.setAttribute('aria-hidden','true');
+  const icon=document.createElement('span');icon.className='library-category-icon';if(c.icon==='🌷'){icon.classList.add('library-real-rose')}else{icon.textContent=c.icon}icon.setAttribute('aria-hidden','true');
   const title=document.createElement('strong');title.className='library-category-title';title.textContent=c.name;
   const arrow=document.createElement('span');arrow.className='library-category-arrow';arrow.textContent='‹';arrow.setAttribute('aria-hidden','true');
   b.append(icon,title,arrow);b.setAttribute('aria-label',c.name);return b;
@@ -2878,7 +2903,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   const copy=document.createElement('div');copy.className='library-resource-copy';
   const icon=document.createElement('span');icon.className='library-resource-icon';
   const resourceIcons={quran:'🌷',sharia:'📚',hadith:'📖',adab:'🌷',language:'🎓',heritage:'📚'};
-  icon.textContent=resourceIcons[r.categoryId]||'📚';icon.setAttribute('aria-hidden','true');
+  const resourceIcon=resourceIcons[r.categoryId]||'📚';if(resourceIcon==='🌷'){icon.classList.add('library-real-rose')}else{icon.textContent=resourceIcon}icon.setAttribute('aria-hidden','true');
   const title=document.createElement('strong');title.textContent=r.title;
   copy.append(icon,title);
   const actions=document.createElement('div');actions.className='library-resource-actions';
