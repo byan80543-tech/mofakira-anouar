@@ -955,12 +955,7 @@ button:focus:not(:focus-visible){outline:none}
 }
 @media(prefers-reduced-motion:reduce){.card{transition:none}}
 
-</style></head><body>${$('pa').innerHTML}\x3Cscript>onload=function(){setTimeout(function(){print()},900)}<\/script>
-<script>
-// Keep the same custom play/pause glyph across every internal audio control.
-(()=>{const selector='#rb,#rpp,.reciter-play,.country-reader-play,#lessonPlay,#rd .lesson-item-radio';const sync=()=>document.querySelectorAll(selector).forEach(el=>{el.dataset.playing=/[⏸Ⅱ]/.test(el.textContent)?'true':'false'});sync();new MutationObserver(sync).observe(document.body,{subtree:true,childList:true,characterData:true});})();
-</script>
-</body></html>`;
+</style></head><body>${$('pa').innerHTML}\x3Cscript>onload=function(){setTimeout(function(){print()},900)}<\/script></body></html>`;
  try{await dl.save({filename:((cur.title||'أنوار').replace(/[\\/:*?"<>|]/g,'-').slice(0,60))+'.html',data:new Blob([h],{type:'text/html'})});toast('افتح الملف المنزَّل وستظهر نافذة الطباعة تلقائيًا',5000)}catch(e){}
 }
 async function doPrint(){
@@ -2222,6 +2217,11 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  if(toolsBtn)toolsBtn.setAttribute('aria-controls','rib');
 })();
 
+</script>
+
+<script>
+// Keep the same custom play/pause glyph across every internal audio control.
+(()=>{const selector='#rb,#rpp,.reciter-play,.country-reader-play,#lessonPlay,#rd .lesson-item-radio';const sync=()=>document.querySelectorAll(selector).forEach(el=>{el.dataset.playing=/[⏸Ⅱ]/.test(el.textContent)?'true':'false'});sync();new MutationObserver(sync).observe(document.body,{subtree:true,childList:true,characterData:true});})();
 </script>
 </body>
 </html>
