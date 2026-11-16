@@ -96,7 +96,19 @@ dialog textarea{width:100%;height:140px;background:var(--bg);color:var(--tx);bor
 .curtain-head{position:sticky;top:-10px;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-10px -10px 2px;padding:9px 12px;background:linear-gradient(110deg,#0d3158,#1d5276);color:#fff;border-bottom:1px solid #c9a96a}
 .curtain-head b{font-family:'Aref Ruqaa',Amiri,serif;font-size:17px;font-weight:700;color:#fff2c5}
 .curtain-head button{border:1px solid rgba(255,255,255,.42);border-radius:7px;background:rgba(255,255,255,.12);color:#fff;padding:5px 10px;font-size:12px}
-#rd{padding-bottom:14px}#rd select{width:100%;min-width:0;max-width:100%;min-height:40px}#rr{max-height:42vh}#rd .lesson-box{border:1px solid var(--bd);border-radius:9px;padding:9px;background:var(--bg);display:grid;gap:7px}#rd .lesson-box a{display:block;color:var(--ac);text-decoration:none;border:1px solid var(--bd);border-radius:7px;padding:8px;background:var(--sf);font-size:12px}#rd .lesson-box audio{width:100%;height:38px}#rd .lesson-note{font-size:11px;color:var(--mu);line-height:1.7}
+#rd{padding-bottom:14px}#rd select{width:100%;min-width:0;max-width:100%;min-height:40px}#rr{max-height:42vh}#rd .lesson-box{border:1px solid var(--bd);border-radius:9px;padding:9px;background:var(--bg);display:grid;gap:7px}
+#rd .lesson-heading{display:flex;align-items:center;gap:12px;padding:8px 10px;border:1px solid #d7bd83;border-radius:11px;background:linear-gradient(120deg,#fff8e7,#f0dfb8);color:#243d56}
+#rd .lesson-heading b{font-family:'Aref Ruqaa',Amiri,serif;font-size:17px;color:#173d5c}
+#rd .lesson-radio-emblem{width:68px;height:52px;flex:none;filter:drop-shadow(0 2px 2px #0003)}
+#rd .lesson-track-accessible{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+#rd .lesson-list{display:grid;gap:6px;max-height:34vh;overflow:auto;overscroll-behavior:contain;padding:2px;border-radius:9px}
+#rd .lesson-item{display:flex;align-items:center;gap:9px;width:100%;min-height:43px;padding:7px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--sf);color:var(--tx);text-align:right}
+#rd .lesson-item:active{transform:scale(.995)}
+#rd .lesson-item[aria-current="true"]{border-color:#b58a42;background:linear-gradient(110deg,#fff5d9,#f2e2bd);color:#173d5c;box-shadow:inset 0 0 0 1px #d8bd7c}
+#rd .lesson-tulip{font-size:18px;line-height:1;flex:none}
+#rd .lesson-item-name{flex:1;min-width:0;font-size:12px;font-weight:700}
+#rd .lesson-item-radio{width:29px;height:25px;display:grid;place-items:center;flex:none;border-radius:6px;background:#173d5c;color:#f7dfaa;font-size:14px}
+#rd .lesson-empty{padding:12px;text-align:center;color:var(--mu);font-size:12px}#rd .lesson-box a{display:block;color:var(--ac);text-decoration:none;border:1px solid var(--bd);border-radius:7px;padding:8px;background:var(--sf);font-size:12px}#rd .lesson-box audio{width:100%;height:38px}#rd .lesson-note{font-size:11px;color:var(--mu);line-height:1.7}
 #rd select{border:1px solid var(--bd);border-radius:6px;padding:5px;background:var(--bg);color:var(--tx)}
 #rd label{font-size:12px;display:flex;gap:6px;align-items:flex-start}
 .rc{display:flex;gap:6px;align-items:center}
@@ -548,16 +560,20 @@ dialog[open]>.float-head{display:none!important}
  <a id="ro" href="#" target="_blank" rel="noopener noreferrer" class="radio-source-link">↗ فتح مصدر الصوت مباشرة</a>
  <small id="src" class="radio-source-note">جارٍ جلب القراء والمحطات من mp3quran.net…</small>
  <div class="lesson-box" id="lessonHub">
-  <b>إذاعة الدروس العلمية · الشيخ عبد الرزاق البدر</b>
-  <small class="lesson-note">مشغل داخلي للسلاسل الصوتية، مع الانتقال بين الدروس. المصادر موضحة أسفل المشغل.</small>
+  <div class="lesson-heading">
+   <svg class="lesson-radio-emblem" viewBox="0 0 96 72" role="img" aria-label="مذياع كلاسيكي للدروس المباشرة"><defs><linearGradient id="lessonWood" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f7d99b"/><stop offset=".48" stop-color="#a96732"/><stop offset="1" stop-color="#59351f"/></linearGradient><linearGradient id="lessonGold" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff1c2"/><stop offset="1" stop-color="#c18b3e"/></linearGradient></defs><path d="M25 16 68 5" stroke="#d4b36a" stroke-width="3" stroke-linecap="round"/><rect x="5" y="17" width="86" height="49" rx="8" fill="url(#lessonWood)" stroke="#70451f" stroke-width="2"/><rect x="11" y="23" width="42" height="36" rx="4" fill="#152f3c" stroke="url(#lessonGold)" stroke-width="2"/><path d="M16 29h32M16 34h32M16 39h32" stroke="#d8b46a" stroke-width="1.5" opacity=".8"/><circle cx="69" cy="34" r="10" fill="#172b35" stroke="url(#lessonGold)" stroke-width="3"/><circle cx="69" cy="34" r="3" fill="#e7c477"/><circle cx="69" cy="53" r="3" fill="#f3d99b"/><path d="M18 12h60" stroke="#d4b36a" stroke-width="2" stroke-linecap="round"/></svg>
+   <b>إذاعة الدروس العلمية · الشيخ عبد الرزاق البدر</b>
+  </div>
+  <small class="lesson-note">اختر السلسلة، ثم المس اسم الدرس ليبدأ تشغيله فورًا داخل المفكرة.</small>
   <label for="lessonSeries">السلسلة العلمية</label>
   <select id="lessonSeries">
    <option value="tawhid">شرح كتاب التوحيد — السلسلة الكاملة (55 درسًا)</option>
    <option value="wasitiyya">شرح العقيدة الواسطية — 50 درسًا</option>
    <option value="dawa">شرح الداء والدواء — 83 درسًا</option>
   </select>
-  <label for="lessonTrack">اختر الدرس</label>
-  <select id="lessonTrack"></select>
+  <label for="lessonTrack">قائمة الدروس · اضغط للتشغيل المباشر</label>
+  <select id="lessonTrack" class="lesson-track-accessible"></select>
+  <div id="lessonList" class="lesson-list" role="list" aria-label="الدروس المتاحة للتشغيل المباشر"></div>
   <div class="rc"><button type="button" id="lessonPrev" title="الدرس السابق">⏮</button><button type="button" id="lessonPlay">▶</button><button type="button" id="lessonNext" title="الدرس التالي">⏭</button></div>
   <audio id="lessonAudio" controls preload="none" style="width:100%"></audio>
   <small id="lessonStatus" class="lesson-note">اختر السلسلة والدرس ثم اضغط تشغيل.</small>
@@ -1124,7 +1140,12 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  function fill(){
   const c=catalog[series.value];current=0;audio.pause();audio.removeAttribute('src');audio.preload=series.value==='maarij'?'metadata':'none';audio.load();play.textContent='▶';audio.style.display=c.direct?'block':'none';if(frame){frame.removeAttribute('src');frame.hidden=true;frame.style.display='none';}
   track.innerHTML=c.count?Array.from({length:c.count},(_,i)=>`<option value="${i}">${c.trackNames?.[i]||('الدرس '+String(i+1).padStart(2,'0')+' من '+c.count)}</option>`).join(''):'<option value="0">افتح فهرس الدروس من المصدر الرسمي</option>';
-  track.disabled=!c.count;renderSource(c);
+  track.disabled=!c.count;
+  const lessonList=$('lessonList');
+  if(lessonList){
+   lessonList.innerHTML=c.count?Array.from({length:c.count},(_,i)=>`<button type="button" class="lesson-item" role="listitem" data-lesson-index="${i}" aria-current="false"><span class="lesson-tulip" aria-hidden="true">🌷</span><span class="lesson-item-name">${c.trackNames?.[i]||('الدرس '+String(i+1).padStart(2,'0')+' من '+c.count)}</span><span class="lesson-item-radio" aria-hidden="true">▶</span></button>`).join(''):'<div class="lesson-empty">لا تتوفر قائمة تشغيل مباشرة لهذه المادة؛ افتح فهرس المصدر أدناه.</div>';
+  }
+  renderSource(c);
   status.textContent=c.direct?'قائمة كاملة: '+c.count+' درسًا. اختر الدرس للتشغيل الداخلي أو شغّل السلسلة للانتقال التلقائي.':c.count?'تتوفر '+c.count+' مادة صوتية في هذه السلسلة.':'هذا فهرس للسلاسل الصوتية؛ افتح رابطه في تبويب مستقل لتصفح بقية الصوتيات.';
  }
  function loadTrack(auto){
@@ -1134,7 +1155,12 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   if(auto)audio.play().then(()=>play.textContent='⏸').catch(()=>status.textContent='تعذر التشغيل التلقائي؛ اضغط زر التشغيل.');
  }
  series.addEventListener('change',fill);track.addEventListener('change',()=>loadTrack(false));
- audio.addEventListener('play',()=>{const radio=window.__anwarRadioAudio;if(radio&&!radio.paused)radio.pause()});
+ const lessonList=$('lessonList');
+ function markLessonPlaying(){if(!lessonList)return;lessonList.querySelectorAll('[data-lesson-index]').forEach(btn=>{const active=+btn.dataset.lessonIndex===current&&!!audio.src;btn.setAttribute('aria-current',String(active));const icon=btn.querySelector('.lesson-item-radio');if(icon)icon.textContent=active&&!audio.paused?'Ⅱ':'▶';});}
+ if(lessonList)lessonList.addEventListener('click',e=>{const btn=e.target.closest('[data-lesson-index]');if(!btn)return;current=+btn.dataset.lessonIndex;track.value=String(current);loadTrack(true);markLessonPlaying();});
+ audio.addEventListener('play',()=>{const radio=window.__anwarRadioAudio;if(radio&&!radio.paused)radio.pause();markLessonPlaying()});
+ audio.addEventListener('pause',markLessonPlaying);
+ audio.addEventListener('playing',markLessonPlaying);
  play.addEventListener('click',()=>{const radio=window.__anwarRadioAudio;if(radio&&!radio.paused)radio.pause();const c=catalog[series.value];if(!c.direct){renderSource(c);status.textContent='هذا فهرس للسلاسل وليس درساً صوتياً مستقلاً؛ افتح رابط الفهرس في تبويب مستقل لتصفح بقية الصوتيات.';return;}if(!audio.src)loadTrack(false);if(audio.paused)audio.play().then(()=>play.textContent='⏸').catch(()=>status.textContent='تعذر تشغيل الملف؛ افتح المصدر الأصلي.');else{audio.pause();play.textContent='▶';}});
  $('lessonPrev').addEventListener('click',()=>{if(!catalog[series.value].direct)return;current=Math.max(0,(+track.value||0)-1);track.value=current;loadTrack(true)});
  $('lessonNext').addEventListener('click',()=>{if(!catalog[series.value].direct)return;current=Math.min(catalog[series.value].count-1,(+track.value||0)+1);track.value=current;loadTrack(true)});
