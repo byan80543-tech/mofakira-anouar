@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+<defs>
+ <linearGradient id="bud" x1="15" y1="5" x2="33" y2="32" gradientUnits="userSpaceOnUse"><stop stop-color="#FFDCE7"/><stop offset=".34" stop-color="#F36C98"/><stop offset="1" stop-color="#A91E55"/></linearGradient>
+ <linearGradient id="sepal" x1="13" y1="23" x2="33" y2="39" gradientUnits="userSpaceOnUse"><stop stop-color="#B8D49A"/><stop offset="1" stop-color="#376B4E"/></linearGradient>
+ <linearGradient id="stem" x1="22" y1="28" x2="27" y2="45" gradientUnits="userSpaceOnUse"><stop stop-color="#8DB47B"/><stop offset="1" stop-color="#426F50"/></linearGradient>
+</defs>
+<path d="M24 27C24 34 25 39 22 45" stroke="url(#stem)" stroke-width="2" stroke-linecap="round"/>
+<path d="M23 37C14 29 9 31 11 35c2 4 7 5 12 3" fill="url(#sepal)" stroke="#547B58" stroke-width=".7"/>
+<path d="M24 39C30 29 37 29 38 33c1 4-6 7-14 8" fill="url(#sepal)" stroke="#547B58" stroke-width=".7"/>
+<path d="M24 31C15 28 11 22 13 15c2-7 7-11 11-13 5 3 10 7 11 14 1 7-3 13-11 15Z" fill="url(#bud)" stroke="#B52B60" stroke-width=".8"/>
+<path d="M24 4C19 12 19 22 24 29" stroke="#FFEAF0" stroke-width="1.5" stroke-linecap="round" opacity=".85"/>
+<path d="M15 17c2-5 5-8 8-10" stroke="#FFC5D7" stroke-width="1" stroke-linecap="round" opacity=".8"/>
+<path d="M24 30c-5-2-8-5-10-9 4 1 7 2 10 5 3-3 6-4 10-5-2 4-5 7-10 9Z" fill="#5F925E" stroke="#47774F" stroke-width=".7"/>
+</svg>
