@@ -779,7 +779,7 @@ dialog[open]>.float-head{display:none!important}
    <label for="shareUrl">رابط المفكرة المنشور</label>
    <input id="shareUrl" type="url" inputmode="url" placeholder="https://example.com/anwar" autocomplete="url">
    <div id="qrPreview"><span style="color:#666;text-align:center">سيظهر رمز QR هنا بعد إدخال الرابط</span></div>
-   <div class="qr-actions"><button type="button" id="makeQR">إنشاء الرمز</button><button type="button" id="downloadQR" disabled>تنزيل بطاقة النشر PNG</button><button type="button" id="downloadIcon">تنزيل أيقونة التطبيق PNG</button></div>
+   <div class="qr-actions"><button type="button" id="makeQR">إنشاء الرمز</button><button type="button" id="downloadQR" disabled>تنزيل بطاقة النشر PNG</button><button type="button" id="downloadIcon">تنزيل أيقونة التطبيق PNG بالدقة الأصلية</button></div>
    <small style="display:block;color:var(--mu);margin-top:8px">تتضمن البطاقة اسم المفكرة واسم المطور وإطارًا زخرفيًا. يجب أن يكون الرابط متاحًا للناس على الإنترنت.</small>
   </div>
  </section>
@@ -828,8 +828,21 @@ function cleanNote(n){
  return {id:String(n.id??Date.now().toString(36)).slice(0,80),title:String(n.title??'').slice(0,300),type,html:san(raw),pin:n.pin===true,ts:safeTime,font:safeFontName(n.font),size:Number.isFinite(size)?Math.max(14,Math.min(56,size)):20,history};
 }
 function normalizeState(data){
- const d=data&&typeof data==='object'?data:{};
- return {notes:Array.isArray(d.notes)?d.notes.map(cleanNote).filter(Boolean):[],theme:d.theme==='dark'?'dark':d.theme==='light'?'light':'',palette:['blue','green','purple','rose','amber','slate'].includes(d.palette)?d.palette:'blue',wallColor:['mist','cream','sky','mint','lavender','blush','slate','night'].includes(d.wallColor)?d.wallColor:'mist',paperColor:['white','cream','sky','mint','lavender','blush','gray','night'].includes(d.paperColor)?d.paperColor:'white',days:Array.isArray(d.days)?d.days.filter(x=>typeof x==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x)).slice(-400):[]};
+ const d=data&&typeof data==='object'?data:{},usedIds=new Set();
+ const notes=Array.isArray(d.notes)?d.notes.map((raw,index)=>{
+  const note=cleanNote(raw);if(!note)return null;
+  const base=String(note.id||('note-'+(index+1))).slice(0,80);
+  let id=base,suffix=2;
+  while(usedIds.has(id)){const tail='-'+suffix++;id=base.slice(0,80-tail.length)+tail}
+  note.id=id;usedIds.add(id);return note;
+ }).filter(Boolean):[];
+ return {notes,theme:d.theme==='dark'?'dark':d.theme==='light'?'light':'',palette:['blue','green','purple','rose','amber','slate'].includes(d.palette)?d.palette:'blue',wallColor:['mist','cream','sky','mint','lavender','blush','slate','night'].includes(d.wallColor)?d.wallColor:'mist',paperColor:['white','cream','sky','mint','lavender','blush','gray','night'].includes(d.paperColor)?d.paperColor:'white',days:Array.isArray(d.days)?d.days.filter(x=>typeof x==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x)).slice(-400):[]};
+}
+function createNoteId(){
+ const base=Date.now().toString(36),used=new Set(S.notes.map(n=>String(n.id)));
+ let id=base,suffix=2;
+ while(used.has(id))id=base+'-'+suffix++;
+ return id;
 }
 function load(){try{const r=localStorage.getItem('anwar_v1');if(r)S=normalizeState(JSON.parse(r))}catch(e){storageRecoveryBlocked=true;try{storageRecoveryRaw=localStorage.getItem('anwar_v1')}catch(_e){storageRecoveryRaw=null}S={notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[]};const panel=$('storageRecoveryNotice');if(panel)panel.hidden=false;const button=$('exportRecovery');if(button)button.disabled=storageRecoveryRaw===null}}
 function exportStorageRecovery(){if(storageRecoveryRaw===null){toast('تعذّر قراءة البيانات الخام من المتصفح؛ لا تمسح بيانات الموقع.',5000);return}try{const blob=new Blob([storageRecoveryRaw],{type:'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='anwar-storage-recovery-raw.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);storageRecoveryExported=true;toast('تم تجهيز ملف الاسترداد الخام. احتفظ به قبل الاستعادة.',5000)}catch(e){toast('تعذّر تنزيل ملف الاسترداد الخام؛ لا تحذف بيانات المتصفح.',5000)}}
@@ -864,7 +877,7 @@ function openNote(n){
  else $('app').classList.remove('ed');
  renderList();info();
 }
-function newNote(){if(storageRecoveryBlocked){toast('أنزل ملف الاسترداد أولاً، ثم استعد نسخة سليمة قبل إنشاء أعمال جديدة.',6000);return}const n={id:Date.now().toString(36),title:'',type:'poem',html:'',pin:false,ts:Date.now(),font:'Amiri',size:20};S.notes.push(n);save();openNote(n);pg.focus()}
+function newNote(){if(storageRecoveryBlocked){toast('أنزل ملف الاسترداد أولاً، ثم استعد نسخة سليمة قبل إنشاء أعمال جديدة.',6000);return}const n={id:createNoteId(),title:'',type:'poem',html:'',pin:false,ts:Date.now(),font:'Amiri',size:20};S.notes.push(n);if(!save()){S.notes.pop();return}openNote(n);pg.focus()}
 function lines(){const L=[];pg.querySelectorAll(':scope>*').forEach(e=>{const t=e.classList.contains('v')?(e.children[1]||e).textContent:e.textContent;if(t.replace(/[\u200b\s]/g,''))L.push(t)});if(!L.length&&pg.textContent.trim())L.push(pg.textContent);return L}
 function info(){
  if(!cur){$('info').textContent='';return}
@@ -997,7 +1010,7 @@ function openBookDialog(){if(!S.notes.length){toast('لا توجد أعمال ل
 function createBook(){const scope=$('bookScope').value,title=$('bookTitle').value.trim()||'مختارات من مفكرة أنوار';const notes=S.notes.filter(n=>scope==='all'||(scope==='poem'?n.type==='poem':n.type==='text'||n.type==='idea')).sort((a,b)=>a.ts-b.ts);if(!notes.length){toast('لا توجد أعمال ضمن هذا الاختيار');return}const items=notes.map((n,i)=>`<section class="book-item"><h2>${esc(n.title||'بلا عنوان')}</h2><div class="m">${TYPES[n.type]} · ${fmt(n.ts)}</div><hr><div>${san(n.html)}</div></section>`).join('');const index=notes.map((n,i)=>`<p>${i+1}. ${esc(n.title||'بلا عنوان')} <small>— ${TYPES[n.type]}</small></p>`).join('');$('pa').style.cssText='position:fixed;left:-10000px;top:0;width:794px;padding:48px 58px;background:#fff;color:#111;font-family:Amiri,serif;font-size:20px;line-height:2;direction:rtl';$('pa').innerHTML=`<section class="book-cover"><div style="font-size:60px;color:#b58a43">✒</div><h1>${esc(title)}</h1><p>مختارات من أعمال</p><h2 style="font-size:32px">Anouar Oumlili</h2><p>أنوار أومليلي · الحسيمة · المملكة المغربية</p><p style="margin-top:70px;font-size:15px">مفكرة أنوار</p></section><section class="book-index"><h1>الفهرس</h1>${index}</section>${items}<div class="f">مفكرة أنوار · © 2026 Anouar Oumlili · جميع الحقوق محفوظة</div>`;$('bookDialog').close();window.print();toast('في نافذة الطباعة اختر «حفظ بصيغة PDF»',5000)}
 function showOwnerPanel(which){const own=which==='owner',adh=which==='adhkar';$('ownerPanel').hidden=!own;$('adhkarPanel').hidden=!adh;$('sharePanel').hidden=which!=='share';$('ownerTab').classList.toggle('active',own);$('adhkarTab').classList.toggle('active',adh);$('shareTab').classList.toggle('active',which==='share');if(adh)renderAdhkar('morning')}
 function makeQR(){const url=$('shareUrl').value.trim();if(!/^https?:\/\//i.test(url)){toast('أدخل رابطًا عامًا يبدأ بـ https:// أو http://');return}if(!window.QRCode){toast('مكتبة QR لم تُحمّل؛ تحقق من اتصال الإنترنت');return}const box=$('qrPreview');box.innerHTML='';new QRCode(box,{text:url,width:200,height:200,colorDark:'#102b45',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});$('downloadQR').disabled=false;toast('تم إنشاء رمز QR للرابط')}
-function downloadAppIcon(){const href=document.querySelector('link[rel=icon]').href,img=new Image();img.onload=()=>{const c=document.createElement('canvas');c.width=1024;c.height=1024;c.getContext('2d').drawImage(img,0,0,1024,1024);const a=document.createElement('a');a.download='أيقونة-مفكرة-أنوار.png';a.href=c.toDataURL('image/png');a.click();toast('تم تنزيل أيقونة مفكرة أنوار')};img.onerror=()=>toast('تعذّر تجهيز الأيقونة');img.src=href}
+function downloadAppIcon(){const link=document.querySelector('link[rel=apple-touch-icon]')||document.querySelector('link[rel=icon]'),href=link&&link.href;if(!href){toast('تعذّر العثور على ملف الأيقونة');return}const img=new Image();img.onload=()=>{const w=img.naturalWidth,h=img.naturalHeight;if(!w||!h){toast('ملف الأيقونة غير صالح');return}const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d');if(!ctx){toast('تعذّر تجهيز صورة الأيقونة');return}ctx.drawImage(img,0,0,w,h);const a=document.createElement('a');a.download='أيقونة-مفكرة-أنوار-'+w+'x'+h+'.png';a.href=c.toDataURL('image/png');a.click();toast('تم تنزيل الأيقونة بدقتها الأصلية: '+w+'×'+h)};img.onerror=()=>toast('تعذّر تحميل ملف الأيقونة');img.src=href}
 function downloadQRPoster(){const box=$('qrPreview'),qr=box.querySelector('canvas')||box.querySelector('img');if(!qr){toast('أنشئ رمز QR أولًا');return}const c=document.createElement('canvas');c.width=1080;c.height=1350;const x=c.getContext('2d');x.fillStyle='#f8f3e8';x.fillRect(0,0,c.width,c.height);x.strokeStyle='#b58a43';x.lineWidth=18;x.strokeRect(35,35,1010,1280);x.strokeStyle='#173b58';x.lineWidth=4;x.strokeRect(58,58,964,1234);x.fillStyle='#102f4b';x.textAlign='center';x.direction='rtl';x.font='bold 70px serif';x.fillText('مفكرة أنوار',540,175);x.font='34px serif';x.fillStyle='#76562a';x.fillText('الكلمة والقرآن رفيقان في كل وقت',540,235);x.fillStyle='#fff';x.fillRect(330,310,420,420);x.strokeStyle='#c29a50';x.lineWidth=12;x.strokeRect(320,300,440,440);if(qr.tagName==='CANVAS')x.drawImage(qr,350,330,380,380);else{x.drawImage(qr,350,330,380,380)}x.fillStyle='#173b58';x.font='bold 42px serif';x.fillText('امسح الرمز لزيارة المفكرة',540,825);x.font='34px serif';x.fillText('المطوّر وصاحب المشروع: Anouar Oumlili',540,910);x.fillText('أنوار أومليلي · الحسيمة · المملكة المغربية',540,970);x.font='28px serif';x.fillStyle='#80602f';x.fillText('المملكة المغربية',540,1080);x.font='25px serif';x.fillText('مفكرة أدبية · إذاعة القرآن · الأذكار',540,1150);const a=document.createElement('a');a.download='بطاقة-مفكرة-أنوار.png';a.href=c.toDataURL('image/png');a.click();toast('تم تجهيز بطاقة النشر PNG')}
 function speak(){
   const synth=window.speechSynthesis;
