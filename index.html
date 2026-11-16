@@ -992,11 +992,10 @@ dialog[open]>.float-head{display:none!important}
     <button type="button" id="libraryClose">إغلاق ✕</button>
    </div>
   </header>
-  <section class="library-hero">
-   <small>مرحبًا بك في عالم المعرفة</small>
-   <h1 id="libraryHeroTitle">افتح كتابًا، وافتح معه عالمًا</h1>
-   <p id="libraryHeroText">أروقة هادئة تجمع المصحف الشريف والعلوم الشرعية والأدب العربي وعلوم اللغة وكنوز التراث.</p>
-  </section>
+  <div hidden aria-hidden="true">
+   <span id="libraryHeroTitle">مكتبة أنوار</span>
+   <span id="libraryHeroText"></span>
+  </div>
   <label class="library-search"><span aria-hidden="true">⌕</span><input id="librarySearch" type="search" placeholder="ابحث عن كتاب أو علم أو مصدر…" autocomplete="off" aria-label="ابحث في مكتبة أنوار"></label>
   <section id="libraryHome">
    <div class="library-section-heading"><strong>أروقة المكتبة</strong><small>ستة أروقة · فهارس موثقة ومصادر متخصصة</small></div>
@@ -1237,6 +1236,29 @@ button:focus:not(:focus-visible){outline:none}
 }
 @media(prefers-reduced-motion:reduce){.card{transition:none}}
 
+
+/* إصلاح عرض مكتبة أنوار على الهواتف وإزالة المساحة العلوية الزائدة */
+#libraryPage,
+#libraryPage *{box-sizing:border-box}
+#libraryPage{overflow-x:hidden!important}
+#libraryPage .library-shell{
+ width:100%!important;max-width:1320px!important;min-width:0!important;
+ margin-inline:auto!important;box-sizing:border-box!important
+}
+#libraryPage .library-top,
+#libraryPage .library-search,
+#libraryPage #libraryHome,
+#libraryPage .library-categories,
+#libraryPage .library-panel,
+#libraryPage .library-resource-list{
+ width:100%;max-width:100%;min-width:0;box-sizing:border-box
+}
+#libraryPage .library-categories{grid-template-columns:repeat(2,minmax(0,1fr))}
+#libraryPage .library-category{width:100%;min-width:0;max-width:100%;box-sizing:border-box}
+#libraryPage .library-category-copy{min-width:0;overflow-wrap:anywhere}
+@media(max-width:380px){
+ #libraryPage .library-categories{grid-template-columns:minmax(0,1fr)}
+}
 </style></head><body>${$('pa').innerHTML}\x3Cscript>onload=function(){setTimeout(function(){print()},900)}<\/script>
 
 
