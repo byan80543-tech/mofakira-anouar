@@ -793,13 +793,12 @@ dialog[open]>.float-head{display:none!important}
 #libraryPage #libraryTheme svg{display:block;width:19px;height:19px}
 #libraryPage .library-category-icon.library-real-rose,
 #libraryPage .library-resource-icon.library-real-rose{
- position:relative;background-image:none!important;overflow:hidden
+ position:relative;display:grid;place-items:center;overflow:hidden;background-image:none!important
 }
-#libraryPage .library-category-icon.library-real-rose::before,
-#libraryPage .library-resource-icon.library-real-rose::before{
- content:"";display:block;width:78%;height:78%;
- background:url("assets/royal-rose-closed.svg") center/contain no-repeat
-}
+#libraryPage .library-category-icon.library-real-rose img{display:block;width:25px;height:29px;object-fit:contain;object-position:center bottom}
+#libraryPage .library-resource-icon.library-real-rose img{display:block;width:21px;height:26px;object-fit:contain;object-position:center bottom}
+#libraryPage #libraryTheme{position:relative;z-index:5;pointer-events:auto;touch-action:manipulation;cursor:pointer}
+#libraryPage #libraryTheme svg{pointer-events:none}
 #libraryPage .library-category-icon.library-real-rose{background-color:#fff8f1!important}
 #libraryPage .library-resource-icon.library-real-rose{background-color:var(--lib-gold-soft)!important;border-color:var(--lib-line)!important}
 #libraryPage[data-library-theme="blue"]{
@@ -2875,8 +2874,16 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  function applyLibraryTheme(){
   const theme=libraryThemes[libraryThemeIndex]||'white';
   page.dataset.libraryTheme=theme;
+  const palettes={
+   white:{bg:'#fffefa',card:'#ffffff',text:'#3b3123',muted:'#947b52',line:'#eadbb9',gold:'#b58b45',soft:'#fff8e9',shadow:'0 4px 13px rgba(111,82,34,.08)'},
+   cream:{bg:'#faf6ed',card:'#fffdf8',text:'#3d3326',muted:'#8e754e',line:'#e6d5b0',gold:'#ad8240',soft:'#f8efdc',shadow:'0 4px 13px rgba(111,82,34,.07)'},
+   pearl:{bg:'#f7f8f7',card:'#ffffff',text:'#343b39',muted:'#827d6b',line:'#e5dfcd',gold:'#b29257',soft:'#fbf7ed',shadow:'0 4px 13px rgba(67,73,62,.07)'},
+   blue:{bg:'#f1f6fa',card:'#ffffff',text:'#233b50',muted:'#71869a',line:'#cbd9e4',gold:'#9a7840',soft:'#edf3f7',shadow:'0 4px 13px rgba(35,59,80,.08)'}
+  };
+  const p=palettes[theme]||palettes.white;
+  for(const [key,value] of Object.entries({bg:p.bg,card:p.card,text:p.text,muted:p.muted,line:p.line,gold:p.gold,'gold-soft':p.soft,shadow:p.shadow}))page.style.setProperty('--lib-'+key,value);
   const button=$('libraryTheme');
-  if(button){button.title='لون المكتبة: '+libraryThemeNames[theme]+' · اضغط للتغيير';button.setAttribute('aria-label','تغيير لون المكتبة. اللون الحالي '+libraryThemeNames[theme]);}
+  if(button){button.title='لون المكتبة: '+libraryThemeNames[theme]+' · اضغط للتغيير';button.setAttribute('aria-label','تغيير لون المكتبة. اللون الحالي '+libraryThemeNames[theme]);button.dataset.currentTheme=theme;}
  }
  applyLibraryTheme();
  let saved=[];
@@ -2893,7 +2900,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  }
  function makeCategoryCard(c){
   const b=document.createElement('button');b.type='button';b.className='library-category';b.dataset.category=c.id;
-  const icon=document.createElement('span');icon.className='library-category-icon';if(c.icon==='🌷'){icon.classList.add('library-real-rose')}else{icon.textContent=c.icon}icon.setAttribute('aria-hidden','true');
+  const icon=document.createElement('span');icon.className='library-category-icon';if(c.icon==='🌷'){icon.classList.add('library-real-rose');const flower=document.createElement('img');flower.src='assets/tulip-cutout.svg';flower.alt='';flower.setAttribute('aria-hidden','true');icon.append(flower)}else{icon.textContent=c.icon}icon.setAttribute('aria-hidden','true');
   const title=document.createElement('strong');title.className='library-category-title';title.textContent=c.name;
   const arrow=document.createElement('span');arrow.className='library-category-arrow';arrow.textContent='‹';arrow.setAttribute('aria-hidden','true');
   b.append(icon,title,arrow);b.setAttribute('aria-label',c.name);return b;
@@ -2903,7 +2910,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   const copy=document.createElement('div');copy.className='library-resource-copy';
   const icon=document.createElement('span');icon.className='library-resource-icon';
   const resourceIcons={quran:'🌷',sharia:'📚',hadith:'📖',adab:'🌷',language:'🎓',heritage:'📚'};
-  const resourceIcon=resourceIcons[r.categoryId]||'📚';if(resourceIcon==='🌷'){icon.classList.add('library-real-rose')}else{icon.textContent=resourceIcon}icon.setAttribute('aria-hidden','true');
+  const resourceIcon=resourceIcons[r.categoryId]||'📚';if(resourceIcon==='🌷'){icon.classList.add('library-real-rose');const flower=document.createElement('img');flower.src='assets/tulip-cutout.svg';flower.alt='';flower.setAttribute('aria-hidden','true');icon.append(flower)}else{icon.textContent=resourceIcon}icon.setAttribute('aria-hidden','true');
   const title=document.createElement('strong');title.textContent=r.title;
   copy.append(icon,title);
   const actions=document.createElement('div');actions.className='library-resource-actions';
@@ -2968,13 +2975,17 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  $('libraryClose').addEventListener('click',close);
  $('libraryBack').addEventListener('click',goHome);
  $('librarySaved').addEventListener('click',showSaved);
- $('libraryTheme').addEventListener('click',()=>{
-  libraryThemeIndex=(libraryThemeIndex+1)%libraryThemes.length;
-  applyLibraryTheme();
-  try{localStorage.setItem(libraryThemeKey,libraryThemes[libraryThemeIndex])}catch(e){}
- });
+
  $('librarySearch').addEventListener('input',e=>search(e.target.value));
  page.addEventListener('click',e=>{
+  const themeButton=e.target.closest('#libraryTheme');
+  if(themeButton){
+   e.preventDefault();e.stopPropagation();
+   libraryThemeIndex=(libraryThemeIndex+1)%libraryThemes.length;
+   applyLibraryTheme();
+   try{localStorage.setItem(libraryThemeKey,libraryThemes[libraryThemeIndex])}catch(e){}
+   return;
+  }
   const categoryButton=e.target.closest('[data-category]');
   if(categoryButton){openCategory(categoryButton.dataset.category);return}
   const saveButton=e.target.closest('[data-save-resource]');
