@@ -20,20 +20,20 @@ for (const icon of manifest.icons ?? []) {
 const svg=fs.readFileSync(path.join(root,'icon.svg'),'utf8');
 ok(/viewBox=["']0 0 512 512["']/.test(svg),'SVG icon has 512x512 viewBox');
 
-const ids=[...html.matchAll(/\\bid\\s*=\\s*["']([^"']+)["']/gi)].map(m=>m[1]);
+const ids=[...html.matchAll(/\bid\s*=\s*["']([^"']+)["']/gi)].map(m=>m[1]);
 const duplicateIds=ids.filter((id,i)=>ids.indexOf(id)!==i);
 ok(duplicateIds.length===0,'HTML IDs are unique');
 
 let scriptCount=0;
-for (const match of html.matchAll(/<script\\b([^>]*)>([\\s\\S]*?)<\\/script\\s*>/gi)) {
-  if (/\\bsrc\\s*=/.test(match[1])) continue;
+for (const match of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)) {
+  if (/\bsrc\s*=/.test(match[1])) continue;
   scriptCount++;
   try { new vm.Script(match[2],{filename:`inline-script-${scriptCount}.js`}); }
   catch (error) { failures.push(`inline script ${scriptCount}: ${error.message}`); }
 }
 ok(scriptCount>0,'inline JavaScript blocks discovered');
 if (failures.length) {
-  console.error('\\nValidation failed:');
+  console.error('\nValidation failed:');
   for (const failure of failures) console.error('-',failure);
   process.exitCode=1;
 } else console.log('All repository static checks passed.');
