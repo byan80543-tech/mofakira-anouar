@@ -689,7 +689,7 @@ dialog[open]>.float-head{display:none!important}
    <button id="reciterCountryOpen" class="reciter-country-open" type="button" disabled>عرض القرّاء داخل أنوار</button>
   </div>
   <small id="reciterCountryStatus" class="reciter-country-status">اختر دولة ثم اعرض قائمتها داخل المفكرة. ستُجلب الأسماء وتُعرض هنا دون فتح موقع آخر.</small>
-  <div class="reciter-country-foot"><span>فهرس الدول: الطريق إلى القرآن · تصنيف حسب جنسية القارئ</span></div>
+  <div class="reciter-country-foot"><span>فهرس الدول: الطريق إلى القرآن · تُحمّل النتائج بحسب البلد والصفحة عند الطلب</span></div>
  </section>
  <section id="reciterCountryModal" class="country-reader-modal" hidden aria-modal="true" role="dialog" aria-labelledby="countryModalTitle">
   <div class="country-reader-dialog" tabindex="-1">
@@ -1429,11 +1429,11 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
    const expectedMarker=countryNorm(entry.marker);
    if(!meta.marker||actualMarker!==expectedMarker)throw new Error('المصدر لم يؤكد البلد المطلوب؛ أُوقفت القائمة حمايةً من خلط الدول');
    const rows=dedupeCountryRows(parseCountryPage(html));
+   if(token!==countryLoadToken||activeCountryKey!==key||countryModal.hidden)return;
    cache.pages.set(targetPage,rows);
    cache.totalPages=Math.max(1,meta.pages);
    cache.totalCount=meta.total;
    countryCache.set(key,cache);
-   if(token!==countryLoadToken||activeCountryKey!==key)return;
    activeCountryRows=rows;activeCountryPage=targetPage;countryTotalPages=cache.totalPages;countryTotalCount=cache.totalCount;
    renderCountryRows();
    $('countryModalSub').textContent=(countryTotalCount?new Intl.NumberFormat('ar').format(countryTotalCount)+' قارئًا':'قائمة '+entry.name)+' · '+countryTotalPages+' صفحات عند الطلب';
