@@ -1141,7 +1141,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   status.textContent=series.value==='maarij'?'لم يسمح المتصفح بتشغيل الملف داخل المفكرة؛ استخدم رابط فتح ملف الدرس خارج المفكرة.':'تعذّر تشغيل الدرس '+(current+1)+' من هذه السلسلة؛ افتح التسجيل من المصدر الأصلي أدناه.';
   renderSource(c);renderMaarijFileLink(c,current);
   const direct=audio.currentSrc||audio.src;
-  if(direct){
+  if(series.value!=='maarij'&&direct){
    const fallback=document.createElement('a');
    fallback.href=direct;fallback.target='_blank';fallback.rel='noopener noreferrer';
    fallback.textContent='↗ محاولة فتح ملف الدرس مباشرة';
