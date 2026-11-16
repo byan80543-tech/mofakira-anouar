@@ -424,6 +424,13 @@ dialog[open]>.float-head{display:none!important}
   flex-direction:column!important;
   padding:calc(10px + env(safe-area-inset-top,0px)) 12px calc(14px + env(safe-area-inset-bottom,0px))!important;
 }
+
+/* زر موحّد بارز للأدوات والكتابة؛ ونقل الملكية إلى داخل لوحة الأدوات */
+#toolsToggle{flex:none!important;min-height:38px!important;padding:7px 12px!important;border:1px solid #e4c77f!important;border-radius:10px!important;background:linear-gradient(135deg,#fff0c2,#d9b56b)!important;color:#173653!important;font-weight:800!important;font-size:13px!important;box-shadow:0 2px 7px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.75)!important;text-shadow:0 1px 0 rgba(255,255,255,.35)}
+#toolsToggle:focus-visible{outline:3px solid #fff!important;outline-offset:2px!important}
+#ownerBtn{width:auto!important;height:auto!important;min-height:32px!important;padding:6px 9px!important;border:1px solid var(--bd)!important;border-radius:8px!important;background:var(--sf)!important;color:var(--tx)!important;font-size:12px!important;line-height:1.4!important;white-space:nowrap}
+#ownerBtn:hover,#ownerBtn:focus-visible{background:var(--ac2)!important;border-color:var(--ac)!important}
+@media(max-width:800px){#toolsToggle{font-size:12px!important;padding:6px 9px!important;min-height:36px!important}}
 </style>
 </head>
 <body>
@@ -437,8 +444,7 @@ dialog[open]>.float-head{display:none!important}
  <button id="th" aria-label="الوضع">◐</button>
  <button id="paletteBtn" aria-label="تغيير ألوان المفكرة" title="تغيير ألوان المفكرة">🎨</button>
  <button id="bkp" aria-label="نسخ احتياطي">💾</button>
- <button id="toolsToggle" aria-expanded="false" title="إظهار أدوات الكتابة">☷ الأدوات</button>
- <button id="ownerBtn" aria-label="الملكية والأذكار" title="الملكية والأذكار">✒</button>
+ <button id="toolsToggle" aria-expanded="false" aria-controls="rib" title="فتح أدوات الكتابة والملكية">✒ الأدوات</button>
 </div>
 
 <div id="palettePanel" role="dialog" aria-label="اختيار ألوان المفكرة">
@@ -489,6 +495,7 @@ dialog[open]>.float-head{display:none!important}
  <div class="g"><div><button class="b" data-c="bold"><b>B</b></button><button class="b" data-c="italic"><i>I</i></button><button class="b" data-c="underline"><u>U</u></button><input type="color" id="fc" value="#222222" title="لون الخط"><input type="color" id="hc" value="#fff2a8" title="تمييز"></div><small>التنسيق</small></div>
  <div class="g"><div><button class="b" data-c="justifyRight">▶≡</button><button class="b" data-c="justifyCenter">≡</button><button class="b" data-c="justifyLeft">≡◀</button><button class="b" data-c="justifyFull">☰</button><button class="b" data-c="insertUnorderedList">•≡</button><button class="b" data-c="insertOrderedList">1≡</button></div><small>الفقرة</small></div>
  <div class="g"><div><button class="b" id="vs">📜 بيت</button><button class="b" id="sp">🔊 إلقاء</button><button class="b" id="fo">🎯 تركيز</button><button class="b" id="ip">💡 إلهام</button><button class="b" id="pn">☆ تثبيت</button><button class="b" id="cy">📋</button><button class="b" id="hist">🕘 الإصدارات</button><button class="b dn" id="dl">🗑️</button></div><small>أدوات أنوار</small></div>
+ <div class="g"><div><button class="b" id="ownerBtn" aria-label="الملكية والأذكار" title="الملكية والأذكار">✒ الملكية والأذكار</button></div><small>هوية أنوار</small></div>
 </div>
 <main>
  <section id="list">
@@ -762,7 +769,7 @@ document.addEventListener('click',e=>{
  if(t.classList.contains('card')){openNote(S.notes.find(n=>n.id===t.dataset.id));return}
  if(t.dataset.c){cmd(t.dataset.c);return}
  const id=t.id;
- if(id==='toolsToggle'){const open=$('rib').classList.toggle('open');t.setAttribute('aria-expanded',String(open));t.textContent=open?'✕ إخفاء الأدوات':'☷ الأدوات'}
+ if(id==='toolsToggle'){const open=$('rib').classList.toggle('open');t.setAttribute('aria-expanded',String(open));t.textContent=open?'✕ إخفاء الأدوات':'✒ الأدوات'}
  else if(id==='newBook')openBookDialog();
  else if(id==='cancelBook')$('bookDialog').close();
  else if(id==='createBook')createBook();
@@ -1098,7 +1105,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  if(font)makeHeader(font,'اختيار نوع الخط',()=>font.classList.remove('o'));
  if(rib)makeHeader(rib,'أدوات الكتابة',()=>{
   rib.classList.remove('open');
-  if(toolsBtn){toolsBtn.setAttribute('aria-expanded','false');toolsBtn.textContent='☷ الأدوات'}
+  if(toolsBtn){toolsBtn.setAttribute('aria-expanded','false');toolsBtn.textContent='✒ الأدوات'}
  });
  const active=()=>!!(
   document.querySelector('dialog[open]')||
