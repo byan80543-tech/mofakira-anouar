@@ -1134,7 +1134,14 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   });
   ui();
  }
- function toggle(){if(started&&au.src){if(au.paused){au.play().catch(()=>{})}else{au.pause();st.textContent='متوقف مؤقتًا'}}else{cr=+rr.value||0;play()}ui()}
+ function toggle(){
+  if(countryActiveAudio)stopCountryAudio();
+  if(started&&au.src){
+   if(au.paused)au.play().catch(()=>{});
+   else{au.pause();st.textContent='متوقف مؤقتًا'}
+  }else{cr=+rr.value||0;play()}
+  ui();
+ }
  au.addEventListener('playing',()=>{clearTimeout(wd);ui()});au.addEventListener('pause',ui);
  au.addEventListener('ended',()=>{if(mode()==='l'){play()}else if(mode()==='c'){const a=availableSurahs(),i=a.indexOf(n);if(i>=0&&i<a.length-1){n=a[i+1];play()}else{started=false;ui();st.textContent='انتهت التلاوات المتاحة لهذا القارئ'}}else{started=false;ui();st.textContent='انتهت السورة'}});
  au.addEventListener('error',()=>{
@@ -1172,9 +1179,11 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
    const variantKey=url;
    if(group.seen.has(variantKey)){
     const previous=group.seen.get(variantKey),oldSurahs=R[previous.index][2],newSurahs=r[2];
-    if(Array.isArray(oldSurahs)&&oldSurahs.length&&Array.isArray(newSurahs)&&newSurahs.length)
-     R[previous.index][2]=[...new Set(oldSurahs.concat(newSurahs))].sort((a,b)=>a-b);
-    else R[previous.index][2]=[];
+    const merged=[...new Set([
+     ...(Array.isArray(oldSurahs)?oldSurahs:[]),
+     ...(Array.isArray(newSurahs)?newSurahs:[])
+    ].map(Number).filter(number=>Number.isInteger(number)&&number>=1&&number<=114))].sort((a,b)=>a-b);
+    if(merged.length)R[previous.index][2]=merged;
     return;
    }
    const variant={index:i,label:readerVariantLabel(r[0],group.variants.length,1)};
@@ -1302,7 +1311,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  const countryModal=$('reciterCountryModal'),countryDialog=countryModal.querySelector('.country-reader-dialog');
  const countrySearch=$('countryReaderSearch'),countryList=$('countryReaderList'),countryStatusBox=$('countryReaderStatus');
  const countryCountBox=$('countryReaderCount'),countryPageBox=$('countryReaderPage'),countryPrev=$('countryReaderPrev'),countryNext=$('countryReaderNext'),countryRetry=$('countryReaderRetry');
- const countryCache=new Map(),countryProfileCache=new Map();let activeCountryKey='',activeCountryRows=[],activeCountryPage=1,countryTotalPages=1,countryTotalCount=0,countryPageBusy=false,countryLoadToken=0,countryPlayToken=0,failedCountryPage=1,countryPreviousOverflow='';
+ const countryCache=new Map(),countryProfileCache=new Map();let activeCountryKey='',activeCountryRows=[],activeCountryPage=1,countryTotalPages=1,countryTotalCount=0,countryPageBusy=false,countryLoadToken=0,countryPlayToken=0,countryPageController=null,countryProfileController=null,countryProfileSlug='',failedCountryPage=1,countryPreviousOverflow='';
  const COUNTRY_BASE='https://way2quran.com/ar/reciters';
  function countryNorm(v){
   return String(v||'').normalize('NFKC').replace(/[\u064B-\u065F\u0670\u0640]/g,'')
@@ -1341,13 +1350,30 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   });
   return rows;
  }
- async function fetchCountryHtml(url){
+ function abortCountryPageRequest(){
+  if(countryPageController){
+   try{countryPageController.abort()}catch(_e){}
+   countryPageController=null;
+  }
+ }
+ function abortCountryProfileRequest(){
+  if(countryProfileController){
+   const oldSlug=countryProfileSlug;
+   try{countryProfileController.abort()}catch(_e){}
+   if(oldSlug)countryProfileCache.delete(oldSlug);
+   countryProfileController=null;countryProfileSlug='';
+  }
+ }
+ async function fetchCountryHtml(url,externalSignal){
+  if(externalSignal&&externalSignal.aborted)throw new Error('أُلغي الطلب السابق');
   const encoded=encodeURIComponent(url);
   const proxies=[
    'https://api.allorigins.win/raw?url='+encoded,
    'https://corsproxy.io/?url='+encoded
   ];
   const controllers=[];
+  const abortJobs=()=>controllers.forEach(controller=>{try{controller.abort()}catch(_e){}});
+  if(externalSignal)externalSignal.addEventListener('abort',abortJobs,{once:true});
   const jobs=proxies.map(async proxy=>{
    const controller=new AbortController();controllers.push(controller);
    const timer=setTimeout(()=>controller.abort(),5000);
@@ -1355,13 +1381,16 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
     const response=await fetch(proxy,{signal:controller.signal,cache:'force-cache',credentials:'omit',referrerPolicy:'no-referrer'});
     if(!response.ok)throw new Error('HTTP '+response.status);
     const body=await response.text();
-    if(body.length<300||body.length>3000000||(!body.includes('/ar/reciters/')&&!body.includes('media.way2quran.com')))throw new Error('استجابة غير صالحة');
+    if(body.length<300||body.length>3000000||(!body.includes('/ar/reciters')&&!body.includes('media.way2quran.com')))throw new Error('استجابة غير صالحة');
     return body;
    }finally{clearTimeout(timer)}
   });
   try{return await Promise.any(jobs)}
   catch(_error){throw new Error('تعذر جلب بيانات المصدر خلال المهلة القصيرة')}
-  finally{controllers.forEach(controller=>{try{controller.abort()}catch(_e){}})}
+  finally{
+   if(externalSignal)externalSignal.removeEventListener('abort',abortJobs);
+   controllers.forEach(controller=>{try{controller.abort()}catch(_e){}});
+  }
  }
  function dedupeCountryRows(rows){
   const byIdentity=new Map();
@@ -1409,6 +1438,8 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   const targetPage=Math.max(1,Number(page)||1);
   const token=++countryLoadToken;
   activeCountryKey=key;
+  abortCountryPageRequest();
+  abortCountryProfileRequest();
   const cache=countryCache.get(key)||{pages:new Map(),totalPages:1,totalCount:0};
   if(cache.pages.has(targetPage)&&!force){
    countryPageBusy=false;
@@ -1419,11 +1450,13 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
    return;
   }
   countryPageBusy=true;countryRetry.hidden=true;countryPrev.disabled=true;countryNext.disabled=true;
+  countryPageController=new AbortController();
+  const pageSignal=countryPageController.signal;
   if(countryActiveAudio)stopCountryAudio();
   countryList.innerHTML='<div class="country-reader-empty">جارٍ تحميل صفحة واحدة فقط…</div>';
   countryStatusBox.textContent='جارٍ جلب الصفحة '+targetPage+' من قرّاء '+entry.name+'…';
   try{
-   const html=await fetchCountryHtml(countryListPageUrl(entry.code,targetPage));
+   const html=await fetchCountryHtml(countryListPageUrl(entry.code,targetPage),pageSignal);
    const meta=countryPageMeta(html);
    const actualMarker=countryNorm(meta.marker);
    const expectedMarker=countryNorm(entry.marker);
@@ -1449,6 +1482,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
     ?'لم يؤكد المصدر أن النتائج تخص '+entry.name+'؛ لم نعرض أسماء قد تكون من دولة أخرى.'
     :'تعذّر جلب الصفحة '+targetPage+' خلال المهلة المحددة. يمكنك إعادة المحاولة.';
   }finally{
+   if(countryPageController&&countryPageController.signal===pageSignal)countryPageController=null;
    if(token===countryLoadToken){
     countryPageBusy=false;
     countryPrev.disabled=activeCountryPage<=1;
@@ -1465,7 +1499,8 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  }
  function openCountryModal(){
   const key=countrySelect.value;if(!key)return;
-  activeCountryKey=key;activeCountryRows=[];activeCountryPage=1;countryTotalPages=1;countryTotalCount=0;countrySearch.value='';countryLoadToken++;countryPageBusy=false;
+  abortCountryPageRequest();abortCountryProfileRequest();
+  activeCountryKey=key;activeCountryRows=[];activeCountryPage=1;countryTotalPages=1;countryTotalCount=0;countrySearch.value='';countryLoadToken++;countryPlayToken++;countryPageBusy=false;
   countryPrev.disabled=true;countryNext.disabled=true;
   countryPreviousOverflow=document.body.style.overflow;countryModal.hidden=false;document.body.classList.add('country-reader-open');document.body.style.overflow='hidden';
   const entry=countryDirectory[key];
@@ -1483,6 +1518,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  }
  function closeCountryModal(){
   countryLoadToken++;countryPlayToken++;countryPageBusy=false;
+  abortCountryPageRequest();abortCountryProfileRequest();
   if(countryActiveAudio)stopCountryAudio();
   countryModal.hidden=true;document.body.classList.remove('country-reader-open');document.body.style.overflow=countryPreviousOverflow;
   countryOpen.focus();
@@ -1542,9 +1578,11 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   countryActiveAudio=null;countryActiveButton=null;countryActiveCard=null;
   if('mediaSession' in navigator)try{navigator.mediaSession.playbackState='none'}catch(_e){}
  }
+ window.__anwarStopCountryAudio=()=>{if(countryActiveAudio)stopCountryAudio()};
  function mountCountryAudio(card,button,name,urls,sourceLabel){
   const mainRadio=window.__anwarRadioAudio,lessonAudio=$('lessonAudio');
   if(mainRadio&&!mainRadio.paused)mainRadio.pause();
+  started=false;ui();
   if(lessonAudio&&!lessonAudio.paused)lessonAudio.pause();
   stopCountryAudio();
   const tracks=countryTrackOptions(urls);
@@ -1601,16 +1639,23 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   const slug=card.dataset.countryReciter||'',profileUrl=card.dataset.countryProfile||'';
   if(!slug||!profileUrl)return Promise.reject(new Error('رابط صفحة القارئ غير موجود'));
   if(countryProfileCache.has(slug))return countryProfileCache.get(slug);
+  abortCountryProfileRequest();
   if(countryProfileCache.size>=16){
    const oldest=countryProfileCache.keys().next().value;
    if(oldest)countryProfileCache.delete(oldest);
   }
-  const promise=fetchCountryHtml(profileUrl).then(html=>{
+  const controller=new AbortController();
+  countryProfileController=controller;countryProfileSlug=slug;
+  const promise=fetchCountryHtml(profileUrl,controller.signal).then(html=>{
    const urls=countryAudioCandidates(html);
    if(!urls.length)throw new Error('لم تُعثر على روابط MP3 مباشرة');
    return urls;
   }).catch(error=>{
    countryProfileCache.delete(slug);throw error;
+  }).finally(()=>{
+   if(countryProfileController===controller){
+    countryProfileController=null;countryProfileSlug='';
+   }
   });
   countryProfileCache.set(slug,promise);
   return promise;
@@ -1889,7 +1934,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  if(lessonList)lessonList.addEventListener('click',e=>{const btn=e.target.closest('[data-lesson-index]');if(!btn)return;current=+btn.dataset.lessonIndex;track.value=String(current);loadTrack(true);markLessonPlaying();});
  audio.addEventListener('play',()=>{
   const radio=window.__anwarRadioAudio;if(radio&&!radio.paused)radio.pause();
-  if(typeof stopCountryAudio==='function'&&countryActiveAudio&&!countryActiveAudio.paused)stopCountryAudio();
+  if(typeof window.__anwarStopCountryAudio==='function')window.__anwarStopCountryAudio();
   markLessonPlaying();
  });
  audio.addEventListener('pause',markLessonPlaying);
