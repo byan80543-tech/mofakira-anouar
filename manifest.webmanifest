@@ -13,21 +13,9 @@
   "theme_color": "#09264d",
   "icons": [
     {
-      "src": "icon-192.svg?v=20261116-4",
-      "sizes": "192x192",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-512.svg?v=20261116-4",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-144.jpg?v=20261116-4",
-      "sizes": "144x144",
-      "type": "image/jpeg",
+      "src": "file_00000000670481f4ad879246afe6bae2.png?v=20261116-5",
+      "sizes": "1536x1536",
+      "type": "image/png",
       "purpose": "any"
     }
   ]
