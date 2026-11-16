@@ -1333,25 +1333,6 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   });
   return rows;
  }
- function countryPageCount(html){
-  const doc=new DOMParser().parseFromString(html,'text/html');
-  let pages=1;
-  doc.querySelectorAll('a[href]').forEach(a=>{
-   try{
-    const u=new URL(a.getAttribute('href'),COUNTRY_BASE);
-    if(u.pathname.replace(/\/$/,'')!==new URL(COUNTRY_BASE).pathname)return;
-    const page=Number(u.searchParams.get('currentPage')||1);
-    if(Number.isInteger(page)&&page>pages)pages=page;
-   }catch(_e){}
-  });
-  const body=doc.body?.textContent||'';
-  const totalMatch=body.match(/النتائج\s*[:：]?\s*([0-9٠-٩]+)/);
-  if(totalMatch){
-   const total=Number(countryDigits(totalMatch[1]))||0;
-   if(total)pages=Math.max(pages,Math.ceil(total/25));
-  }
-  return Math.min(80,Math.max(1,pages));
- }
  async function fetchCountryHtml(url){
   const encoded=encodeURIComponent(url);
   const proxies=[
@@ -1401,7 +1382,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   const body=doc.body?.textContent||'';
   const match=body.match(/النتائج\s*[:：]?\s*([0-9٠-٩٬,]+)/);
   if(match)total=Number(countryDigits(match[1]).replace(/[٬,]/g,''))||0;
-  const markerMatch=body.match(/البلد\s*[:：]?\s*([^\s·،,]+)/);
+  const markerMatch=body.match(/البلد\s*[:：]\s*([^\s·،,]+)/);
   const marker=markerMatch?markerMatch[1].trim():'';
   return {pages:Math.max(1,pages),total,marker};
  }
@@ -1435,27 +1416,30 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   countryStatusBox.textContent='جارٍ جلب الصفحة '+targetPage+' من قرّاء '+entry.name+'…';
   try{
    const html=await fetchCountryHtml(countryListPageUrl(entry.code,targetPage));
-   const rows=dedupeCountryRows(parseCountryPage(html));
-   if(!rows.length)throw new Error('لم تُستخرج أسماء قرّاء من الصفحة');
    const meta=countryPageMeta(html);
    const actualMarker=countryNorm(meta.marker);
    const expectedMarker=countryNorm(entry.marker);
    if(!meta.marker||actualMarker!==expectedMarker)throw new Error('المصدر لم يؤكد البلد المطلوب؛ أُوقفت القائمة حمايةً من خلط الدول');
+   const rows=dedupeCountryRows(parseCountryPage(html));
    cache.pages.set(targetPage,rows);
    cache.totalPages=Math.max(1,meta.pages);
-   cache.totalCount=meta.total||cache.totalCount;
+   cache.totalCount=meta.total;
    countryCache.set(key,cache);
    if(token!==countryLoadToken||activeCountryKey!==key)return;
    activeCountryRows=rows;activeCountryPage=targetPage;countryTotalPages=cache.totalPages;countryTotalCount=cache.totalCount;
    renderCountryRows();
    $('countryModalSub').textContent=(countryTotalCount?new Intl.NumberFormat('ar').format(countryTotalCount)+' قارئًا':'قائمة '+entry.name)+' · '+countryTotalPages+' صفحات عند الطلب';
-   countryStatusBox.textContent='عُثر على '+new Intl.NumberFormat('ar').format(rows.length)+' قارئًا في صفحة '+targetPage+' من '+entry.name+'. لم تُحمّل الصفحات الأخرى بعد.';
+   countryStatusBox.textContent=rows.length
+    ?'عُثر على '+new Intl.NumberFormat('ar').format(rows.length)+' قارئًا في صفحة '+targetPage+' من '+entry.name+'. لم تُحمّل الصفحات الأخرى بعد.'
+    :'لم يعرض المصدر قرّاء في هذه الصفحة من '+entry.name+'. يمكنك الانتقال إلى الصفحة التالية إن وُجدت.';
   }catch(error){
    if(token!==countryLoadToken||activeCountryKey!==key)return;
    failedCountryPage=targetPage;
    countryList.innerHTML='<div class="country-reader-empty">تعذّر تحميل هذه الصفحة. أعد المحاولة؛ لن نحمّل بقية الصفحات دفعة واحدة.</div>';
    countryRetry.hidden=false;
-   countryStatusBox.textContent='تعذّر جلب الصفحة '+targetPage+' خلال المهلة المحددة. يمكنك إعادة المحاولة.';
+   countryStatusBox.textContent=String(error&&error.message||'').includes('لم يؤكد البلد المطلوب')
+    ?'لم يؤكد المصدر أن النتائج تخص '+entry.name+'؛ لم نعرض أسماء قد تكون من دولة أخرى.'
+    :'تعذّر جلب الصفحة '+targetPage+' خلال المهلة المحددة. يمكنك إعادة المحاولة.';
   }finally{
    if(token===countryLoadToken){
     countryPageBusy=false;
