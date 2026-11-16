@@ -1179,6 +1179,7 @@ function renderList(){
  $('sk').innerHTML=k?`🔥 تكتب منذ <b>${k}</b> ${u} متتالية`:'اكتب اليوم لتبدأ سلسلتك';
 }
 function openNote(n){
+ if(cur&&cur!==n)flushPendingEdit(false);
  cur=n;const on=!!n;
  pg.style.display=on?'':'none';$('em').style.display=on?'none':'';
  if(on){pg.innerHTML=san(n.html);pg.style.fontFamily=n.font?`'${n.font}',Amiri,serif`:'';pg.style.fontSize=(n.size||20)+'px';$('t').value=n.title;$('ty').value=n.type;$('pn').textContent=n.pin?'⭐ تثبيت':'☆ تثبيت';$('sz').value=n.size||20;$('app').classList.add('ed')}
@@ -1205,7 +1206,35 @@ function info(){
  $('info').textContent=h;
 }
 let pendingBefore=null;
-function touch(){if(!cur||storageRecoveryBlocked)return;if(pendingBefore===null)pendingBefore={title:cur.title,type:cur.type,html:cur.html,ts:cur.ts,font:cur.font,size:cur.size};cur.html=san(pg.innerHTML);cur.ts=Date.now();const d=iso(new Date());if(!S.days.includes(d))S.days.push(d);info();clearTimeout(tm);tm=setTimeout(()=>{if(pendingBefore&&(pendingBefore.html!==cur.html||pendingBefore.title!==cur.title||pendingBefore.type!==cur.type)){cur.history=cur.history||[];cur.history.push(pendingBefore);cur.history=cur.history.slice(-15)}pendingBefore=null;save();renderList()},650)}
+function capturePendingBefore(){
+ if(!cur||pendingBefore!==null)return;
+ pendingBefore={title:cur.title,type:cur.type,html:cur.html,ts:cur.ts,font:cur.font,size:cur.size};
+}
+function flushPendingEdit(updateList=true){
+ if(tm){clearTimeout(tm);tm=null}
+ if(!cur||storageRecoveryBlocked){pendingBefore=null;return false}
+ cur.html=san(pg.innerHTML);
+ if(pendingBefore){
+  const changed=pendingBefore.html!==cur.html||pendingBefore.title!==cur.title||pendingBefore.type!==cur.type||pendingBefore.font!==cur.font||pendingBefore.size!==cur.size;
+  if(changed){
+   cur.history=cur.history||[];
+   cur.history.push(pendingBefore);
+   cur.history=cur.history.slice(-15);
+  }
+ }
+ pendingBefore=null;
+ const ok=save();
+ if(ok&&updateList)renderList();
+ return ok;
+}
+function touch(){
+ if(!cur||storageRecoveryBlocked)return;
+ capturePendingBefore();
+ cur.html=san(pg.innerHTML);cur.ts=Date.now();
+ const d=iso(new Date());if(!S.days.includes(d))S.days.push(d);
+ info();if(tm)clearTimeout(tm);
+ tm=setTimeout(()=>flushPendingEdit(true),650);
+}
 function saveSel(){const s=getSelection();if(s.rangeCount&&pg.contains(s.anchorNode))saved=s.getRangeAt(0).cloneRange()}
 function restore(){pg.focus();if(saved){const s=getSelection();s.removeAllRanges();s.addRange(saved)}}
 document.addEventListener('selectionchange',saveSel);
@@ -1497,8 +1526,8 @@ pg.addEventListener('input',touch);
 pg.addEventListener('paste',e=>{e.preventDefault();document.execCommand('insertText',false,e.clipboardData.getData('text/plain'))});
 pg.addEventListener('dragover',e=>e.preventDefault());
 pg.addEventListener('drop',e=>{e.preventDefault();const text=e.dataTransfer?.getData('text/plain')||'';if(text)document.execCommand('insertText',false,text);touch()});
-$('t').addEventListener('input',e=>{if(cur){cur.title=e.target.value;cur.ts=Date.now();clearTimeout(tm);tm=setTimeout(()=>{save();renderList()},500)}});
-$('ty').addEventListener('change',e=>{if(cur){cur.type=e.target.value;save();renderList();info()}});
+$('t').addEventListener('input',e=>{if(cur&&!storageRecoveryBlocked){capturePendingBefore();cur.title=e.target.value;cur.ts=Date.now();if(tm)clearTimeout(tm);tm=setTimeout(()=>flushPendingEdit(true),500)}});
+$('ty').addEventListener('change',e=>{if(cur&&!storageRecoveryBlocked){flushPendingEdit(false);cur.type=e.target.value;save();renderList();info()}});
 $('q').addEventListener('input',renderList);
 $('shareUrl').addEventListener('keydown',e=>{if(e.key==='Enter')makeQR()});
 $('fq').addEventListener('input',e=>fontList(e.target.value));
@@ -1507,7 +1536,9 @@ $('fc').addEventListener('input',e=>cmd('foreColor',e.target.value));
 $('hc').addEventListener('input',e=>{restore();document.execCommand('styleWithCSS',false,true);document.execCommand('hiliteColor',false,e.target.value);document.execCommand('styleWithCSS',false,false);touch()});
 $('zm').addEventListener('input',e=>{pg.style.zoom=e.target.value/100});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')$('app').classList.remove('focus')});
-addEventListener('beforeunload',()=>{if(cur){cur.html=san(pg.innerHTML)}save()});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushPendingEdit(false)});
+addEventListener('pagehide',()=>flushPendingEdit(false));
+addEventListener('beforeunload',()=>flushPendingEdit(false));
 (function(){
  const SU='الفاتحة,البقرة,آل عمران,النساء,المائدة,الأنعام,الأعراف,الأنفال,التوبة,يونس,هود,يوسف,الرعد,إبراهيم,الحجر,النحل,الإسراء,الكهف,مريم,طه,الأنبياء,الحج,المؤمنون,النور,الفرقان,الشعراء,النمل,القصص,العنكبوت,الروم,لقمان,السجدة,الأحزاب,سبأ,فاطر,يس,الصافات,ص,الزمر,غافر,فصلت,الشورى,الزخرف,الدخان,الجاثية,الأحقاف,محمد,الفتح,الحجرات,ق,الذاريات,الطور,النجم,القمر,الرحمن,الواقعة,الحديد,المجادلة,الحشر,الممتحنة,الصف,الجمعة,المنافقون,التغابن,الطلاق,التحريم,الملك,القلم,الحاقة,المعارج,نوح,الجن,المزمل,المدثر,القيامة,الإنسان,المرسلات,النبأ,النازعات,عبس,التكوير,الانفطار,المطففين,الانشقاق,البروج,الطارق,الأعلى,الغاشية,الفجر,البلد,الشمس,الليل,الضحى,الشرح,التين,العلق,القدر,البينة,الزلزلة,العاديات,القارعة,التكاثر,العصر,الهمزة,الفيل,قريش,الماعون,الكوثر,الكافرون,النصر,المسد,الإخلاص,الفلق,الناس'.split(',');
  const R=[['عبد الرحمن بنموسى (ورش عن نافع)','https://media.way2quran.com/abdel-rahman-benmoussa/warsh-an-nafi/'],['مشاري العفاسي','https://server8.mp3quran.net/afs/'],['ماهر المعيقلي','https://server12.mp3quran.net/maher/'],['عبدالرحمن السديس','https://server11.mp3quran.net/sds/'],['سعود الشريم','https://server7.mp3quran.net/shur/'],['عبدالباسط عبدالصمد','https://server7.mp3quran.net/basit/'],['سعد الغامدي','https://server7.mp3quran.net/s_gmd/'],['أحمد العجمي','https://server10.mp3quran.net/ajm/'],['ياسر الدوسري','https://server11.mp3quran.net/yasser/'],['أبو بكر الشاطري','https://server11.mp3quran.net/shatri/'],['محمد صديق المنشاوي','https://server10.mp3quran.net/minsh/'],['إبراهيم الأخضر','https://server6.mp3quran.net/akdr/'],['محمد أيوب','https://server8.mp3quran.net/ayyub/']];
