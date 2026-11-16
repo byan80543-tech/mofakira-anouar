@@ -11,6 +11,7 @@
 | jsPDF 4.2.1 (محلي) | إنشاء PDF | jsPDF الرسمي، وسم v4.2.1؛ رخصة MIT محفوظة في `vendor/JSPDF-LICENSE.txt` | التحقق من التحديثات الأمنية قبل ترقية لاحقة |
 | qrcodejs 1.0.0 | إنشاء QR | qrcodejs | الاحتفاظ بنص الترخيص والإصدار |
 | MP3Quran API | بيانات قراء وسور وإذاعات | MP3Quran | مراجعة شروط API ومصادر الصوت |
+| صورة التوليب الفوتوغرافية | الزهرة المصغّرة بجوار اسم القارئ | Benjamin D. Esham عبر [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Pink_tulip_flower.jpg)؛ [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) | إبقاء النسبة للمصور ورابط المصدر والترخيص؛ لم تُعدّل الصورة |
 | تسجيلات ودروس خارجية | تشغيل الصوت | أصحاب التسجيلات والمواقع | عدم ادعاء ملكيتها والتحقق من الإذن |
 
 ## قاعدة إلزامية
