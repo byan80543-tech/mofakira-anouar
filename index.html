@@ -1104,7 +1104,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  function moveSurah(step){const a=availableSurahs(),i=a.indexOf(n),next=i<0?0:(i+step+a.length)%a.length;n=a[next];rsu.value=String(n);play()}
  function play(){
   const lesson=$('lessonAudio');if(lesson&&!lesson.paused)lesson.pause();
-  if(countryActiveAudio&&!countryActiveAudio.paused)stopCountryAudio();
+  if(countryActiveAudio)stopCountryAudio();
   started=true;
   const available=availableSurahs();
   if(!available.includes(n))n=available[0]||1;
@@ -1270,26 +1270,26 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  
  const countrySelect=$('reciterCountry'),countryOpen=$('reciterCountryOpen'),countryStatus=$('reciterCountryStatus');
  const countryDirectory={
-  'saudi-arabia':{name:'المملكة العربية السعودية',code:'SA'},
-  'egypt':{name:'مصر',code:'EG'},
-  'morocco':{name:'المغرب',code:'MA'},
-  'iraq':{name:'العراق',code:'IQ'},
-  'yemen':{name:'اليمن',code:'YE'},
-  'syria':{name:'سوريا',code:'SY'},
-  'palestine':{name:'فلسطين',code:'PS'},
-  'kuwait':{name:'الكويت',code:'KW'},
-  'united-arab-emirates':{name:'الإمارات العربية المتحدة',code:'AE'},
-  'qatar':{name:'قطر',code:'QA'},
-  'algeria':{name:'الجزائر',code:'DZ'},
-  'libya':{name:'ليبيا',code:'LY'},
-  'bahrain':{name:'البحرين',code:'BH'},
-  'jordan':{name:'الأردن',code:'JO'},
-  'sudan':{name:'السودان',code:'SD'},
-  'tunisia':{name:'تونس',code:'TN'},
-  'oman':{name:'سلطنة عُمان',code:'OM'},
-  'mauritania':{name:'موريتانيا',code:'MR'},
-  'lebanon':{name:'لبنان',code:'LB'},
-  'somalia':{name:'الصومال',code:'SO'}
+  'saudi-arabia':{name:'المملكة العربية السعودية',code:'SA',marker:'سعودي'},
+  'egypt':{name:'مصر',code:'EG',marker:'مصري'},
+  'morocco':{name:'المغرب',code:'MA',marker:'مغربي'},
+  'iraq':{name:'العراق',code:'IQ',marker:'عراقي'},
+  'yemen':{name:'اليمن',code:'YE',marker:'يمني'},
+  'syria':{name:'سوريا',code:'SY',marker:'سوري'},
+  'palestine':{name:'فلسطين',code:'PS',marker:'فلسطيني'},
+  'kuwait':{name:'الكويت',code:'KW',marker:'كويتي'},
+  'united-arab-emirates':{name:'الإمارات العربية المتحدة',code:'AE',marker:'إماراتي'},
+  'qatar':{name:'قطر',code:'QA',marker:'قطري'},
+  'algeria':{name:'الجزائر',code:'DZ',marker:'جزائري'},
+  'libya':{name:'ليبيا',code:'LY',marker:'ليبي'},
+  'bahrain':{name:'البحرين',code:'BH',marker:'بحريني'},
+  'jordan':{name:'الأردن',code:'JO',marker:'أردني'},
+  'sudan':{name:'السودان',code:'SD',marker:'سوداني'},
+  'tunisia':{name:'تونس',code:'TN',marker:'تونسي'},
+  'oman':{name:'سلطنة عُمان',code:'OM',marker:'عماني'},
+  'mauritania':{name:'موريتانيا',code:'MR',marker:'موريتاني'},
+  'lebanon':{name:'لبنان',code:'LB',marker:'لبناني'},
+  'somalia':{name:'الصومال',code:'SO',marker:'صومالي'}
  };
  const countryModal=$('reciterCountryModal'),countryDialog=countryModal.querySelector('.country-reader-dialog');
  const countrySearch=$('countryReaderSearch'),countryList=$('countryReaderList'),countryStatusBox=$('countryReaderStatus');
@@ -1401,7 +1401,9 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   const body=doc.body?.textContent||'';
   const match=body.match(/النتائج\s*[:：]?\s*([0-9٠-٩٬,]+)/);
   if(match)total=Number(countryDigits(match[1]).replace(/[٬,]/g,''))||0;
-  return {pages:Math.max(1,pages),total};
+  const markerMatch=body.match(/البلد\s*[:：]?\s*([^\s·،,]+)/);
+  const marker=markerMatch?markerMatch[1].trim():'';
+  return {pages:Math.max(1,pages),total,marker};
  }
  function renderCountryRows(){
   const q=countryNorm(countrySearch.value);
@@ -1434,6 +1436,9 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
    const rows=dedupeCountryRows(parseCountryPage(html));
    if(!rows.length)throw new Error('لم تُستخرج أسماء قرّاء من الصفحة');
    const meta=countryPageMeta(html);
+   const actualMarker=countryNorm(meta.marker);
+   const expectedMarker=countryNorm(entry.marker);
+   if(!meta.marker||actualMarker!==expectedMarker)throw new Error('المصدر لم يؤكد البلد المطلوب؛ أُوقفت القائمة حمايةً من خلط الدول');
    cache.pages.set(targetPage,rows);
    cache.totalPages=Math.max(1,meta.pages);
    cache.totalCount=meta.total||cache.totalCount;
@@ -1441,7 +1446,8 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
    if(token!==countryLoadToken||activeCountryKey!==key)return;
    activeCountryRows=rows;activeCountryPage=targetPage;countryTotalPages=cache.totalPages;countryTotalCount=cache.totalCount;
    renderCountryRows();
-   countryStatusBox.textContent='عُثر على '+new Intl.NumberFormat('ar').format(rows.length)+' قارئًا في هذه الصفحة من '+entry.name+'. لم تُحمّل الصفحات الأخرى بعد.';
+   $('countryModalSub').textContent=(countryTotalCount?new Intl.NumberFormat('ar').format(countryTotalCount)+' قارئًا':'قائمة '+entry.name)+' · '+countryTotalPages+' صفحات عند الطلب';
+   countryStatusBox.textContent='عُثر على '+new Intl.NumberFormat('ar').format(rows.length)+' قارئًا في صفحة '+targetPage+' من '+entry.name+'. لم تُحمّل الصفحات الأخرى بعد.';
   }catch(error){
    if(token!==countryLoadToken||activeCountryKey!==key)return;
    failedCountryPage=targetPage;
@@ -1618,11 +1624,17 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   if(countryActiveAudio)stopCountryAudio();
   countryStatusBox.textContent='جارٍ تجهيز ملف '+name+'؛ لا تُحمّل بقية القرّاء أو السور.';
   try{
-   const urls=await countryProfileAudio(card);
-   mountCountryAudio(card,button,name,urls,'الطريق إلى القرآن');
+   let urls=[],sourceLabel='الطريق إلى القرآن';
+   try{urls=await countryProfileAudio(card)}catch(_profileError){}
+   if(!urls.length){
+    const fallback=countryMp3QuranSource(name);
+    if(fallback){urls=[fallback];sourceLabel='MP3Quran'}
+   }
+   if(!urls.length)throw new Error('لم تتوفر روابط صوت مباشرة');
+   mountCountryAudio(card,button,name,urls,sourceLabel);
   }catch(error){
    button.textContent='▶';
-   countryStatusBox.textContent='تعذّر جلب روابط الصوت لهذا القارئ خلال المهلة القصيرة. بقيت المفكرة مفتوحة؛ أعد الضغط للمحاولة.';
+   countryStatusBox.textContent='تعذّر جلب ملف صوت صالح لهذا القارئ خلال المهلة القصيرة. بقيت المفكرة مفتوحة؛ أعد الضغط للمحاولة.';
   }finally{button.disabled=false}
  });
  countryOpen.addEventListener('click',openCountryModal);
