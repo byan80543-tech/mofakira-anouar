@@ -431,6 +431,24 @@ dialog[open]>.float-head{display:none!important}
 #ownerBtn{width:auto!important;height:auto!important;min-height:32px!important;padding:6px 9px!important;border:1px solid var(--bd)!important;border-radius:8px!important;background:var(--sf)!important;color:var(--tx)!important;font-size:12px!important;line-height:1.4!important;white-space:nowrap}
 #ownerBtn:hover,#ownerBtn:focus-visible{background:var(--ac2)!important;border-color:var(--ac)!important}
 @media(max-width:800px){#toolsToggle{font-size:12px!important;padding:6px 9px!important;min-height:36px!important}}
+
+/* تجربة القرآن والإذاعة: تشغيل القارئ بلمسة واحدة وهوية إذاعية متكاملة */
+#rd{gap:11px!important;background:radial-gradient(ellipse at 50% -12%,rgba(201,169,106,.18),transparent 48%),var(--sf)!important}
+#rd .radio-section-title{font-family:'Aref Ruqaa',Amiri,serif;font-size:22px;text-align:center;color:var(--ac);margin:3px 0}
+.radio-hero{display:flex;align-items:center;gap:14px;padding:16px;border:1px solid #c9a96a;border-radius:16px;background:linear-gradient(120deg,#09264d,#174d76 62%,#1d6175);color:#fff;box-shadow:0 8px 22px #09264d24}
+.radio-orbit{width:58px;height:58px;flex:none;border:1px solid #e6ca87;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#fff1c8,#c99d4c);box-shadow:0 0 0 5px #ffffff12}.radio-mic{font-size:29px;color:#173b58}
+.radio-hero-copy{display:grid;gap:3px;min-width:0;flex:1}.radio-hero-copy small{color:#f1dca9;font-size:11px}.radio-hero-copy strong{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.radio-hero-copy span{font-size:11px;color:#e2edf7}
+.radio-live-dot{width:9px;height:9px;border-radius:50%;background:#8b9aab;flex:none;box-shadow:0 0 0 4px #ffffff12}.radio-live-dot.playing{background:#65e6a2;box-shadow:0 0 0 5px #65e6a226,0 0 15px #65e6a2;animation:radioPulse 1.7s infinite}
+.radio-wave{height:18px;display:flex;align-items:center;gap:3px;margin-top:3px}.radio-wave i{display:block;width:3px;height:5px;border-radius:3px;background:#f0d28f;opacity:.8}.radio-live-dot.playing~.radio-wave i{animation:radioWave .8s ease-in-out infinite alternate}.radio-wave i:nth-child(2n){animation-delay:.16s}.radio-wave i:nth-child(3n){animation-delay:.31s}
+@keyframes radioWave{to{height:17px;opacity:1}}@keyframes radioPulse{50%{transform:scale(.8);opacity:.7}}
+#rq{width:100%;min-height:42px;padding:9px 12px!important;border:1px solid var(--bd);border-radius:11px;background:var(--bg);color:var(--tx);outline:none}#rq:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--ac2)}
+.reciter-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;max-height:36vh;min-height:90px;overflow:auto;padding:2px 2px 6px;overscroll-behavior:contain}
+.reciter-card{display:flex;align-items:center;gap:8px;min-width:0;padding:8px;border:1px solid var(--bd);border-radius:11px;background:var(--bg)}.reciter-seal{width:27px;height:27px;display:grid;place-items:center;flex:none;border-radius:50%;background:linear-gradient(145deg,#fff0c4,#d8b66b);color:#173b58;font-size:16px}.reciter-name{flex:1;min-width:0;font-size:12px;font-weight:700;line-height:1.55}.reciter-play{width:34px;height:34px;flex:none;border:1px solid #c9a96a;border-radius:50%;background:linear-gradient(145deg,#fff3cf,#dfbf78);color:#173b58;font-size:14px;box-shadow:0 2px 5px #0001}.reciter-play:active{transform:scale(.94)}.reciter-loading,.reciter-empty{grid-column:1/-1;padding:16px;text-align:center;color:var(--mu);font-size:12px}
+.live-station{display:grid;grid-template-columns:1fr minmax(120px,1.2fr);gap:8px;align-items:center;padding:11px;border:1px solid #c9a96a;border-radius:12px;background:linear-gradient(120deg,#fff7e3,var(--bg));color:var(--tx)}.live-station[hidden]{display:none!important}.live-station>div{display:grid;gap:2px}.live-station b{font-size:12px;color:var(--ac)}.live-station small{font-size:10px;color:var(--mu)}.live-station select{min-width:0!important;min-height:36px!important}.live-station button{grid-column:1/-1;border:0;border-radius:9px;padding:9px;background:linear-gradient(110deg,#12395f,#1b6680);color:#fff;font-weight:700}
+.radio-controls{padding:9px;border:1px solid var(--bd);border-radius:12px;background:var(--bg)}.radio-controls button{min-width:39px;min-height:36px;border-radius:9px;font-size:16px}.radio-controls button:nth-child(2){background:linear-gradient(135deg,#12395f,#1b6680);border-color:#c9a96a;color:#fff;min-width:48px}.radio-controls input{accent-color:var(--ac)}
+.radio-tools{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;color:var(--mu)}.radio-tools select{width:auto!important;min-width:130px!important;min-height:35px!important}.radio-status{padding:8px 10px;border-radius:9px;background:var(--ac2);color:var(--tx)!important;line-height:1.7}.radio-source-link{align-self:flex-start;color:var(--ac);font-size:12px;text-decoration:none}.radio-source-note{font-size:10px;color:var(--mu);line-height:1.6}
+@media(max-width:520px){.reciter-grid{grid-template-columns:1fr;max-height:34vh}.reciter-card{padding:7px 9px}.radio-hero{padding:13px}.radio-hero-copy strong{font-size:14px}.live-station{grid-template-columns:1fr}.live-station button{grid-column:auto}}
+
 </style>
 </head>
 <body>
@@ -514,18 +532,18 @@ dialog[open]>.float-head{display:none!important}
 <div id="pa"></div>
 <div id="rd" aria-label="لوحة الإذاعة">
  <div class="curtain-head"><b>مكتبة الإذاعة</b><button type="button" id="closeRadioPanel" aria-label="إغلاق لوحة الإذاعة">إغلاق ✕</button></div>
- <b>إذاعة القرآن الكريم</b>
- <input id="rq" type="search" placeholder="ابحث عن قارئ…" style="border:1px solid var(--bd);border-radius:6px;padding:5px 8px;background:var(--bg);color:var(--tx)"><select id="rr" aria-label="القارئ"></select>
- <select id="rsu" aria-label="السورة"></select>
- <label><input type="radio" name="rm" value="c" checked> إذاعة متواصلة 24 ساعة: تتابع السور كاملة وتعود من الفاتحة</label>
- <label><input type="radio" name="rm" value="s"> سورة كاملة واحدة ثم تتوقف</label>
- <label id="rlb" style="display:none"><input type="radio" name="rm" value="l"> بث مباشر حقيقي لإذاعات القراء</label>
- <select id="rl" style="display:none" aria-label="الإذاعة"></select>
- <div class="rc"><button id="rpv" title="السورة السابقة">⏮</button><button id="rpp">▶</button><button id="rnx" title="السورة التالية">⏭</button><input type="range" id="rv" min="0" max="1" step=".05" value=".8" aria-label="الصوت"></div>
- <select id="rtm" aria-label="مؤقت النوم"><option value="0">مؤقت النوم: بلا</option><option value="15">بعد 15 دقيقة</option><option value="30">بعد 30 دقيقة</option><option value="60">بعد ساعة</option><option value="120">بعد ساعتين</option></select>
- <small id="rst" style="color:var(--mu)">اختر قارئًا ثم اضغط تشغيل</small>
- <a id="ro" href="#" target="_blank" rel="noopener noreferrer" style="color:var(--ac);font-size:13px">↗ افتح الصوت في نافذة مستقلة (إن لم يعمل هنا)</a>
- <small id="src" style="color:var(--mu)">جارٍ جلب القراء من mp3quran.net…</small>
+ <b class="radio-section-title">القرآن الكريم · اختر صوتاً وابدأ فوراً</b>
+ <section class="radio-hero" aria-label="المشغل الإذاعي"><div class="radio-orbit"><span class="radio-mic">۞</span></div><div class="radio-hero-copy"><small>إذاعة أنوار القرآنية</small><strong id="radioNow">اختر قارئك المفضّل</strong><span id="radioSub">لمسة واحدة تفصل بينك وبين التلاوة</span><div class="radio-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div><span class="radio-live-dot" id="radioLiveDot"></span></section>
+ <div class="live-station" id="liveStationArea" hidden><div><b>البث الإذاعي المباشر</b><small>محطات قرآنية متاحة للاستماع</small></div><select id="rl" aria-label="اختر المحطة الإذاعية"></select><button type="button" id="liveRadioPlay">استمع إلى الإذاعة　▶</button></div>
+ <input id="rq" type="search" placeholder="ابحث عن اسم القارئ…" aria-label="ابحث عن قارئ">
+ <div id="reciterGrid" class="reciter-grid" role="list" aria-label="قائمة القراء"><div class="reciter-loading">جارٍ تجهيز قائمة القراء…</div></div>
+ <select id="rr" aria-label="القارئ" hidden></select><select id="rsu" aria-label="السورة" hidden></select>
+ <label hidden><input type="radio" name="rm" value="c" checked> إذاعة متواصلة</label><label hidden><input type="radio" name="rm" value="s"> سورة واحدة</label><label id="rlb" hidden><input type="radio" name="rm" value="l"> بث مباشر</label>
+ <div class="rc radio-controls"><button id="rpv" title="السورة السابقة">⏮</button><button id="rpp" aria-label="إيقاف مؤقت أو متابعة">▶</button><button id="rnx" title="السورة التالية">⏭</button><input type="range" id="rv" min="0" max="1" step=".05" value=".8" aria-label="مستوى الصوت"></div>
+ <div class="radio-tools"><label for="rtm">مؤقت الإيقاف</label><select id="rtm" aria-label="مؤقت النوم"><option value="0">بلا مؤقت</option><option value="15">15 دقيقة</option><option value="30">30 دقيقة</option><option value="60">ساعة</option><option value="120">ساعتان</option></select></div>
+ <small id="rst" class="radio-status" aria-live="polite">اضغط تشغيل بجوار أي قارئ لتبدأ التلاوة المتتابعة.</small>
+ <a id="ro" href="#" target="_blank" rel="noopener noreferrer" class="radio-source-link">↗ فتح مصدر الصوت مباشرة</a>
+ <small id="src" class="radio-source-note">جارٍ جلب القراء والمحطات من mp3quran.net…</small>
  <div class="lesson-box" id="lessonHub">
   <b>إذاعة الدروس العلمية · الشيخ عبد الرزاق البدر</b>
   <small class="lesson-note">مشغل داخلي للسلاسل الصوتية، مع الانتقال بين الدروس. المصادر موضحة أسفل المشغل.</small>
@@ -901,26 +919,28 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  rr.innerHTML=R.map((r,i)=>`<option value="${i}">${esc(r[0])}</option>`).join('');
  rsu.innerHTML=SU.map((s,i)=>`<option value="${i+1}">${i+1}. ${esc(s)}</option>`).join('');
  const mode=()=>document.querySelector('input[name=rm]:checked').value;
- function ui(){const on=started&&!au.paused;pp.textContent=on?'⏸':'▶';rb.textContent=on?'⏸':'▶';rb.classList.toggle('on',on);if(on)st.textContent=mode()==='l'?'بث مباشر: '+($('rl').selectedOptions[0]||{text:''}).text:'يُتلى الآن: سورة '+SU[n-1]+' — '+R[cr][0]}
+ function ui(){const on=started&&!au.paused,live=mode()==='l';pp.textContent=on?'⏸':'▶';rb.textContent=on?'⏸':'▶';rb.classList.toggle('on',on);$('radioNow').textContent=on?(live?($('rl').selectedOptions[0]||{text:'إذاعة مباشرة'}).text:'القارئ: '+R[cr][0]):'إذاعة أنوار القرآنية';$('radioSub').textContent=on?(live?'بث إذاعي مباشر · استمع الآن':'سورة '+SU[n-1]+' · تلاوة متتابعة'):'اختر قارئك أو افتح البث المباشر';$('radioLiveDot').classList.toggle('playing',on);$('reciterGrid').querySelectorAll('[data-reciter-play]').forEach(b=>{const active=on&&!live&&+b.dataset.reciterPlay===cr;b.textContent=active?'⏸':'▶'});if(on)st.textContent=live?'بث مباشر: '+($('rl').selectedOptions[0]||{text:''}).text:'يُتلى الآن: سورة '+SU[n-1]+' — '+R[cr][0]}
  function play(){const lesson=$('lessonAudio');if(lesson&&!lesson.paused)lesson.pause();started=true;const u=mode()==='l'?($('rl').value||''):R[cr][1]+String(n).padStart(3,'0')+'.mp3';au.src=u;$('ro').href=u;rsu.value=n;st.textContent='جارٍ التحميل…';clearTimeout(wd);wd=setTimeout(()=>{if(au.paused||au.readyState<2){st.textContent='لم يبدأ الصوت: غالبًا تمنعه المنصة داخل هذه الصفحة. استخدم رابط «افتح الصوت في نافذة مستقلة» أدناه.';setRadioPanel(true)}},9000);au.play().catch(e=>{if(e&&e.name==='NotAllowedError')st.textContent='اضغط تشغيل مرة أخرى'});ui()}
  function toggle(){if(started&&au.src){if(au.paused){au.play().catch(()=>{})}else{au.pause();st.textContent='متوقف مؤقتًا'}}else{cr=+rr.value||0;play()}ui()}
  au.addEventListener('playing',()=>{clearTimeout(wd);ui()});au.addEventListener('pause',ui);
  au.addEventListener('ended',()=>{if(mode()==='l'){play()}else if(mode()==='c'){n=n%114+1;play()}else{started=false;ui();st.textContent='انتهت السورة'}});
  au.addEventListener('error',()=>{if(!au.src)return;started=false;ui();st.textContent='تعذّر تشغيل الصوت: غالبًا تمنعه المنصة داخل هذه الصفحة. استخدم رابط «افتح الصوت في نافذة مستقلة» أدناه.';toast('تعذّر تشغيل الإذاعة',3000);clearTimeout(wd);setRadioPanel(true)});
- function fill(){const v=+rr.value||0,q=($('rq').value||'').trim(),L=R.map((r,i)=>[r,i]).filter(([r])=>!q||r[0].includes(q));rr.innerHTML=L.map(([r,i])=>`<option value="${i}">${esc(r[0])}</option>`).join('');rr.value=L.some(([,i])=>i===v)?v:(L[0]?L[0][1]:0);const s=+rsu.value||1;rsu.innerHTML=SU.map((x,i)=>`<option value="${i+1}">${i+1}. ${esc(x)}</option>`).join('');rsu.value=s}
+ function fill(){const v=+rr.value||0,q=($('rq').value||'').trim(),L=R.map((r,i)=>[r,i]).filter(([r])=>!q||r[0].toLocaleLowerCase('ar').includes(q.toLocaleLowerCase('ar')));rr.innerHTML=R.map((r,i)=>`<option value="${i}">${esc(r[0])}</option>`).join('');rr.value=String(v);const s=+rsu.value||1;rsu.innerHTML=SU.map((x,i)=>`<option value="${i+1}">${i+1}. ${esc(x)}</option>`).join('');rsu.value=s;$('reciterGrid').innerHTML=L.length?L.map(([r,i])=>`<div class="reciter-card" role="listitem"><span class="reciter-seal" aria-hidden="true">۞</span><span class="reciter-name">${esc(r[0])}</span><button type="button" class="reciter-play" data-reciter-play="${i}" aria-label="تشغيل تلاوة ${esc(r[0])}">▶</button></div>`).join(''):'<div class="reciter-empty">لا توجد نتائج بهذا الاسم.</div>';ui()}
  async function J(u){const c=new AbortController(),t=setTimeout(()=>c.abort(),7000);try{const r=await fetch(u,{signal:c.signal});if(!r.ok)throw 0;return await r.json()}finally{clearTimeout(t)}}
  (async()=>{
   const B='https://www.mp3quran.net/api/v3/',q=await Promise.allSettled([J(B+'reciters?language=ar'),J(B+'suwar?language=ar'),J(B+'radios?language=ar')]);
   let ok=0;
   if(q[0].status==='fulfilled'){const L=[];(q[0].value.reciters||[]).forEach(r=>{const m=(r.moshaf||[]).find(m=>+m.surah_total===114&&/حفص|Hafs/.test(m.name))||(r.moshaf||[]).find(m=>+m.surah_total===114);const server=m&&safeHttpsURL(m.server);if(m&&server)L.push([String(r.name||'قارئ').slice(0,100),server.replace(/\/?$/,'/')])});if(L.length>20){L.forEach(x=>{if(!R.some(y=>y[0]===x[0]))R.push(x)});R.sort((a,b)=>a[0].localeCompare(b[0],'ar'));ok++}}
   if(q[1].status==='fulfilled'){const L=(q[1].value.suwar||[]).map(s=>String(s.name).trim());if(L.length===114){SU.length=0;SU.push(...L);ok++}}
-  if(q[2].status==='fulfilled'){const L=(q[2].value.radios||[]).map(x=>({name:String(x.name||'إذاعة').slice(0,100),url:safeHttpsURL(x.url)})).filter(x=>x.url);if(L.length){$('rl').innerHTML=L.map(x=>`<option value="${esc(x.url)}">${esc(x.name)}</option>`).join('');$('rl').style.display='';$('rlb').style.display='flex';ok++}}
+  if(q[2].status==='fulfilled'){const L=(q[2].value.radios||[]).map(x=>({name:String(x.name||'إذاعة').slice(0,100),url:safeHttpsURL(x.url)})).filter(x=>x.url);if(L.length){$('rl').innerHTML=L.map(x=>`<option value="${esc(x.url)}">${esc(x.name)}</option>`).join('');$('liveStationArea').hidden=false;ok++}}
   fill();
   $('src').textContent=ok?`تم جلب ${R.length} قارئًا والإذاعات من mp3quran.net ✓`:'قائمة مدمجة: المنصة تمنع الاتصال بالمصدر من داخل هذه الصفحة';
  })();
  document.querySelectorAll('input[name=rm]').forEach(x=>x.addEventListener('change',()=>{if(started)play()}));
  $('rl').addEventListener('change',()=>{if(started)play()});
  $('rq').addEventListener('input',fill);
+ $('reciterGrid').addEventListener('click',e=>{const b=e.target.closest('[data-reciter-play]');if(!b)return;const i=+b.dataset.reciterPlay;if(started&&!au.paused&&mode()==='c'&&cr===i){au.pause();st.textContent='أوقفت التلاوة مؤقتاً';ui();return;}cr=i;rr.value=String(i);n=1;rsu.value='1';document.querySelector('input[name=rm][value="c"]').checked=true;play()});
+ $('liveRadioPlay').addEventListener('click',()=>{if(!$('rl').value){st.textContent='لا توجد محطة بث مباشر متاحة حالياً؛ اختر قارئاً من القائمة.';return;}document.querySelector('input[name=rm][value="l"]').checked=true;play()});
  $('rpv').addEventListener('click',()=>{n=(n+112)%114+1;play()});
  $('rtm').addEventListener('change',e=>{clearTimeout(sl);const m=+e.target.value;if(m){sl=setTimeout(()=>{au.pause();started=false;ui();$('rtm').value='0';toast('انتهى مؤقت النوم')},m*60000);toast('سيتوقف الصوت بعد '+m+' دقيقة')}});
  if('mediaSession' in navigator){
