@@ -1540,6 +1540,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   if(countryActiveButton)countryActiveButton.textContent='▶';
   if(countryActiveCard)countryActiveCard.querySelector('.country-reader-audio-wrap')?.remove();
   countryActiveAudio=null;countryActiveButton=null;countryActiveCard=null;
+  if('mediaSession' in navigator)try{navigator.mediaSession.playbackState='none'}catch(_e){}
  }
  function mountCountryAudio(card,button,name,urls,sourceLabel){
   const mainRadio=window.__anwarRadioAudio,lessonAudio=$('lessonAudio');
@@ -1549,7 +1550,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   const tracks=countryTrackOptions(urls);
   if(!tracks.length)throw new Error('لم توجد ملفات صوت صالحة');
   const wrap=document.createElement('div');wrap.className='country-reader-audio-wrap';
-  const audio=document.createElement('audio');audio.className='country-reader-audio';audio.controls=true;audio.preload='none';audio.setAttribute('playsinline','');audio.setAttribute('aria-label','تلاوة '+name);
+  const audio=document.createElement('audio');audio.className='country-reader-audio';audio.controls=true;audio.preload='none';audio.volume=au.volume;audio.setAttribute('playsinline','');audio.setAttribute('aria-label','تلاوة '+name);
   audio.src=tracks[0].url;
   if(tracks.length>1){
    const label=document.createElement('label');label.className='country-reader-track-label';label.textContent='اختر السورة';
@@ -1566,11 +1567,23 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   }
   wrap.append(audio);card.append(wrap);
   countryActiveAudio=audio;countryActiveButton=button;countryActiveCard=card;
-  audio.addEventListener('play',()=>{button.textContent='⏸'});
-  audio.addEventListener('pause',()=>{button.textContent='▶'});
-  audio.addEventListener('ended',()=>{button.textContent='▶'});
+  const setCountryMediaState=state=>{
+   if(!('mediaSession' in navigator))return;
+   try{
+    navigator.mediaSession.metadata=new MediaMetadata({
+     title:'تلاوة القرآن الكريم',artist:name,album:'مفكرة أنوار',
+     artwork:[{src:new URL('IMG_1794490793236.jpg',location.href).href,sizes:'1254x1254',type:'image/jpeg'}]
+    });
+    navigator.mediaSession.playbackState=state;
+    navigator.mediaSession.setActionHandler('play',()=>audio.play().catch(()=>{}));
+    navigator.mediaSession.setActionHandler('pause',()=>audio.pause());
+   }catch(_e){}
+  };
+  audio.addEventListener('play',()=>{button.textContent='⏸';setCountryMediaState('playing')});
+  audio.addEventListener('pause',()=>{button.textContent='▶';setCountryMediaState(audio.ended?'none':'paused')});
+  audio.addEventListener('ended',()=>{button.textContent='▶';setCountryMediaState('none')});
   audio.addEventListener('waiting',()=>{countryStatusBox.textContent='جارٍ تحميل الصوت داخل أنوار: '+name+'…'});
-  audio.addEventListener('playing',()=>{button.textContent='⏸';countryStatusBox.textContent='يُشغَّل الآن داخل مفكرة أنوار: '+name+' · '+sourceLabel});
+  audio.addEventListener('playing',()=>{button.textContent='⏸';countryStatusBox.textContent='يُشغَّل الآن داخل مفكرة أنوار: '+name+' · '+sourceLabel;setCountryMediaState('playing')});
   audio.addEventListener('error',()=>{
    button.textContent='▶';
    countryStatusBox.textContent='تعذّر تحميل ملف الصوت داخل المشغّل لهذا القارئ. لم يتم فتح أي موقع خارجي؛ جرّب تلاوة أخرى.';
@@ -1660,7 +1673,17 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   document.querySelector('input[name=rm][value="l"]').checked=true;play();
  });
  $('rpv').addEventListener('click',()=>moveSurah(-1));
- $('rtm').addEventListener('change',e=>{clearTimeout(sl);const m=+e.target.value;if(m){sl=setTimeout(()=>{au.pause();started=false;ui();$('rtm').value='0';toast('انتهى مؤقت النوم')},m*60000);toast('سيتوقف الصوت بعد '+m+' دقيقة')}});
+ $('rtm').addEventListener('change',e=>{
+  clearTimeout(sl);const m=+e.target.value;
+  if(m){
+   sl=setTimeout(()=>{
+    if(countryActiveAudio)stopCountryAudio();
+    const lesson=$('lessonAudio');if(lesson&&!lesson.paused)lesson.pause();
+    au.pause();started=false;ui();$('rtm').value='0';toast('انتهى مؤقت النوم');
+   },m*60000);
+   toast('سيتوقف الصوت بعد '+m+' دقيقة');
+  }
+ });
  if('mediaSession' in navigator){
    const bindRadioControls=()=>{
     try{
@@ -1709,7 +1732,11 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  $('rnx').addEventListener('click',()=>moveSurah(1));
  rr.addEventListener('change',()=>{cr=+rr.value||0;if(started)play()});
  rsu.addEventListener('change',()=>{n=+rsu.value;if(!availableSurahs().includes(n)){st.textContent='هذه السورة غير متاحة ضمن مصحف القارئ المختار.';return;}play()});
- $('rv').addEventListener('input',e=>{au.volume=+e.target.value});
+ $('rv').addEventListener('input',e=>{
+  const volume=Math.max(0,Math.min(1,+e.target.value||0));
+  au.volume=volume;
+  if(countryActiveAudio)countryActiveAudio.volume=volume;
+ });
 })();
 
 // Floating windows: open centered, drag reliably, keep the dropped position, and stay inside the viewport.
