@@ -18,3 +18,5 @@ jobs:
           node-version: 22
       - name: Validate manifest, icons, HTML IDs and JavaScript syntax
         run: node scripts/validate.mjs
+      - name: Test notebook storage and recovery paths
+        run: node scripts/test-storage.mjs
