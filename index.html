@@ -543,7 +543,7 @@ dialog[open]>.float-head{display:none!important}
   <small class="lesson-note">مصادر الملفات: <a href="https://islamhouse.com/ar/audios/2837173" target="_blank" rel="noopener">التوحيد (55 درسًا)</a> · <a href="https://alfiqh.net/شرح-العقيدة-الواسطية-عام-1432هـ-عبدالرزاق-البدر/" target="_blank" rel="noopener">الواسطية (50 درسًا)</a> · <a href="https://sabil-alrashad.com/AudioPlaylist/9" target="_blank" rel="noopener">الداء والدواء (83 درسًا)</a>.</small>
   <div id="lessonSourceLinks" class="lesson-note" style="display:grid;gap:5px"></div>
   <iframe id="lessonFrame" title="مشغل السلسلة من مصدرها" style="display:none;width:100%;height:360px;border:1px solid var(--bd);border-radius:9px;background:var(--sf)" loading="lazy" allow="autoplay; encrypted-media; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
-  <small class="lesson-note">التسجيلات ذات روابط MP3 المباشرة تعمل بالمشغل الداخلي مع الانتقال التلقائي. وعند عدم إتاحة رابط مباشر، تظهر صفحة السلسلة داخل المفكرة لتختار منها الدرس وتستمع إليه دون مغادرة الصفحة؛ وقد يمنع بعض المواقع عرض مشغلها داخل إطار.</small>
+  <small class="lesson-note">التسجيلات ذات روابط MP3 المباشرة تعمل بالمشغل الداخلي مع الانتقال التلقائي. ولحماية واجهة المفكرة، لا تُضمَّن صفحة «تعليق على معارج القبول» الخارجية داخلها؛ ويُفتح رابط الفهرس أو ملف الدرس في تبويب مستقل عند الحاجة.</small>
  </div></div>
 <dialog id="dg">
  <p><b>نسخة احتياطية</b><br><small>انسخ النص واحفظه، أو الصق نسخة سابقة ثم اضغط استعادة.</small></p>
@@ -1096,17 +1096,18 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  const groupNames=['شرح كتاب التوحيد','شروح كتب العقيدة والعلوم الشرعية','شروح أخرى','فهرس بقية الصوتيات'];
  series.innerHTML=groups.map((g,i)=>`<optgroup label="${groupNames[i]}">${g.map(k=>`<option value="${k}">${catalog[k].name}${catalog[k].count?' ('+catalog[k].count+' درسًا)':''}</option>`).join('')}</optgroup>`).join('');
  let current=0;
- function renderSource(c){links.innerHTML=`<a href="${c.source}" target="_blank" rel="noopener">↗ المصدر الأصلي: ${c.name}</a>`;if(frame){if(c.embed||!c.direct){frame.src=c.source;frame.style.display='block';}else{frame.removeAttribute('src');frame.style.display='none';}}}
+ function renderSource(c){links.replaceChildren();const sourceLink=document.createElement('a');sourceLink.href=c.source;sourceLink.target='_blank';sourceLink.rel='noopener noreferrer';sourceLink.textContent='↗ فهرس المصدر الرسمي (يفتح خارج المفكرة): '+c.name;links.append(sourceLink);if(frame){frame.removeAttribute('src');frame.hidden=true;frame.style.display='none';const mayEmbed=series.value!=='maarij'&&(c.embed||!c.direct);if(mayEmbed){frame.hidden=false;frame.src=c.source;frame.style.display='block';}}}
+  function renderMaarijFileLink(c,index){if(series.value!=='maarij')return;const fileLink=document.createElement('a');fileLink.href=c.url(index);fileLink.target='_blank';fileLink.rel='noopener noreferrer';fileLink.textContent='↗ فتح ملف الدرس '+String(index+1).padStart(3,'0')+' خارج المفكرة';links.append(fileLink);}
  function fill(){
-  const c=catalog[series.value];current=0;audio.pause();audio.removeAttribute('src');audio.load();play.textContent='▶';audio.style.display=c.direct?'block':'none';if(frame){frame.style.display='none';frame.removeAttribute('src');}
+  const c=catalog[series.value];current=0;audio.pause();audio.removeAttribute('src');audio.preload=series.value==='maarij'?'metadata':'none';audio.load();play.textContent='▶';audio.style.display=c.direct?'block':'none';if(frame){frame.removeAttribute('src');frame.hidden=true;frame.style.display='none';}
   track.innerHTML=c.count?Array.from({length:c.count},(_,i)=>`<option value="${i}">الدرس ${String(i+1).padStart(2,'0')} من ${c.count}</option>`).join(''):'<option value="0">افتح فهرس الدروس من المصدر الرسمي</option>';
   track.disabled=!c.count;renderSource(c);
   status.textContent=c.direct?'قائمة كاملة: '+c.count+' درسًا. اختر الدرس للتشغيل الداخلي أو شغّل السلسلة للانتقال التلقائي.':c.count?'تتوفر '+c.count+' مادة؛ تظهر صفحة السلسلة داخل المفكرة إذا سمح المصدر بالتضمين.':'فهرس صوتيات الشيخ؛ تصفح السلاسل من الصفحة المعروضة داخل المفكرة.';
  }
  function loadTrack(auto){
   const c=catalog[series.value];current=+track.value||0;
-  if(!c.direct){renderSource(c);status.textContent='اختر التسجيل من صفحة السلسلة المعروضة داخل المفكرة. إذا منع المصدر عرض الصفحة، استخدم رابط المصدر أعلاه.';return;}
-  audio.src=c.url(current);audio.load();status.textContent='الدرس '+(current+1)+' · '+c.name+' — جارٍ التحميل';
+  if(!c.direct){renderSource(c);status.textContent='هذه السلسلة لا تملك رابط MP3 مباشراً في المفكرة؛ افتح فهرس المصدر في تبويب مستقل.';return;}
+  audio.src=c.url(current);audio.preload=series.value==='maarij'?'metadata':'none';audio.load();renderSource(c);renderMaarijFileLink(c,current);status.textContent='الدرس '+(current+1)+' · '+c.name+' — جارٍ تحميل ملف الصوت';
   if(auto)audio.play().then(()=>play.textContent='⏸').catch(()=>status.textContent='تعذر التشغيل التلقائي؛ اضغط زر التشغيل.');
  }
  series.addEventListener('change',fill);track.addEventListener('change',()=>loadTrack(false));
@@ -1136,7 +1137,9 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  audio.addEventListener('ended',()=>{if(current<catalog[series.value].count-1){current++;track.value=current;loadTrack(true)}else{play.textContent='▶';status.textContent='انتهت السلسلة.';if('mediaSession' in navigator)try{navigator.mediaSession.playbackState='none'}catch(e){}}});
  audio.addEventListener('error',()=>{
   play.textContent='▶';
-  status.textContent='تعذّر تشغيل الدرس '+(current+1)+' من هذه السلسلة؛ افتح التسجيل من المصدر الأصلي أدناه.';
+  const c=catalog[series.value];
+  status.textContent=series.value==='maarij'?'لم يسمح المتصفح بتشغيل الملف داخل المفكرة؛ استخدم رابط فتح ملف الدرس خارج المفكرة.':'تعذّر تشغيل الدرس '+(current+1)+' من هذه السلسلة؛ افتح التسجيل من المصدر الأصلي أدناه.';
+  renderSource(c);renderMaarijFileLink(c,current);
   const direct=audio.currentSrc||audio.src;
   if(direct){
    const fallback=document.createElement('a');
