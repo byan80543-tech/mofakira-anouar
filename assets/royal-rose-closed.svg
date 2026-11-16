@@ -1,14 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
 <defs>
- <linearGradient id="bud" x1="15" y1="5" x2="33" y2="32" gradientUnits="userSpaceOnUse"><stop stop-color="#FFDCE7"/><stop offset=".34" stop-color="#F36C98"/><stop offset="1" stop-color="#A91E55"/></linearGradient>
- <linearGradient id="sepal" x1="13" y1="23" x2="33" y2="39" gradientUnits="userSpaceOnUse"><stop stop-color="#B8D49A"/><stop offset="1" stop-color="#376B4E"/></linearGradient>
- <linearGradient id="stem" x1="22" y1="28" x2="27" y2="45" gradientUnits="userSpaceOnUse"><stop stop-color="#8DB47B"/><stop offset="1" stop-color="#426F50"/></linearGradient>
+ <radialGradient id="bud" cx="36%" cy="18%" r="88%"><stop stop-color="#FFF0F4"/><stop offset=".36" stop-color="#F78EAE"/><stop offset=".76" stop-color="#D93675"/><stop offset="1" stop-color="#971747"/></radialGradient>
+ <linearGradient id="fold" x1="13" y1="12" x2="34" y2="35"><stop stop-color="#FFE7EE"/><stop offset=".5" stop-color="#F36F9B"/><stop offset="1" stop-color="#B92361"/></linearGradient>
+ <linearGradient id="shine" x1="12" y1="9" x2="23" y2="27"><stop stop-color="#FFF9FA"/><stop offset="1" stop-color="#F6A5BB" stop-opacity="0"/></linearGradient>
 </defs>
-<path d="M24 27C24 34 25 39 22 45" stroke="url(#stem)" stroke-width="2" stroke-linecap="round"/>
-<path d="M23 37C14 29 9 31 11 35c2 4 7 5 12 3" fill="url(#sepal)" stroke="#547B58" stroke-width=".7"/>
-<path d="M24 39C30 29 37 29 38 33c1 4-6 7-14 8" fill="url(#sepal)" stroke="#547B58" stroke-width=".7"/>
-<path d="M24 31C15 28 11 22 13 15c2-7 7-11 11-13 5 3 10 7 11 14 1 7-3 13-11 15Z" fill="url(#bud)" stroke="#B52B60" stroke-width=".8"/>
-<path d="M24 4C19 12 19 22 24 29" stroke="#FFEAF0" stroke-width="1.5" stroke-linecap="round" opacity=".85"/>
-<path d="M15 17c2-5 5-8 8-10" stroke="#FFC5D7" stroke-width="1" stroke-linecap="round" opacity=".8"/>
-<path d="M24 30c-5-2-8-5-10-9 4 1 7 2 10 5 3-3 6-4 10-5-2 4-5 7-10 9Z" fill="#5F925E" stroke="#47774F" stroke-width=".7"/>
+<!-- A tightly folded, front-facing royal rose bud: petals only, no stem or foliage -->
+<path d="M24 43C13.6 43 5.8 35.2 5.8 25.1 5.8 14.8 13.1 6.2 23.1 5.2 33.2 4.2 42.2 12 42.2 22.4 42.2 33.9 34.5 43 24 43Z" fill="url(#bud)" stroke="#AD285E" stroke-width=".8"/>
+<path d="M11 24C10.8 15.1 17.6 8 25 8.5 31.8 8.9 37.1 14.7 37 21.2 36.9 27.4 32.8 34.6 25.2 37.4 19.4 36.9 13.1 32.2 11 24Z" fill="url(#fold)" stroke="#C73B70" stroke-width=".6"/>
+<path d="M17 31C12 25.3 15 16.5 21.2 14.2 27.5 11.8 34 16.4 33.2 22.5 32.5 27.9 26.2 32.2 20.9 30.2 17.2 28.8 17.1 24.2 20.5 21.9 23.1 20.1 26 21.2 26.8 23.5" stroke="#FFEAF0" stroke-width="1.15" stroke-linecap="round" opacity=".92"/>
+<path d="M18.8 12.1C14.3 16.1 13.1 21.6 14.4 26.2" stroke="#FFF4F6" stroke-width="1.15" stroke-linecap="round" opacity=".72"/>
+<path d="M27 8.2C32.8 10.1 36 14.6 36.6 19.2" stroke="#FFD4E0" stroke-width="1" stroke-linecap="round" opacity=".8"/>
+<path d="M21.2 35.2C26.7 35.8 32.6 32.3 35.1 27.5" stroke="#9F1E54" stroke-width=".8" stroke-linecap="round" opacity=".32"/>
+<path d="M18.4 15.2c1.9-2.2 4.5-3.3 7.1-3.4" stroke="url(#shine)" stroke-width="2.2" stroke-linecap="round"/>
 </svg>
