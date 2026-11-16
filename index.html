@@ -848,7 +848,7 @@ function emptyStorageState(){return {notes:[],theme:'',palette:'blue',wallColor:
 function parseStoredState(raw){
  const data=JSON.parse(raw);
  if(!data||typeof data!=='object'||Array.isArray(data)||!Array.isArray(data.notes))throw new Error('بنية سجل التخزين غير معروفة');
- if(data.notes.length>2500||data.notes.some(n=>!n||typeof n!=='object'||Array.isArray(n)||String(n.html||n.text||'').length>450000))throw new Error('سجل التخزين يتجاوز حدود السلامة');
+ if(data.notes.length>2500||data.notes.some(n=>!n||typeof n!=='object'||Array.isArray(n)||!(typeof n.html==='string'||typeof n.text==='string')||(typeof n.html==='string'?n.html:n.text).length>450000))throw new Error('سجل التخزين يتجاوز حدود السلامة');
  return normalizeState(data);
 }
 function updateStorageRecoveryNotice(){
@@ -1162,7 +1162,7 @@ document.addEventListener('click',e=>{
  else if(id==='exportRecovery')exportStorageRecovery();
   else if(id==='retryStorageAccess')retryStorageAccess();
  else if(id==='cp'){$('bt').select();navigator.clipboard&&navigator.clipboard.writeText($('bt').value).then(()=>toast('تم النسخ'),()=>{})}
- else if(id==='rs'){try{const backupText=$('bt').value;if(backupText.length>4500000)throw new Error('الحجم كبير جدًا');if(storageRecoveryBlocked&&storageRecoveryRaw!==null&&!storageRecoveryExported){toast('نزّل ملف الاسترداد الخام أولًا قبل استبدال البيانات التالفة.',6000);return}const d=JSON.parse(backupText);if(!d||!Array.isArray(d.notes)||d.notes.length>2500||d.notes.some(n=>!n||typeof n!=='object'||String(n.html||n.text||'').length>450000))throw new Error('بنية النسخة غير مقبولة');const next=normalizeState(d),serialized=JSON.stringify(next);localStorage.setItem('anwar_v1',serialized);S=next;clearStorageRecovery();openNote(null);theme();$('dg').close();toast('تمت الاستعادة والتحقق من النسخة')}catch(x){toast(x&&x.message==='الحجم كبير جدًا'?'النسخة أكبر من الحد الآمن للاستيراد.':'النسخة غير صالحة أو تعذّر حفظها؛ لم تتغير البيانات الحالية.',6000)}}
+ else if(id==='rs'){try{const backupText=$('bt').value;if(backupText.length>4500000)throw new Error('الحجم كبير جدًا');if(storageRecoveryBlocked&&storageRecoveryRaw!==null&&!storageRecoveryExported){toast('نزّل ملف الاسترداد الخام أولًا قبل استبدال البيانات التالفة.',6000);return}const next=parseStoredState(backupText),serialized=JSON.stringify(next);localStorage.setItem('anwar_v1',serialized);S=next;clearStorageRecovery();openNote(null);theme();$('dg').close();toast('تمت الاستعادة والتحقق من النسخة')}catch(x){toast(x&&x.message==='الحجم كبير جدًا'?'النسخة أكبر من الحد الآمن للاستيراد.':'النسخة غير صالحة أو تعذّر حفظها؛ لم تتغير البيانات الحالية.',6000)}}
  else if(id==='cl')$('dg').close();
  else if(id==='ownerBtn')$('ownerDialog').showModal();
  else if(id==='closeOwner')$('ownerDialog').close();
