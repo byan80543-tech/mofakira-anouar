@@ -3067,7 +3067,12 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
    if($('librarySavedView')&&!$('librarySavedView').hidden)showSaved();
   }
  });
- document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!page.hidden){e.preventDefault();e.stopImmediatePropagation();close()}},true);
+ document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&!page.hidden){
+   e.preventDefault();e.stopImmediatePropagation();
+   if(!readerView.hidden)closeReader();else close();
+  }
+ },true);
 })();
 </script>
 </body>
