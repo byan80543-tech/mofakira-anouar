@@ -9,7 +9,7 @@
 <meta name="copyright" content="© 2026 Anouar Oumlili. جميع الحقوق محفوظة.">
 <meta name="description" content="مفكرة أنوار — تطبيق أدبي لتدوين القصائد والنصوص والأفكار، من تطوير صاحب المشروع Anouar Oumlili (أنوار أومليلي)، من الحسيمة، المغرب.">
 <meta name="application-name" content="مفكرة أنوار">
-<link rel="manifest" href="manifest.webmanifest?v=20261116-3">
+<link rel="manifest" href="manifest.webmanifest?v=20261116-4">
 <link rel="icon" type="image/jpeg" href="icon-144.jpg?v=20261116-2" sizes="144x144">
 <link rel="apple-touch-icon" href="icon-144.jpg?v=20261116-2">
 
@@ -792,6 +792,7 @@ const FONTS=['Amiri','Amiri Quran','Aref Ruqaa','Aref Ruqaa Ink','Scheherazade N
 const PROMPTS=['اكتب عن رائحة المطر على أول تراب بعد غياب طويل','قصيدة عن ضوء مصباح وحيد في آخر الليل','ماذا يقول القمر لمن ينتظر؟','صف وجهًا لا تنساه دون أن تذكر ملامحه','اكتب رسالة إلى نفسك بعد عشر سنوات','قصيدة عن وطن يسكن حقيبة سفر','ما الذي تعلّمته من الصمت؟','اكتب عن قهوة الصباح كأنها صديق قديم','بيت شعر يبدأ بكلمة «لولا»','اكتب عن بابٍ لم تجرؤ على فتحه','قصيدة عن الحنين بثلاث صور فقط'];
 let S={notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[]},cur=null,flt='all',tm,speaking=false,saved=null,storageRecoveryBlocked=false,storageRecoveryRaw=null,storageRecoveryExported=false;
 const $=id=>document.getElementById(id),pg=$('pg');
+const hasOwn=(object,key)=>Object.prototype.hasOwnProperty.call(object,key);
 const esc=s=>String(s??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
 function safeHttpsURL(value){try{const u=new URL(String(value));return u.protocol==='https:'?u.href:''}catch(e){return ''}}
 function safeFontName(value){return typeof value==='string'&&FONTS.includes(value)?value:'Amiri'}
@@ -817,13 +818,13 @@ function san(h){
 }
 function cleanNote(n){
  if(!n||typeof n!=='object')return null;
- const type=Object.hasOwn(TYPES,n.type)?n.type:'text';
+ const type=hasOwn(TYPES,n.type)?n.type:'text';
  const raw=typeof n.html==='string'?n.html:(typeof n.text==='string'?n.text.split('\n').map(l=>'<div>'+(esc(l)||'<br>')+'</div>').join(''):'');
  const size=Number(n.size),stamp=Number(n.ts);
  const safeTime=Number.isFinite(stamp)&&Math.abs(stamp)<=8640000000000000?stamp:Date.now();
  const history=Array.isArray(n.history)?n.history.slice(-15).filter(v=>v&&typeof v==='object').map(v=>{
   const hs=Number(v.size),ht=Number(v.ts);
-  return {title:String(v.title||'').slice(0,300),type:Object.hasOwn(TYPES,v.type)?v.type:'text',html:san(v.html||''),ts:Number.isFinite(ht)&&Math.abs(ht)<=8640000000000000?ht:Date.now(),font:safeFontName(v.font),size:Number.isFinite(hs)?Math.max(14,Math.min(56,hs)):20};
+  return {title:String(v.title||'').slice(0,300),type:hasOwn(TYPES,v.type)?v.type:'text',html:san(v.html||''),ts:Number.isFinite(ht)&&Math.abs(ht)<=8640000000000000?ht:Date.now(),font:safeFontName(v.font),size:Number.isFinite(hs)?Math.max(14,Math.min(56,hs)):20};
  }):[];
  return {id:String(n.id??Date.now().toString(36)).slice(0,80),title:String(n.title??'').slice(0,300),type,html:san(raw),pin:n.pin===true,ts:safeTime,font:safeFontName(n.font),size:Number.isFinite(size)?Math.max(14,Math.min(56,size)):20,history};
 }
@@ -844,7 +845,35 @@ function createNoteId(){
  while(used.has(id))id=base+'-'+suffix++;
  return id;
 }
-function load(){try{const r=localStorage.getItem('anwar_v1');if(r)S=normalizeState(JSON.parse(r))}catch(e){storageRecoveryBlocked=true;try{storageRecoveryRaw=localStorage.getItem('anwar_v1')}catch(_e){storageRecoveryRaw=null}S={notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[]};const panel=$('storageRecoveryNotice');if(panel)panel.hidden=false;const button=$('exportRecovery');if(button)button.disabled=storageRecoveryRaw===null}}
+function showStorageRecoveryNotice(title,message,raw){
+ storageRecoveryBlocked=true;
+ storageRecoveryRaw=typeof raw==='string'?raw:null;
+ S={notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[]};
+ const panel=$('storageRecoveryNotice');
+ if(panel){
+  const heading=panel.querySelector('strong'),description=panel.querySelector('span');
+  if(heading)heading.textContent=title;
+  if(description)description.textContent=message;
+  panel.hidden=false;
+ }
+ const button=$('exportRecovery');
+ if(button)button.disabled=storageRecoveryRaw===null;
+}
+function load(){
+ let raw;
+ try{raw=localStorage.getItem('anwar_v1')}
+ catch(error){
+  showStorageRecoveryNotice('التخزين المحلي غير متاح','منع هذا المتصفح الوصول إلى بيانات المفكرة. لا تمسح بيانات الموقع. افتح المفكرة في تبويب عادي أو متصفح يسمح بالتخزين ثم أعد المحاولة.',null);
+  console.warn('تعذّرت قراءة التخزين المحلي لمفكرة أنوار',error);
+  return;
+ }
+ if(raw===null||raw==='')return;
+ try{S=normalizeState(JSON.parse(raw))}
+ catch(error){
+  showStorageRecoveryNotice('تعذّر فتح بيانات المفكرة','لم نتمكن من قراءة بنية البيانات المحفوظة. نزّل الملف الخام واحتفظ به قبل استعادة نسخة سليمة. لا تمسح بيانات الموقع.',raw);
+  console.warn('تعذّرت استعادة بيانات مفكرة أنوار',error);
+ }
+}
 function exportStorageRecovery(){if(storageRecoveryRaw===null){toast('تعذّر قراءة البيانات الخام من المتصفح؛ لا تمسح بيانات الموقع.',5000);return}try{const blob=new Blob([storageRecoveryRaw],{type:'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='anwar-storage-recovery-raw.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);storageRecoveryExported=true;toast('تم تجهيز ملف الاسترداد الخام. احتفظ به قبل الاستعادة.',5000)}catch(e){toast('تعذّر تنزيل ملف الاسترداد الخام؛ لا تحذف بيانات المتصفح.',5000)}}
 function save(){if(storageRecoveryBlocked){toast('الحفظ متوقف حمايةً للبيانات القديمة. نزّل ملف الاسترداد أولاً.',5000);return false}try{localStorage.setItem('anwar_v1',JSON.stringify(S));return true}catch(e){console.warn('تعذّر حفظ بيانات مفكرة أنوار محلياً',e);toast('تعذّر الحفظ: مساحة التخزين غير متاحة أو ممتلئة. صدّر أعمالك المهمة.',5000);return false}}
 function toast(m,d){const t=$('toast');t.textContent=m;t.classList.add('s');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('s'),d||2000)}
@@ -1010,7 +1039,23 @@ function openBookDialog(){if(!S.notes.length){toast('لا توجد أعمال ل
 function createBook(){const scope=$('bookScope').value,title=$('bookTitle').value.trim()||'مختارات من مفكرة أنوار';const notes=S.notes.filter(n=>scope==='all'||(scope==='poem'?n.type==='poem':n.type==='text'||n.type==='idea')).sort((a,b)=>a.ts-b.ts);if(!notes.length){toast('لا توجد أعمال ضمن هذا الاختيار');return}const items=notes.map((n,i)=>`<section class="book-item"><h2>${esc(n.title||'بلا عنوان')}</h2><div class="m">${TYPES[n.type]} · ${fmt(n.ts)}</div><hr><div>${san(n.html)}</div></section>`).join('');const index=notes.map((n,i)=>`<p>${i+1}. ${esc(n.title||'بلا عنوان')} <small>— ${TYPES[n.type]}</small></p>`).join('');$('pa').style.cssText='position:fixed;left:-10000px;top:0;width:794px;padding:48px 58px;background:#fff;color:#111;font-family:Amiri,serif;font-size:20px;line-height:2;direction:rtl';$('pa').innerHTML=`<section class="book-cover"><div style="font-size:60px;color:#b58a43">✒</div><h1>${esc(title)}</h1><p>مختارات من أعمال</p><h2 style="font-size:32px">Anouar Oumlili</h2><p>أنوار أومليلي · الحسيمة · المملكة المغربية</p><p style="margin-top:70px;font-size:15px">مفكرة أنوار</p></section><section class="book-index"><h1>الفهرس</h1>${index}</section>${items}<div class="f">مفكرة أنوار · © 2026 Anouar Oumlili · جميع الحقوق محفوظة</div>`;$('bookDialog').close();window.print();toast('في نافذة الطباعة اختر «حفظ بصيغة PDF»',5000)}
 function showOwnerPanel(which){const own=which==='owner',adh=which==='adhkar';$('ownerPanel').hidden=!own;$('adhkarPanel').hidden=!adh;$('sharePanel').hidden=which!=='share';$('ownerTab').classList.toggle('active',own);$('adhkarTab').classList.toggle('active',adh);$('shareTab').classList.toggle('active',which==='share');if(adh)renderAdhkar('morning')}
 function makeQR(){const url=$('shareUrl').value.trim();if(!/^https?:\/\//i.test(url)){toast('أدخل رابطًا عامًا يبدأ بـ https:// أو http://');return}if(!window.QRCode){toast('مكتبة QR لم تُحمّل؛ تحقق من اتصال الإنترنت');return}const box=$('qrPreview');box.innerHTML='';new QRCode(box,{text:url,width:200,height:200,colorDark:'#102b45',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});$('downloadQR').disabled=false;toast('تم إنشاء رمز QR للرابط')}
-function downloadAppIcon(){const link=document.querySelector('link[rel=apple-touch-icon]')||document.querySelector('link[rel=icon]'),href=link&&link.href;if(!href){toast('تعذّر العثور على ملف الأيقونة');return}const img=new Image();img.onload=()=>{const w=img.naturalWidth,h=img.naturalHeight;if(!w||!h){toast('ملف الأيقونة غير صالح');return}const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d');if(!ctx){toast('تعذّر تجهيز صورة الأيقونة');return}ctx.drawImage(img,0,0,w,h);const a=document.createElement('a');a.download='أيقونة-مفكرة-أنوار-'+w+'x'+h+'.png';a.href=c.toDataURL('image/png');a.click();toast('تم تنزيل الأيقونة بدقتها الأصلية: '+w+'×'+h)};img.onerror=()=>toast('تعذّر تحميل ملف الأيقونة');img.src=href}
+function downloadAppIcon(){
+ const href=new URL('icon-512.svg?v=20261116-4',location.href).href;
+ const img=new Image();
+ img.onload=()=>{
+  const w=img.naturalWidth,h=img.naturalHeight;
+  if(!w||!h){toast('ملف الأيقونة غير صالح');return}
+  const c=document.createElement('canvas');c.width=w;c.height=h;
+  const ctx=c.getContext('2d');
+  if(!ctx){toast('تعذّر تجهيز صورة الأيقونة');return}
+  ctx.drawImage(img,0,0,w,h);
+  const a=document.createElement('a');a.download='أيقونة-مفكرة-أنوار-'+w+'x'+h+'.png';
+  a.href=c.toDataURL('image/png');a.click();
+  toast('تم تنزيل الأيقونة بدقتها: '+w+'×'+h);
+ };
+ img.onerror=()=>toast('تعذّر تحميل ملف الأيقونة');
+ img.src=href;
+}
 function downloadQRPoster(){const box=$('qrPreview'),qr=box.querySelector('canvas')||box.querySelector('img');if(!qr){toast('أنشئ رمز QR أولًا');return}const c=document.createElement('canvas');c.width=1080;c.height=1350;const x=c.getContext('2d');x.fillStyle='#f8f3e8';x.fillRect(0,0,c.width,c.height);x.strokeStyle='#b58a43';x.lineWidth=18;x.strokeRect(35,35,1010,1280);x.strokeStyle='#173b58';x.lineWidth=4;x.strokeRect(58,58,964,1234);x.fillStyle='#102f4b';x.textAlign='center';x.direction='rtl';x.font='bold 70px serif';x.fillText('مفكرة أنوار',540,175);x.font='34px serif';x.fillStyle='#76562a';x.fillText('الكلمة والقرآن رفيقان في كل وقت',540,235);x.fillStyle='#fff';x.fillRect(330,310,420,420);x.strokeStyle='#c29a50';x.lineWidth=12;x.strokeRect(320,300,440,440);if(qr.tagName==='CANVAS')x.drawImage(qr,350,330,380,380);else{x.drawImage(qr,350,330,380,380)}x.fillStyle='#173b58';x.font='bold 42px serif';x.fillText('امسح الرمز لزيارة المفكرة',540,825);x.font='34px serif';x.fillText('المطوّر وصاحب المشروع: Anouar Oumlili',540,910);x.fillText('أنوار أومليلي · الحسيمة · المملكة المغربية',540,970);x.font='28px serif';x.fillStyle='#80602f';x.fillText('المملكة المغربية',540,1080);x.font='25px serif';x.fillText('مفكرة أدبية · إذاعة القرآن · الأذكار',540,1150);const a=document.createElement('a');a.download='بطاقة-مفكرة-أنوار.png';a.href=c.toDataURL('image/png');a.click();toast('تم تجهيز بطاقة النشر PNG')}
 function speak(){
   const synth=window.speechSynthesis;
@@ -1687,7 +1732,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=san(pg.innerHTML)}save()})
    try{
     navigator.mediaSession.metadata=new MediaMetadata({
      title:'تلاوة القرآن الكريم',artist:name,album:'مفكرة أنوار',
-     artwork:[{src:new URL('IMG_1794490793236.jpg',location.href).href,sizes:'1254x1254',type:'image/jpeg'}]
+     artwork:[{src:new URL('icon-144.jpg?v=20261116-4',location.href).href,sizes:'144x144',type:'image/jpeg'}]
     });
     navigator.mediaSession.playbackState=state;
     navigator.mediaSession.setActionHandler('play',()=>audio.play().catch(()=>{}));
@@ -1864,7 +1909,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=san(pg.innerHTML)}save()})
      navigator.mediaSession.metadata=new MediaMetadata({
       title:mode()==='l'?'بث إذاعة القرآن':'سورة '+SU[n-1],
       artist:R[cr]?R[cr][0]:'إذاعة أنوار',album:'مفكرة أنوار',
-      artwork:[{src:new URL('IMG_1794490793236.jpg',location.href).href,sizes:'1254x1254',type:'image/jpeg'}]
+      artwork:[{src:new URL('icon-144.jpg?v=20261116-4',location.href).href,sizes:'144x144',type:'image/jpeg'}]
      });
      navigator.mediaSession.playbackState='playing';
     }catch(e){}
@@ -2079,7 +2124,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=san(pg.innerHTML)}save()})
     navigator.mediaSession.metadata=new MediaMetadata({
      title:catalog[series.value].name+' — الدرس '+(current+1),
      artist:'الشيخ عبد الرزاق البدر',album:'دروس مفكرة أنوار',
-     artwork:[{src:new URL('IMG_1794490793236.jpg',location.href).href,sizes:'1254x1254',type:'image/jpeg'}]
+     artwork:[{src:new URL('icon-144.jpg?v=20261116-4',location.href).href,sizes:'144x144',type:'image/jpeg'}]
     });
     navigator.mediaSession.playbackState='playing';
     navigator.mediaSession.setActionHandler('play',()=>audio.play().catch(()=>{}));
