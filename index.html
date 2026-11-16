@@ -556,6 +556,12 @@ dialog[open]>.float-head{display:none!important}
 .country-reader-audio{display:block;width:100%;height:42px;min-width:0}
 .country-reader-track-label{font-size:10px;color:var(--mu);font-weight:700}
 .country-reader-track{width:100%;min-height:36px;padding:5px 8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit;font-size:11px}
+
+.reciter-more{display:block;width:100%;min-height:40px;margin:8px 0;padding:8px 12px;border:1px solid #c9a96a;border-radius:10px;background:linear-gradient(110deg,#fff7e5,#ead39a);color:#173b58;font:700 12px Cairo,Tahoma,sans-serif}
+.reciter-more[hidden]{display:none!important}
+.country-reader-status{line-height:1.6}
+.country-reader-list{contain:content}
+.country-reader-audio{preload:none}
 </style>
 </head>
 <body>
@@ -692,7 +698,7 @@ dialog[open]>.float-head{display:none!important}
     <button type="button" id="countryModalClose" class="country-modal-close" aria-label="إغلاق قائمة قرّاء الدولة">✕</button>
    </header>
    <div class="country-reader-tools">
-    <input type="search" id="countryReaderSearch" placeholder="ابحث داخل أسماء قرّاء الدولة…" aria-label="ابحث في قراء الدولة">
+    <input type="search" id="countryReaderSearch" placeholder="ابحث في أسماء الصفحة المحمّلة…" aria-label="ابحث في قراء الدولة">
     <span id="countryReaderCount" class="country-reader-count">—</span>
    </div>
    <div id="countryReaderStatus" class="country-reader-status" aria-live="polite">اختر دولة للبدء.</div>
@@ -708,6 +714,7 @@ dialog[open]>.float-head{display:none!important}
  </section>
 
  <div id="reciterGrid" class="reciter-grid" role="list" aria-label="قائمة القراء"><div class="reciter-loading">جارٍ تجهيز قائمة القراء…</div></div>
+ <button type="button" id="reciterMore" class="reciter-more" hidden>عرض المزيد من القراء</button>
  <select id="rr" aria-label="القارئ" hidden></select><select id="rsu" aria-label="السورة" hidden></select>
  <label hidden><input type="radio" name="rm" value="c" checked> إذاعة متواصلة</label><label hidden><input type="radio" name="rm" value="s"> سورة واحدة</label><label id="rlb" hidden><input type="radio" name="rm" value="l"> بث مباشر</label>
  <div class="rc radio-controls"><button id="rpv" title="السورة السابقة">⏮</button><button id="rpp" aria-label="إيقاف مؤقت أو متابعة">▶</button><button id="rnx" title="السورة التالية">⏭</button><input type="range" id="rv" min="0" max="1" step=".05" value=".8" aria-label="مستوى الصوت"></div>
@@ -1097,11 +1104,41 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  function ui(){const on=started&&!au.paused,live=mode()==='l';pp.textContent=on?'⏸':'▶';rb.textContent=on?'⏸':'▶';rb.classList.toggle('on',on);$('radioNow').textContent=on?(live?($('rl').selectedOptions[0]||{text:'إذاعة مباشرة'}).text:'القارئ: '+R[cr][0]):'إذاعة أنوار القرآنية';$('radioSub').textContent=on?(live?'بث إذاعي مباشر · استمع الآن':'سورة '+SU[n-1]+' · تلاوة متتابعة'):'اختر قارئك أو افتح البث المباشر';$('radioLiveDot').classList.toggle('playing',on);document.querySelector('.radio-hero').classList.toggle('playing',on);$('reciterGrid').querySelectorAll('[data-reciter-play]').forEach(b=>{const active=on&&!live&&+b.dataset.reciterPlay===cr;b.textContent=active?'⏸':(b.dataset.playLabel||'▶')});if(on)st.textContent=live?'بث مباشر: '+($('rl').selectedOptions[0]||{text:''}).text:'يُتلى الآن: سورة '+SU[n-1]+' — '+R[cr][0]}
  function availableSurahs(){const a=R[cr]&&Array.isArray(R[cr][2])?R[cr][2]:null;return a&&a.length?a:Array.from({length:114},(_,i)=>i+1)}
  function moveSurah(step){const a=availableSurahs(),i=a.indexOf(n),next=i<0?0:(i+step+a.length)%a.length;n=a[next];rsu.value=String(n);play()}
- function play(){const lesson=$('lessonAudio');if(lesson&&!lesson.paused)lesson.pause();started=true;const available=availableSurahs();if(!available.includes(n)){n=available[0]||1}const u=mode()==='l'?($('rl').value||''):R[cr][1]+String(n).padStart(3,'0')+'.mp3';au.src=u;$('ro').href=u;rsu.value=n;st.textContent='جارٍ التحميل…';clearTimeout(wd);wd=setTimeout(()=>{if(au.paused||au.readyState<2){st.textContent='لم يبدأ الصوت: غالبًا تمنعه المنصة داخل هذه الصفحة. استخدم رابط «افتح الصوت في نافذة مستقلة» أدناه.';setRadioPanel(true)}},9000);au.play().catch(e=>{if(e&&e.name==='NotAllowedError')st.textContent='اضغط تشغيل مرة أخرى'});ui()}
+ function play(){
+  const lesson=$('lessonAudio');if(lesson&&!lesson.paused)lesson.pause();
+  started=true;
+  const available=availableSurahs();
+  if(!available.includes(n))n=available[0]||1;
+  const station=mode()==='l';
+  const rawBase=R[cr]&&safeHttpsURL(R[cr][1]);
+  const base=rawBase?rawBase.replace(/\/?$/,'/'):'';
+  const u=station?safeHttpsURL($('rl').value):(base?base+String(n).padStart(3,'0')+'.mp3':'');
+  if(!u){
+   started=false;st.textContent='لا يتوفر رابط صوت صالح لهذا الاختيار.';ui();return;
+  }
+  au.pause();au.src=u;au.load();
+  $('ro').href=u;$('ro').hidden=true;
+  rsu.value=String(n);st.textContent='جارٍ تشغيل التلاوة داخل أنوار…';
+  clearTimeout(wd);
+  wd=setTimeout(()=>{
+   if(au.paused||au.readyState<2)st.textContent='الخادم لم يبدأ بث الصوت بعد. لم نفتح موقعًا خارجيًا؛ يمكنك إعادة المحاولة أو اختيار قارئ آخر.';
+  },12000);
+  au.play().catch(error=>{
+   if(error&&error.name==='NotAllowedError')st.textContent='اضغط زر التشغيل مرة أخرى للسماح بالتلاوة داخل أنوار.';
+   else st.textContent='تعذّر بدء الصوت تلقائيًا. اضغط تشغيل مرة أخرى أو اختر قارئًا آخر.';
+  });
+  ui();
+ }
  function toggle(){if(started&&au.src){if(au.paused){au.play().catch(()=>{})}else{au.pause();st.textContent='متوقف مؤقتًا'}}else{cr=+rr.value||0;play()}ui()}
  au.addEventListener('playing',()=>{clearTimeout(wd);ui()});au.addEventListener('pause',ui);
  au.addEventListener('ended',()=>{if(mode()==='l'){play()}else if(mode()==='c'){const a=availableSurahs(),i=a.indexOf(n);if(i>=0&&i<a.length-1){n=a[i+1];play()}else{started=false;ui();st.textContent='انتهت التلاوات المتاحة لهذا القارئ'}}else{started=false;ui();st.textContent='انتهت السورة'}});
- au.addEventListener('error',()=>{if(!au.src)return;started=false;ui();st.textContent='تعذّر تشغيل الصوت: غالبًا تمنعه المنصة داخل هذه الصفحة. استخدم رابط «افتح الصوت في نافذة مستقلة» أدناه.';toast('تعذّر تشغيل الإذاعة',3000);clearTimeout(wd);setRadioPanel(true)});
+ au.addEventListener('error',()=>{
+  if(!au.src)return;
+  clearTimeout(wd);started=false;ui();
+  st.textContent='تعذّر تحميل ملف الصوت داخل المشغّل. لم يتم فتح أي موقع خارجي؛ جرّب قارئًا آخر أو أعد المحاولة.';
+  $('ro').hidden=false;$('ro').textContent='↗ فتح رابط الملف الأصلي (اختياري)';
+  toast('تعذّر تحميل التلاوة',3000);
+ });
  
  function readerIdentity(name){
   let base=String(name||'قارئ').split(' — ')[0].trim();
@@ -1144,25 +1181,80 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   return [...groups.values()].sort((a,b)=>a.name.localeCompare(b.name,'ar'));
  }
  function uniqueRecitationCount(){return groupedReciters().reduce((sum,g)=>sum+g.variants.length,0)}
+ let reciterDisplayLimit=36;
  function fill(){
-  const v=+rr.value||0,q=($('rq').value||'').trim().toLocaleLowerCase('ar'),all=groupedReciters();
-  rr.innerHTML=R.map((r,i)=>`<option value="${i}">${esc(r[0])}</option>`).join('');rr.value=String(v);
-  const surah=+rsu.value||1;rsu.innerHTML=SU.map((x,i)=>`<option value="${i+1}">${i+1}. ${esc(x)}</option>`).join('');rsu.value=surah;
+  const selected=+rr.value||0,q=($('rq').value||'').trim().toLocaleLowerCase('ar'),all=groupedReciters();
+  rr.innerHTML=R.map((r,i)=>'<option value="'+i+'">'+esc(r[0])+'</option>').join('');
+  rr.value=String(Math.min(selected,Math.max(0,R.length-1)));
+  const surah=+rsu.value||1;rsu.innerHTML=SU.map((x,i)=>'<option value="'+(i+1)+'">'+(i+1)+'. '+esc(x)+'</option>').join('');rsu.value=String(surah);
   const L=all.filter(g=>!q||g.name.toLocaleLowerCase('ar').includes(q)||g.variants.some(v=>String(R[v.index][0]).toLocaleLowerCase('ar').includes(q)));
-  $('reciterGrid').innerHTML=L.length?L.map(g=>`<div class="reciter-card" role="listitem"><span class="reciter-seal" aria-hidden="true">🌷</span><div class="reciter-body"><span class="reciter-name">${esc(g.name)}</span>${g.variants.length>1?`<details class="reciter-variants-menu"><summary>الروايات والتسجيلات (${g.variants.length})</summary><div class="reciter-variants">${g.variants.map(v=>`<button type="button" class="reciter-version" data-reciter-play="${v.index}" aria-label="تشغيل ${esc(g.name)} — ${esc(v.label)}">${esc(v.label)}</button>`).join('')}</div></details>`:`<div class="reciter-variants"><button type="button" class="reciter-play" data-reciter-play="${g.variants[0].index}" aria-label="تشغيل ${esc(g.name)}">▶ استمع</button></div>`}</div></div>`).join(''):'<div class="reciter-empty">لا توجد نتائج بهذا الاسم.</div>';
+  const shown=L.slice(0,reciterDisplayLimit);
+  $('reciterGrid').innerHTML=shown.length?shown.map(g=>'<div class="reciter-card" role="listitem"><span class="reciter-seal" aria-hidden="true">🌷</span><div class="reciter-body"><span class="reciter-name">'+esc(g.name)+'</span>'+(g.variants.length>1?'<details class="reciter-variants-menu"><summary>الروايات والتسجيلات ('+g.variants.length+')</summary><div class="reciter-variants">'+g.variants.map(v=>'<button type="button" class="reciter-version" data-reciter-play="'+v.index+'" aria-label="تشغيل '+esc(g.name)+' — '+esc(v.label)+'">'+esc(v.label)+'</button>').join('')+'</div></details>':'<div class="reciter-variants"><button type="button" class="reciter-play" data-reciter-play="'+g.variants[0].index+'" aria-label="تشغيل '+esc(g.name)+'">▶ استمع</button></div>')+'</div></div>').join(''):'<div class="reciter-empty">لا توجد نتائج بهذا الاسم.</div>';
   const count=$('reciterCount');if(count)count.textContent='القرّاء '+new Intl.NumberFormat('ar').format(L.length)+' من '+new Intl.NumberFormat('ar').format(all.length)+' · التسجيلات '+new Intl.NumberFormat('ar').format(uniqueRecitationCount());
+  const more=$('reciterMore');
+  if(more){more.hidden=L.length<=shown.length;more.textContent='عرض المزيد من القرّاء · '+new Intl.NumberFormat('ar').format(Math.max(0,L.length-shown.length))+' متبقٍ';}
   ui();
  }
- async function J(u){const c=new AbortController(),t=setTimeout(()=>c.abort(),7000);try{const r=await fetch(u,{signal:c.signal});if(!r.ok)throw 0;return await r.json()}finally{clearTimeout(t)}}
- (async()=>{
-  const B='https://www.mp3quran.net/api/v3/',q=await Promise.allSettled([J(B+'reciters?language=ar'),J(B+'suwar?language=ar'),J(B+'radios?language=ar')]);
-  let ok=0;
-  if(q[0].status==='fulfilled'){let added=0;const reciters=q[0].value.reciters||[];reciters.forEach(r=>{(r.moshaf||[]).forEach(m=>{const server=safeHttpsURL(m.server);if(!server)return;let surahs=[];if(typeof m.surah_list==='string'&&m.surah_list.trim()){surahs=[...new Set(m.surah_list.split(',').map(x=>Number.parseInt(x.trim(),10)).filter(x=>Number.isInteger(x)&&x>=1&&x<=114))]}else if(Number.isFinite(+m.surah_total)&&+m.surah_total>0){surahs=Array.from({length:Math.min(114,+m.surah_total)},(_,i)=>i+1)}if(!surahs.length)return;const base=String(r.name||'قارئ').trim().slice(0,90),rewaya=String(m.name||'رواية متاحة').trim().slice(0,70),label=base+' — '+rewaya,url=server.replace(/\/?$/,'/');if(!R.some(y=>y[0]===label&&y[1]===url)){R.push([label,url,surahs]);added++}})});R.sort((a,b)=>a[0].localeCompare(b[0],'ar'));if(reciters.length)ok++;$('src').textContent='تم جلب '+R.length+' مصحفاً ورواية صوتية من '+reciters.length+' قارئاً من mp3quran.net'+(added?' · أضيف '+added+' خياراً جديداً':'')+' ✓'}
-  if(q[1].status==='fulfilled'){const L=(q[1].value.suwar||[]).map(s=>String(s.name).trim());if(L.length===114){SU.length=0;SU.push(...L);ok++}}
-  if(q[2].status==='fulfilled'){const L=(q[2].value.radios||[]).map(x=>({name:String(x.name||'إذاعة').slice(0,100),url:safeHttpsURL(x.url)})).filter(x=>x.url);if(L.length){$('rl').innerHTML=L.map(x=>`<option value="${esc(x.url)}">${esc(x.name)}</option>`).join('');$('liveStationArea').hidden=false;ok++}}
-  fill();
-  $('src').textContent=ok?`تضم القائمة ${groupedReciters().length} قارئًا فريدًا و${uniqueRecitationCount()} خيار تلاوة بعد إزالة التكرار، مع تحديث حي من mp3quran.net ✓`:'قائمة مدمجة: المنصة تمنع الاتصال بالمصدر من داخل هذه الصفحة';
- })();
+ async function J(u){
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),6500);
+  try{
+   const response=await fetch(u,{signal:controller.signal,cache:'force-cache',credentials:'omit'});
+   if(!response.ok)throw new Error('HTTP '+response.status);
+   return await response.json();
+  }finally{clearTimeout(timer)}
+ }
+ let reciterApiPromise=null,radioApiPromise=null;
+ function ensureReciterCatalog(){
+  if(reciterApiPromise)return reciterApiPromise;
+  const B='https://www.mp3quran.net/api/v3/';
+  reciterApiPromise=J(B+'reciters?language=ar').then(data=>{
+   const reciters=Array.isArray(data.reciters)?data.reciters:[];let added=0;
+   reciters.forEach(reciter=>{
+    (reciter.moshaf||[]).forEach(moshaf=>{
+     const server=safeHttpsURL(moshaf.server);if(!server)return;
+     let surahs=[];
+     if(typeof moshaf.surah_list==='string'&&moshaf.surah_list.trim()){
+      surahs=[...new Set(moshaf.surah_list.split(',').map(value=>Number.parseInt(value.trim(),10)).filter(value=>Number.isInteger(value)&&value>=1&&value<=114))];
+     }else if(Number.isFinite(+moshaf.surah_total)&&+moshaf.surah_total>0){
+      surahs=Array.from({length:Math.min(114,+moshaf.surah_total)},(_,i)=>i+1);
+     }
+     if(!surahs.length)return;
+     const base=String(reciter.name||'قارئ').trim().slice(0,90);
+     const rewaya=String(moshaf.name||'رواية متاحة').trim().slice(0,70);
+     const label=base+' — '+rewaya,url=server.replace(/\/?$/,'/');
+     if(!R.some(item=>item[0]===label&&item[1]===url)){R.push([label,url,surahs]);added++}
+    });
+   });
+   R.sort((a,b)=>a[0].localeCompare(b[0],'ar'));
+   fill();
+   $('src').textContent='تم تحديث قائمة القرّاء من MP3Quran: '+reciters.length+' قارئًا و'+uniqueRecitationCount()+' خيار تلاوة.';
+   return reciters.length;
+  }).catch(error=>{
+   reciterApiPromise=null;
+   $('src').textContent='القائمة الأساسية تعمل؛ تعذّر تحديثها من MP3Quran الآن.';
+   return 0;
+  });
+  return reciterApiPromise;
+ }
+ function ensureRadioCatalog(){
+  if($('rl').options.length)return Promise.resolve($('rl').options.length);
+  if(radioApiPromise)return radioApiPromise;
+  radioApiPromise=J('https://www.mp3quran.net/api/v3/radios?language=ar').then(data=>{
+   const list=(data.radios||[]).map(item=>({name:String(item.name||'إذاعة').slice(0,100),url:safeHttpsURL(item.url)})).filter(item=>item.url);
+   if(list.length){
+    $('rl').innerHTML=list.map(item=>'<option value="'+esc(item.url)+'">'+esc(item.name)+'</option>').join('');
+    $('liveStationArea').hidden=false;
+   }
+   return list.length;
+  }).catch(error=>{radioApiPromise=null;return 0});
+  return radioApiPromise;
+ }
+ fill();
+ $('src').textContent='قائمة القرّاء الأساسية جاهزة. تُحمّل التحديثات عند فتح الإذاعة، وتُحمّل المحطات عند طلب البث المباشر.';
+ document.querySelectorAll('input[name=rm]').forEach(x=>x.addEventListener('change',()=>{if(started)play()}));
+ $('rl').addEventListener('change',()=>{if(started)play()});
+ $('rq').addEventListener('input',()=>{reciterDisplayLimit=36;fill()});
+ $('reciterMore').addEventListener('click',()=>{reciterDisplayLimit+=36;fill()});
  document.querySelectorAll('input[name=rm]').forEach(x=>x.addEventListener('change',()=>{if(started)play()}));
  $('rl').addEventListener('change',()=>{if(started)play()});
  $('rq').addEventListener('input',fill);
@@ -1194,8 +1286,8 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  const countryModal=$('reciterCountryModal'),countryDialog=countryModal.querySelector('.country-reader-dialog');
  const countrySearch=$('countryReaderSearch'),countryList=$('countryReaderList'),countryStatusBox=$('countryReaderStatus');
  const countryCountBox=$('countryReaderCount'),countryPageBox=$('countryReaderPage'),countryPrev=$('countryReaderPrev'),countryNext=$('countryReaderNext'),countryRetry=$('countryReaderRetry');
- const countryCache=new Map();let activeCountryKey='',activeCountryRows=[],activeCountryPage=0,failedCountryPages=[],countryPreviousOverflow='';
- const COUNTRY_PAGE_SIZE=40,COUNTRY_BASE='https://way2quran.com/ar/reciters';
+ const countryCache=new Map(),countryProfileCache=new Map();let activeCountryKey='',activeCountryRows=[],activeCountryPage=1,countryTotalPages=1,countryTotalCount=0,countryPageBusy=false,countryLoadToken=0,failedCountryPage=1,countryPreviousOverflow='';
+ const COUNTRY_BASE='https://way2quran.com/ar/reciters';
  function countryNorm(v){
   return String(v||'').normalize('NFKC').replace(/[\u064B-\u065F\u0670\u0640]/g,'')
    .replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/ؤ/g,'و').replace(/ئ/g,'ي').replace(/[\u200e\u200f]/g,'')
@@ -1253,40 +1345,24 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  async function fetchCountryHtml(url){
   const encoded=encodeURIComponent(url);
   const proxies=[
-   url,
    'https://api.allorigins.win/raw?url='+encoded,
-   'https://api.codetabs.com/v1/proxy?quest='+encoded,
    'https://corsproxy.io/?url='+encoded
   ];
-  let lastError=null;
-  for(const proxy of proxies){
-   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),16000);
+  const controllers=[];
+  const jobs=proxies.map(async proxy=>{
+   const controller=new AbortController();controllers.push(controller);
+   const timer=setTimeout(()=>controller.abort(),7000);
    try{
-    const response=await fetch(proxy,{signal:controller.signal,cache:'default',credentials:'omit',referrerPolicy:'no-referrer'});
+    const response=await fetch(proxy,{signal:controller.signal,cache:'force-cache',credentials:'omit',referrerPolicy:'no-referrer'});
     if(!response.ok)throw new Error('HTTP '+response.status);
     const body=await response.text();
-    if(body.length<400||body.length>3000000||(!body.includes('/ar/reciters/')&&!body.includes('media.way2quran.com')))throw new Error('استجابة غير مكتملة');
+    if(body.length<300||body.length>3000000||(!body.includes('/ar/reciters/')&&!body.includes('media.way2quran.com')))throw new Error('استجابة غير صالحة');
     return body;
-   }catch(error){lastError=error}
-   finally{clearTimeout(timer)}
-  }
-  throw lastError||new Error('تعذر جلب صفحة الدولة');
- }
- async function mapCountryPages(urls,onProgress){
-  const results=new Array(urls.length),errors=[];let cursor=0,done=0;
-  const workers=Array.from({length:Math.min(4,urls.length)},async()=>{
-   while(true){
-    const index=cursor++;if(index>=urls.length)return;
-    try{
-     const parsed=parseCountryPage(await fetchCountryHtml(urls[index]));
-     if(!parsed.length)throw new Error('لم نعثر على أسماء قرّاء في الصفحة');
-     results[index]=parsed;
-    }catch(error){results[index]=[];errors.push(index+1)}
-    done++;onProgress(done,urls.length,errors.length);
-   }
+   }finally{clearTimeout(timer)}
   });
-  await Promise.all(workers);
-  return {rows:results.flat(),failed:errors,done};
+  try{return await Promise.any(jobs)}
+  catch(_error){throw new Error('تعذر جلب بيانات المصدر خلال المهلة القصيرة')}
+  finally{controllers.forEach(controller=>{try{controller.abort()}catch(_e){}})}
  }
  function dedupeCountryRows(rows){
   const byIdentity=new Map();
@@ -1299,38 +1375,73 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   });
   return [...byIdentity.values()].sort((a,b)=>a.name.localeCompare(b.name,'ar'));
  }
- function renderCountryRows(){
-  const q=countryNorm(countrySearch.value),filtered=activeCountryRows.filter(r=>!q||countryNorm(r.name).includes(q));
-  const pages=Math.max(1,Math.ceil(filtered.length/COUNTRY_PAGE_SIZE));
-  activeCountryPage=Math.min(activeCountryPage,pages-1);
-  const pageRows=filtered.slice(activeCountryPage*COUNTRY_PAGE_SIZE,(activeCountryPage+1)*COUNTRY_PAGE_SIZE);
-  countryList.innerHTML=pageRows.length?pageRows.map(r=>'<div class="country-reader-item" role="listitem" data-country-reciter="'+esc(r.slug)+'" data-country-profile="'+esc(r.profileUrl)+'"><span class="country-reader-seal" aria-hidden="true">🌷</span><span class="country-reader-name">'+esc(r.name)+'</span><small>'+(r.recordings>1?new Intl.NumberFormat('ar').format(r.recordings)+' تلاوات':'تلاوة')+'</small><button type="button" class="country-reader-play" data-country-play aria-label="تشغيل تلاوة '+esc(r.name)+' داخل المفكرة" title="تشغيل داخل أنوار">▶</button></div>').join(''):'<div class="country-reader-empty">لا توجد أسماء مطابقة لهذا البحث.</div>';
-  countryCountBox.textContent=new Intl.NumberFormat('ar').format(filtered.length)+' / '+new Intl.NumberFormat('ar').format(activeCountryRows.length);
-  countryPageBox.textContent=(activeCountryPage+1)+' / '+pages;
-  countryPrev.disabled=activeCountryPage<=0;countryNext.disabled=activeCountryPage>=pages-1;
+ function countryPageMeta(html){
+  const doc=new DOMParser().parseFromString(html,'text/html');
+  let pages=1,total=0;
+  const base=new URL(COUNTRY_BASE);
+  doc.querySelectorAll('a[href]').forEach(a=>{
+   try{
+    const u=new URL(a.getAttribute('href'),COUNTRY_BASE);
+    if(u.origin!==base.origin||u.pathname.replace(/\/$/,'')!==base.pathname.replace(/\/$/,''))return;
+    const page=Number(u.searchParams.get('currentPage')||1);
+    if(Number.isInteger(page)&&page>pages)pages=page;
+   }catch(_e){}
+  });
+  const body=doc.body?.textContent||'';
+  const match=body.match(/النتائج\s*[:：]?\s*([0-9٠-٩٬,]+)/);
+  if(match)total=Number(countryDigits(match[1]).replace(/[٬,]/g,''))||0;
+  return {pages:Math.max(1,pages),total};
  }
- async function loadCountryReaders(key,retryOnly){
+ function renderCountryRows(){
+  const q=countryNorm(countrySearch.value);
+  const filtered=activeCountryRows.filter(row=>!q||countryNorm(row.name).includes(q));
+  countryList.innerHTML=filtered.length?filtered.map(r=>'<div class="country-reader-item" role="listitem" data-country-reciter="'+esc(r.slug)+'" data-country-profile="'+esc(r.profileUrl)+'"><span class="country-reader-seal" aria-hidden="true">🌷</span><span class="country-reader-name">'+esc(r.name)+'</span><small>'+(r.recordings>1?new Intl.NumberFormat('ar').format(r.recordings)+' تلاوات':'تلاوة')+'</small><button type="button" class="country-reader-play" data-country-play aria-label="تشغيل تلاوة '+esc(r.name)+' داخل المفكرة" title="تشغيل داخل أنوار">▶</button></div>').join(''):'<div class="country-reader-empty">'+(q?'لا توجد أسماء مطابقة في هذه الصفحة. انتقل إلى الصفحة التالية أو غيّر البحث.':'لا توجد أسماء في هذه الصفحة.')+'</div>';
+  countryCountBox.textContent=new Intl.NumberFormat('ar').format(filtered.length)+(countryTotalCount?' / '+new Intl.NumberFormat('ar').format(countryTotalCount):'');
+  countryPageBox.textContent=activeCountryPage+' / '+countryTotalPages;
+  countryPrev.disabled=activeCountryPage<=1||countryPageBusy;
+  countryNext.disabled=activeCountryPage>=countryTotalPages||countryPageBusy;
+ }
+ async function loadCountryReaders(key,page=1,force=false){
   const entry=countryDirectory[key];if(!entry)return;
-  countryStatusBox.textContent='جارٍ جلب قرّاء '+entry.name+' من الطريق إلى القرآن…';
-  countryRetry.hidden=true;countryList.innerHTML='<div class="country-reader-empty">جارٍ تحميل قائمة القرّاء الصوتية…</div>';
-  countryCache.delete(key);activeCountryRows=[];activeCountryPage=0;failedCountryPages=[];
-  const firstHtml=await fetchCountryHtml(countryListPageUrl(entry.code,1));
-  const firstRows=parseCountryPage(firstHtml);
-  const totalPages=countryPageCount(firstHtml);
-  const otherPages=Array.from({length:Math.max(0,totalPages-1)},(_,i)=>i+2);
-  const rest=otherPages.length?await mapCountryPages(otherPages.map(page=>countryListPageUrl(entry.code,page)),(done,total,failed)=>{
-   countryStatusBox.textContent='تحميل صفحات '+entry.name+': '+(done+1)+' من '+(total+1)+(failed?' · تعثّر '+failed:'');
-  }):{rows:[],failed:[],done:0};
-  const combined=firstRows.concat(rest.rows);
-  failedCountryPages=rest.failed.map(index=>otherPages[index-1]).filter(Number.isFinite);
-  activeCountryRows=dedupeCountryRows(combined);
-  countryCache.set(key,{rawRows:combined,rows:activeCountryRows,failed:failedCountryPages.slice(),pages:totalPages});
-  countryRetry.hidden=!failedCountryPages.length;
-  countrySearch.value='';activeCountryPage=0;renderCountryRows();
-  if(!activeCountryRows.length){
-   countryStatusBox.textContent='لم يعرض دليل الطريق إلى القرآن قرّاء موثقين لهذا البلد حاليًا. لم نُنشئ أسماء أو روابط تخمينية.';
-  }else{
-   countryStatusBox.textContent='عُثر على '+new Intl.NumberFormat('ar').format(activeCountryRows.length)+' قارئًا في '+entry.name+' من مكتبة الطريق إلى القرآن.'+(failedCountryPages.length?' · بعض الصفحات تعذّر تحميلها ويمكن إعادة المحاولة.':' · اكتمل جلب صفحات البلد.');
+  const targetPage=Math.max(1,Number(page)||1);
+  const token=++countryLoadToken;
+  activeCountryKey=key;
+  const cache=countryCache.get(key)||{pages:new Map(),totalPages:1,totalCount:0};
+  if(cache.pages.has(targetPage)&&!force){
+   activeCountryRows=cache.pages.get(targetPage);
+   activeCountryPage=targetPage;countryTotalPages=cache.totalPages;countryTotalCount=cache.totalCount;
+   countryRetry.hidden=true;renderCountryRows();
+   countryStatusBox.textContent='صفحة محفوظة لهذه الجلسة من الطريق إلى القرآن · تُحمّل بقية الصفحات عند طلبها.';
+   return;
+  }
+  countryPageBusy=true;countryRetry.hidden=true;countryPrev.disabled=true;countryNext.disabled=true;
+  countryList.innerHTML='<div class="country-reader-empty">جارٍ تحميل صفحة واحدة فقط…</div>';
+  countryStatusBox.textContent='جارٍ جلب الصفحة '+targetPage+' من قرّاء '+entry.name+'…';
+  try{
+   const html=await fetchCountryHtml(countryListPageUrl(entry.code,targetPage));
+   const rows=dedupeCountryRows(parseCountryPage(html));
+   if(!rows.length)throw new Error('لم تُستخرج أسماء قرّاء من الصفحة');
+   const meta=countryPageMeta(html);
+   cache.pages.set(targetPage,rows);
+   cache.totalPages=Math.max(1,meta.pages);
+   cache.totalCount=meta.total||cache.totalCount;
+   countryCache.set(key,cache);
+   if(token!==countryLoadToken||activeCountryKey!==key)return;
+   activeCountryRows=rows;activeCountryPage=targetPage;countryTotalPages=cache.totalPages;countryTotalCount=cache.totalCount;
+   countrySearch.value='';renderCountryRows();
+   countryStatusBox.textContent='عُثر على '+new Intl.NumberFormat('ar').format(rows.length)+' قارئًا في هذه الصفحة من '+entry.name+'. لم تُحمّل الصفحات الأخرى بعد.';
+  }catch(error){
+   if(token!==countryLoadToken||activeCountryKey!==key)return;
+   failedCountryPage=targetPage;
+   countryList.innerHTML='<div class="country-reader-empty">تعذّر تحميل هذه الصفحة. أعد المحاولة؛ لن نحمّل بقية الصفحات دفعة واحدة.</div>';
+   countryRetry.hidden=false;
+   countryStatusBox.textContent='تعذّر جلب الصفحة '+targetPage+' خلال المهلة المحددة. يمكنك إعادة المحاولة.';
+  }finally{
+   if(token===countryLoadToken){
+    countryPageBusy=false;
+    countryPrev.disabled=activeCountryPage<=1;
+    countryNext.disabled=activeCountryPage>=countryTotalPages;
+   }
   }
  }
  function updateCountryDirectory(){
@@ -1342,31 +1453,23 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  }
  function openCountryModal(){
   const key=countrySelect.value;if(!key)return;
-  activeCountryKey=key;activeCountryPage=0;countrySearch.value='';
+  activeCountryKey=key;activeCountryPage=1;countrySearch.value='';countryLoadToken++;countryPageBusy=false;
   countryPreviousOverflow=document.body.style.overflow;countryModal.hidden=false;document.body.classList.add('country-reader-open');document.body.style.overflow='hidden';
   const entry=countryDirectory[key];
   $('countryModalTitle').textContent='قرّاء '+(entry?entry.name:countrySelect.selectedOptions[0].textContent.split('·')[0].trim());
-  $('countryModalSub').textContent=entry?'فهرس '+entry.name+' من الطريق إلى القرآن · استماع داخل المفكرة':'لا توجد قائمة موثقة لهذه الدولة';
+  $('countryModalSub').textContent=entry?'فهرس '+entry.name+' من الطريق إلى القرآن · تُحمّل صفحة واحدة في كل مرة':'لا توجد قائمة موثقة لهذه الدولة';
   countryList.replaceChildren();countryRetry.hidden=true;
+  countryCountBox.textContent='—';countryPageBox.textContent='—';
   if(!entry){
-   countryCountBox.textContent='0';countryStatusBox.textContent='لا توجد قائمة موثقة لهذه الدولة في الفهرس الحالي. لم نضع أسماء أو روابط تخمينية.';
-   countryPageBox.textContent='—';countryPrev.disabled=true;countryNext.disabled=true;
-  }else if(countryCache.has(key)){
-   const cached=countryCache.get(key);
-   activeCountryRows=cached.rows;failedCountryPages=(cached.failed||[]).slice();
-   countryRetry.hidden=!failedCountryPages.length;
-   renderCountryRows();
-   countryStatusBox.textContent='قائمة محفوظة لهذه الجلسة من الطريق إلى القرآن · '+activeCountryRows.length+' قارئًا.'+(failedCountryPages.length?' · ما زالت '+failedCountryPages.length+' صفحة تحتاج إلى إعادة تحميل.':'');
+   countryCountBox.textContent='0';countryStatusBox.textContent='لا توجد قائمة موثقة لهذه الدولة في الفهرس الحالي.';
+   countryPrev.disabled=true;countryNext.disabled=true;
   }else{
-   loadCountryReaders(key,false).catch(error=>{
-    countryStatusBox.textContent='تعذر جلب القائمة الآن. تحقق من الاتصال ثم اضغط إعادة المحاولة.';
-    countryList.innerHTML='<div class="country-reader-empty">لم تُحمّل البيانات؛ لن نعرض قائمة ناقصة على أنها مكتملة.</div>';
-    countryRetry.hidden=false;failedCountryPages=[1];
-   });
+   loadCountryReaders(key,1).catch(()=>{});
   }
   requestAnimationFrame(()=>countryDialog.focus());
  }
  function closeCountryModal(){
+  countryLoadToken++;countryPageBusy=false;
   countryModal.hidden=true;document.body.classList.remove('country-reader-open');document.body.style.overflow=countryPreviousOverflow;
   countryOpen.focus();
  }
@@ -1424,7 +1527,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   const tracks=countryTrackOptions(urls);
   if(!tracks.length)throw new Error('لم توجد ملفات صوت صالحة');
   const wrap=document.createElement('div');wrap.className='country-reader-audio-wrap';
-  const audio=document.createElement('audio');audio.className='country-reader-audio';audio.controls=true;audio.preload='metadata';audio.setAttribute('playsinline','');audio.setAttribute('aria-label','تلاوة '+name);
+  const audio=document.createElement('audio');audio.className='country-reader-audio';audio.controls=true;audio.preload='none';audio.setAttribute('playsinline','');audio.setAttribute('aria-label','تلاوة '+name);
   audio.src=tracks[0].url;
   if(tracks.length>1){
    const label=document.createElement('label');label.className='country-reader-track-label';label.textContent='اختر السورة';
@@ -1450,54 +1553,69 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   },{once:true});
   audio.load();
   button.textContent='▶';
-  countryStatusBox.textContent='تم تجهيز '+tracks.length+' ملفًا صوتيًا للقارئ '+name+' داخل المفكرة. جارٍ محاولة بدء الصوت هنا…';
-  const playAttempt=audio.play();
-  if(playAttempt&&typeof playAttempt.catch==='function')playAttempt.catch(error=>{
-   if(error&&error.name==='NotAllowedError')countryStatusBox.textContent='المشغّل جاهز داخل أنوار؛ اضغط ▶ في شريط الصوت للسماح بالتشغيل.';
-  });
+  countryStatusBox.textContent='تم تجهيز '+tracks.length+' رابط تلاوة للقارئ '+name+' داخل أنوار. اضغط تشغيل في المشغّل؛ لن يُحمّل إلا الملف المختار.';
  }
+ function countryProfileAudio(card){
+  const slug=card.dataset.countryReciter||'',profileUrl=card.dataset.countryProfile||'';
+  if(!slug||!profileUrl)return Promise.reject(new Error('رابط صفحة القارئ غير موجود'));
+  if(countryProfileCache.has(slug))return countryProfileCache.get(slug);
+  const promise=fetchCountryHtml(profileUrl).then(html=>{
+   const urls=countryAudioCandidates(html);
+   if(!urls.length)throw new Error('لم تُعثر على روابط MP3 مباشرة');
+   return urls;
+  }).catch(error=>{
+   countryProfileCache.delete(slug);throw error;
+  });
+  countryProfileCache.set(slug,promise);
+  return promise;
+ }
+ countryList.addEventListener('pointerdown',e=>{
+  const button=e.target.closest('[data-country-play]');if(!button)return;
+  const card=button.closest('[data-country-reciter]');if(!card)return;
+  countryProfileAudio(card).catch(()=>{});
+ },{passive:true});
  countryList.addEventListener('click',async e=>{
   const button=e.target.closest('[data-country-play]');if(!button)return;
   const card=button.closest('[data-country-reciter]');if(!card)return;
-  const slug=card.dataset.countryReciter,name=card.querySelector('.country-reader-name')?.textContent||'القارئ';
-  const profileUrl=card.dataset.countryProfile||COUNTRY_BASE+'/'+encodeURIComponent(slug);
+  const name=card.querySelector('.country-reader-name')?.textContent||'القارئ';
   if(countryActiveAudio&&card.contains(countryActiveAudio)){
-   if(countryActiveAudio.paused){const attempt=countryActiveAudio.play();if(attempt&&attempt.catch)attempt.catch(()=>{countryStatusBox.textContent='اضغط زر التشغيل داخل مشغّل الصوت.'})}
-   else countryActiveAudio.pause();
+   if(countryActiveAudio.paused){
+    const attempt=countryActiveAudio.play();
+    if(attempt&&attempt.catch)attempt.catch(()=>{countryStatusBox.textContent='اضغط زر التشغيل داخل مشغّل الصوت.'});
+   }else countryActiveAudio.pause();
    return;
   }
   button.disabled=true;button.textContent='…';
   if(countryActiveAudio)stopCountryAudio();
+  countryStatusBox.textContent='جارٍ تجهيز ملف '+name+'؛ لا تُحمّل بقية القرّاء أو السور.';
   try{
-   let html='';
-   try{html=await fetchCountryHtml(profileUrl)}catch(_e){}
-   let urls=html?countryAudioCandidates(html):[];
-   let sourceLabel='الطريق إلى القرآن';
-   if(!urls.length){
-    const direct=countryMp3QuranSource(name);
-    if(direct){urls=[direct];sourceLabel='MP3Quran'}
-   }
-   if(!urls.length)throw new Error('لا توجد روابط ملفات صوت مباشرة');
-   mountCountryAudio(card,button,name,urls,sourceLabel);
+   const urls=await countryProfileAudio(card);
+   mountCountryAudio(card,button,name,urls,'الطريق إلى القرآن');
   }catch(error){
-   button.textContent='!';
-   button.title='لا تتوفر وصلة صوت مباشرة داخل المصدر';
-   countryStatusBox.textContent='لم نعثر على ملف صوت مباشر لهذا القارئ في المصادر المتاحة. بقيت المفكرة مفتوحة ولم يتم تحويلك إلى موقع آخر.';
+   button.textContent='▶';
+   countryStatusBox.textContent='تعذّر جلب روابط الصوت لهذا القارئ خلال المهلة القصيرة. بقيت المفكرة مفتوحة؛ أعد الضغط للمحاولة.';
   }finally{button.disabled=false}
  });
  countryOpen.addEventListener('click',openCountryModal);
  $('countryModalClose').addEventListener('click',closeCountryModal);
  countryModal.addEventListener('click',e=>{if(e.target===countryModal)closeCountryModal()});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!countryModal.hidden){e.preventDefault();closeCountryModal()}});
- countrySearch.addEventListener('input',()=>{activeCountryPage=0;renderCountryRows()});
- countryPrev.addEventListener('click',()=>{activeCountryPage=Math.max(0,activeCountryPage-1);renderCountryRows()});
- countryNext.addEventListener('click',()=>{activeCountryPage++;renderCountryRows()});
- countryRetry.addEventListener('click',()=>loadCountryReaders(activeCountryKey,true).catch(()=>{countryStatusBox.textContent='تعذّرت إعادة المحاولة؛ تحقق من الاتصال وحاول مجددًا.';countryRetry.hidden=false}));
+ countrySearch.addEventListener('input',renderCountryRows);
+ countryPrev.addEventListener('click',()=>{if(activeCountryPage>1)loadCountryReaders(activeCountryKey,activeCountryPage-1)});
+ countryNext.addEventListener('click',()=>{if(activeCountryPage<countryTotalPages)loadCountryReaders(activeCountryKey,activeCountryPage+1)});
+ countryRetry.addEventListener('click',()=>loadCountryReaders(activeCountryKey,failedCountryPage,true));
  countrySelect.addEventListener('change',updateCountryDirectory);
  updateCountryDirectory();
 
  $('reciterGrid').addEventListener('click',e=>{const b=e.target.closest('[data-reciter-play]');if(!b)return;const menu=b.closest('details.reciter-variants-menu');if(menu)menu.open=false;const i=+b.dataset.reciterPlay;if(started&&!au.paused&&mode()==='c'&&cr===i){au.pause();st.textContent='أوقفت التلاوة مؤقتاً';ui();return;}cr=i;rr.value=String(i);n=availableSurahs()[0]||1;rsu.value=String(n);document.querySelector('input[name=rm][value="c"]').checked=true;play()});
- $('liveRadioPlay').addEventListener('click',()=>{if(!$('rl').value){st.textContent='لا توجد محطة بث مباشر متاحة حالياً؛ اختر قارئاً من القائمة.';return;}document.querySelector('input[name=rm][value="l"]').checked=true;play()});
+ $('liveRadioPlay').addEventListener('click',async()=>{
+  if(!$('rl').value){
+   st.textContent='جارٍ جلب محطات البث المباشر…';
+   await ensureRadioCatalog();
+  }
+  if(!$('rl').value){st.textContent='لا توجد محطة بث مباشر متاحة الآن؛ اختر قارئًا من القائمة.';return;}
+  document.querySelector('input[name=rm][value="l"]').checked=true;play();
+ });
  $('rpv').addEventListener('click',()=>moveSurah(-1));
  $('rtm').addEventListener('change',e=>{clearTimeout(sl);const m=+e.target.value;if(m){sl=setTimeout(()=>{au.pause();started=false;ui();$('rtm').value='0';toast('انتهى مؤقت النوم')},m*60000);toast('سيتوقف الصوت بعد '+m+' دقيقة')}});
  if('mediaSession' in navigator){
@@ -1526,6 +1644,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  const radioPanel=$('rd'),radioToggle=$('rg'),radioLauncher=document.querySelector('.lesson-launch-row');
  function setRadioPanel(open){
   if(open){
+   ensureReciterCatalog().catch(()=>{});
    radioPanel.style.setProperty('--curtain-top','0px');
    radioPanel.classList.add('o');
    document.body.classList.add('radio-open');
