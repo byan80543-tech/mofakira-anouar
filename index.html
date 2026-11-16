@@ -1528,6 +1528,20 @@ button:focus:not(:focus-visible){outline:none}
  #libraryPage .library-resource-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
 }
 
+
+#libraryReaderView{height:100%;min-height:0;display:flex;flex-direction:column;gap:12px}
+#libraryReaderView[hidden]{display:none!important}
+#libraryReaderView .reader-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#libraryReaderView .reader-toolbar button,#libraryReaderView .reader-controls button{border:1px solid var(--lib-line);border-radius:10px;padding:8px 12px;background:var(--lib-card);color:var(--lib-text);font:700 12px Cairo,Tahoma,sans-serif}
+#libraryReaderView .reader-title{font:700 21px Amiri,serif;color:var(--lib-text);margin:4px 0}
+#libraryReaderView .reader-meta,#libraryReaderView .reader-status{font-size:11px;color:var(--lib-muted)}
+#libraryReaderView .reader-paper{overflow:auto;flex:1;min-height:180px;background:var(--lib-card);border:1px solid var(--lib-line);border-radius:16px;padding:clamp(18px,5vw,34px);box-shadow:var(--lib-shadow);color:var(--lib-text);font:18px/2.1 Amiri,'Noto Naskh Arabic',serif}
+#libraryReaderView .reader-paper p{margin:0 0 1em}
+#libraryReaderView .reader-paper h2,#libraryReaderView .reader-paper h3{font-family:Amiri,serif;margin:1em 0 .5em}
+#libraryReaderView .reader-controls{display:flex;justify-content:space-between;align-items:center;gap:8px}
+#libraryReaderView .reader-controls button:disabled{opacity:.4}
+#libraryReaderView .reader-loading{padding:28px;text-align:center;color:var(--lib-muted);font:14px Cairo,Tahoma,sans-serif}
+
 </style></head><body>${$('pa').innerHTML}\x3Cscript>onload=function(){setTimeout(function(){print()},900)}<\/script>
 
 
@@ -2849,6 +2863,8 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
    {id:'dorar-hadith',title:'الموسوعة الحديثية',description:'البحث في الأحاديث مع عرض الراوي والمحدّث والمصدر وخلاصة الحكم.',source:'الدرر السنية',url:'https://dorar.net/',tags:'حديث تخريج صحيح حسن ضعيف'}
   ]},
   {id:'adab',name:'الأدب العربي',short:'الشعر والنثر والمقامات',icon:'🌷',description:'دواوين الشعر وكتب الأدب والنثر والمقامات والنوادر والرسائل التراثية.',resources:[
+   {id:'book-adab-saghir',title:'الأدب الصغير',description:'كتاب تراثي لعبد الله بن المقفع، متاح بنصه في ويكي مصدر.',source:'عبد الله بن المقفع · نص من الملك العام',url:'https://ar.wikisource.org/wiki/الأدب_الصغير_(1911)',readerPage:'الأدب الصغير (1911)',tags:'ابن المقفع الأدب الصغير حكم وآداب'},
+   {id:'book-akhlaq-siyar',title:'الأخلاق والسير في مداواة النفوس',description:'كتاب في تهذيب الأخلاق ومداواة النفوس لابن حزم الأندلسي.',source:'ابن حزم · نص تراثي',url:'https://ar.wikisource.org/wiki/الأخلاق_والسير_في_مداواة_النفوس',readerPage:'الأخلاق والسير في مداواة النفوس',tags:'ابن حزم الأخلاق والسير تهذيب الأخلاق'},
    {id:'waqfeya-adab',title:'كتب الأدب العربي',description:'مصنفات الأدب والنثر والنوادر والرسائل والمختارات الأدبية.',source:'المكتبة الوقفية · 810',url:'https://waqfeya.net/categories/810-%D9%83%D8%AA%D8%A8-%D8%A7%D9%84%D8%A3%D8%AF%D8%A8-866e302b71cc46b699b7dfd06264e7c9',tags:'أدب نثر مقامات نوادر رسائل الجاحظ'},
    {id:'waqfeya-diwan',title:'دواوين الشعر',description:'دواوين الشعراء ومختارات الشعر القديم وشروح القصائد.',source:'المكتبة الوقفية · 811',url:'https://waqfeya.net/categories/%D8%AF%D9%88%D8%A7%D9%88%D9%8A%D9%86-%D8%A7%D9%84%D8%B4%D8%B9%D8%B1-7f8b09bed9f14723b8f45fa51d7154d6',tags:'دواوين شعر شعراء قصائد'},
    {id:'shamela-adab',title:'الأدب والنوادر في المكتبة الشاملة',description:'ابحث في كتب الأدب والنوادر والبلاغة والمصنفات التراثية.',source:'المكتبة الشاملة',url:'https://shamela.ws/',tags:'مقامات الجاحظ نوادر شعر بلاغة'}
@@ -2865,6 +2881,23 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
    {id:'waqfeya-search',title:'فهرس المؤلفين والكلمات المفتاحية',description:'مدخل للبحث بحسب المؤلف أو موضوع الكتاب أو القرن الهجري.',source:'المكتبة الوقفية',url:'https://waqfeya.net/search.php',tags:'مؤلفين بحث مخطوطات فهرسة'}
   ]}
  ];
+
+ const readerView=document.createElement('section');readerView.id='libraryReaderView';readerView.className='library-panel';readerView.hidden=true;
+ readerView.innerHTML='<div class="reader-toolbar"><button type="button" id="readerBack">‹ العودة إلى الكتب</button><button type="button" id="readerSmaller">A−</button><button type="button" id="readerLarger">A+</button></div><div><h2 class="reader-title" id="readerTitle"></h2><div class="reader-meta" id="readerMeta">نص تراثي متاح للقراءة</div></div><div class="reader-paper" id="readerPaper" tabindex="0"><div class="reader-loading">جارٍ تحميل صفحات الكتاب…</div></div><div class="reader-controls"><button type="button" id="readerPrev">السابق</button><span class="reader-status" id="readerStatus"></span><button type="button" id="readerNext">التالي</button></div>';
+ const libraryShell=page.querySelector('.library-shell')||page;libraryShell.append(readerView);
+ let activeReader=null,readerSections=[],readerIndex=0,readerFont=18,readerRequest=0;
+ const readerProgressKey='anwar_library_reader_progress_v1';
+ function readerApiUrl(params){const u=new URL('https://ar.wikisource.org/w/api.php');Object.entries({...params,format:'json',origin:'*'}).forEach(([k,v])=>u.searchParams.set(k,v));return u.toString()}
+ function readerText(html){const doc=new DOMParser().parseFromString(html,'text/html');doc.querySelectorAll('script,style,table,.navbox,.reference,.mw-editsection').forEach(n=>n.remove());const root=doc.querySelector('.mw-parser-output')||doc.body;return [...root.querySelectorAll('h2,h3,h4,p,blockquote,li')].map(n=>({tag:/^H[234]$/.test(n.tagName)?n.tagName.toLowerCase():'p',text:(n.textContent||'').replace(/\[\d+\]/g,'').trim()})).filter(x=>x.text.length>0)}
+ async function openReader(book){activeReader=book;readerIndex=0;readerSections=[];const request=++readerRequest;$('libraryReaderView').hidden=false;['libraryHome','libraryCategoryView','librarySearchView','librarySavedView'].forEach(id=>$(id).hidden=true);$('readerTitle').textContent=book.title;$('readerMeta').textContent=book.source+' · قراءة داخل المفكرة';$('readerPaper').textContent='جارٍ جلب فهرس الكتاب من ويكي مصدر…';$('readerStatus').textContent='تحميل الفهرس';$('readerPrev').disabled=true;$('readerNext').disabled=true;
+  try{const response=await fetch(readerApiUrl({action:'parse',page:book.readerPage,prop:'sections'}));if(!response.ok)throw new Error('تعذر الاتصال بمصدر النص');const data=await response.json();if(request!==readerRequest)return;if(data.error)throw new Error(data.error.info||'تعذر العثور على الكتاب');readerSections=(data.parse.sections||[]).filter(x=>x.index!=='0'&&x.level!=='0');if(!readerSections.length)readerSections=[{index:'0',line:book.title}];try{const saved=JSON.parse(localStorage.getItem(readerProgressKey)||'{}');const savedIndex=saved[book.id];if(Number.isInteger(savedIndex)&&savedIndex>=0&&savedIndex<readerSections.length)readerIndex=savedIndex}catch(e){}await renderReaderSection(request)}
+  catch(error){if(request!==readerRequest)return;$('readerPaper').textContent='لم نتمكن من تحميل نص الكتاب الآن. تحقق من اتصال الإنترنت ثم أعد فتح الكتاب. '+error.message;$('readerStatus').textContent='تعذر التحميل'}}
+ async function renderReaderSection(request=readerRequest){const section=readerSections[readerIndex];if(!section)return;$('readerPaper').textContent='جارٍ تحميل الصفحة…';$('readerPrev').disabled=readerIndex===0;$('readerNext').disabled=readerIndex===readerSections.length-1;$('readerStatus').textContent=(readerIndex+1)+' / '+readerSections.length+' · '+section.line;
+  try{const response=await fetch(readerApiUrl({action:'parse',page:activeReader.readerPage,section:section.index,prop:'text'}));if(!response.ok)throw new Error('تعذر تحميل الصفحة');const data=await response.json();if(request!==readerRequest)return;if(data.error)throw new Error(data.error.info||'تعذر تحميل النص');const blocks=readerText(data.parse.text['*']);const paper=$('readerPaper');paper.replaceChildren();blocks.forEach(block=>{const el=document.createElement(block.tag);el.textContent=block.text;paper.append(el)});if(!blocks.length){const p=document.createElement('p');p.textContent='لا يتوفر نص لهذه الصفحة في المصدر.';paper.append(p)}paper.style.fontSize=readerFont+'px';paper.scrollTop=0;$('readerStatus').textContent=(readerIndex+1)+' / '+readerSections.length+' · '+section.line;$('readerPrev').disabled=readerIndex===0;$('readerNext').disabled=readerIndex===readerSections.length-1;try{const saved=JSON.parse(localStorage.getItem(readerProgressKey)||'{}');saved[activeReader.id]=readerIndex;localStorage.setItem(readerProgressKey,JSON.stringify(saved))}catch(e){}}
+  catch(error){if(request!==readerRequest)return;$('readerPaper').textContent='تعذر عرض هذه الصفحة. '+error.message}}
+ function closeReader(){readerRequest++;readerView.hidden=true;if(currentCategory)show('libraryCategoryView');else show('libraryHome')}
+ $('readerBack').addEventListener('click',closeReader);$('readerPrev').addEventListener('click',()=>{if(readerIndex>0){readerIndex--;renderReaderSection()}});$('readerNext').addEventListener('click',()=>{if(readerIndex<readerSections.length-1){readerIndex++;renderReaderSection()}});
+ $('readerSmaller').addEventListener('click',()=>{readerFont=Math.max(14,readerFont-1);$('readerPaper').style.fontSize=readerFont+'px'});$('readerLarger').addEventListener('click',()=>{readerFont=Math.min(30,readerFont+1);$('readerPaper').style.fontSize=readerFont+'px'});
  const saveKey='anwar_library_saved_v1';
  const libraryThemeKey='anwar_library_theme_v1';
  const libraryThemes=['white','cream','pearl','blue'];
@@ -2914,8 +2947,9 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   const title=document.createElement('strong');title.textContent=r.title;
   copy.append(icon,title);
   const actions=document.createElement('div');actions.className='library-resource-actions';
-  const a=document.createElement('a');a.href=r.url;a.target='_blank';a.rel='noopener noreferrer';a.textContent='فتح';
-  a.setAttribute('aria-label','فتح '+r.title+' في تبويب جديد');
+  const a=document.createElement(r.readerPage?'button':'a');
+  if(r.readerPage){a.type='button';a.dataset.readBook=r.id;a.textContent='اقرأ هنا';a.setAttribute('aria-label','اقرأ '+r.title+' داخل المكتبة')}
+  else{a.href=r.url;a.target='_blank';a.rel='noopener noreferrer';a.textContent='المصدر';a.setAttribute('aria-label','فتح المصدر الخارجي لـ '+r.title+' في تبويب جديد')}
   const bookmark=document.createElement('button');bookmark.type='button';bookmark.dataset.saveResource=r.id;
   const isSaved=saved.includes(r.id);bookmark.textContent=isSaved?'★':'♡';bookmark.setAttribute('aria-label',isSaved?'إزالة من المحفوظات':'إضافة إلى المحفوظات');bookmark.setAttribute('aria-pressed',String(isSaved));
   actions.append(a,bookmark);article.append(copy,actions);return article;
@@ -2988,6 +3022,8 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   }
   const categoryButton=e.target.closest('[data-category]');
   if(categoryButton){openCategory(categoryButton.dataset.category);return}
+  const readButton=e.target.closest('[data-read-book]');
+  if(readButton){const book=resource(readButton.dataset.readBook);if(book)openReader(book);return}
   const saveButton=e.target.closest('[data-save-resource]');
   if(saveButton){
    const id=saveButton.dataset.saveResource;
