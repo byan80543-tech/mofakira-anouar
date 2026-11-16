@@ -1077,8 +1077,8 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   qawaid:{name:'شرح القواعد الأربع',count:3,url:i=>'https://al-badr.net/download/esound/choroohat/kawaid-alarbaa/'+String(i+1).padStart(3,'0')+'.mp3',source:'https://al-badr.net/sub/59',direct:true},
     nawqid:{name:'شرح نواقض الإسلام (1431هـ)',count:11,source:'https://al-badr.net/sub/215'},
   kashf:{name:'شرح كشف الشبهات (1428–1429هـ)',count:11,url:i=>'https://al-badr.net/download/esound/choroohat/Kashf-Alshubuhat/'+String(i+1).padStart(2,'0')+'.mp3',source:'https://al-badr.net/sub/80',direct:true},
-  masail:{name:'شرح مسائل الجاهلية',count:12,url:i=>'https://al-badr.net/download/esound/choroohat/masail-aljahilia/'+String(i+1).padStart(3,'0')+'.mp3',source:'https://al-badr.net/sub/60',direct:true},
-  usulIman:{name:'شرح كتاب أصول الإيمان',count:31,url:i=>'https://al-badr.net/download/esound/choroohat/usul-aliman/'+String(i+1).padStart(3,'0')+'.mp3',source:'https://al-badr.net/sub/56',direct:true},
+  masail:{name:'شرح مسائل الجاهلية',count:11,url:i=>'https://al-badr.net/download/esound/choroohat/masail-aljahilia/'+String(i+1).padStart(3,'0')+'.mp3',source:'https://al-badr.net/sub/60',direct:true},
+  usulIman:{name:'شرح كتاب أصول الإيمان',count:30,url:i=>'https://al-badr.net/download/esound/choroohat/usul-aliman/'+String(i+1).padStart(3,'0')+'.mp3',source:'https://al-badr.net/sub/56',direct:true},
   usulAqaid:{name:'شرح رسالة أصول العقائد الدينية',count:14,url:i=>'https://al-badr.net/download/esound/choroohat/usul-alakaid/'+String(i+1).padStart(3,'0')+'.mp3',source:'https://al-badr.net/sub/58',direct:true},
   kabair:{name:'شرح كتاب الكبائر',count:41,url:i=>'https://al-badr.net/download/esound/choroohat/alkabair-li-abdil-wahhab/'+String(i+1).padStart(2,'0')+'.mp3',source:'https://al-badr.net/sub/315',direct:true},
   sharia:{name:'شرح كتاب الشريعة للآجري',count:140,source:'https://al-badr.net/sub/341'},
@@ -1110,6 +1110,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   if(auto)audio.play().then(()=>play.textContent='⏸').catch(()=>status.textContent='تعذر التشغيل التلقائي؛ اضغط زر التشغيل.');
  }
  series.addEventListener('change',fill);track.addEventListener('change',()=>loadTrack(false));
+ audio.addEventListener('play',()=>{const radio=window.__anwarRadioAudio;if(radio&&!radio.paused)radio.pause()});
  play.addEventListener('click',()=>{const radio=window.__anwarRadioAudio;if(radio&&!radio.paused)radio.pause();const c=catalog[series.value];if(!c.direct){renderSource(c);status.textContent='اختر الدرس وشغّله من المشغل المضمّن داخل المفكرة؛ إن لم يظهر بسبب قيود المصدر فافتح الرابط الأصلي.';return;}if(!audio.src)loadTrack(false);if(audio.paused)audio.play().then(()=>play.textContent='⏸').catch(()=>status.textContent='تعذر تشغيل الملف؛ افتح المصدر الأصلي.');else{audio.pause();play.textContent='▶';}});
  $('lessonPrev').addEventListener('click',()=>{if(!catalog[series.value].direct)return;current=Math.max(0,(+track.value||0)-1);track.value=current;loadTrack(true)});
  $('lessonNext').addEventListener('click',()=>{if(!catalog[series.value].direct)return;current=Math.min(catalog[series.value].count-1,(+track.value||0)+1);track.value=current;loadTrack(true)});
@@ -1133,7 +1134,18 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  });
  audio.addEventListener('pause',()=>{if(!audio.ended){play.textContent='▶';if('mediaSession' in navigator)try{navigator.mediaSession.playbackState='paused'}catch(e){}}});
  audio.addEventListener('ended',()=>{if(current<catalog[series.value].count-1){current++;track.value=current;loadTrack(true)}else{play.textContent='▶';status.textContent='انتهت السلسلة.';if('mediaSession' in navigator)try{navigator.mediaSession.playbackState='none'}catch(e){}}});
- audio.addEventListener('error',()=>{play.textContent='▶';status.textContent='تعذر تحميل هذا التسجيل؛ افتح صفحة السلسلة الرسمية من الرابط أدناه.';if('mediaSession' in navigator)try{navigator.mediaSession.playbackState='none'}catch(e){}});
+ audio.addEventListener('error',()=>{
+  play.textContent='▶';
+  status.textContent='تعذّر تشغيل الدرس '+(current+1)+' من هذه السلسلة؛ افتح التسجيل من المصدر الأصلي أدناه.';
+  const direct=audio.currentSrc||audio.src;
+  if(direct){
+   const fallback=document.createElement('a');
+   fallback.href=direct;fallback.target='_blank';fallback.rel='noopener noreferrer';
+   fallback.textContent='↗ محاولة فتح ملف الدرس مباشرة';
+   links.prepend(fallback);
+  }
+  if('mediaSession' in navigator)try{navigator.mediaSession.playbackState='none'}catch(e){}
+ });
  if('mediaSession' in navigator){
   try{
    navigator.mediaSession.setActionHandler('play',()=>audio.play().catch(()=>{}));
