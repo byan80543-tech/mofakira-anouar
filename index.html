@@ -3153,7 +3153,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  const libraryShell=page.querySelector('.library-shell')||page;
  libraryShell.append(readerView);
  let activeReader=null,activePdfDocument=null,activePdfLoadingTask=null;
- let activePdfPage=1,readerZoom=1,readerTone='day',readerRenderTask=null,readerRenderToken=0;
+ let activePdfPage=1,readerZoom=1,readerTone='day',readerRenderTask=null,readerRenderToken=0,readerOpenRequest=0;
  let readerOutline=[],readerBookmarks=[];
  const readerProgressKey='anwar_pdf_progress_v1';
  const readerBookmarksKey='anwar_pdf_bookmarks_v1';
@@ -3314,9 +3314,12 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  }
  async function openReader(book){
   if(!book||!book.pdfUrl)return;
-  if(activePdfLoadingTask){try{activePdfLoadingTask.destroy()}catch(e){}activePdfLoadingTask=null}
-  if(activePdfDocument){try{await activePdfDocument.destroy()}catch(e){}activePdfDocument=null}
+  const request=++readerOpenRequest;
   activeReader=book;
+  if(activePdfLoadingTask){try{await activePdfLoadingTask.destroy()}catch(e){}activePdfLoadingTask=null}
+  if(request!==readerOpenRequest)return;
+  if(activePdfDocument){try{await activePdfDocument.destroy()}catch(e){}activePdfDocument=null}
+  if(request!==readerOpenRequest)return;
   readerReturnView=activeLibraryView;
   ['libraryHome','librarySearchView','librarySavedView'].forEach(id=>$(id).hidden=true);
   readerView.hidden=false;
@@ -3332,8 +3335,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   $('readerBack').focus();
   try{
    const engine=await ensurePdfEngine();
-   if(activeReader!==book)return;
-   if(activePdfDocument){try{await activePdfDocument.destroy()}catch(e){}activePdfDocument=null}
+   if(activeReader!==book||request!==readerOpenRequest)return;
    activePdfLoadingTask=engine.getDocument({url:book.pdfUrl,rangeChunkSize:65536,disableStream:false,disableAutoFetch:false});
    activePdfLoadingTask.onProgress=progress=>{
     if(activeReader===book&&progress?.total){
@@ -3342,7 +3344,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
     }
    };
    activePdfDocument=await activePdfLoadingTask.promise;
-   if(activeReader!==book)return;
+   if(activeReader!==book||request!==readerOpenRequest)return;
    activePdfLoadingTask=null;
    activePdfPage=Math.min(activePdfPage,activePdfDocument.numPages||1);
    $('readerPages').textContent=String(activePdfDocument.numPages);
@@ -3350,14 +3352,15 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
    await loadReaderOutline();
    await renderReaderPage();
   }catch(error){
-   if(activeReader!==book)return;
-   if(activePdfLoadingTask){try{activePdfLoadingTask.destroy()}catch(e){}activePdfLoadingTask=null}
+   if(activeReader!==book||request!==readerOpenRequest)return;
+   if(activePdfLoadingTask){try{await activePdfLoadingTask.destroy()}catch(e){}activePdfLoadingTask=null}
    if(activePdfDocument){try{await activePdfDocument.destroy()}catch(e){}activePdfDocument=null}
    showReaderFallback(error);
   }
  }
  function closeReader(){
   if(readerView.hidden)return;
+  readerOpenRequest++;
   readerView.hidden=true;
   $('readerBookmarkPanel').hidden=true;$('readerContentsPanel').hidden=true;
   show(readerReturnView||'libraryHome');
@@ -3398,9 +3401,6 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  },{passive:true});
  window.addEventListener('resize',()=>{
   if(!readerView.hidden&&activePdfDocument)goToReaderPage(activePdfPage);
- });
- window.addEventListener('anwar-pdf-engine-ready',()=>{
-  if(!readerView.hidden&&activeReader&&!activePdfDocument)openReader(activeReader);
  });
  const saveKey='anwar_library_saved_v1';
  const libraryThemeKey='anwar_library_theme_v1';
