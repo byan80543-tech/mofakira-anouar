@@ -13,8 +13,8 @@
   "theme_color": "#09264d",
   "icons": [
     {
-      "src": "icon-256.jpg?v=20261116-1",
-      "sizes": "256x256",
+      "src": "icon-144.jpg?v=20261116-2",
+      "sizes": "144x144",
       "type": "image/jpeg",
       "purpose": "any"
     }
