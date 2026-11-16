@@ -660,6 +660,82 @@ dialog[open]>.float-head{display:none!important}
 @media(max-width:390px){.library-shell{padding-inline:10px}.library-top-actions button{padding-inline:8px}.library-category{gap:8px;padding:10px 8px;min-height:88px}.library-category-icon{width:37px;height:37px}.library-category-copy strong{font-size:14px}.library-resource{grid-template-columns:minmax(0,1fr) auto;padding:10px}.library-resource-actions a,.library-resource-actions button{min-width:65px}}
 @media(prefers-reduced-motion:reduce){.library-category{transition:none}}
 
+
+/* مكتبة أنوار: انتقال كامل الشاشة إلى فضاء مستقل */
+#libraryPage{
+ position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;
+ max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;
+ overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain!important;
+ background:radial-gradient(ellipse at 12% 4%,#1b5682 0%,transparent 34%),radial-gradient(ellipse at 88% 92%,#173e63 0%,transparent 40%),linear-gradient(145deg,#061a35 0%,#0b2b4d 52%,#071d38 100%)!important;
+ color:#f7f0dc!important;direction:rtl!important;isolation:isolate
+}
+#libraryPage[hidden]{display:none!important}
+#libraryPage .library-shell{
+ width:100%!important;max-width:none!important;min-height:100vh!important;min-height:100dvh!important;
+ margin:0!important;padding:calc(12px + env(safe-area-inset-top,0px)) clamp(13px,3vw,34px) calc(16px + env(safe-area-inset-bottom,0px))!important;
+ gap:clamp(13px,2.2vh,22px)!important
+}
+#libraryPage .library-top{
+ position:sticky;top:0;z-index:3;margin:calc(-1 * (12px + env(safe-area-inset-top,0px))) calc(-1 * clamp(13px,3vw,34px)) 0;
+ padding:calc(10px + env(safe-area-inset-top,0px)) clamp(13px,3vw,34px) 10px;
+ background:linear-gradient(180deg,#071d38f5,#0b2b4deF);border-bottom:1px solid #d9b76b55;
+ box-shadow:0 5px 18px #020d1e55;backdrop-filter:blur(12px)
+}
+#libraryPage .library-brand-copy strong{color:#ffe4a1;font-size:clamp(21px,2.5vw,27px)}
+#libraryPage .library-brand-copy small{color:#c7d4e2}
+#libraryPage .library-mark{background:linear-gradient(145deg,#f6d98d,#bd8734);color:#102d4c;border:1px solid #ffedb5;box-shadow:0 3px 12px #0004}
+#libraryPage .library-top-actions button,#libraryPage .library-back{
+ background:#102f50;color:#f8e7bc;border-color:#c9a96a;font-size:12px;min-height:40px
+}
+#libraryPage .library-top-actions button[aria-pressed="true"]{background:#d7b56d;color:#102b49;border-color:#f4d994}
+#libraryPage .library-hero{
+ min-height:clamp(145px,22vh,220px);display:flex;flex-direction:column;justify-content:center;
+ padding:clamp(20px,4vw,38px);border:1px solid #e1c27b;border-radius:20px;
+ background:radial-gradient(circle at 8% 10%,#397aa0 0,transparent 42%),linear-gradient(120deg,#103b62,#0b2850 70%,#143e60);
+ box-shadow:0 12px 30px #0003,inset 0 1px #fff4
+}
+#libraryPage .library-hero h1{color:#ffdfa0;font-size:clamp(27px,4vw,42px)}
+#libraryPage .library-hero p{color:#e3eaf0;font-size:clamp(12px,1.5vw,15px);max-width:760px}
+#libraryPage .library-search{min-height:50px;background:#f8f3e8;border:1px solid #d9bc7c;box-shadow:0 5px 16px #0002}
+#libraryPage .library-search input{color:#173653}
+#libraryPage .library-section-heading strong,#libraryPage .library-panel-title strong{color:#ffe1a0}
+#libraryPage .library-section-heading small,#libraryPage .library-panel-title small{color:#c4d0db}
+#libraryPage .library-categories{grid-template-columns:repeat(auto-fit,minmax(min(100%,245px),1fr));gap:clamp(10px,1.6vw,17px)}
+#libraryPage .library-category{
+ min-height:clamp(92px,13vh,124px);padding:clamp(13px,2vw,20px);
+ border:1px solid #d4b36c88;border-radius:16px;
+ background:linear-gradient(145deg,#123a60,#0c294b 75%);color:#fff2d2;
+ box-shadow:0 7px 20px #0002,inset 0 1px #ffffff12;
+}
+#libraryPage .library-category:hover{border-color:#f4d48d;background:linear-gradient(145deg,#194a70,#103254)}
+#libraryPage .library-category-icon{background:linear-gradient(145deg,#f8dfa0,#c18e40);color:#123253;border-color:#ffedbd}
+#libraryPage .library-category-copy strong{color:#ffe6ad;font-size:clamp(15px,1.7vw,18px)}
+#libraryPage .library-category-copy small{color:#d0dce5;font-size:11px}
+#libraryPage .library-category-arrow{color:#f1d18c}
+#libraryPage .library-panel-head{padding:4px 0}
+#libraryPage .library-resource{
+ background:#f8f4ea;border-color:#d9c18d;box-shadow:0 5px 16px #0002
+}
+#libraryPage .library-resource-copy strong{color:#183b5a}
+#libraryPage .library-resource-copy p{color:#665e4c}
+#libraryPage .library-resource-copy small{color:#94713c}
+#libraryPage .library-resource-actions a{background:linear-gradient(125deg,#12385e,#1c5277);border-color:#c9a96a}
+#libraryPage .library-resource-actions button{background:#fff7e4;color:#76551f}
+#libraryPage .library-empty{background:#102f50;color:#f4e5c1;border-color:#c9a96a}
+#libraryPage .library-footnote{color:#c2cfdb;border-color:#d8bb7955}
+#libraryPage button:focus-visible,#libraryPage a:focus-visible,#libraryPage input:focus-visible{outline:3px solid #ffdc8c;outline-offset:3px}
+@media(max-width:520px){
+ #libraryPage .library-shell{padding-inline:12px!important}
+ #libraryPage .library-top{margin-inline:-12px;padding-inline:12px}
+ #libraryPage .library-categories{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #libraryPage .library-category{min-height:96px;padding:10px 9px;gap:8px}
+ #libraryPage .library-category-icon{width:37px;height:37px;font-size:18px}
+ #libraryPage .library-category-copy strong{font-size:14px}
+ #libraryPage .library-category-copy small{font-size:9px}
+ #libraryPage .library-category-arrow{font-size:14px}
+}
+@media(prefers-reduced-motion:reduce){#libraryPage *{scroll-behavior:auto!important;transition:none!important}}
+
 </style>
 </head>
 <body>
@@ -860,7 +936,7 @@ dialog[open]>.float-head{display:none!important}
  <div class="owner-actions"><button type="button" id="closeOwner">إغلاق</button></div>
 </dialog>
 
-<section id="libraryPage" hidden aria-hidden="true" aria-label="مكتبة أنوار">
+<section id="libraryPage" hidden aria-hidden="true" aria-label="مكتبة أنوار" role="dialog" aria-modal="true">
  <div class="library-shell">
   <header class="library-top">
    <div class="library-brand"><span class="library-mark" aria-hidden="true">▤</span><span class="library-brand-copy"><strong>مكتبة أنوار</strong><small>القرآن · العلم · الأدب · التراث</small></span></div>
