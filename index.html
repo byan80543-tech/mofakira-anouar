@@ -1106,7 +1106,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  function moveSurah(step){const a=availableSurahs(),i=a.indexOf(n),next=i<0?0:(i+step+a.length)%a.length;n=a[next];rsu.value=String(n);play()}
  function play(){
   const lesson=$('lessonAudio');if(lesson&&!lesson.paused)lesson.pause();
-  if(countryActiveAudio)stopCountryAudio();
+  if(typeof window.__anwarStopCountryAudio==='function')window.__anwarStopCountryAudio();
   started=true;
   const available=availableSurahs();
   if(!available.includes(n))n=available[0]||1;
@@ -1135,7 +1135,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   ui();
  }
  function toggle(){
-  if(countryActiveAudio)stopCountryAudio();
+  if(typeof window.__anwarStopCountryAudio==='function')window.__anwarStopCountryAudio();
   if(started&&au.src){
    if(au.paused)au.play().catch(()=>{});
    else{au.pause();st.textContent='متوقف مؤقتًا'}
@@ -1424,6 +1424,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   return {pages:Math.max(1,pages),total,marker};
  }
  function renderCountryRows(){
+  countryPlayToken++;abortCountryProfileRequest();
   if(countryActiveAudio)stopCountryAudio();
   const q=countryNorm(countrySearch.value);
   const filtered=activeCountryRows.filter(row=>!q||countryNorm(row.name).includes(q));
@@ -1437,6 +1438,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   const entry=countryDirectory[key];if(!entry)return;
   const targetPage=Math.max(1,Number(page)||1);
   const token=++countryLoadToken;
+  countryPlayToken++;
   activeCountryKey=key;
   abortCountryPageRequest();
   abortCountryProfileRequest();
@@ -1578,7 +1580,11 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   countryActiveAudio=null;countryActiveButton=null;countryActiveCard=null;
   if('mediaSession' in navigator)try{navigator.mediaSession.playbackState='none'}catch(_e){}
  }
- window.__anwarStopCountryAudio=()=>{if(countryActiveAudio)stopCountryAudio()};
+ window.__anwarStopCountryAudio=()=>{
+  countryPlayToken++;
+  abortCountryProfileRequest();
+  if(countryActiveAudio)stopCountryAudio();
+ };
  function mountCountryAudio(card,button,name,urls,sourceLabel){
   const mainRadio=window.__anwarRadioAudio,lessonAudio=$('lessonAudio');
   if(mainRadio&&!mainRadio.paused)mainRadio.pause();
@@ -1722,7 +1728,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   clearTimeout(sl);const m=+e.target.value;
   if(m){
    sl=setTimeout(()=>{
-    if(countryActiveAudio)stopCountryAudio();
+    if(typeof window.__anwarStopCountryAudio==='function')window.__anwarStopCountryAudio();
     const lesson=$('lessonAudio');if(lesson&&!lesson.paused)lesson.pause();
     au.pause();started=false;ui();$('rtm').value='0';toast('انتهى مؤقت النوم');
    },m*60000);
