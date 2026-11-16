@@ -220,6 +220,70 @@ body.radio-open{overflow:hidden}
 .palette-swatch{width:18px;height:18px;border:1px solid rgba(0,0,0,.2);border-radius:5px;flex:none}
 .palette-unified{width:100%;margin-top:9px;padding:8px;border:0;border-radius:8px;background:var(--ac);color:#fff;font-weight:700}
 
+
+/* توحيد نوافذ الأيقونات على الهاتف: طبقة كاملة الشاشة بدل اللوحات الجانبية */
+@media (max-width:800px){
+  dialog,
+  dialog[open]{
+    position:fixed!important;
+    inset:0!important;
+    margin:0!important;
+    width:100vw!important;
+    min-width:100vw!important;
+    max-width:100vw!important;
+    height:100dvh!important;
+    min-height:100dvh!important;
+    max-height:100dvh!important;
+    border:0!important;
+    border-radius:0!important;
+    padding:calc(16px + env(safe-area-inset-top,0px)) 14px calc(16px + env(safe-area-inset-bottom,0px))!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain;
+    transform:none!important;
+  }
+  dialog::backdrop{background:rgba(8,20,35,.66)}
+  dialog>.float-head{display:none!important}
+  #ownerDialog{
+    inset:0!important;
+    width:100vw!important;
+    min-width:100vw!important;
+    max-width:100vw!important;
+    height:100dvh!important;
+    min-height:100dvh!important;
+    max-height:100dvh!important;
+    padding:calc(18px + env(safe-area-inset-top,0px)) 14px calc(18px + env(safe-area-inset-bottom,0px))!important;
+  }
+  /* لوحة الألوان واختيار الخط يأخذان الشاشة كلها ولا يزاحمان محتوى الهاتف */
+  #palettePanel,
+  #fm{
+    position:fixed!important;
+    inset:0!important;
+    top:0!important;
+    right:0!important;
+    bottom:0!important;
+    left:0!important;
+    width:100vw!important;
+    min-width:100vw!important;
+    max-width:100vw!important;
+    height:100dvh!important;
+    max-height:100dvh!important;
+    margin:0!important;
+    border:0!important;
+    border-radius:0!important;
+    padding:calc(18px + env(safe-area-inset-top,0px)) 14px calc(18px + env(safe-area-inset-bottom,0px))!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain;
+    box-shadow:none!important;
+    z-index:3000!important;
+  }
+  #palettePanel.open{display:block}
+  #fm{display:none}
+  #fm.o{display:flex}
+  #fl{flex:1;min-height:0;overflow-y:auto}
+}
+
 </style>
 </head>
 <body>
