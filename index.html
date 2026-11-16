@@ -1113,7 +1113,11 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   const station=mode()==='l';
   const rawBase=R[cr]&&safeHttpsURL(R[cr][1]);
   const base=rawBase?rawBase.replace(/\/?$/,'/'):'';
-  const u=station?safeHttpsURL($('rl').value):(base?base+String(n).padStart(3,'0')+'.mp3':'');
+  let host='';
+  try{host=new URL(base).hostname.toLowerCase()}catch(_e){}
+  const way2quranHost=host==='way2quran.com'||host.endsWith('.way2quran.com');
+  const fileName=way2quranHost?String(n)+'.mp3':String(n).padStart(3,'0')+'.mp3';
+  const u=station?safeHttpsURL($('rl').value):(base?base+fileName:'');
   if(!u){
    started=false;st.textContent='لا يتوفر رابط صوت صالح لهذا الاختيار.';ui();return;
   }
