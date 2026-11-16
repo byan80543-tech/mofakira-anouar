@@ -753,12 +753,66 @@ function makeQR(){const url=$('shareUrl').value.trim();if(!/^https?:\/\//i.test(
 function downloadAppIcon(){const href=document.querySelector('link[rel=icon]').href,img=new Image();img.onload=()=>{const c=document.createElement('canvas');c.width=1024;c.height=1024;c.getContext('2d').drawImage(img,0,0,1024,1024);const a=document.createElement('a');a.download='أيقونة-مفكرة-أنوار.png';a.href=c.toDataURL('image/png');a.click();toast('تم تنزيل أيقونة مفكرة أنوار')};img.onerror=()=>toast('تعذّر تجهيز الأيقونة');img.src=href}
 function downloadQRPoster(){const box=$('qrPreview'),qr=box.querySelector('canvas')||box.querySelector('img');if(!qr){toast('أنشئ رمز QR أولًا');return}const c=document.createElement('canvas');c.width=1080;c.height=1350;const x=c.getContext('2d');x.fillStyle='#f8f3e8';x.fillRect(0,0,c.width,c.height);x.strokeStyle='#b58a43';x.lineWidth=18;x.strokeRect(35,35,1010,1280);x.strokeStyle='#173b58';x.lineWidth=4;x.strokeRect(58,58,964,1234);x.fillStyle='#102f4b';x.textAlign='center';x.direction='rtl';x.font='bold 70px serif';x.fillText('مفكرة أنوار',540,175);x.font='34px serif';x.fillStyle='#76562a';x.fillText('الكلمة والقرآن رفيقان في كل وقت',540,235);x.fillStyle='#fff';x.fillRect(330,310,420,420);x.strokeStyle='#c29a50';x.lineWidth=12;x.strokeRect(320,300,440,440);if(qr.tagName==='CANVAS')x.drawImage(qr,350,330,380,380);else{x.drawImage(qr,350,330,380,380)}x.fillStyle='#173b58';x.font='bold 42px serif';x.fillText('امسح الرمز لزيارة المفكرة',540,825);x.font='34px serif';x.fillText('المطوّر وصاحب المشروع: Anouar Oumlili',540,910);x.fillText('أنوار أومليلي · الحسيمة · المملكة المغربية',540,970);x.font='28px serif';x.fillStyle='#80602f';x.fillText('المملكة المغربية',540,1080);x.font='25px serif';x.fillText('مفكرة أدبية · إذاعة القرآن · الأذكار',540,1150);const a=document.createElement('a');a.download='بطاقة-مفكرة-أنوار.png';a.href=c.toDataURL('image/png');a.click();toast('تم تجهيز بطاقة النشر PNG')}
 function speak(){
- if(!('speechSynthesis' in window)){toast('المتصفح لا يدعم الإلقاء');return}
- if(speaking){speechSynthesis.cancel();speaking=false;$('sp').textContent='🔊 إلقاء';return}
- const u=new SpeechSynthesisUtterance(pg.innerText);u.lang='ar-SA';u.rate=.85;
- u.onend=u.onerror=()=>{speaking=false;$('sp').textContent='🔊 إلقاء'};
- speaking=true;$('sp').textContent='⏹️ إيقاف';speechSynthesis.speak(u);
-}
+  const synth=window.speechSynthesis;
+  if(!synth||typeof window.SpeechSynthesisUtterance!=='function'){
+   toast('الإلقاء الصوتي غير متاح في هذا المتصفح؛ جرّب Chrome المحدّث');
+   return;
+  }
+  if(speaking){
+   speaking=false;speak.run=(speak.run||0)+1;
+   synth.cancel();$('sp').textContent='🔊 إلقاء';toast('تم إيقاف الإلقاء');
+   return;
+  }
+  const text=(pg.innerText||pg.textContent||'').replace(/\u200b/g,' ').replace(/[ \t]+\n/g,'\n').trim();
+  if(!text){toast('اكتب نصًا أولًا ثم اضغط «إلقاء»');return;}
+  const voices=typeof synth.getVoices==='function'?synth.getVoices():[];
+  const voice=voices.find(v=>/^ar[-_]MA/i.test(v.lang||''))||
+   voices.find(v=>/^ar[-_]SA/i.test(v.lang||''))||
+   voices.find(v=>/^ar([_-]|$)/i.test(v.lang||''))||null;
+  const chunks=[];
+  let rest=text;
+  while(rest.length>220){
+   let cut=-1;
+   ['\n','؟','!','،','؛','.',' '].forEach(mark=>{
+    const p=rest.lastIndexOf(mark,220);
+    if(p>95&&p>cut)cut=p+(mark===' '?0:1);
+   });
+   if(cut<96)cut=220;
+   chunks.push(rest.slice(0,cut).trim());
+   rest=rest.slice(cut).trim();
+  }
+  if(rest)chunks.push(rest);
+  let index=0;
+  const run=speak.run=(speak.run||0)+1;
+  speaking=true;$('sp').textContent='⏹️ إيقاف';
+  toast(voice?'بدأ الإلقاء بالصوت العربي: '+voice.name:'بدأ الإلقاء؛ يستخدم المتصفح صوته الافتراضي إن كان يدعم العربية');
+  function finish(message){
+   if(run!==speak.run)return;
+   speaking=false;$('sp').textContent='🔊 إلقاء';
+   if(message)toast(message,4000);
+  }
+  function next(){
+   if(run!==speak.run||!speaking)return;
+   if(index>=chunks.length){finish('اكتمل إلقاء النص');return;}
+   const utterance=new window.SpeechSynthesisUtterance(chunks[index]);
+   utterance.lang=voice?.lang||'ar-SA';
+   if(voice)utterance.voice=voice;
+   utterance.rate=.85;utterance.pitch=1;utterance.volume=1;
+   utterance.onend=()=>{if(run!==speak.run)return;index++;next();};
+   utterance.onerror=e=>{
+    if(run!==speak.run)return;
+    const reason=e&&e.error;
+    finish(reason==='not-allowed'?
+     'منع المتصفح الإلقاء؛ اضغط الزر مجددًا واسمح بخدمة تحويل النص إلى كلام':
+     'تعذّر تشغيل الصوت. تحقّق من تثبيت صوت عربي في إعدادات تحويل النص إلى كلام بالهاتف');
+   };
+   try{synth.speak(utterance);}
+   catch(e){finish('تعذّر بدء الإلقاء في هذا المتصفح');}
+  }
+  synth.cancel();
+  if(synth.paused)try{synth.resume();}catch(e){}
+  next();
+ }
 $('rib').addEventListener('mousedown',e=>{if(e.target.closest('button'))e.preventDefault()});
 document.addEventListener('click',e=>{
  const t=e.target.closest('button,.card,#fl div');
