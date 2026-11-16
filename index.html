@@ -1418,6 +1418,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
    return;
   }
   button.disabled=true;button.textContent='…';
+  if(countryActiveAudio)stopCountryAudio();
   try{
    const direct=countryMp3QuranSource(name);
    if(direct){
