@@ -1022,16 +1022,8 @@ dialog[open]>.float-head{display:none!important}
   </div>
   <label class="library-search"><span aria-hidden="true">⌕</span><input id="librarySearch" type="search" placeholder="ابحث عن كتاب…" autocomplete="off" aria-label="ابحث عن كتاب"></label>
   <section id="libraryHome">
-   <div class="library-columns">
-    <section class="library-column library-column-literature" aria-label="الأدب">
-     <h2 class="library-column-heading">الأدب</h2>
-     <div id="libraryLiteratureCategories" class="library-categories"></div>
-    </section>
-    <section class="library-column library-column-religion" aria-label="الدين">
-     <h2 class="library-column-heading">الدين</h2>
-     <div id="libraryReligionCategories" class="library-categories"></div>
-    </section>
-   </div>
+   <div class="library-section-heading"><strong>تصنيفات المكتبة</strong><small>كتب PDF مجانية متاحة للقراءة</small></div>
+   <div id="libraryAllCategories" class="library-categories"></div>
   </section>
   <section id="libraryCategoryView" class="library-panel" hidden>
    <div class="library-panel-head">
@@ -1542,6 +1534,46 @@ button:focus:not(:focus-visible){outline:none}
 #libraryReaderView .reader-controls button:disabled{opacity:.4}
 #libraryReaderView .reader-loading{padding:28px;text-align:center;color:var(--lib-muted);font:14px Cairo,Tahoma,sans-serif}
 
+
+/* قارئ PDF الداخلي: صفحة كاملة ومركّزة على الهاتف والحاسوب */
+#libraryPage .library-search{margin-bottom:2px}
+#libraryPage .library-resource-copy p{display:block;white-space:normal}
+#libraryPage .library-resource-copy small{display:block;line-height:1.6}
+#libraryPage .library-resource-actions button:first-child{min-width:88px;min-height:39px}
+#libraryReaderView.library-pdf-reader{
+ position:fixed!important;inset:0!important;z-index:220000!important;
+ width:100vw!important;height:100vh!important;height:100dvh!important;max-width:none!important;
+ margin:0!important;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)!important;
+ display:flex!important;flex-direction:column!important;gap:0!important;overflow:hidden!important;
+ background:#071a2d!important;border:0!important;border-radius:0!important;
+}
+#libraryReaderView.library-pdf-reader[hidden]{display:none!important}
+#libraryReaderView .pdf-reader-toolbar{
+ min-height:58px;display:flex;align-items:center;gap:10px;padding:7px 12px;
+ background:linear-gradient(110deg,#071d38,#123d61);color:#fff0ca;
+ border-bottom:1px solid #c9a96a;box-shadow:0 3px 12px #0003;flex:none
+}
+#libraryReaderView .pdf-reader-toolbar button{
+ flex:none;min-height:39px;padding:7px 12px;border:1px solid #d8bd7c;border-radius:9px;
+ background:#f7e6bd;color:#163654;font:700 12px Cairo,Tahoma,sans-serif
+}
+#libraryReaderView .pdf-reader-heading{flex:1;min-width:0;display:grid;gap:2px}
+#libraryReaderView .pdf-reader-heading strong{
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:700 16px 'Aref Ruqaa',Amiri,serif;color:#ffe2a3
+}
+#libraryReaderView .pdf-reader-heading small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#d3dfeb;font:10px Cairo,Tahoma,sans-serif}
+#libraryReaderView .pdf-reader-badge{flex:none;border:1px solid #d8bd7c;border-radius:7px;padding:5px 7px;color:#f8e8c6;font:700 10px Cairo,Tahoma,sans-serif}
+#libraryReaderView .pdf-reader-frame{
+ flex:1 1 auto;width:100%;height:calc(100% - 58px);min-height:0;border:0;background:#d8dce2;
+ display:block;overscroll-behavior:contain
+}
+@media(max-width:430px){
+ #libraryReaderView .pdf-reader-toolbar{min-height:54px;padding-inline:8px;gap:7px}
+ #libraryReaderView .pdf-reader-toolbar button{min-height:37px;padding-inline:9px;font-size:11px}
+ #libraryReaderView .pdf-reader-heading strong{font-size:14px}
+ #libraryReaderView .pdf-reader-heading small{font-size:9px}
+ #libraryReaderView .pdf-reader-frame{height:calc(100% - 54px)}
+}
 </style></head><body>${$('pa').innerHTML}\x3Cscript>onload=function(){setTimeout(function(){print()},900)}<\/script>
 
 
@@ -2842,62 +2874,63 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  if(!page||!openButton)return;
  const $=id=>document.getElementById(id);
  const categories=[
-  {id:'quran',name:'القرآن',short:'المصحف والتلاوة وعلوم القرآن',icon:'🌷',description:'مصحف للقراءة والاستماع، ومراجع للتفسير والتجويد والقراءات وعلوم القرآن.',resources:[
-   {id:'quran-com',title:'مصحف Quran.com',description:'قراءة القرآن الكريم والاستماع إلى التلاوات والبحث في السور والآيات.',source:'Quran.com · منصة القرآن',url:'https://quran.com/ar',tags:'قرآن مصحف سورة آية قراءة استماع تلاوة'},
-   {id:'waqfeya-qiraat',title:'كتب التجويد والقراءات',description:'فهرس متخصص في التجويد وأصول القراءات والروايات ومتون هذا العلم.',source:'المكتبة الوقفية · 211.8',url:'https://waqfeya.net/categories/2118-%D9%83%D8%AA%D8%A8-%D8%A7%D9%84%D8%AA%D8%AC%D9%88%D9%8A%D8%AF-%D9%88%D8%A7%D9%84%D9%82%D8%B1%D8%A7%D8%A1%D8%A7%D8%AA-30c210734d3448c2943410705ac6d73a',tags:'تجويد قراءات روايات ورش حفص شاطبية'},
-   {id:'waqfeya-quran-sciences',title:'كتب علوم القرآن',description:'مباحث علوم القرآن والرسم والوقف والابتداء وغريب القرآن.',source:'المكتبة الوقفية · 211',url:'https://waqfeya.net/categories/211-%D9%83%D8%AA%D8%A8-%D8%B9%D9%84%D9%88%D9%85-%D8%A7%D9%84%D9%82%D8%B1%D8%A2%D9%86-575be67c490742e4b3f38cc8201b1f44',tags:'علوم القرآن رسم عثماني غريب القرآن'},
-   {id:'waqfeya-tafsir',title:'كتب التفسير',description:'فهرس التفاسير ومصنفات شرح معاني الآيات وأسباب النزول.',source:'المكتبة الوقفية · 212',url:'https://waqfeya.net/categories/212-%D9%83%D8%AA%D8%A8-%D8%A7%D9%84%D8%AA%D9%81%D8%A7%D8%B3%D9%8A%D8%B1-edcaae95b59b4ce7af1338766f873ac3',tags:'تفسير ابن كثير طبري قرطبي السعدي'},
+  {id:'quran',name:'القرآن الكريم',short:'المصحف الشريف وعلوم القرآن',icon:'📖',description:'المصحف الشريف للقراءة في صفحة PDF واضحة.',resources:[
+   {id:'mushaf-madinah',title:'مصحف المدينة النبوية — رواية حفص',author:'مجمع الملك فهد لطباعة المصحف الشريف',description:'المصحف الشريف بالرسم العثماني، رواية حفص عن عاصم.',source:'واحة الإتقان · ملف PDF مجاني',pages:605,size:'5.3 MB',pdfUrl:'https://wahatalitqan.com/downloads/mushaf-madinah.pdf',tags:'القرآن الكريم المصحف حفص المدينة النبوية'}
   ]},
-  {id:'sharia',name:'العلوم الشرعية',short:'التوحيد والعقيدة والفقه',icon:'📚',description:'مصادر العقيدة والتوحيد والفقه والتزكية، وفهارس مؤلفات العلماء وشروح المتون.',resources:[
-   {id:'waqfeya-tawhid',title:'كتب التوحيد والعقيدة',description:'تصنيف مستقل لكتب التوحيد والعقيدة، يضم متونًا وشروحًا ومؤلفات في الاعتقاد.',source:'المكتبة الوقفية · 214',url:'https://waqfeya.net/categories/214-%D9%83%D8%AA%D8%A8-%D8%A7%D9%84%D8%AA%D9%88%D8%AD%D9%8A%D8%AF-%D9%88%D8%A7%D9%84%D8%B9%D9%82%D9%8A%D8%AF%D8%A9-0b4e3c3007aa4c0089b238a24ce66bea',tags:'توحيد عقيدة ابن تيمية ابن القيم ابن الجوزي'},
-   {id:'shamela',title:'المكتبة الشاملة',description:'مكتبة رقمية واسعة للكتب الإسلامية والتراثية، مع البحث في النصوص.',source:'المكتبة الشاملة · الموقع الرسمي',url:'https://shamela.ws/',tags:'ابن تيمية ابن القيم ابن الجوزي فقه عقيدة كتب'},
-   {id:'waqfeya-books',title:'الكتب الفقهية والشرعية',description:'تصفّح الكتب المصوّرة حسب الفن والمؤلف والقرن الهجري.',source:'المكتبة الوقفية',url:'https://waqfeya.net/books',tags:'فقه فتاوى تزكية شرعي'},
-   {id:'ibn-taymiyyah',title:'مؤلفات ابن تيمية',description:'فهرس المؤلفات والرسائل المنسوبة لشيخ الإسلام ابن تيمية ضمن المكتبة الوقفية.',source:'المكتبة الوقفية · المؤلفون',url:'https://waqfeya.net/authors/%D8%A7%D8%A8%D9%86-%D8%AA%D9%8A%D9%85%D9%8A%D8%A9-%D8%A3%D8%AD%D9%85%D8%AF-%D8%A8%D9%86-%D8%B9%D8%A8%D8%AF-%D8%A7%D9%84%D8%AD%D9%84%D9%8A%D9%85-%D8%A8%D9%86-%D8%B9%D8%A8%D8%AF-%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85-%D8%A7%D8%A8%D9%86-%D8%B9%D8%A8%D8%AF-%D8%A7%D9%84%D9%84%D9%87-%D8%A8%D9%86-%D8%A3%D8%A8%D9%8A-%D8%A7%D9%84%D9%82%D8%A7%D8%B3%D9%85-%D8%A7%D9%84%D8%AE%D8%B6%D8%B1-%D8%A7%D9%84%D9%86%D9%85%D9%8A%D8%B1%D9%8A-%D8%A7%D9%84%D8%AD%D8%B1%D8%A7%D9%86%D9%8A-%D8%A7%D9%84%D8%AF%D9%85%D8%B4%D9%82%D9%8A-%D8%A7%D9%84%D8%AD%D9%86%D8%A8%D9%84%D9%8A-%D8%A3%D8%A8%D9%88-%D8%A7%D9%84%D8%B9%D8%A8%D8%A7%D8%B3-%D8%AA%D9%82%D9%8A-%D8%A7%D9%84%D8%AF%D9%8A%D9%86-%D8%A7%D8%A8%D9%86-%D8%AA%D9%8A%D9%85%D9%8A%D8%A9-9359b65ae6d04b74a4d6e94f38592846',tags:'ابن تيمية مؤلفات شيخ الإسلام'},
-   {id:'ibn-alqayyim',title:'مؤلفات ابن قيم الجوزية',description:'فهرس كتب ابن قيم الجوزية، مع بيانات الكتب والطبعات المتاحة.',source:'المكتبة الوقفية · المؤلفون',url:'https://waqfeya.net/authors/%D8%A7%D8%A8%D9%86-%D9%82%D9%8A%D9%85-%D8%A7%D9%84%D8%AC%D9%88%D8%B2%D9%8A%D8%A9-%D9%85%D8%AD%D9%85%D8%AF-%D8%A8%D9%86-%D8%A3%D8%A8%D9%8A-%D8%A8%D9%83%D8%B1-%D8%A8%D9%86-%D8%A3%D9%8A%D9%88%D8%A8-%D8%A8%D9%86-%D8%B3%D8%B9%D8%AF-%D8%A7%D9%84%D8%B2%D8%B1%D8%B9%D9%8A-%D8%A7%D9%84%D8%AF%D9%85%D8%B4%D9%82%D9%8A-%D8%A3%D8%A8%D9%88-%D8%B9%D8%A8%D8%AF-%D8%A7%D9%84%D9%84%D9%87-%D8%B4%D9%85%D8%B3-%D8%A7%D9%84%D8%AF%D9%8A%D9%86-fa1bf7bdbfbe42d2a45efe90d6c831b0',tags:'ابن القيم ابن قيم الجوزية مؤلفات'},
-   {id:'ibn-aljawzi',title:'مؤلفات ابن الجوزي',description:'فهرس كتب الإمام ابن الجوزي ورسائله ضمن المكتبة الوقفية.',source:'المكتبة الوقفية · المؤلفون',url:'https://waqfeya.net/authors/%D8%A7%D8%A8%D9%86-%D8%A7%D9%84%D8%AC%D9%88%D8%B2%D9%8A-%D8%B9%D8%A8%D8%AF-%D8%A7%D9%84%D8%B1%D8%AD%D9%85%D9%86-%D8%A8%D9%86-%D8%B9%D9%84%D9%8A-%D8%A8%D9%86-%D9%85%D8%AD%D9%85%D8%AF-%D8%A7%D9%84%D8%AC%D9%88%D8%B2%D9%8A-%D8%A7%D9%84%D9%82%D8%B1%D8%B4%D9%8A-%D8%A7%D9%84%D8%A8%D8%BA%D8%AF%D8%A7%D8%AF%D9%8A-%D8%A3%D8%A8%D9%88-%D8%A7%D9%84%D9%81%D8%B1%D8%AC-dd06f4c2d41745f38d00ca339def487c',tags:'ابن الجوزي مؤلفات'}
+  {id:'hadith',name:'السنة النبوية',short:'كتب الحديث وشروح السنة',icon:'📜',description:'مصادر الحديث النبوي، ونضيف بقية الكتب والمجلدات تباعا.',resources:[
+   {id:'sahih-bukhari-vol1',title:'صحيح البخاري — الجزء الأول',author:'الإمام محمد بن إسماعيل البخاري',description:'الجزء الأول من طبعة دار الشعب، ويضم أبواب بدء الوحي والإيمان والعلم وغيرها.',source:'المكتبة الوقفية · PDF',pages:875,size:'ضمن مجموعة المجلدات',pdfUrl:'https://archive.org/download/FP1636/01_sabush.pdf',tags:'السنة الحديث صحيح البخاري البخاري'}
   ]},
-  {id:'hadith',name:'الحديث والسنة',short:'الكتب الستة وعلوم الحديث',icon:'📖',description:'متون السنّة وشروحها وكتب مصطلح الحديث والتخريج، مع الرجوع إلى أحكام المحدّثين ومصادرها.',resources:[
-   {id:'waqfeya-six-books',title:'الكتب الستة وشروحها',description:'فهرس لصحيح البخاري وصحيح مسلم والسنن وشروحها ومختصراتها.',source:'المكتبة الوقفية · 213.4',url:'https://waqfeya.net/categories/2134-%D9%83%D8%AA%D8%A8-%D8%A7%D9%84%D9%83%D8%AA%D8%A8-%D8%A7%D9%84%D8%B3%D8%AA%D8%A9-df773095ff774f00a8dc70173954dbed',tags:'البخاري مسلم أبو داود الترمذي النسائي ابن ماجه'},
-   {id:'waqfeya-hadith-rest',title:'بقية مجموعات الحديث',description:'المسانيد والأجزاء الحديثية والمصنفات الحديثية المتنوعة.',source:'المكتبة الوقفية · 213.7',url:'https://waqfeya.net/categories/2137-%D8%A8%D8%A7%D9%82%D9%8A-%D9%85%D8%AC%D9%85%D9%88%D8%B9%D8%A7%D8%AA-%D8%A7%D9%84%D8%AD%D8%AF%D9%8A%D8%AB-2568ee70e9f743aba97934b36a4da418',tags:'حديث مسانيد مصنفات أجزاء'},
-   {id:'waqfeya-hadith-science',title:'مصطلح الحديث',description:'كتب أصول الرواية ومصطلحات المحدّثين ومناهج النقد الحديثي.',source:'المكتبة الوقفية · 213.1',url:'https://waqfeya.net/categories/2131-%D9%83%D8%AA%D8%A8-%D9%85%D8%B5%D8%B7%D9%84%D8%AD-%D8%A7%D9%84%D8%AD%D8%AF%D9%8A%D8%AB-539a6de75f3b4498879d5d35a2987a6f',tags:'مصطلح الحديث أصول الرواية نقد الحديث'},
-   {id:'dorar-hadith',title:'الموسوعة الحديثية',description:'البحث في الأحاديث مع عرض الراوي والمحدّث والمصدر وخلاصة الحكم.',source:'الدرر السنية',url:'https://dorar.net/',tags:'حديث تخريج صحيح حسن ضعيف'}
+  {id:'grammar',name:'النحو والصرف',short:'أمهات كتب النحو وقواعد العربية',icon:'✒️',description:'كتب النحو والصرف، من أصول الصناعة إلى المتون والشروح.',resources:[
+   {id:'kitab-sibawayh-vol1',title:'الكتاب لسيبويه — المجلد الأول',author:'سيبويه · تحقيق عبد السلام هارون',description:'المجلد الأول من كتاب سيبويه في أصول النحو العربي.',source:'المكتبة الوقفية · PDF',size:'ضمن مجموعة المجلدات',pdfUrl:'https://archive.org/download/WAQ54211/01_54211.pdf',tags:'النحو الصرف سيبويه الكتاب'}
   ]},
-  {id:'adab',name:'الأدب العربي',short:'الشعر والنثر والمقامات',icon:'🌷',description:'دواوين الشعر وكتب الأدب والنثر والمقامات والنوادر والرسائل التراثية.',resources:[
-   {id:'book-adab-saghir',title:'الأدب الصغير',description:'كتاب تراثي لعبد الله بن المقفع، متاح بنصه في ويكي مصدر.',source:'عبد الله بن المقفع · نص من الملك العام',url:'https://ar.wikisource.org/wiki/الأدب_الصغير_(1911)',readerPage:'الأدب الصغير (1911)',tags:'ابن المقفع الأدب الصغير حكم وآداب'},
-   {id:'book-akhlaq-siyar',title:'الأخلاق والسير في مداواة النفوس',description:'كتاب في تهذيب الأخلاق ومداواة النفوس لابن حزم الأندلسي.',source:'ابن حزم · نص تراثي',url:'https://ar.wikisource.org/wiki/الأخلاق_والسير_في_مداواة_النفوس',readerPage:'الأخلاق والسير في مداواة النفوس',tags:'ابن حزم الأخلاق والسير تهذيب الأخلاق'},
-   {id:'waqfeya-adab',title:'كتب الأدب العربي',description:'مصنفات الأدب والنثر والنوادر والرسائل والمختارات الأدبية.',source:'المكتبة الوقفية · 810',url:'https://waqfeya.net/categories/810-%D9%83%D8%AA%D8%A8-%D8%A7%D9%84%D8%A3%D8%AF%D8%A8-866e302b71cc46b699b7dfd06264e7c9',tags:'أدب نثر مقامات نوادر رسائل الجاحظ'},
-   {id:'waqfeya-diwan',title:'دواوين الشعر',description:'دواوين الشعراء ومختارات الشعر القديم وشروح القصائد.',source:'المكتبة الوقفية · 811',url:'https://waqfeya.net/categories/%D8%AF%D9%88%D8%A7%D9%88%D9%8A%D9%86-%D8%A7%D9%84%D8%B4%D8%B9%D8%B1-7f8b09bed9f14723b8f45fa51d7154d6',tags:'دواوين شعر شعراء قصائد'},
-   {id:'shamela-adab',title:'الأدب والنوادر في المكتبة الشاملة',description:'ابحث في كتب الأدب والنوادر والبلاغة والمصنفات التراثية.',source:'المكتبة الشاملة',url:'https://shamela.ws/',tags:'مقامات الجاحظ نوادر شعر بلاغة'}
+  {id:'balagha',name:'البلاغة',short:'المعاني والبيان والبديع',icon:'✨',description:'كتب البلاغة العربية وأمهات مباحث البيان والمعاني.',resources:[
+   {id:'balagha-wadiha',title:'البلاغة الواضحة',author:'علي الجارم ومصطفى أمين',description:'كتاب تعليمي في علوم البلاغة، من طبعة دار المعارف.',source:'المكتبة الوقفية · PDF',pages:468,size:'17 MB للنسخة الكاملة',pdfUrl:'https://archive.org/download/WAQblwa/blwa.pdf',tags:'بلاغة بيان معاني بديع الجارم أمين'},
+   {id:'dalail-ijaz',title:'دلائل الإعجاز',author:'عبد القاهر الجرجاني · تحقيق محمود محمد شاكر',description:'من أمهات كتب النظم والبيان والإعجاز اللغوي.',source:'المكتبة الوقفية · PDF',pages:711,size:'10 MB',pdfUrl:'https://www.archive.org/download/waq4438/4438.pdf',tags:'بلاغة إعجاز الجرجاني النظم'}
   ]},
-  {id:'language',name:'علوم اللغة',short:'النحو والعروض والبلاغة',icon:'🎓',description:'علوم العربية: النحو والصرف والعروض والقافية والبلاغة والبيان والبديع.',resources:[
-   {id:'waqfeya-grammar',title:'كتب النحو والصرف',description:'المتون النحوية وشروحها وكتب الإعراب والتصريف.',source:'المكتبة الوقفية · 415',url:'https://waqfeya.net/categories/415-%D9%83%D8%AA%D8%A8-%D8%A7%D9%84%D9%86%D8%AD%D9%88-%D9%88%D8%A7%D9%84%D8%B5%D8%B1%D9%81-881c18c5a5c745a589ac0e827975387f',tags:'نحو صرف إعراب سيبويه ابن مالك'},
-   {id:'waqfeya-arood',title:'كتب العروض والقافية',description:'علم الخليل وأوزان الشعر والزحافات والعلل والقوافي.',source:'المكتبة الوقفية · 416',url:'https://waqfeya.net/categories/416-%D9%83%D8%AA%D8%A8-%D8%A7%D9%84%D8%B9%D8%B1%D9%88%D8%B6-a87ad35a23154716a630d22b6ed7ea52',tags:'عروض قافية أوزان الشعر الخليل'},
-   {id:'waqfeya-balagha',title:'كتب البلاغة',description:'المعاني والبيان والبديع وأسرار البلاغة ونقد الكلام.',source:'المكتبة الوقفية · 414',url:'https://waqfeya.net/categories/414-%D9%83%D8%AA%D8%A8-%D8%A7%D9%84%D8%A8%D9%84%D8%A7%D8%BA%D8%A9-3c25ff153e33493994181ddf9720b175',tags:'بلاغة بيان معاني بديع'},
-   {id:'shamela-language',title:'علوم العربية في المكتبة الشاملة',description:'مصادر إضافية في اللغة والنحو والصرف والأدب.',source:'المكتبة الشاملة',url:'https://shamela.ws/',tags:'لغة عربية نحو صرف أدب'}
+  {id:'arood',name:'علم العروض والقافية',short:'الأوزان والزحافات والعلل',icon:'⚖️',description:'كتب علم الخليل وأوزان الشعر والقافية وتطبيقاتها.',resources:[
+   {id:'dirasat-arood',title:'دراسات في العروض والقافية',author:'عبد الله درويش',description:'مدخل دراسي إلى العروض والقافية في ملف مصور.',source:'المكتبة الوقفية · PDF',pages:149,size:'2 MB',pdfUrl:'https://archive.org/download/waq80595/80595.pdf',tags:'العروض القافية البحور الشعر'}
   ]},
-  {id:'heritage',name:'التراث والمخطوطات',short:'المصنفات القديمة والفهارس',icon:'📚',description:'كتب التراث والمصنفات القديمة والفهارس ومداخل إلى المخطوطات والطبعات المصوّرة.',resources:[
-   {id:'waqfeya-heritage',title:'فهرس الكتب المصوّرة',description:'تصفّح الكتب حسب التصنيف والمؤلف والقرن الهجري، مع بيانات النسخ المصوّرة.',source:'المكتبة الوقفية',url:'https://waqfeya.net/books',tags:'تراث كتب مصورة مؤلفين قرون'},
-   {id:'shamela-heritage',title:'المكتبة الشاملة للتراث',description:'نصوص رقمية قابلة للبحث والنسخ في طيف واسع من كتب التراث.',source:'المكتبة الشاملة',url:'https://shamela.ws/',tags:'تراث مصنفات أمهات الكتب'},
-   {id:'waqfeya-search',title:'فهرس المؤلفين والكلمات المفتاحية',description:'مدخل للبحث بحسب المؤلف أو موضوع الكتاب أو القرن الهجري.',source:'المكتبة الوقفية',url:'https://waqfeya.net/search.php',tags:'مؤلفين بحث مخطوطات فهرسة'}
+  {id:'adab',name:'الأدب العربي',short:'النثر والرسائل والنوادر',icon:'📚',description:'مصنفات الأدب العربي القديم والنثر والبيان وأخبار العرب.',resources:[
+   {id:'bayan-tabyin-vol1',title:'البيان والتبيين — المجلد الأول',author:'الجاحظ · تحقيق عبد السلام هارون',description:'المجلد الأول من كتاب الجاحظ في البيان والبلاغة وفنون القول.',source:'المكتبة الوقفية · PDF',size:'ضمن مجموعة المجلدات',pdfUrl:'https://archive.org/download/WAQ54207/01_54207.pdf',tags:'الأدب الجاحظ البيان التبيين النثر البلاغة'},
+   {id:'uyun-akhbar-vol1',title:'عيون الأخبار — المجلد الأول',author:'ابن قتيبة الدينوري',description:'كتاب أدبي تراثي يجمع أبوابا في السلطان والحرب والسؤدد والأخلاق.',source:'المكتبة الوقفية · PDF',size:'ضمن مجموعة المجلدات',pdfUrl:'https://archive.org/download/waq11629/01_11629.pdf',tags:'الأدب ابن قتيبة أخبار نوادر'}
+  ]},
+  {id:'maqamat',name:'المقامات والنوادر',short:'مقامات الحريري والهمذاني',icon:'🪶',description:'المقامات الأدبية والنثر المسجوع والحكايات والنوادر.',resources:[
+   {id:'maqamat-hariri',title:'مقامات الحريري',author:'القاسم بن علي الحريري',description:'المقامات المشهورة، في نسخة PDF مصورة من 430 صفحة.',source:'المكتبة الوقفية · PDF',pages:430,size:'8 MB',pdfUrl:'https://archive.org/download/fp121261_202603/121261.pdf',tags:'المقامات الحريري الهمذاني نوادر نثر'}
+  ]},
+  {id:'ibn-taymiyyah',name:'كتب ابن تيمية',short:'مؤلفات شيخ الإسلام ورسائله',icon:'📘',description:'نبدأ بمجلد من مجموع الفتاوى، وتضاف بقية المجلدات والرسائل تدريجيا.',resources:[
+   {id:'majmoo-fatawa-vol1',title:'مجموع الفتاوى — الجزء الأول',author:'شيخ الإسلام أحمد بن تيمية',description:'المجلد الأول من مجموع الفتاوى، ضمن الطبعة المصورة المتاحة للقراءة.',source:'المكتبة الوقفية · PDF',pdfUrl:'https://archive.org/download/FP86811/mfsiaitm01.pdf',tags:'ابن تيمية مجموع الفتاوى فتاوى عقيدة'}
+  ]},
+  {id:'ibn-alqayyim',name:'كتب ابن القيم الجوزية',short:'المؤلفات والتهذيب والسلوك',icon:'📗',description:'نبدأ بمدارج السالكين، وتضاف بقية الكتب والمجلدات تباعا.',resources:[
+   {id:'madarij-salikin-vol1',title:'مدارج السالكين — المجلد الأول',author:'الإمام ابن قيم الجوزية',description:'المجلد الأول من مدارج السالكين في منازل السائرين.',source:'المكتبة الوقفية · PDF',size:'ضمن مجموعة المجلدات',pdfUrl:'https://archive.org/download/WAQ140248/01_140248.pdf',tags:'ابن القيم ابن قيم الجوزية مدارج السالكين'}
   ]}
  ];
-
- const readerView=document.createElement('section');readerView.id='libraryReaderView';readerView.className='library-panel';readerView.hidden=true;
- readerView.innerHTML='<div class="reader-toolbar"><button type="button" id="readerBack">‹ العودة إلى الكتب</button><button type="button" id="readerSmaller">A−</button><button type="button" id="readerLarger">A+</button></div><div><h2 class="reader-title" id="readerTitle"></h2><div class="reader-meta" id="readerMeta">نص تراثي متاح للقراءة</div></div><div class="reader-paper" id="readerPaper" tabindex="0"><div class="reader-loading">جارٍ تحميل صفحات الكتاب…</div></div><div class="reader-controls"><button type="button" id="readerPrev">السابق</button><span class="reader-status" id="readerStatus"></span><button type="button" id="readerNext">التالي</button></div>';
- const libraryShell=page.querySelector('.library-shell')||page;libraryShell.append(readerView);
- let activeReader=null,readerSections=[],readerIndex=0,readerFont=18,readerRequest=0;
- const readerProgressKey='anwar_library_reader_progress_v1';
- function readerApiUrl(params){const u=new URL('https://ar.wikisource.org/w/api.php');Object.entries({...params,format:'json',origin:'*'}).forEach(([k,v])=>u.searchParams.set(k,v));return u.toString()}
- function readerText(html){const doc=new DOMParser().parseFromString(html,'text/html');doc.querySelectorAll('script,style,table,.navbox,.reference,.mw-editsection').forEach(n=>n.remove());const root=doc.querySelector('.mw-parser-output')||doc.body;return [...root.querySelectorAll('h2,h3,h4,p,blockquote,li')].map(n=>({tag:/^H[234]$/.test(n.tagName)?n.tagName.toLowerCase():'p',text:(n.textContent||'').replace(/\[\d+\]/g,'').trim()})).filter(x=>x.text.length>0)}
- async function openReader(book){activeReader=book;readerIndex=0;readerSections=[];const request=++readerRequest;$('libraryReaderView').hidden=false;['libraryHome','libraryCategoryView','librarySearchView','librarySavedView'].forEach(id=>$(id).hidden=true);$('readerTitle').textContent=book.title;$('readerMeta').textContent=book.source+' · قراءة داخل المفكرة';$('readerPaper').textContent='جارٍ جلب فهرس الكتاب من ويكي مصدر…';$('readerStatus').textContent='تحميل الفهرس';$('readerPrev').disabled=true;$('readerNext').disabled=true;
-  try{const response=await fetch(readerApiUrl({action:'parse',page:book.readerPage,prop:'sections'}));if(!response.ok)throw new Error('تعذر الاتصال بمصدر النص');const data=await response.json();if(request!==readerRequest)return;if(data.error)throw new Error(data.error.info||'تعذر العثور على الكتاب');readerSections=(data.parse.sections||[]).filter(x=>x.index!=='0'&&x.level!=='0');if(!readerSections.length)readerSections=[{index:'0',line:book.title}];try{const saved=JSON.parse(localStorage.getItem(readerProgressKey)||'{}');const savedIndex=saved[book.id];if(Number.isInteger(savedIndex)&&savedIndex>=0&&savedIndex<readerSections.length)readerIndex=savedIndex}catch(e){}await renderReaderSection(request)}
-  catch(error){if(request!==readerRequest)return;$('readerPaper').textContent='لم نتمكن من تحميل نص الكتاب الآن. تحقق من اتصال الإنترنت ثم أعد فتح الكتاب. '+error.message;$('readerStatus').textContent='تعذر التحميل'}}
- async function renderReaderSection(request=readerRequest){const section=readerSections[readerIndex];if(!section)return;$('readerPaper').textContent='جارٍ تحميل الصفحة…';$('readerPrev').disabled=readerIndex===0;$('readerNext').disabled=readerIndex===readerSections.length-1;$('readerStatus').textContent=(readerIndex+1)+' / '+readerSections.length+' · '+section.line;
-  try{const response=await fetch(readerApiUrl({action:'parse',page:activeReader.readerPage,section:section.index,prop:'text'}));if(!response.ok)throw new Error('تعذر تحميل الصفحة');const data=await response.json();if(request!==readerRequest)return;if(data.error)throw new Error(data.error.info||'تعذر تحميل النص');const blocks=readerText(data.parse.text['*']);const paper=$('readerPaper');paper.replaceChildren();blocks.forEach(block=>{const el=document.createElement(block.tag);el.textContent=block.text;paper.append(el)});if(!blocks.length){const p=document.createElement('p');p.textContent='لا يتوفر نص لهذه الصفحة في المصدر.';paper.append(p)}paper.style.fontSize=readerFont+'px';paper.scrollTop=0;$('readerStatus').textContent=(readerIndex+1)+' / '+readerSections.length+' · '+section.line;$('readerPrev').disabled=readerIndex===0;$('readerNext').disabled=readerIndex===readerSections.length-1;try{const saved=JSON.parse(localStorage.getItem(readerProgressKey)||'{}');saved[activeReader.id]=readerIndex;localStorage.setItem(readerProgressKey,JSON.stringify(saved))}catch(e){}}
-  catch(error){if(request!==readerRequest)return;$('readerPaper').textContent='تعذر عرض هذه الصفحة. '+error.message}}
- function closeReader(){readerRequest++;readerView.hidden=true;if(currentCategory)show('libraryCategoryView');else show('libraryHome')}
- $('readerBack').addEventListener('click',closeReader);$('readerPrev').addEventListener('click',()=>{if(readerIndex>0){readerIndex--;renderReaderSection()}});$('readerNext').addEventListener('click',()=>{if(readerIndex<readerSections.length-1){readerIndex++;renderReaderSection()}});
- $('readerSmaller').addEventListener('click',()=>{readerFont=Math.max(14,readerFont-1);$('readerPaper').style.fontSize=readerFont+'px'});$('readerLarger').addEventListener('click',()=>{readerFont=Math.min(30,readerFont+1);$('readerPaper').style.fontSize=readerFont+'px'});
+ const readerView=document.createElement('section');
+ readerView.id='libraryReaderView';
+ readerView.className='library-pdf-reader';
+ readerView.hidden=true;
+ readerView.setAttribute('aria-label','قارئ الكتب PDF');
+ readerView.innerHTML='<header class="pdf-reader-toolbar"><button type="button" id="readerBack" aria-label="العودة إلى قائمة الكتب">‹ العودة</button><div class="pdf-reader-heading"><strong id="readerTitle"></strong><small id="readerMeta">ملف PDF</small></div><span class="pdf-reader-badge">PDF</span></header><iframe id="readerFrame" class="pdf-reader-frame" title="قارئ ملف PDF" loading="eager" allow="fullscreen"></iframe>';
+ const libraryShell=page.querySelector('.library-shell')||page;
+ libraryShell.append(readerView);
+ let activeReader=null;
+ function openReader(book){
+  if(!book||!book.pdfUrl)return;
+  activeReader=book;
+  ['libraryHome','libraryCategoryView','librarySearchView','librarySavedView'].forEach(id=>$(id).hidden=true);
+  $('readerTitle').textContent=book.title;
+  $('readerMeta').textContent=[book.author,book.pages?book.pages+' صفحة':'ملف PDF',book.source].filter(Boolean).join(' · ');
+  $('readerFrame').title='قراءة '+book.title;
+  $('readerFrame').src=book.pdfUrl+'#toolbar=1&navpanes=0&view=FitH';
+  readerView.hidden=false;
+  $('readerBack').focus();
+ }
+ function closeReader(){
+  if(readerView.hidden)return;
+  $('readerFrame').src='about:blank';
+  readerView.hidden=true;
+  if(currentCategory)show('libraryCategoryView');else show('libraryHome');
+ }
+ $('readerBack').addEventListener('click',closeReader);
  const saveKey='anwar_library_saved_v1';
  const libraryThemeKey='anwar_library_theme_v1';
  const libraryThemes=['white','cream','pearl','blue'];
@@ -2941,18 +2974,19 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  function makeResourceCard(r){
   const article=document.createElement('article');article.className='library-resource';
   const copy=document.createElement('div');copy.className='library-resource-copy';
-  const icon=document.createElement('span');icon.className='library-resource-icon';
-  const resourceIcons={quran:'🌷',sharia:'📚',hadith:'📖',adab:'🌷',language:'🎓',heritage:'📚'};
-  const resourceIcon=resourceIcons[r.categoryId]||'📚';if(resourceIcon==='🌷'){icon.classList.add('library-real-rose');const flower=document.createElement('img');flower.src='assets/tulip-cutout.svg';flower.alt='';flower.setAttribute('aria-hidden','true');icon.append(flower)}else{icon.textContent=resourceIcon}icon.setAttribute('aria-hidden','true');
   const title=document.createElement('strong');title.textContent=r.title;
-  copy.append(icon,title);
+  const description=document.createElement('p');description.textContent=r.description||'';
+  const meta=document.createElement('small');
+  meta.textContent=[r.author,r.pages?r.pages+' صفحة':'',r.size||'', 'PDF'].filter(Boolean).join(' · ');
+  copy.append(title,description,meta);
   const actions=document.createElement('div');actions.className='library-resource-actions';
-  const a=document.createElement(r.readerPage?'button':'a');
-  if(r.readerPage){a.type='button';a.dataset.readBook=r.id;a.textContent='اقرأ هنا';a.setAttribute('aria-label','اقرأ '+r.title+' داخل المكتبة')}
-  else{a.href=r.url;a.target='_blank';a.rel='noopener noreferrer';a.textContent='المصدر';a.setAttribute('aria-label','فتح المصدر الخارجي لـ '+r.title+' في تبويب جديد')}
+  const read=document.createElement('button');read.type='button';read.dataset.readBook=r.id;read.textContent='قراءة PDF';
+  read.setAttribute('aria-label','قراءة كتاب '+r.title+' بصيغة PDF داخل المفكرة');
   const bookmark=document.createElement('button');bookmark.type='button';bookmark.dataset.saveResource=r.id;
-  const isSaved=saved.includes(r.id);bookmark.textContent=isSaved?'★':'♡';bookmark.setAttribute('aria-label',isSaved?'إزالة من المحفوظات':'إضافة إلى المحفوظات');bookmark.setAttribute('aria-pressed',String(isSaved));
-  actions.append(a,bookmark);article.append(copy,actions);return article;
+  const isSaved=saved.includes(r.id);bookmark.textContent=isSaved?'★ محفوظ':'♡ حفظ';
+  bookmark.setAttribute('aria-label',isSaved?'إزالة من المحفوظات':'إضافة إلى المحفوظات');
+  bookmark.setAttribute('aria-pressed',String(isSaved));
+  actions.append(read,bookmark);article.append(copy,actions);return article;
  }
  function openCategory(id){
   const c=category(id);if(!c)return;
@@ -2999,10 +3033,10 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   (previousFocus&&previousFocus.focus?previousFocus:openButton).focus();
  }
  function renderCategories(){
-  const literature=$('libraryLiteratureCategories'),religion=$('libraryReligionCategories');
-  literature.replaceChildren();religion.replaceChildren();
-  const literatureIds=new Set(['adab','language','heritage']);
-  categories.forEach(c=>(literatureIds.has(c.id)?literature:religion).append(makeCategoryCard(c)));
+  const list=$('libraryAllCategories');
+  if(!list)return;
+  list.replaceChildren();
+  categories.forEach(c=>list.append(makeCategoryCard(c)));
  }
  renderCategories();
  openButton.addEventListener('click',open);
