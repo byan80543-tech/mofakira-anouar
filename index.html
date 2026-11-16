@@ -850,7 +850,7 @@ dialog[open]>.float-head{display:none!important}
  <div class="g"><div><button class="b" id="vs">📜 بيت</button><button class="b" id="sp">🔊 إلقاء</button><button class="b" id="fo">🎯 تركيز</button><button class="b" id="ip">💡 إلهام</button><button class="b" id="pn">☆ تثبيت</button><button class="b" id="cy">📋</button><button class="b" id="hist">🕘 الإصدارات</button><button class="b dn" id="dl">🗑️</button></div><small>أدوات أنوار</small></div>
  <div class="g"><div><button class="b" id="ownerBtn" aria-label="الملكية والأذكار" title="الملكية والأذكار">✒ الملكية والأذكار</button></div><small>هوية أنوار</small></div>
 </div>
-<section id="storageRecoveryNotice" hidden role="alert" aria-live="assertive"><div><strong>توقّف الحفظ حمايةً لبياناتك</strong><span>تعذّر فتح بيانات المفكرة السابقة. لا تُنشئ أعمالًا جديدة ولا تمسح بيانات الموقع. نزّل الملف الخام قبل استعادة نسخة سليمة.</span></div><button type="button" id="exportRecovery">تنزيل ملف الاسترداد الخام</button></section>
+<section id="storageRecoveryNotice" hidden role="alert" aria-live="assertive"><div><strong>توقّف الحفظ حمايةً لبياناتك</strong><span>تعذّر فتح بيانات المفكرة السابقة. يمكنك تنزيل البيانات الخام أو بدء مفكرة نظيفة. لن تتأثر مكتبة أنوار أو الإذاعة.</span></div><div class="storage-recovery-actions"><button type="button" id="exportRecovery">تنزيل الملف الخام</button><button type="button" id="startFresh" hidden>بدء مفكرة جديدة</button></div></section>
 <main>
  <section id="list">
   <input id="q" type="search" placeholder="ابحث…">
@@ -1049,26 +1049,38 @@ function san(h){
  return t.innerHTML;
 }
 function cleanNote(n){
- if(!n||typeof n!=='object')return null;
- const type=hasOwn(TYPES,n.type)?n.type:'text';
- const raw=typeof n.html==='string'?n.html:(typeof n.text==='string'?n.text.split('\n').map(l=>'<div>'+(esc(l)||'<br>')+'</div>').join(''):'');
- const size=Number(n.size),stamp=Number(n.ts);
- const safeTime=Number.isFinite(stamp)&&Math.abs(stamp)<=8640000000000000?stamp:Date.now();
- const history=Array.isArray(n.history)?n.history.slice(-15).filter(v=>v&&typeof v==='object').map(v=>{
-  const hs=Number(v.size),ht=Number(v.ts);
-  return {title:String(v.title||'').slice(0,300),type:hasOwn(TYPES,v.type)?v.type:'text',html:san(v.html||''),ts:Number.isFinite(ht)&&Math.abs(ht)<=8640000000000000?ht:Date.now(),font:safeFontName(v.font),size:Number.isFinite(hs)?Math.max(14,Math.min(56,hs)):20};
- }):[];
- return {id:String(n.id??Date.now().toString(36)).slice(0,80),title:String(n.title??'').slice(0,300),type,html:san(raw),pin:n.pin===true,ts:safeTime,font:safeFontName(n.font),size:Number.isFinite(size)?Math.max(14,Math.min(56,size)):20,history};
+ if(!n||typeof n!=='object'||Array.isArray(n))return null;
+ try{
+  const type=hasOwn(TYPES,n.type)?n.type:'text';
+  const raw=typeof n.html==='string'?n.html:(typeof n.text==='string'?n.text.split('\n').map(l=>'<div>'+(esc(l)||'<br>')+'</div>').join(''):'');
+  const size=Number(n.size),stamp=Number(n.ts);
+  const safeTime=Number.isFinite(stamp)&&Math.abs(stamp)<=8640000000000000?stamp:Date.now();
+  const history=Array.isArray(n.history)?n.history.slice(-15).map(v=>{
+   try{
+    if(!v||typeof v!=='object'||Array.isArray(v))return null;
+    const hs=Number(v.size),ht=Number(v.ts);
+    return {title:String(v.title||'').slice(0,300),type:hasOwn(TYPES,v.type)?v.type:'text',html:san(v.html||''),ts:Number.isFinite(ht)&&Math.abs(ht)<=8640000000000000?ht:Date.now(),font:safeFontName(v.font),size:Number.isFinite(hs)?Math.max(14,Math.min(56,hs)):20};
+   }catch(error){console.warn('تم تجاوز إصدار سابق غير صالح',error);return null}
+  }).filter(Boolean):[];
+  return {id:String(n.id??Date.now().toString(36)).slice(0,80),title:String(n.title??'').slice(0,300),type,html:san(raw),pin:n.pin===true,ts:safeTime,font:safeFontName(n.font),size:Number.isFinite(size)?Math.max(14,Math.min(56,size)):20,history};
+ }catch(error){
+  console.warn('تم تجاوز سجل غير صالح في مفكرة أنوار',error);
+  return null;
+ }
 }
 function normalizeState(data){
- const d=data&&typeof data==='object'?data:{},usedIds=new Set();
- const notes=Array.isArray(d.notes)?d.notes.map((raw,index)=>{
-  const note=cleanNote(raw);if(!note)return null;
-  const base=String(note.id||('note-'+(index+1))).slice(0,80);
-  let id=base,suffix=2;
-  while(usedIds.has(id)){const tail='-'+suffix++;id=base.slice(0,80-tail.length)+tail}
-  note.id=id;usedIds.add(id);return note;
- }).filter(Boolean):[];
+ const d=data&&typeof data==='object'&&!Array.isArray(data)?data:{},usedIds=new Set(),notes=[];
+ if(d.notes!==undefined&&!Array.isArray(d.notes))throw new Error('قائمة الأعمال المحفوظة ليست بصيغة قائمة');
+ if(Array.isArray(d.notes)&&d.notes.length>2500)throw new Error('عدد الأعمال المحفوظة يتجاوز الحد الآمن');
+ (Array.isArray(d.notes)?d.notes:[]).forEach((raw,index)=>{
+  try{
+   const note=cleanNote(raw);if(!note)return;
+   const base=String(note.id||('note-'+(index+1))).slice(0,80);
+   let id=base,suffix=2;
+   while(usedIds.has(id)){const tail='-'+suffix++;id=base.slice(0,80-tail.length)+tail}
+   note.id=id;usedIds.add(id);notes.push(note);
+  }catch(error){console.warn('تم تجاهل سجل تعذّر تطبيعه',error)}
+ });
  return {notes,theme:d.theme==='dark'?'dark':d.theme==='light'?'light':'',palette:['blue','green','purple','rose','amber','slate'].includes(d.palette)?d.palette:'blue',wallColor:['mist','cream','sky','mint','lavender','blush','slate','night'].includes(d.wallColor)?d.wallColor:'mist',paperColor:['white','cream','sky','mint','lavender','blush','gray','night'].includes(d.paperColor)?d.paperColor:'white',days:Array.isArray(d.days)?d.days.filter(x=>typeof x==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x)).slice(-400):[]};
 }
 function createNoteId(){
@@ -1088,26 +1100,61 @@ function showStorageRecoveryNotice(title,message,raw){
   if(description)description.textContent=message;
   panel.hidden=false;
  }
- const button=$('exportRecovery');
- if(button)button.disabled=storageRecoveryRaw===null;
+ const exportButton=$('exportRecovery'),freshButton=$('startFresh');
+ if(exportButton)exportButton.disabled=storageRecoveryRaw===null;
+ if(freshButton)freshButton.hidden=storageRecoveryRaw===null;
+}
+function readStoredState(raw){
+ const parsed=JSON.parse(raw);
+ if(!parsed||typeof parsed!=='object'||Array.isArray(parsed))throw new Error('البيانات المحفوظة ليست كائنًا صالحًا');
+ return normalizeState(parsed);
 }
 function load(){
  let raw;
  try{raw=localStorage.getItem('anwar_v1')}
  catch(error){
-  showStorageRecoveryNotice('التخزين المحلي غير متاح','منع هذا المتصفح الوصول إلى بيانات المفكرة. لا تمسح بيانات الموقع. افتح المفكرة في تبويب عادي أو متصفح يسمح بالتخزين ثم أعد المحاولة.',null);
+  showStorageRecoveryNotice('التخزين المحلي غير متاح','منع هذا المتصفح الوصول إلى بيانات المفكرة. افتح الموقع في تبويب عادي أو متصفح يسمح بالتخزين ثم أعد المحاولة.',null);
   console.warn('تعذّرت قراءة التخزين المحلي لمفكرة أنوار',error);
   return;
  }
  if(raw===null||raw==='')return;
- try{S=normalizeState(JSON.parse(raw))}
- catch(error){
-  showStorageRecoveryNotice('تعذّر فتح بيانات المفكرة','لم نتمكن من قراءة بنية البيانات المحفوظة. نزّل الملف الخام واحتفظ به قبل استعادة نسخة سليمة. لا تمسح بيانات الموقع.',raw);
-  console.warn('تعذّرت استعادة بيانات مفكرة أنوار',error);
+ try{
+  S=readStoredState(raw);
+  return;
+ }catch(primaryError){
+  console.warn('تعذّرت قراءة الحالة الأساسية لمفكرة أنوار',primaryError);
+ }
+ try{
+  const backupRaw=localStorage.getItem('anwar_v1_backup_v2');
+  if(backupRaw){
+   S=readStoredState(backupRaw);
+   const repaired=JSON.stringify(S);
+   try{localStorage.setItem('anwar_v1',repaired)}catch(repairError){console.warn('تعذّر إصلاح النسخة الأساسية تلقائيًا',repairError)}
+   toast('استعدنا نسخة سليمة من الحفظ الاحتياطي.',4500);
+   return;
+  }
+ }catch(backupError){console.warn('لم تتوفر نسخة حفظ احتياطية قابلة للقراءة',backupError)}
+ showStorageRecoveryNotice('تعذّر فتح بيانات المفكرة','تعذّرت قراءة البيانات المحفوظة. بما أن هذه بيانات تجريبية، يمكنك بدء مفكرة نظيفة؛ ولن تتأثر المكتبة أو الإذاعة.',raw);
+}
+function startFreshNotebook(){
+ if(!storageRecoveryBlocked)return;
+ if(!confirm('سيتم استبدال بيانات المفكرة التجريبية فقط والبدء بصفحة فارغة. لن تتأثر مكتبة أنوار أو الإذاعة. هل تتابع؟'))return;
+ const fresh={notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[]};
+ try{
+  const serialized=JSON.stringify(fresh);
+  localStorage.setItem('anwar_v1',serialized);
+  try{localStorage.setItem('anwar_v1_backup_v2',serialized)}catch(backupError){console.warn('تعذّر إنشاء نسخة احتياطية أولية',backupError)}
+  S=fresh;cur=null;storageRecoveryBlocked=false;storageRecoveryRaw=null;storageRecoveryExported=false;
+  $('storageRecoveryNotice').hidden=true;
+  openNote(null);theme();chips();
+  toast('بدأت مفكرة أنوار ببيانات نظيفة.',3500);
+ }catch(error){
+  console.warn('تعذّر بدء مفكرة نظيفة',error);
+  toast('تعذّر تهيئة المفكرة؛ لم يتم تغيير بيانات المكتبة أو الإذاعة.',5000);
  }
 }
 function exportStorageRecovery(){if(storageRecoveryRaw===null){toast('تعذّر قراءة البيانات الخام من المتصفح؛ لا تمسح بيانات الموقع.',5000);return}try{const blob=new Blob([storageRecoveryRaw],{type:'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='anwar-storage-recovery-raw.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);storageRecoveryExported=true;toast('تم تجهيز ملف الاسترداد الخام. احتفظ به قبل الاستعادة.',5000)}catch(e){toast('تعذّر تنزيل ملف الاسترداد الخام؛ لا تحذف بيانات المتصفح.',5000)}}
-function save(){if(storageRecoveryBlocked){toast('الحفظ متوقف حمايةً للبيانات القديمة. نزّل ملف الاسترداد أولاً.',5000);return false}try{localStorage.setItem('anwar_v1',JSON.stringify(S));return true}catch(e){console.warn('تعذّر حفظ بيانات مفكرة أنوار محلياً',e);toast('تعذّر الحفظ: مساحة التخزين غير متاحة أو ممتلئة. صدّر أعمالك المهمة.',5000);return false}}
+function save(){if(storageRecoveryBlocked){toast('الحفظ متوقف حمايةً للبيانات القديمة. ابدأ مفكرة نظيفة أو استعد نسخة سليمة.',5000);return false}try{const serialized=JSON.stringify(S);localStorage.setItem('anwar_v1',serialized);try{localStorage.setItem('anwar_v1_backup_v2',serialized)}catch(backupError){console.warn('حُفظت المفكرة لكن تعذّر تحديث النسخة الاحتياطية الثانوية',backupError)}return true}catch(e){console.warn('تعذّر حفظ بيانات مفكرة أنوار محلياً',e);toast('تعذّر الحفظ: مساحة التخزين غير متاحة أو ممتلئة. صدّر أعمالك المهمة.',5000);return false}}
 function toast(m,d){const t=$('toast');t.textContent=m;t.classList.add('s');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('s'),d||2000)}
 const iso=d=>d.toISOString().slice(0,10);
 function streak(){const d=new Set(S.days);let n=0,c=new Date();if(!d.has(iso(c)))c.setDate(c.getDate()-1);while(d.has(iso(c))){n++;c.setDate(c.getDate()-1)}return n}
@@ -1221,6 +1268,8 @@ async function printFile(){
 #storageRecoveryNotice span{font-size:11px;line-height:1.6}
 #storageRecoveryNotice button{flex:none;border:1px solid #a97b33;border-radius:9px;padding:8px 11px;background:#fffaf0;color:#513b19;font-size:11px;font-weight:700}
 #storageRecoveryNotice button:disabled{opacity:.45;cursor:not-allowed}
+#storageRecoveryNotice .storage-recovery-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+#storageRecoveryNotice #startFresh{background:#f4e5c9;border-color:#8f6a2e;color:#493515}
 /* تحسين هادئ لسطوح الكتابة وقائمة الأعمال */
 .card{border-radius:11px;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
 .card:hover{border-color:var(--ac);box-shadow:0 4px 12px rgba(20,45,75,.08);transform:translateY(-1px)}
@@ -1231,7 +1280,8 @@ async function printFile(){
 button:focus:not(:focus-visible){outline:none}
 @media(max-width:520px){
  #storageRecoveryNotice{align-items:stretch;flex-direction:column;gap:7px;padding:9px 11px}
- #storageRecoveryNotice button{width:100%;min-height:38px}
+ #storageRecoveryNotice .storage-recovery-actions{display:flex;flex-direction:column;gap:7px}
+ #storageRecoveryNotice .storage-recovery-actions button{width:100%;min-height:38px}
  #pg{border-radius:11px;box-shadow:0 4px 16px rgba(20,35,55,.10)}
 }
 @media(prefers-reduced-motion:reduce){.card{transition:none}}
@@ -1411,8 +1461,9 @@ document.addEventListener('click',e=>{
  else if(id==='dl'&&cur){if(confirm('حذف هذا العمل نهائيًا؟')){S.notes=S.notes.filter(n=>n!==cur);save();openNote(null)}}
  else if(id==='bkp'){$('bt').value=JSON.stringify(S);$('dg').showModal()}
  else if(id==='exportRecovery')exportStorageRecovery();
+ else if(id==='startFresh')startFreshNotebook();
  else if(id==='cp'){$('bt').select();navigator.clipboard&&navigator.clipboard.writeText($('bt').value).then(()=>toast('تم النسخ'),()=>{})}
- else if(id==='rs'){try{const backupText=$('bt').value;if(backupText.length>4500000)throw new Error('الحجم كبير جدًا');if(storageRecoveryBlocked&&storageRecoveryRaw!==null&&!storageRecoveryExported){toast('نزّل ملف الاسترداد الخام أولًا قبل استبدال البيانات التالفة.',6000);return}const d=JSON.parse(backupText);if(!d||!Array.isArray(d.notes)||d.notes.length>2500||d.notes.some(n=>!n||typeof n!=='object'||String(n.html||n.text||'').length>450000))throw new Error('بنية النسخة غير مقبولة');const next=normalizeState(d),serialized=JSON.stringify(next);localStorage.setItem('anwar_v1',serialized);S=next;storageRecoveryBlocked=false;storageRecoveryRaw=null;storageRecoveryExported=false;$('storageRecoveryNotice').hidden=true;openNote(null);theme();$('dg').close();toast('تمت الاستعادة والتحقق من النسخة')}catch(x){toast(x&&x.message==='الحجم كبير جدًا'?'النسخة أكبر من الحد الآمن للاستيراد.':'النسخة غير صالحة أو تعذّر حفظها؛ لم تتغير البيانات الحالية.',6000)}}
+ else if(id==='rs'){try{const backupText=$('bt').value;if(backupText.length>4500000)throw new Error('الحجم كبير جدًا');if(storageRecoveryBlocked&&storageRecoveryRaw!==null&&!storageRecoveryExported){toast('نزّل ملف الاسترداد الخام أولًا قبل استبدال البيانات التالفة.',6000);return}const d=JSON.parse(backupText);if(!d||!Array.isArray(d.notes)||d.notes.length>2500||d.notes.some(n=>!n||typeof n!=='object'||String(n.html||n.text||'').length>450000))throw new Error('بنية النسخة غير مقبولة');const next=normalizeState(d),serialized=JSON.stringify(next);localStorage.setItem('anwar_v1',serialized);try{localStorage.setItem('anwar_v1_backup_v2',serialized)}catch(backupError){console.warn('تعذّر تحديث النسخة الاحتياطية الثانوية بعد الاستيراد',backupError)}S=next;storageRecoveryBlocked=false;storageRecoveryRaw=null;storageRecoveryExported=false;$('storageRecoveryNotice').hidden=true;openNote(null);theme();$('dg').close();toast('تمت الاستعادة والتحقق من النسخة')}catch(x){toast(x&&x.message==='الحجم كبير جدًا'?'النسخة أكبر من الحد الآمن للاستيراد.':'النسخة غير صالحة أو تعذّر حفظها؛ لم تتغير البيانات الحالية.',6000)}}
  else if(id==='cl')$('dg').close();
  else if(id==='ownerBtn')$('ownerDialog').showModal();
  else if(id==='closeOwner')$('ownerDialog').close();
