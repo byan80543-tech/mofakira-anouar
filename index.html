@@ -501,11 +501,16 @@ dialog[open]>.float-head{display:none!important}
 .country-reader-footer span{min-width:58px;text-align:center;color:var(--mu);font-size:10px}
 #countryReaderRetry{border-color:#c8a763;background:#fff5da;color:#624819}
 .country-reader-source{padding:0 12px 10px;color:var(--mu);font-size:9px;line-height:1.6;text-align:center}
-.reciter-body{flex:1;min-width:0;display:grid;gap:5px}
-.reciter-name{display:block}
-.reciter-variants{display:flex;flex-wrap:wrap;gap:5px}
-.reciter-version{min-height:27px;padding:4px 8px;border:1px solid #c9a96a;border-radius:999px;background:linear-gradient(145deg,#fff5d8,#ead39a);color:#263b50;font:700 10px Cairo,Tahoma,sans-serif}
-.reciter-version:active{transform:scale(.97)}
+.reciter-body{flex:1;min-width:0;display:grid;gap:6px}
+.reciter-name{display:block;min-width:0;overflow-wrap:anywhere}
+.reciter-variants-menu{position:relative;min-width:0;width:100%;max-width:100%}
+.reciter-variants-menu>summary{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-height:34px;padding:6px 10px;border:1px solid #c9a96a;border-radius:10px;background:linear-gradient(145deg,#fff8e8,#ead39a);color:#263b50;font:700 11px Cairo,Tahoma,sans-serif;cursor:pointer;list-style:none;box-sizing:border-box}
+.reciter-variants-menu>summary::-webkit-details-marker{display:none}
+.reciter-variants-menu>summary::after{content:'🔽';flex:none;font-size:11px}
+.reciter-variants-menu[open]>summary{border-radius:10px 10px 0 0;background:#ead39a}
+.reciter-variants{display:grid;grid-template-columns:minmax(0,1fr);gap:5px;min-width:0;max-width:100%;padding:7px;border:1px solid #c9a96a;border-top:0;border-radius:0 0 10px 10px;background:var(--sf);box-shadow:0 5px 14px #00000012}
+.reciter-version{display:block;width:100%;max-width:100%;min-width:0;min-height:32px;padding:6px 9px;border:1px solid #d8c28f;border-radius:8px;background:linear-gradient(145deg,#fffaf0,#f2e5c7);color:#263b50;font:700 11px Cairo,Tahoma,sans-serif;text-align:right;white-space:normal;overflow-wrap:anywhere;word-break:normal;line-height:1.55;box-sizing:border-box}
+.reciter-version:active{transform:scale(.99)}
 @media(max-width:520px){
  .country-reader-modal{padding:0}
  .country-reader-dialog{width:100%;height:100dvh;max-height:100dvh;border:0;border-radius:0}
@@ -1133,7 +1138,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   rr.innerHTML=R.map((r,i)=>`<option value="${i}">${esc(r[0])}</option>`).join('');rr.value=String(v);
   const surah=+rsu.value||1;rsu.innerHTML=SU.map((x,i)=>`<option value="${i+1}">${i+1}. ${esc(x)}</option>`).join('');rsu.value=surah;
   const L=all.filter(g=>!q||g.name.toLocaleLowerCase('ar').includes(q)||g.variants.some(v=>String(R[v.index][0]).toLocaleLowerCase('ar').includes(q)));
-  $('reciterGrid').innerHTML=L.length?L.map(g=>`<div class="reciter-card" role="listitem"><span class="reciter-seal" aria-hidden="true">🌷</span><div class="reciter-body"><span class="reciter-name">${esc(g.name)}</span><div class="reciter-variants">${g.variants.map(v=>`<button type="button" class="${g.variants.length>1?'reciter-version':'reciter-play'}" data-reciter-play="${v.index}" data-play-label="${esc(g.variants.length>1?v.label:'▶')}" aria-label="تشغيل ${esc(g.name)} — ${esc(v.label)}">${g.variants.length>1?esc(v.label):'▶'}</button>`).join('')}</div></div></div>`).join(''):'<div class="reciter-empty">لا توجد نتائج بهذا الاسم.</div>';
+  $('reciterGrid').innerHTML=L.length?L.map(g=>`<div class="reciter-card" role="listitem"><span class="reciter-seal" aria-hidden="true">🌷</span><div class="reciter-body"><span class="reciter-name">${esc(g.name)}</span>${g.variants.length>1?`<details class="reciter-variants-menu"><summary>الروايات والتسجيلات (${g.variants.length})</summary><div class="reciter-variants">${g.variants.map(v=>`<button type="button" class="reciter-version" data-reciter-play="${v.index}" aria-label="تشغيل ${esc(g.name)} — ${esc(v.label)}">${esc(v.label)}</button>`).join('')}</div></details>`:`<div class="reciter-variants"><button type="button" class="reciter-play" data-reciter-play="${g.variants[0].index}" aria-label="تشغيل ${esc(g.name)}">▶ استمع</button></div>`}</div></div>`).join(''):'<div class="reciter-empty">لا توجد نتائج بهذا الاسم.</div>';
   const count=$('reciterCount');if(count)count.textContent='القرّاء '+new Intl.NumberFormat('ar').format(L.length)+' من '+new Intl.NumberFormat('ar').format(all.length)+' · التسجيلات '+new Intl.NumberFormat('ar').format(uniqueRecitationCount());
   ui();
  }
@@ -1338,7 +1343,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  countrySelect.addEventListener('change',updateCountryDirectory);
  updateCountryDirectory();
 
- $('reciterGrid').addEventListener('click',e=>{const b=e.target.closest('[data-reciter-play]');if(!b)return;const i=+b.dataset.reciterPlay;if(started&&!au.paused&&mode()==='c'&&cr===i){au.pause();st.textContent='أوقفت التلاوة مؤقتاً';ui();return;}cr=i;rr.value=String(i);n=availableSurahs()[0]||1;rsu.value=String(n);document.querySelector('input[name=rm][value="c"]').checked=true;play()});
+ $('reciterGrid').addEventListener('click',e=>{const b=e.target.closest('[data-reciter-play]');if(!b)return;const menu=b.closest('details.reciter-variants-menu');if(menu)menu.open=false;const i=+b.dataset.reciterPlay;if(started&&!au.paused&&mode()==='c'&&cr===i){au.pause();st.textContent='أوقفت التلاوة مؤقتاً';ui();return;}cr=i;rr.value=String(i);n=availableSurahs()[0]||1;rsu.value=String(n);document.querySelector('input[name=rm][value="c"]').checked=true;play()});
  $('liveRadioPlay').addEventListener('click',()=>{if(!$('rl').value){st.textContent='لا توجد محطة بث مباشر متاحة حالياً؛ اختر قارئاً من القائمة.';return;}document.querySelector('input[name=rm][value="l"]').checked=true;play()});
  $('rpv').addEventListener('click',()=>moveSurah(-1));
  $('rtm').addEventListener('change',e=>{clearTimeout(sl);const m=+e.target.value;if(m){sl=setTimeout(()=>{au.pause();started=false;ui();$('rtm').value='0';toast('انتهى مؤقت النوم')},m*60000);toast('سيتوقف الصوت بعد '+m+' دقيقة')}});
