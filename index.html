@@ -1082,7 +1082,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   usulAqaid:{name:'شرح رسالة أصول العقائد الدينية',count:14,url:i=>'https://al-badr.net/download/esound/choroohat/usul-alakaid/'+String(i+1).padStart(3,'0')+'.mp3',source:'https://al-badr.net/sub/58',direct:true},
   kabair:{name:'شرح كتاب الكبائر',count:41,url:i=>'https://al-badr.net/download/esound/choroohat/alkabair-li-abdil-wahhab/'+String(i+1).padStart(2,'0')+'.mp3',source:'https://al-badr.net/sub/315',direct:true},
   sharia:{name:'شرح كتاب الشريعة للآجري',count:140,source:'https://al-badr.net/sub/341'},
-  maarij:{name:'تعليق على معارج القبول',count:280,source:'https://al-badr.net/sub/362'},
+  maarij:{name:'تعليق على معارج القبول',count:280,url:i=>'https://al-badr.net/download/esound/choroohat/ma3arijul-qobul/'+String(i+1).padStart(3,'0')+'.mp3',source:'https://al-badr.net/sub/362',direct:true},
   // Official subject indexes expose further audio series beyond this curated selector.
   jawhara:{name:'شرح الجوهرة الفريدة في تحقيق العقيدة (6 دروس)',count:6,source:'https://way2allah.com/khotab-series-12255.htm',embed:true},
   allAqidah:{name:'فهرس بقية صوتيات الشيخ وسلاسله',count:0,source:'https://way2allah.com/khotab-audio-211.htm',embed:true},
@@ -1096,7 +1096,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  const groupNames=['شرح كتاب التوحيد','شروح كتب العقيدة والعلوم الشرعية','شروح أخرى','فهرس بقية الصوتيات'];
  series.innerHTML=groups.map((g,i)=>`<optgroup label="${groupNames[i]}">${g.map(k=>`<option value="${k}">${catalog[k].name}${catalog[k].count?' ('+catalog[k].count+' درسًا)':''}</option>`).join('')}</optgroup>`).join('');
  let current=0;
- function renderSource(c){links.innerHTML=series.value==='maarij'?'':`<a href="${c.source}" target="_blank" rel="noopener">↗ المصدر الأصلي: ${c.name}</a>`;if(frame){if(c.embed||!c.direct){frame.src=c.source;frame.style.display='block';}else{frame.removeAttribute('src');frame.style.display='none';}}}
+ function renderSource(c){links.innerHTML=`<a href="${c.source}" target="_blank" rel="noopener">↗ المصدر الأصلي: ${c.name}</a>`;if(frame){if(c.embed||!c.direct){frame.src=c.source;frame.style.display='block';}else{frame.removeAttribute('src');frame.style.display='none';}}}
  function fill(){
   const c=catalog[series.value];current=0;audio.pause();audio.removeAttribute('src');audio.load();play.textContent='▶';audio.style.display=c.direct?'block':'none';if(frame){frame.style.display='none';frame.removeAttribute('src');}
   track.innerHTML=c.count?Array.from({length:c.count},(_,i)=>`<option value="${i}">الدرس ${String(i+1).padStart(2,'0')} من ${c.count}</option>`).join(''):'<option value="0">افتح فهرس الدروس من المصدر الرسمي</option>';
