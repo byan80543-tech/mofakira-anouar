@@ -1294,7 +1294,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  const countryModal=$('reciterCountryModal'),countryDialog=countryModal.querySelector('.country-reader-dialog');
  const countrySearch=$('countryReaderSearch'),countryList=$('countryReaderList'),countryStatusBox=$('countryReaderStatus');
  const countryCountBox=$('countryReaderCount'),countryPageBox=$('countryReaderPage'),countryPrev=$('countryReaderPrev'),countryNext=$('countryReaderNext'),countryRetry=$('countryReaderRetry');
- const countryCache=new Map(),countryProfileCache=new Map();let activeCountryKey='',activeCountryRows=[],activeCountryPage=1,countryTotalPages=1,countryTotalCount=0,countryPageBusy=false,countryLoadToken=0,failedCountryPage=1,countryPreviousOverflow='';
+ const countryCache=new Map(),countryProfileCache=new Map();let activeCountryKey='',activeCountryRows=[],activeCountryPage=1,countryTotalPages=1,countryTotalCount=0,countryPageBusy=false,countryLoadToken=0,countryPlayToken=0,failedCountryPage=1,countryPreviousOverflow='';
  const COUNTRY_BASE='https://way2quran.com/ar/reciters';
  function countryNorm(v){
   return String(v||'').normalize('NFKC').replace(/[\u064B-\u065F\u0670\u0640]/g,'')
@@ -1406,6 +1406,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   return {pages:Math.max(1,pages),total,marker};
  }
  function renderCountryRows(){
+  if(countryActiveAudio)stopCountryAudio();
   const q=countryNorm(countrySearch.value);
   const filtered=activeCountryRows.filter(row=>!q||countryNorm(row.name).includes(q));
   countryList.innerHTML=filtered.length?filtered.map(r=>'<div class="country-reader-item" role="listitem" data-country-reciter="'+esc(r.slug)+'" data-country-profile="'+esc(r.profileUrl)+'"><span class="country-reader-seal" aria-hidden="true">🌷</span><span class="country-reader-name">'+esc(r.name)+'</span><small>'+(r.recordings>1?new Intl.NumberFormat('ar').format(r.recordings)+' تلاوات':(r.recordings===1?'تلاوة':'قارئ'))+'</small><button type="button" class="country-reader-play" data-country-play aria-label="تشغيل تلاوة '+esc(r.name)+' داخل المفكرة" title="تشغيل داخل أنوار">▶</button></div>').join(''):'<div class="country-reader-empty">'+(q?'لا توجد أسماء مطابقة في هذه الصفحة. انتقل إلى الصفحة التالية أو غيّر البحث.':'لا توجد أسماء في هذه الصفحة.')+'</div>';
@@ -1429,6 +1430,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
    return;
   }
   countryPageBusy=true;countryRetry.hidden=true;countryPrev.disabled=true;countryNext.disabled=true;
+  if(countryActiveAudio)stopCountryAudio();
   countryList.innerHTML='<div class="country-reader-empty">جارٍ تحميل صفحة واحدة فقط…</div>';
   countryStatusBox.textContent='جارٍ جلب الصفحة '+targetPage+' من قرّاء '+entry.name+'…';
   try{
@@ -1488,7 +1490,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   requestAnimationFrame(()=>countryDialog.focus());
  }
  function closeCountryModal(){
-  countryLoadToken++;countryPageBusy=false;
+  countryLoadToken++;countryPlayToken++;countryPageBusy=false;
   if(countryActiveAudio)stopCountryAudio();
   countryModal.hidden=true;document.body.classList.remove('country-reader-open');document.body.style.overflow=countryPreviousOverflow;
   countryOpen.focus();
@@ -1612,6 +1614,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  countryList.addEventListener('click',async e=>{
   const button=e.target.closest('[data-country-play]');if(!button)return;
   const card=button.closest('[data-country-reciter]');if(!card)return;
+  const requestToken=++countryPlayToken;
   const name=card.querySelector('.country-reader-name')?.textContent||'القارئ';
   if(countryActiveAudio&&card.contains(countryActiveAudio)){
    if(countryActiveAudio.paused){
@@ -1631,10 +1634,13 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
     if(fallback){urls=[fallback];sourceLabel='MP3Quran'}
    }
    if(!urls.length)throw new Error('لم تتوفر روابط صوت مباشرة');
+   if(requestToken!==countryPlayToken||countryModal.hidden||!card.isConnected)return;
    mountCountryAudio(card,button,name,urls,sourceLabel);
   }catch(error){
-   button.textContent='▶';
-   countryStatusBox.textContent='تعذّر جلب ملف صوت صالح لهذا القارئ خلال المهلة القصيرة. بقيت المفكرة مفتوحة؛ أعد الضغط للمحاولة.';
+   if(requestToken===countryPlayToken){
+    button.textContent='▶';
+    countryStatusBox.textContent='تعذّر جلب ملف صوت صالح لهذا القارئ خلال المهلة القصيرة. بقيت المفكرة مفتوحة؛ أعد الضغط للمحاولة.';
+   }
   }finally{button.disabled=false}
  });
  countryOpen.addEventListener('click',openCountryModal);
