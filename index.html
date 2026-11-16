@@ -15,12 +15,13 @@
 
 <meta name="apple-mobile-web-app-title" content="مفكرة أنوار">
 <meta name="theme-color" content="#09264d">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Amiri+Quran&family=Aref+Ruqaa&family=Aref+Ruqaa+Ink&family=Scheherazade+New&family=Lateef&family=Harmattan&family=Noto+Naskh+Arabic&family=Markazi+Text&family=Mirza&family=Katibeh&family=Gulzar&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Cairo&family=Tajawal&family=Almarai&family=Alexandria&family=Changa&family=Mada&family=Readex+Pro&family=IBM+Plex+Sans+Arabic&family=Noto+Sans+Arabic&family=Noto+Kufi+Arabic&family=Vazirmatn&family=Rubik&family=Baloo+Bhaijaan+2&family=Lemonada&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Reem+Kufi&family=Reem+Kufi+Fun&family=Reem+Kufi+Ink&family=El+Messiri&family=Kufam&family=Lalezar&family=Rakkas&family=Jomhuria&family=Marhey&family=Vibes&family=Blaka&family=Qahiri&family=Playpen+Sans+Arabic&family=Noto+Nastaliq+Urdu&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <style>
 :root{--bg:#e9ecf1;--sf:#fff;--tx:#222;--mu:#6b7280;--ac:#2b579a;--ac2:#dbe6f6;--bd:#d5d9e0;--dn:#b3402f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b1d22;--sf:#272a31;--tx:#e8eaee;--mu:#9aa1ad;--ac:#6f9be0;--ac2:#33405a;--bd:#3a3e47;--dn:#e5705e}}
@@ -637,6 +638,7 @@ dialog[open]>.float-head{display:none!important}
  <div class="g"><div><button class="b" id="vs">📜 بيت</button><button class="b" id="sp">🔊 إلقاء</button><button class="b" id="fo">🎯 تركيز</button><button class="b" id="ip">💡 إلهام</button><button class="b" id="pn">☆ تثبيت</button><button class="b" id="cy">📋</button><button class="b" id="hist">🕘 الإصدارات</button><button class="b dn" id="dl">🗑️</button></div><small>أدوات أنوار</small></div>
  <div class="g"><div><button class="b" id="ownerBtn" aria-label="الملكية والأذكار" title="الملكية والأذكار">✒ الملكية والأذكار</button></div><small>هوية أنوار</small></div>
 </div>
+<section id="storageRecoveryNotice" hidden role="alert" aria-live="assertive"><div><strong>توقّف الحفظ حمايةً لبياناتك</strong><span>تعذّر فتح بيانات المفكرة السابقة. لا تُنشئ أعمالًا جديدة ولا تمسح بيانات الموقع. نزّل الملف الخام قبل استعادة نسخة سليمة.</span></div><button type="button" id="exportRecovery">تنزيل ملف الاسترداد الخام</button></section>
 <main>
  <section id="list">
   <input id="q" type="search" placeholder="ابحث…">
@@ -770,10 +772,11 @@ dialog[open]>.float-head{display:none!important}
 const TYPES={poem:'قصيدة',text:'نص',idea:'فكرة'},IC={poem:'🪶',text:'📜',idea:'💡'};
 const FONTS=['Amiri','Amiri Quran','Aref Ruqaa','Aref Ruqaa Ink','Scheherazade New','Lateef','Harmattan','Noto Naskh Arabic','Markazi Text','Mirza','Katibeh','Gulzar','Cairo','Tajawal','Almarai','Alexandria','Changa','Mada','Readex Pro','IBM Plex Sans Arabic','Noto Sans Arabic','Noto Kufi Arabic','Vazirmatn','Rubik','Baloo Bhaijaan 2','Lemonada','Reem Kufi','Reem Kufi Fun','Reem Kufi Ink','El Messiri','Kufam','Lalezar','Rakkas','Jomhuria','Marhey','Vibes','Blaka','Qahiri','Playpen Sans Arabic','Noto Nastaliq Urdu','Traditional Arabic','Simplified Arabic','Sakkal Majalla','Segoe UI','Tahoma','Arial','Times New Roman','Courier New'];
 const PROMPTS=['اكتب عن رائحة المطر على أول تراب بعد غياب طويل','قصيدة عن ضوء مصباح وحيد في آخر الليل','ماذا يقول القمر لمن ينتظر؟','صف وجهًا لا تنساه دون أن تذكر ملامحه','اكتب رسالة إلى نفسك بعد عشر سنوات','قصيدة عن وطن يسكن حقيبة سفر','ما الذي تعلّمته من الصمت؟','اكتب عن قهوة الصباح كأنها صديق قديم','بيت شعر يبدأ بكلمة «لولا»','اكتب عن بابٍ لم تجرؤ على فتحه','قصيدة عن الحنين بثلاث صور فقط'];
-let S={notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[]},cur=null,flt='all',tm,speaking=false,saved=null;
+let S={notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[]},cur=null,flt='all',tm,speaking=false,saved=null,storageRecoveryBlocked=false,storageRecoveryRaw=null,storageRecoveryExported=false;
 const $=id=>document.getElementById(id),pg=$('pg');
 const esc=s=>String(s??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
 function safeHttpsURL(value){try{const u=new URL(String(value));return u.protocol==='https:'?u.href:''}catch(e){return ''}}
+function safeFontName(value){return typeof value==='string'&&FONTS.includes(value)?value:'Amiri'}
 function san(h){
  const t=document.createElement('template');t.innerHTML=String(h||'');
  const allowed=new Set(['DIV','P','BR','SPAN','B','STRONG','I','EM','U','UL','OL','LI','BLOCKQUOTE','FONT','H1','H2','H3','H4','HR']);
@@ -798,15 +801,21 @@ function cleanNote(n){
  if(!n||typeof n!=='object')return null;
  const type=Object.hasOwn(TYPES,n.type)?n.type:'text';
  const raw=typeof n.html==='string'?n.html:(typeof n.text==='string'?n.text.split('\n').map(l=>'<div>'+(esc(l)||'<br>')+'</div>').join(''):'');
- const size=Number(n.size);
- return {id:String(n.id??Date.now().toString(36)).slice(0,80),title:String(n.title??'').slice(0,300),type,html:san(raw),pin:n.pin===true,ts:Number.isFinite(Number(n.ts))?Number(n.ts):Date.now(),font:typeof n.font==='string'&&n.font.length<80?n.font:'Amiri',size:Number.isFinite(size)?Math.max(14,Math.min(56,size)):20,history:Array.isArray(n.history)?n.history.slice(-15).map(v=>({title:String(v.title||'').slice(0,300),type:Object.hasOwn(TYPES,v.type)?v.type:'text',html:san(v.html||''),ts:Number(v.ts)||Date.now(),font:typeof v.font==='string'?v.font:'Amiri',size:Number(v.size)||20})):[]};
+ const size=Number(n.size),stamp=Number(n.ts);
+ const safeTime=Number.isFinite(stamp)&&Math.abs(stamp)<=8640000000000000?stamp:Date.now();
+ const history=Array.isArray(n.history)?n.history.slice(-15).filter(v=>v&&typeof v==='object').map(v=>{
+  const hs=Number(v.size),ht=Number(v.ts);
+  return {title:String(v.title||'').slice(0,300),type:Object.hasOwn(TYPES,v.type)?v.type:'text',html:san(v.html||''),ts:Number.isFinite(ht)&&Math.abs(ht)<=8640000000000000?ht:Date.now(),font:safeFontName(v.font),size:Number.isFinite(hs)?Math.max(14,Math.min(56,hs)):20};
+ }):[];
+ return {id:String(n.id??Date.now().toString(36)).slice(0,80),title:String(n.title??'').slice(0,300),type,html:san(raw),pin:n.pin===true,ts:safeTime,font:safeFontName(n.font),size:Number.isFinite(size)?Math.max(14,Math.min(56,size)):20,history};
 }
 function normalizeState(data){
  const d=data&&typeof data==='object'?data:{};
  return {notes:Array.isArray(d.notes)?d.notes.map(cleanNote).filter(Boolean):[],theme:d.theme==='dark'?'dark':d.theme==='light'?'light':'',palette:['blue','green','purple','rose','amber','slate'].includes(d.palette)?d.palette:'blue',wallColor:['mist','cream','sky','mint','lavender','blush','slate','night'].includes(d.wallColor)?d.wallColor:'mist',paperColor:['white','cream','sky','mint','lavender','blush','gray','night'].includes(d.paperColor)?d.paperColor:'white',days:Array.isArray(d.days)?d.days.filter(x=>typeof x==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x)).slice(-400):[]};
 }
-function load(){try{const r=localStorage.getItem('anwar_v1');if(r)S=normalizeState(JSON.parse(r))}catch(e){S={notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[]}}}
-function save(){try{localStorage.setItem('anwar_v1',JSON.stringify(S))}catch(e){console.warn('تعذّر حفظ بيانات مفكرة أنوار محلياً',e);toast('تعذّر الحفظ: مساحة التخزين غير متاحة أو ممتلئة. صدّر أعمالك المهمة.',5000)}}
+function load(){try{const r=localStorage.getItem('anwar_v1');if(r)S=normalizeState(JSON.parse(r))}catch(e){storageRecoveryBlocked=true;try{storageRecoveryRaw=localStorage.getItem('anwar_v1')}catch(_e){storageRecoveryRaw=null}S={notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[]};const panel=$('storageRecoveryNotice');if(panel)panel.hidden=false;const button=$('exportRecovery');if(button)button.disabled=storageRecoveryRaw===null}}
+function exportStorageRecovery(){if(storageRecoveryRaw===null){toast('تعذّر قراءة البيانات الخام من المتصفح؛ لا تمسح بيانات الموقع.',5000);return}try{const blob=new Blob([storageRecoveryRaw],{type:'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='anwar-storage-recovery-raw.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);storageRecoveryExported=true;toast('تم تجهيز ملف الاسترداد الخام. احتفظ به قبل الاستعادة.',5000)}catch(e){toast('تعذّر تنزيل ملف الاسترداد الخام؛ لا تحذف بيانات المتصفح.',5000)}}
+function save(){if(storageRecoveryBlocked){toast('الحفظ متوقف حمايةً للبيانات القديمة. نزّل ملف الاسترداد أولاً.',5000);return false}try{localStorage.setItem('anwar_v1',JSON.stringify(S));return true}catch(e){console.warn('تعذّر حفظ بيانات مفكرة أنوار محلياً',e);toast('تعذّر الحفظ: مساحة التخزين غير متاحة أو ممتلئة. صدّر أعمالك المهمة.',5000);return false}}
 function toast(m,d){const t=$('toast');t.textContent=m;t.classList.add('s');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('s'),d||2000)}
 const iso=d=>d.toISOString().slice(0,10);
 function streak(){const d=new Set(S.days);let n=0,c=new Date();if(!d.has(iso(c)))c.setDate(c.getDate()-1);while(d.has(iso(c))){n++;c.setDate(c.getDate()-1)}return n}
@@ -837,7 +846,7 @@ function openNote(n){
  else $('app').classList.remove('ed');
  renderList();info();
 }
-function newNote(){const n={id:Date.now().toString(36),title:'',type:'poem',html:'',pin:false,ts:Date.now(),font:'Amiri',size:20};S.notes.push(n);save();openNote(n);pg.focus()}
+function newNote(){if(storageRecoveryBlocked){toast('أنزل ملف الاسترداد أولاً، ثم استعد نسخة سليمة قبل إنشاء أعمال جديدة.',6000);return}const n={id:Date.now().toString(36),title:'',type:'poem',html:'',pin:false,ts:Date.now(),font:'Amiri',size:20};S.notes.push(n);save();openNote(n);pg.focus()}
 function lines(){const L=[];pg.querySelectorAll(':scope>*').forEach(e=>{const t=e.classList.contains('v')?(e.children[1]||e).textContent:e.textContent;if(t.replace(/[\u200b\s]/g,''))L.push(t)});if(!L.length&&pg.textContent.trim())L.push(pg.textContent);return L}
 function info(){
  if(!cur){$('info').textContent='';return}
@@ -857,7 +866,7 @@ function info(){
  $('info').textContent=h;
 }
 let pendingBefore=null;
-function touch(){if(!cur)return;if(pendingBefore===null)pendingBefore={title:cur.title,type:cur.type,html:cur.html,ts:cur.ts,font:cur.font,size:cur.size};cur.html=pg.innerHTML;cur.ts=Date.now();const d=iso(new Date());if(!S.days.includes(d))S.days.push(d);info();clearTimeout(tm);tm=setTimeout(()=>{if(pendingBefore&&(pendingBefore.html!==cur.html||pendingBefore.title!==cur.title||pendingBefore.type!==cur.type)){cur.history=cur.history||[];cur.history.push(pendingBefore);cur.history=cur.history.slice(-15)}pendingBefore=null;save();renderList()},650)}
+function touch(){if(!cur||storageRecoveryBlocked)return;if(pendingBefore===null)pendingBefore={title:cur.title,type:cur.type,html:cur.html,ts:cur.ts,font:cur.font,size:cur.size};cur.html=san(pg.innerHTML);cur.ts=Date.now();const d=iso(new Date());if(!S.days.includes(d))S.days.push(d);info();clearTimeout(tm);tm=setTimeout(()=>{if(pendingBefore&&(pendingBefore.html!==cur.html||pendingBefore.title!==cur.title||pendingBefore.type!==cur.type)){cur.history=cur.history||[];cur.history.push(pendingBefore);cur.history=cur.history.slice(-15)}pendingBefore=null;save();renderList()},650)}
 function saveSel(){const s=getSelection();if(s.rangeCount&&pg.contains(s.anchorNode))saved=s.getRangeAt(0).cloneRange()}
 function restore(){pg.focus();if(saved){const s=getSelection();s.removeAllRanges();s.addRange(saved)}}
 document.addEventListener('selectionchange',saveSel);
@@ -910,6 +919,30 @@ async function printFile(){
  .reciter-card{grid-template-columns:40px minmax(0,1fr) 46px;min-height:80px;padding:12px 15px!important;gap:12px!important}
  .reciter-play{width:43px;height:43px}
 }
+
+
+/* طبقة حماية الاسترداد */
+#storageRecoveryNotice{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;border-bottom:1px solid #d2a45d;background:linear-gradient(110deg,#fff4d9,#f8e5b9);color:#47371c}
+#storageRecoveryNotice[hidden]{display:none!important}
+#storageRecoveryNotice>div{display:grid;gap:3px;min-width:0}
+#storageRecoveryNotice strong{font-size:13px}
+#storageRecoveryNotice span{font-size:11px;line-height:1.6}
+#storageRecoveryNotice button{flex:none;border:1px solid #a97b33;border-radius:9px;padding:8px 11px;background:#fffaf0;color:#513b19;font-size:11px;font-weight:700}
+#storageRecoveryNotice button:disabled{opacity:.45;cursor:not-allowed}
+/* تحسين هادئ لسطوح الكتابة وقائمة الأعمال */
+.card{border-radius:11px;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
+.card:hover{border-color:var(--ac);box-shadow:0 4px 12px rgba(20,45,75,.08);transform:translateY(-1px)}
+.card.sel{box-shadow:inset 3px 0 0 var(--ac),0 3px 10px rgba(20,45,75,.07)}
+#pg{border:1px solid rgba(40,65,95,.08);border-radius:14px;box-shadow:0 8px 26px rgba(20,35,55,.12);line-height:2.05}
+#area{scrollbar-gutter:stable}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+button:focus:not(:focus-visible){outline:none}
+@media(max-width:520px){
+ #storageRecoveryNotice{align-items:stretch;flex-direction:column;gap:7px;padding:9px 11px}
+ #storageRecoveryNotice button{width:100%;min-height:38px}
+ #pg{border-radius:11px;box-shadow:0 4px 16px rgba(20,35,55,.10)}
+}
+@media(prefers-reduced-motion:reduce){.card{transition:none}}
 
 </style></head><body>${$('pa').innerHTML}\x3Cscript>onload=function(){setTimeout(function(){print()},900)}<\/script></body></html>`;
  try{await dl.save({filename:((cur.title||'أنوار').replace(/[\\/:*?"<>|]/g,'-').slice(0,60))+'.html',data:new Blob([h],{type:'text/html'})});toast('افتح الملف المنزَّل وستظهر نافذة الطباعة تلقائيًا',5000)}catch(e){}
@@ -1043,8 +1076,9 @@ document.addEventListener('click',e=>{
  else if(id==='cy'&&cur){navigator.clipboard&&navigator.clipboard.writeText((cur.title?cur.title+'\n\n':'')+pg.innerText).then(()=>toast('تم النسخ'),()=>toast('تعذّر النسخ'))}
  else if(id==='dl'&&cur){if(confirm('حذف هذا العمل نهائيًا؟')){S.notes=S.notes.filter(n=>n!==cur);save();openNote(null)}}
  else if(id==='bkp'){$('bt').value=JSON.stringify(S);$('dg').showModal()}
+ else if(id==='exportRecovery')exportStorageRecovery();
  else if(id==='cp'){$('bt').select();navigator.clipboard&&navigator.clipboard.writeText($('bt').value).then(()=>toast('تم النسخ'),()=>{})}
- else if(id==='rs'){try{const d=JSON.parse($('bt').value);if(!d||!Array.isArray(d.notes))throw 0;S=normalizeState(d);save();openNote(null);theme();$('dg').close();toast('تمت الاستعادة')}catch(x){toast('النسخة غير صالحة أو تالفة')}}
+ else if(id==='rs'){try{const backupText=$('bt').value;if(backupText.length>4500000)throw new Error('الحجم كبير جدًا');if(storageRecoveryBlocked&&storageRecoveryRaw!==null&&!storageRecoveryExported){toast('نزّل ملف الاسترداد الخام أولًا قبل استبدال البيانات التالفة.',6000);return}const d=JSON.parse(backupText);if(!d||!Array.isArray(d.notes)||d.notes.length>2500||d.notes.some(n=>!n||typeof n!=='object'||String(n.html||n.text||'').length>450000))throw new Error('بنية النسخة غير مقبولة');const next=normalizeState(d),serialized=JSON.stringify(next);localStorage.setItem('anwar_v1',serialized);S=next;storageRecoveryBlocked=false;storageRecoveryRaw=null;storageRecoveryExported=false;$('storageRecoveryNotice').hidden=true;openNote(null);theme();$('dg').close();toast('تمت الاستعادة والتحقق من النسخة')}catch(x){toast(x&&x.message==='الحجم كبير جدًا'?'النسخة أكبر من الحد الآمن للاستيراد.':'النسخة غير صالحة أو تعذّر حفظها؛ لم تتغير البيانات الحالية.',6000)}}
  else if(id==='cl')$('dg').close();
  else if(id==='ownerBtn')$('ownerDialog').showModal();
  else if(id==='closeOwner')$('ownerDialog').close();
@@ -1076,6 +1110,8 @@ const ADHKAR={
 function renderAdhkar(period){const morning=period==='morning';$('morningTab').classList.toggle('active',morning);$('eveningTab').classList.toggle('active',!morning);$('adhkarContent').innerHTML=ADHKAR[period].map(x=>`<article class="dhikr"><strong>${x[0]}</strong><div>${x[1]}</div><small>${x[2]}</small></article>`).join('')}
 pg.addEventListener('input',touch);
 pg.addEventListener('paste',e=>{e.preventDefault();document.execCommand('insertText',false,e.clipboardData.getData('text/plain'))});
+pg.addEventListener('dragover',e=>e.preventDefault());
+pg.addEventListener('drop',e=>{e.preventDefault();const text=e.dataTransfer?.getData('text/plain')||'';if(text)document.execCommand('insertText',false,text);touch()});
 $('t').addEventListener('input',e=>{if(cur){cur.title=e.target.value;cur.ts=Date.now();clearTimeout(tm);tm=setTimeout(()=>{save();renderList()},500)}});
 $('ty').addEventListener('change',e=>{if(cur){cur.type=e.target.value;save();renderList();info()}});
 $('q').addEventListener('input',renderList);
@@ -1086,7 +1122,7 @@ $('fc').addEventListener('input',e=>cmd('foreColor',e.target.value));
 $('hc').addEventListener('input',e=>{restore();document.execCommand('styleWithCSS',false,true);document.execCommand('hiliteColor',false,e.target.value);document.execCommand('styleWithCSS',false,false);touch()});
 $('zm').addEventListener('input',e=>{pg.style.zoom=e.target.value/100});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')$('app').classList.remove('focus')});
-addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
+addEventListener('beforeunload',()=>{if(cur){cur.html=san(pg.innerHTML)}save()});
 (function(){
  const SU='الفاتحة,البقرة,آل عمران,النساء,المائدة,الأنعام,الأعراف,الأنفال,التوبة,يونس,هود,يوسف,الرعد,إبراهيم,الحجر,النحل,الإسراء,الكهف,مريم,طه,الأنبياء,الحج,المؤمنون,النور,الفرقان,الشعراء,النمل,القصص,العنكبوت,الروم,لقمان,السجدة,الأحزاب,سبأ,فاطر,يس,الصافات,ص,الزمر,غافر,فصلت,الشورى,الزخرف,الدخان,الجاثية,الأحقاف,محمد,الفتح,الحجرات,ق,الذاريات,الطور,النجم,القمر,الرحمن,الواقعة,الحديد,المجادلة,الحشر,الممتحنة,الصف,الجمعة,المنافقون,التغابن,الطلاق,التحريم,الملك,القلم,الحاقة,المعارج,نوح,الجن,المزمل,المدثر,القيامة,الإنسان,المرسلات,النبأ,النازعات,عبس,التكوير,الانفطار,المطففين,الانشقاق,البروج,الطارق,الأعلى,الغاشية,الفجر,البلد,الشمس,الليل,الضحى,الشرح,التين,العلق,القدر,البينة,الزلزلة,العاديات,القارعة,التكاثر,العصر,الهمزة,الفيل,قريش,الماعون,الكوثر,الكافرون,النصر,المسد,الإخلاص,الفلق,الناس'.split(',');
  const R=[['عبد الرحمن بنموسى (ورش عن نافع)','https://media.way2quran.com/abdel-rahman-benmoussa/warsh-an-nafi/'],['مشاري العفاسي','https://server8.mp3quran.net/afs/'],['ماهر المعيقلي','https://server12.mp3quran.net/maher/'],['عبدالرحمن السديس','https://server11.mp3quran.net/sds/'],['سعود الشريم','https://server7.mp3quran.net/shur/'],['عبدالباسط عبدالصمد','https://server7.mp3quran.net/basit/'],['سعد الغامدي','https://server7.mp3quran.net/s_gmd/'],['أحمد العجمي','https://server10.mp3quran.net/ajm/'],['ياسر الدوسري','https://server11.mp3quran.net/yasser/'],['أبو بكر الشاطري','https://server11.mp3quran.net/shatri/'],['محمد صديق المنشاوي','https://server10.mp3quran.net/minsh/'],['إبراهيم الأخضر','https://server6.mp3quran.net/akdr/'],['محمد أيوب','https://server8.mp3quran.net/ayyub/']];
