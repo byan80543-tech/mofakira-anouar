@@ -1107,7 +1107,9 @@ function showStorageRecoveryNotice(title,message,raw){
 function readStoredState(raw){
  const parsed=JSON.parse(raw);
  if(!parsed||typeof parsed!=='object'||Array.isArray(parsed))throw new Error('البيانات المحفوظة ليست كائنًا صالحًا');
- return normalizeState(parsed);
+ const normalized=normalizeState(parsed);
+ if(Array.isArray(parsed.notes)&&parsed.notes.length>0&&normalized.notes.length===0)throw new Error('لم يبق أي سجل صالح بعد فحص البيانات');
+ return normalized;
 }
 function load(){
  let raw;
@@ -1117,12 +1119,13 @@ function load(){
   console.warn('تعذّرت قراءة التخزين المحلي لمفكرة أنوار',error);
   return;
  }
- if(raw===null||raw==='')return;
- try{
-  S=readStoredState(raw);
-  return;
- }catch(primaryError){
-  console.warn('تعذّرت قراءة الحالة الأساسية لمفكرة أنوار',primaryError);
+ if(raw!==null&&raw!==''){
+  try{
+   S=readStoredState(raw);
+   return;
+  }catch(primaryError){
+   console.warn('تعذّرت قراءة الحالة الأساسية لمفكرة أنوار',primaryError);
+  }
  }
  try{
   const backupRaw=localStorage.getItem('anwar_v1_backup_v2');
@@ -1134,6 +1137,7 @@ function load(){
    return;
   }
  }catch(backupError){console.warn('لم تتوفر نسخة حفظ احتياطية قابلة للقراءة',backupError)}
+ if(raw===null)return;
  showStorageRecoveryNotice('تعذّر فتح بيانات المفكرة','تعذّرت قراءة البيانات المحفوظة. بما أن هذه بيانات تجريبية، يمكنك بدء مفكرة نظيفة؛ ولن تتأثر المكتبة أو الإذاعة.',raw);
 }
 function startFreshNotebook(){
