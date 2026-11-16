@@ -476,6 +476,43 @@ dialog[open]>.float-head{display:none!important}
 .reciter-country-foot{display:flex;flex-wrap:wrap;align-items:center;gap:4px 9px;padding-top:6px;border-top:1px solid var(--bd);font-size:10px}
 .reciter-country-foot a{color:var(--ac);font-weight:800;text-decoration:none}
 .reciter-country-foot span{color:var(--mu)}
+.reciter-country-open{border:0;cursor:pointer;font-family:inherit}
+.reciter-country-open:disabled{opacity:.48;cursor:not-allowed}
+.country-reader-modal{position:fixed;inset:0;z-index:100500;display:grid;place-items:center;padding:max(10px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom));background:rgba(4,15,30,.78);backdrop-filter:blur(5px)}
+.country-reader-modal[hidden]{display:none!important}
+.country-reader-dialog{display:flex;flex-direction:column;width:min(700px,100%);height:min(850px,calc(100dvh - 20px));max-height:calc(100dvh - 20px);overflow:hidden;border:1px solid #d6bf8b;border-radius:17px;background:var(--sf);color:var(--tx);box-shadow:0 20px 70px #0005;outline:none}
+.country-reader-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;background:linear-gradient(115deg,#102f50,#1f5872);color:#fff}
+.country-reader-header>div{display:grid;gap:2px}
+.country-reader-header strong{font-size:16px}
+.country-reader-header small{font-size:10px;opacity:.82}
+.country-modal-close{width:38px;height:38px;flex:none;border:1px solid #ffffff66;border-radius:10px;background:#ffffff18;color:#fff;font-size:18px}
+.country-reader-tools{display:flex;align-items:center;gap:8px;padding:11px 12px 7px}
+.country-reader-tools input{flex:1;min-width:0;min-height:42px;margin:0;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);padding:8px 11px;font:inherit;font-size:12px}
+.country-reader-count{flex:none;padding:6px 9px;border:1px solid var(--bd);border-radius:9px;color:var(--ac);font-size:11px;font-weight:800}
+.country-reader-status{min-height:31px;padding:3px 13px 7px;color:var(--mu);font-size:11px;line-height:1.65}
+.country-reader-list{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:7px;padding:4px 12px 12px;overscroll-behavior:contain}
+.country-reader-item{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;min-height:43px;padding:8px 10px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);text-align:right}
+.country-reader-item span{min-width:0;font-size:12px;font-weight:700;line-height:1.55;overflow-wrap:anywhere}
+.country-reader-item small{flex:none;color:var(--mu);font-size:9px;white-space:nowrap}
+.country-reader-empty{grid-column:1/-1;padding:24px 12px;text-align:center;color:var(--mu);font-size:12px}
+.country-reader-footer{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:7px;padding:9px 12px;border-top:1px solid var(--bd);background:var(--sf)}
+.country-reader-footer button{min-height:36px;padding:7px 12px;border:1px solid var(--bd);border-radius:9px;background:var(--bg);color:var(--tx);font:inherit;font-size:11px;font-weight:700}
+.country-reader-footer button:disabled{opacity:.4}
+.country-reader-footer span{min-width:58px;text-align:center;color:var(--mu);font-size:10px}
+#countryReaderRetry{border-color:#c8a763;background:#fff5da;color:#624819}
+.country-reader-source{padding:0 12px 10px;color:var(--mu);font-size:9px;line-height:1.6;text-align:center}
+.reciter-body{flex:1;min-width:0;display:grid;gap:5px}
+.reciter-name{display:block}
+.reciter-variants{display:flex;flex-wrap:wrap;gap:5px}
+.reciter-version{min-height:27px;padding:4px 8px;border:1px solid #c9a96a;border-radius:999px;background:linear-gradient(145deg,#fff5d8,#ead39a);color:#263b50;font:700 10px Cairo,Tahoma,sans-serif}
+.reciter-version:active{transform:scale(.97)}
+@media(max-width:520px){
+ .country-reader-modal{padding:0}
+ .country-reader-dialog{width:100%;height:100dvh;max-height:100dvh;border:0;border-radius:0}
+ .country-reader-list{grid-template-columns:1fr}
+ .country-reader-footer{padding-bottom:max(9px,env(safe-area-inset-bottom))}
+}
+
 @media(max-width:420px){.reciter-country-controls{flex-direction:column}.reciter-country-open{min-height:38px;width:100%}}
 
 .reciter-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-height:min(48dvh,460px);min-height:200px;padding:4px 3px 10px;scrollbar-gutter:stable;scroll-padding-block:8px}
@@ -627,10 +664,31 @@ dialog[open]>.float-head{display:none!important}
      <option value="comoros">جزر القمر · لا يظهر لها قسم مستقل</option>
     </optgroup>
    </select>
-   <a id="reciterCountryOpen" class="reciter-country-open" href="https://etilawa.com/countries/" target="_blank" rel="noopener noreferrer">فتح فهرس الدول</a>
+   <button id="reciterCountryOpen" class="reciter-country-open" type="button" disabled>عرض القرّاء داخل أنوار</button>
   </div>
-  <small id="reciterCountryStatus" class="reciter-country-status">اختر دولة لفتح قائمتها الموسّعة وأسماء قرّائها في دليل التلاوة الخارجي. لا تُعرض صفحة خارجية داخل المفكرة.</small>
-  <div class="reciter-country-foot"><a href="https://etilawa.com/countries/" target="_blank" rel="noopener noreferrer">الدليل القطري الكامل · 54 بلدًا</a> <span>الأعداد بحسب بيانات الدليل، وآخر تحديث معلن 11 نوفمبر 2026.</span></div>
+  <small id="reciterCountryStatus" class="reciter-country-status">اختر دولة ثم اعرض قائمتها داخل المفكرة. ستُجلب الأسماء وتُعرض هنا دون فتح موقع آخر.</small>
+  <div class="reciter-country-foot"><span>فهرس الدول: دليل التلاوة · تحديث المصدر المعلن 11 نوفمبر 2026</span></div>
+ </section>
+ <section id="reciterCountryModal" class="country-reader-modal" hidden aria-modal="true" role="dialog" aria-labelledby="countryModalTitle">
+  <div class="country-reader-dialog" tabindex="-1">
+   <header class="country-reader-header">
+    <div><strong id="countryModalTitle">قرّاء الدولة</strong><small id="countryModalSub">قائمة الأسماء</small></div>
+    <button type="button" id="countryModalClose" class="country-modal-close" aria-label="إغلاق قائمة قرّاء الدولة">✕</button>
+   </header>
+   <div class="country-reader-tools">
+    <input type="search" id="countryReaderSearch" placeholder="ابحث داخل أسماء قرّاء الدولة…" aria-label="ابحث في قراء الدولة">
+    <span id="countryReaderCount" class="country-reader-count">—</span>
+   </div>
+   <div id="countryReaderStatus" class="country-reader-status" aria-live="polite">اختر دولة للبدء.</div>
+   <div id="countryReaderList" class="country-reader-list" role="list" aria-label="أسماء قراء الدولة"></div>
+   <footer class="country-reader-footer">
+    <button type="button" id="countryReaderPrev" disabled>السابق</button>
+    <span id="countryReaderPage">—</span>
+    <button type="button" id="countryReaderNext" disabled>التالي</button>
+    <button type="button" id="countryReaderRetry" hidden>إعادة تحميل الصفحات الناقصة</button>
+   </footer>
+   <small class="country-reader-source">تُعرض الأسماء داخل مفكرة أنوار. المصدر: دليل التلاوة؛ لا تُحمّل صفحة الموقع الخارجية داخل النافذة.</small>
+  </div>
  </section>
 
  <div id="reciterGrid" class="reciter-grid" role="list" aria-label="قائمة القراء"><div class="reciter-loading">جارٍ تجهيز قائمة القراء…</div></div>
@@ -1020,7 +1078,7 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  rr.innerHTML=R.map((r,i)=>`<option value="${i}">${esc(r[0])}</option>`).join('');
  rsu.innerHTML=SU.map((s,i)=>`<option value="${i+1}">${i+1}. ${esc(s)}</option>`).join('');
  const mode=()=>document.querySelector('input[name=rm]:checked').value;
- function ui(){const on=started&&!au.paused,live=mode()==='l';pp.textContent=on?'⏸':'▶';rb.textContent=on?'⏸':'▶';rb.classList.toggle('on',on);$('radioNow').textContent=on?(live?($('rl').selectedOptions[0]||{text:'إذاعة مباشرة'}).text:'القارئ: '+R[cr][0]):'إذاعة أنوار القرآنية';$('radioSub').textContent=on?(live?'بث إذاعي مباشر · استمع الآن':'سورة '+SU[n-1]+' · تلاوة متتابعة'):'اختر قارئك أو افتح البث المباشر';$('radioLiveDot').classList.toggle('playing',on);document.querySelector('.radio-hero').classList.toggle('playing',on);$('reciterGrid').querySelectorAll('[data-reciter-play]').forEach(b=>{const active=on&&!live&&+b.dataset.reciterPlay===cr;b.textContent=active?'⏸':'▶'});if(on)st.textContent=live?'بث مباشر: '+($('rl').selectedOptions[0]||{text:''}).text:'يُتلى الآن: سورة '+SU[n-1]+' — '+R[cr][0]}
+ function ui(){const on=started&&!au.paused,live=mode()==='l';pp.textContent=on?'⏸':'▶';rb.textContent=on?'⏸':'▶';rb.classList.toggle('on',on);$('radioNow').textContent=on?(live?($('rl').selectedOptions[0]||{text:'إذاعة مباشرة'}).text:'القارئ: '+R[cr][0]):'إذاعة أنوار القرآنية';$('radioSub').textContent=on?(live?'بث إذاعي مباشر · استمع الآن':'سورة '+SU[n-1]+' · تلاوة متتابعة'):'اختر قارئك أو افتح البث المباشر';$('radioLiveDot').classList.toggle('playing',on);document.querySelector('.radio-hero').classList.toggle('playing',on);$('reciterGrid').querySelectorAll('[data-reciter-play]').forEach(b=>{const active=on&&!live&&+b.dataset.reciterPlay===cr;b.textContent=active?'⏸':(b.dataset.playLabel||'▶')});if(on)st.textContent=live?'بث مباشر: '+($('rl').selectedOptions[0]||{text:''}).text:'يُتلى الآن: سورة '+SU[n-1]+' — '+R[cr][0]}
  function availableSurahs(){const a=R[cr]&&Array.isArray(R[cr][2])?R[cr][2]:null;return a&&a.length?a:Array.from({length:114},(_,i)=>i+1)}
  function moveSurah(step){const a=availableSurahs(),i=a.indexOf(n),next=i<0?0:(i+step+a.length)%a.length;n=a[next];rsu.value=String(n);play()}
  function play(){const lesson=$('lessonAudio');if(lesson&&!lesson.paused)lesson.pause();started=true;const available=availableSurahs();if(!available.includes(n)){n=available[0]||1}const u=mode()==='l'?($('rl').value||''):R[cr][1]+String(n).padStart(3,'0')+'.mp3';au.src=u;$('ro').href=u;rsu.value=n;st.textContent='جارٍ التحميل…';clearTimeout(wd);wd=setTimeout(()=>{if(au.paused||au.readyState<2){st.textContent='لم يبدأ الصوت: غالبًا تمنعه المنصة داخل هذه الصفحة. استخدم رابط «افتح الصوت في نافذة مستقلة» أدناه.';setRadioPanel(true)}},9000);au.play().catch(e=>{if(e&&e.name==='NotAllowedError')st.textContent='اضغط تشغيل مرة أخرى'});ui()}
@@ -1028,7 +1086,50 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
  au.addEventListener('playing',()=>{clearTimeout(wd);ui()});au.addEventListener('pause',ui);
  au.addEventListener('ended',()=>{if(mode()==='l'){play()}else if(mode()==='c'){const a=availableSurahs(),i=a.indexOf(n);if(i>=0&&i<a.length-1){n=a[i+1];play()}else{started=false;ui();st.textContent='انتهت التلاوات المتاحة لهذا القارئ'}}else{started=false;ui();st.textContent='انتهت السورة'}});
  au.addEventListener('error',()=>{if(!au.src)return;started=false;ui();st.textContent='تعذّر تشغيل الصوت: غالبًا تمنعه المنصة داخل هذه الصفحة. استخدم رابط «افتح الصوت في نافذة مستقلة» أدناه.';toast('تعذّر تشغيل الإذاعة',3000);clearTimeout(wd);setRadioPanel(true)});
- function fill(){const v=+rr.value||0,q=($('rq').value||'').trim(),L=R.map((r,i)=>[r,i]).filter(([r])=>!q||r[0].toLocaleLowerCase('ar').includes(q.toLocaleLowerCase('ar')));rr.innerHTML=R.map((r,i)=>`<option value="${i}">${esc(r[0])}</option>`).join('');rr.value=String(v);const s=+rsu.value||1;rsu.innerHTML=SU.map((x,i)=>`<option value="${i+1}">${i+1}. ${esc(x)}</option>`).join('');rsu.value=s;$('reciterGrid').innerHTML=L.length?L.map(([r,i])=>`<div class="reciter-card" role="listitem"><span class="reciter-seal" aria-hidden="true">🌷</span><span class="reciter-name">${esc(r[0])}</span><button type="button" class="reciter-play" data-reciter-play="${i}" aria-label="تشغيل تلاوة ${esc(r[0])}">▶</button></div>`).join(''):'<div class="reciter-empty">لا توجد نتائج بهذا الاسم.</div>';const count=$('reciterCount');if(count)count.textContent='النتائج '+new Intl.NumberFormat('ar').format(L.length)+' من '+new Intl.NumberFormat('ar').format(R.length);ui()}
+ 
+ function readerIdentity(name){
+  let base=String(name||'قارئ').split(' — ')[0].trim();
+  const m=base.match(/[（(]([^()（）]+)[)）]$/);
+  if(m&&/(ورش|قالون|حفص|الدوري|شعبة|البزي|قنبل|المجود|المرتل|المعلم|رواية)/.test(m[1]))base=base.slice(0,m.index).trim();
+  return base||String(name||'قارئ');
+ }
+ function readerKey(name){
+  return readerIdentity(name).normalize('NFKC').replace(/[\u064B-\u065F\u0670\u0640]/g,'')
+   .replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/[\u200e\u200f]/g,'')
+   .replace(/[\sـ،؛:,.()[\]{}'"]/g,'').toLowerCase();
+ }
+ function readerVariantLabel(name,index,total){
+  const s=String(name||''),dash=s.split(' — ');
+  if(dash.length>1)return dash.slice(1).join(' — ').trim();
+  const m=s.match(/[（(]([^()（）]+)[)）]$/);
+  if(m&&/(ورش|قالون|حفص|الدوري|شعبة|البزي|قنبل|المجود|المرتل|المعلم|رواية)/.test(m[1]))return m[1].trim();
+  return total>1?'تسجيل '+(index+1):'استمع';
+ }
+ function groupedReciters(){
+  const groups=new Map();
+  R.forEach((r,i)=>{
+   const name=readerIdentity(r[0]),key=readerKey(name);
+   if(!groups.has(key))groups.set(key,{name,variants:[],seen:new Set()});
+   const group=groups.get(key),url=String(r[1]||'').replace(/\/+$/,'').toLowerCase();
+   const variantKey=url;
+   if(group.seen.has(variantKey))return;
+   group.seen.add(variantKey);
+   group.variants.push({index:i,label:readerVariantLabel(r[0],group.variants.length,1)});
+  });
+  for(const g of groups.values()){
+   if(g.variants.length>1)g.variants.forEach((v,i)=>{if(v.label==='استمع')v.label='تسجيل '+(i+1)});
+  }
+  return [...groups.values()].sort((a,b)=>a.name.localeCompare(b.name,'ar'));
+ }
+ function fill(){
+  const v=+rr.value||0,q=($('rq').value||'').trim().toLocaleLowerCase('ar'),all=groupedReciters();
+  rr.innerHTML=R.map((r,i)=>`<option value="${i}">${esc(r[0])}</option>`).join('');rr.value=String(v);
+  const surah=+rsu.value||1;rsu.innerHTML=SU.map((x,i)=>`<option value="${i+1}">${i+1}. ${esc(x)}</option>`).join('');rsu.value=surah;
+  const L=all.filter(g=>!q||g.name.toLocaleLowerCase('ar').includes(q)||g.variants.some(v=>String(R[v.index][0]).toLocaleLowerCase('ar').includes(q)));
+  $('reciterGrid').innerHTML=L.length?L.map(g=>`<div class="reciter-card" role="listitem"><span class="reciter-seal" aria-hidden="true">🌷</span><div class="reciter-body"><span class="reciter-name">${esc(g.name)}</span><div class="reciter-variants">${g.variants.map(v=>`<button type="button" class="${g.variants.length>1?'reciter-version':'reciter-play'}" data-reciter-play="${v.index}" data-play-label="${esc(g.variants.length>1?v.label:'▶')}" aria-label="تشغيل ${esc(g.name)} — ${esc(v.label)}">${g.variants.length>1?esc(v.label):'▶'}</button>`).join('')}</div></div></div>`).join(''):'<div class="reciter-empty">لا توجد نتائج بهذا الاسم.</div>';
+  const count=$('reciterCount');if(count)count.textContent='القرّاء '+new Intl.NumberFormat('ar').format(L.length)+' من '+new Intl.NumberFormat('ar').format(all.length)+' · التسجيلات '+new Intl.NumberFormat('ar').format(R.length);
+  ui();
+ }
  async function J(u){const c=new AbortController(),t=setTimeout(()=>c.abort(),7000);try{const r=await fetch(u,{signal:c.signal});if(!r.ok)throw 0;return await r.json()}finally{clearTimeout(t)}}
  (async()=>{
   const B='https://www.mp3quran.net/api/v3/',q=await Promise.allSettled([J(B+'reciters?language=ar'),J(B+'suwar?language=ar'),J(B+'radios?language=ar')]);
@@ -1037,51 +1138,189 @@ addEventListener('beforeunload',()=>{if(cur){cur.html=pg.innerHTML}save()});
   if(q[1].status==='fulfilled'){const L=(q[1].value.suwar||[]).map(s=>String(s.name).trim());if(L.length===114){SU.length=0;SU.push(...L);ok++}}
   if(q[2].status==='fulfilled'){const L=(q[2].value.radios||[]).map(x=>({name:String(x.name||'إذاعة').slice(0,100),url:safeHttpsURL(x.url)})).filter(x=>x.url);if(L.length){$('rl').innerHTML=L.map(x=>`<option value="${esc(x.url)}">${esc(x.name)}</option>`).join('');$('liveStationArea').hidden=false;ok++}}
   fill();
-  $('src').textContent=ok?`تم جلب ${R.length} قارئًا والإذاعات من mp3quran.net ✓`:'قائمة مدمجة: المنصة تمنع الاتصال بالمصدر من داخل هذه الصفحة';
+  $('src').textContent=ok?`تم جلب ${groupedReciters().length} قارئًا فريدًا و${R.length} تسجيلًا صوتيًا من mp3quran.net ✓`:'قائمة مدمجة: المنصة تمنع الاتصال بالمصدر من داخل هذه الصفحة';
  })();
  document.querySelectorAll('input[name=rm]').forEach(x=>x.addEventListener('change',()=>{if(started)play()}));
  $('rl').addEventListener('change',()=>{if(started)play()});
  $('rq').addEventListener('input',fill);
 
+ 
  const countrySelect=$('reciterCountry'),countryOpen=$('reciterCountryOpen'),countryStatus=$('reciterCountryStatus');
  const countryDirectory={
-  'saudi-arabia':{name:'المملكة العربية السعودية',count:797},
-  'kuwait':{name:'الكويت',count:76},
-  'bahrain':{name:'البحرين',count:38},
-  'qatar':{name:'قطر',count:51},
-  'united-arab-emirates':{name:'الإمارات العربية المتحدة',count:65},
-  'oman':{name:'سلطنة عُمان',count:20},
-  'yemen':{name:'اليمن',count:111},
-  'palestine':{name:'فلسطين',count:82},
-  'jordan':{name:'الأردن',count:32},
-  'lebanon':{name:'لبنان',count:10},
-  'syria':{name:'سوريا',count:83},
-  'iraq':{name:'العراق',count:130},
-  'egypt':{name:'مصر',count:686},
-  'libya':{name:'ليبيا',count:41},
-  'tunisia':{name:'تونس',count:25},
-  'algeria':{name:'الجزائر',count:42},
-  'morocco':{name:'المغرب',count:232},
-  'mauritania':{name:'موريتانيا',count:20},
-  'sudan':{name:'السودان',count:26},
-  'somalia':{name:'الصومال',count:6}
+  'saudi-arabia':{name:'المملكة العربية السعودية',count:797,pages:8},
+  'egypt':{name:'مصر',count:686,pages:7},
+  'morocco':{name:'المغرب',count:232,pages:3},
+  'iraq':{name:'العراق',count:130,pages:2},
+  'yemen':{name:'اليمن',count:111,pages:2},
+  'syria':{name:'سوريا',count:83,pages:1},
+  'palestine':{name:'فلسطين',count:82,pages:1},
+  'kuwait':{name:'الكويت',count:76,pages:1},
+  'united-arab-emirates':{name:'الإمارات العربية المتحدة',count:65,pages:1},
+  'qatar':{name:'قطر',count:51,pages:1},
+  'algeria':{name:'الجزائر',count:42,pages:1},
+  'libya':{name:'ليبيا',count:41,pages:1},
+  'bahrain':{name:'البحرين',count:38,pages:1},
+  'jordan':{name:'الأردن',count:32,pages:1},
+  'sudan':{name:'السودان',count:26,pages:1},
+  'tunisia':{name:'تونس',count:25,pages:1},
+  'oman':{name:'سلطنة عُمان',count:20,pages:1},
+  'mauritania':{name:'موريتانيا',count:20,pages:1},
+  'lebanon':{name:'لبنان',count:10,pages:1},
+  'somalia':{name:'الصومال',count:6,pages:1}
  };
- function updateCountryDirectory(){
-  const key=countrySelect.value,entry=countryDirectory[key],base='https://etilawa.com/countries/';
-  if(entry){
-   countryOpen.href=base+key+'/';
-   countryOpen.textContent='عرض قرّاء الدولة';
-   countryStatus.textContent='قائمة '+entry.name+' في الدليل الخارجي: '+new Intl.NumberFormat('ar').format(entry.count)+' قارئًا مسجّلًا. يفتح الرابط القائمة مباشرة مع صفحاتها.';
-  }else if(key==='djibouti'||key==='comoros'){
-   countryOpen.href=base;
-   countryOpen.textContent='فتح فهرس البلدان';
-   countryStatus.textContent='لم يظهر '+(key==='djibouti'?'لجيبوتي':'لجزر القمر')+' قسم مستقل في دليل التلاوة الذي راجعناه؛ يفتح الرابط فهرس البلدان العام دون افتراض عدم وجود قرّاء.';
-  }else{
-   countryOpen.href=base;
-   countryOpen.textContent='فتح فهرس الدول';
-   countryStatus.textContent='يضم الدليل الخارجي 54 بلدًا، ويمكنك اختيار الدولة والبحث في قوائم القرّاء المسجّلة فيها.';
-  }
+ const countryModal=$('reciterCountryModal'),countryDialog=countryModal.querySelector('.country-reader-dialog');
+ const countrySearch=$('countryReaderSearch'),countryList=$('countryReaderList'),countryStatusBox=$('countryReaderStatus');
+ const countryCountBox=$('countryReaderCount'),countryPageBox=$('countryReaderPage'),countryPrev=$('countryReaderPrev'),countryNext=$('countryReaderNext'),countryRetry=$('countryReaderRetry');
+ const countryCache=new Map();let activeCountryKey='',activeCountryRows=[],activeCountryPage=0,failedCountryPages=[];
+ const COUNTRY_PAGE_SIZE=40,COUNTRY_BASE='https://etilawa.com/countries/';
+ function countryNorm(v){
+  return String(v||'').normalize('NFKC').replace(/[\u064B-\u065F\u0670\u0640]/g,'')
+   .replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/[\u200e\u200f]/g,'')
+   .replace(/[\sـ،؛:,.()[\]{}'"+String.fromCharCode(34)+"]/g,'').toLowerCase();
  }
+ function countryDigits(v){
+  return String(v||'').replace(/[٠-٩]/g,d=>String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)));
+ }
+ function parseCountryPage(html){
+  const doc=new DOMParser().parseFromString(html,'text/html'),rows=[];
+  doc.querySelectorAll('a[href]').forEach(a=>{
+   let u;try{u=new URL(a.getAttribute('href'),COUNTRY_BASE)}catch(_e){return}
+   if(u.hostname!=='etilawa.com')return;
+   const m=u.pathname.match(/^\/reciters\/([^/]+)\/?$/);if(!m)return;
+   let raw=(a.textContent||'').replace(/\s+/g,' ').trim();
+   const recordingMatch=raw.match(/(\d+|[٠-٩]+)\s*تسجيل/);
+   const recordings=recordingMatch?Math.max(1,Number(countryDigits(recordingMatch[1]))||1):1;
+   const name=raw.replace(/\s*(?:تسجيل واحد|تسجيلان|(?:\d+|[٠-٩]+)\s*تسجيلات?)\s*$/,'').trim();
+   if(!name||name.length>120)return;
+   rows.push({name,slug:m[1],recordings});
+  });
+  return rows;
+ }
+ async function fetchCountryHtml(url){
+  const encoded=encodeURIComponent(url);
+  const proxies=[
+   'https://api.allorigins.win/raw?url='+encoded,
+   'https://api.codetabs.com/v1/proxy?quest='+encoded,
+   'https://corsproxy.io/?url='+encoded
+  ];
+  let lastError=null;
+  for(const proxy of proxies){
+   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),16000);
+   try{
+    const response=await fetch(proxy,{signal:controller.signal,cache:'no-store'});
+    if(!response.ok)throw new Error('HTTP '+response.status);
+    const body=await response.text();
+    if(body.length<400||!body.includes('/reciters/'))throw new Error('استجابة غير مكتملة');
+    return body;
+   }catch(error){lastError=error}
+   finally{clearTimeout(timer)}
+  }
+  throw lastError||new Error('تعذر جلب صفحة الدولة');
+ }
+ async function mapCountryPages(urls,onProgress){
+  const results=new Array(urls.length),errors=[];let cursor=0,done=0;
+  const workers=Array.from({length:Math.min(4,urls.length)},async()=>{
+   while(true){
+    const index=cursor++;if(index>=urls.length)return;
+    try{results[index]=parseCountryPage(await fetchCountryHtml(urls[index]))}
+    catch(error){results[index]=[];errors.push(index+1)}
+    done++;onProgress(done,urls.length,errors.length);
+   }
+  });
+  await Promise.all(workers);
+  return {rows:results.flat(),failed:errors,done};
+ }
+ function dedupeCountryRows(rows){
+  const byIdentity=new Map();
+  rows.forEach(row=>{
+   const key=countryNorm(row.name)||countryNorm(row.slug);
+   if(!byIdentity.has(key))byIdentity.set(key,{...row,aliases:1});
+   else{
+    const old=byIdentity.get(key);old.recordings=Math.max(old.recordings,row.recordings||1);old.aliases++;
+   }
+  });
+  return [...byIdentity.values()].sort((a,b)=>a.name.localeCompare(b.name,'ar'));
+ }
+ function renderCountryRows(){
+  const q=countryNorm(countrySearch.value),filtered=activeCountryRows.filter(r=>!q||countryNorm(r.name).includes(q));
+  const pages=Math.max(1,Math.ceil(filtered.length/COUNTRY_PAGE_SIZE));
+  activeCountryPage=Math.min(activeCountryPage,pages-1);
+  const pageRows=filtered.slice(activeCountryPage*COUNTRY_PAGE_SIZE,(activeCountryPage+1)*COUNTRY_PAGE_SIZE);
+  countryList.innerHTML=pageRows.length?pageRows.map(r=>'<div class="country-reader-item" role="listitem"><span>'+esc(r.name)+'</span><small>'+(r.recordings>1?new Intl.NumberFormat('ar').format(r.recordings)+' تسجيلات':'تسجيل')+'</small></div>').join(''):'<div class="country-reader-empty">لا توجد أسماء مطابقة لهذا البحث.</div>';
+  countryCountBox.textContent=new Intl.NumberFormat('ar').format(filtered.length)+' / '+new Intl.NumberFormat('ar').format(activeCountryRows.length);
+  countryPageBox.textContent=(activeCountryPage+1)+' / '+pages;
+  countryPrev.disabled=activeCountryPage<=0;countryNext.disabled=activeCountryPage>=pages-1;
+ }
+ async function loadCountryReaders(key,retryOnly){
+  const entry=countryDirectory[key];if(!entry)return;
+  let urls;
+  if(retryOnly&&failedCountryPages.length){
+   urls=failedCountryPages.map(page=>COUNTRY_BASE+key+'/page/'+page+'/');
+  }else{
+   urls=Array.from({length:entry.pages},(_,i)=>i===0?COUNTRY_BASE+key+'/':COUNTRY_BASE+key+'/page/'+(i+1)+'/');
+   countryCache.delete(key);
+   activeCountryRows=[];activeCountryPage=0;failedCountryPages=[];
+  }
+  countryStatusBox.textContent='جارٍ جلب أسماء قرّاء '+entry.name+' من الدليل…';
+  countryRetry.hidden=true;countryList.innerHTML='<div class="country-reader-empty">جارٍ تحميل صفحات القرّاء…</div>';
+  const result=await mapCountryPages(urls,(done,total,failed)=>{
+   countryStatusBox.textContent='تحميل صفحات '+entry.name+': '+done+' من '+total+(failed?' · تعثّر '+failed:'');
+  });
+  const combined=retryOnly&&countryCache.has(key)?countryCache.get(key).rawRows.concat(result.rows):result.rows;
+  const allFailed=retryOnly?result.failed.map(n=>urls.indexOf(urls[n-1])>=0?failedCountryPages[n-1]:n):result.failed;
+  failedCountryPages=allFailed.length?allFailed:[];
+  activeCountryRows=dedupeCountryRows(combined);
+  countryCache.set(key,{rawRows:combined,rows:activeCountryRows});
+  countryRetry.hidden=!failedCountryPages.length;
+  countrySearch.value='';activeCountryPage=0;renderCountryRows();
+  const duplicates=Math.max(0,combined.length-activeCountryRows.length);
+  countryStatusBox.textContent='عُثر على '+new Intl.NumberFormat('ar').format(activeCountryRows.length)+' قارئًا بعد إزالة '+new Intl.NumberFormat('ar').format(duplicates)+' تكرارات'+(failedCountryPages.length?' · لم تكتمل '+failedCountryPages.length+' صفحة، ويمكن إعادة المحاولة.':' · اكتمل تحميل جميع صفحات الدولة.');
+ }
+ function updateCountryDirectory(){
+  const key=countrySelect.value,entry=countryDirectory[key];
+  countryOpen.disabled=!key;
+  countryOpen.textContent='عرض القرّاء داخل أنوار';
+  if(entry)countryStatus.textContent='اختر «عرض القرّاء داخل أنوار» لعرض '+new Intl.NumberFormat('ar').format(entry.count)+' اسمًا من '+entry.name+' في نافذة داخلية قابلة للبحث.';
+  else if(key==='djibouti'||key==='comoros')countryStatus.textContent='لا يتوفر للدولة قسم مستقل في المصدر الحالي؛ لن نعرض أسماء منسوبة إليها دون توثيق.';
+  else countryStatus.textContent='اختر دولة عربية، ثم افتح قائمة قرّائها داخل المفكرة.';
+ }
+ function openCountryModal(){
+  const key=countrySelect.value;if(!key)return;
+  activeCountryKey=key;activeCountryPage=0;countrySearch.value='';
+  countryModal.hidden=false;document.body.classList.add('country-reader-open');document.body.style.overflow='hidden';
+  const entry=countryDirectory[key];
+  $('countryModalTitle').textContent='قرّاء '+(entry?entry.name:countrySelect.selectedOptions[0].textContent.split('·')[0].trim());
+  $('countryModalSub').textContent=entry?new Intl.NumberFormat('ar').format(entry.count)+' اسمًا في المصدر · عرض داخلي داخل أنوار':'لا توجد قائمة مستقلة موثقة لهذه الدولة';
+  countryList.replaceChildren();countryRetry.hidden=true;
+  if(!entry){
+   countryCountBox.textContent='0';countryStatusBox.textContent='لا يحتوي الدليل الذي نستخدمه على صفحة مستقلة لهذه الدولة حتى الآن. لم نضع قائمة تخمينية.';
+   countryPageBox.textContent='—';countryPrev.disabled=true;countryNext.disabled=true;
+  }else if(countryCache.has(key)){
+   activeCountryRows=countryCache.get(key).rows;failedCountryPages=[];
+   renderCountryRows();countryStatusBox.textContent='قائمة محفوظة في الذاكرة لهذه الجلسة · '+activeCountryRows.length+' اسمًا بعد إزالة التكرار.';
+  }else{
+   loadCountryReaders(key,false).catch(error=>{
+    countryStatusBox.textContent='تعذر جلب القائمة الآن. تحقق من الاتصال ثم اضغط إعادة المحاولة.';
+    countryList.innerHTML='<div class="country-reader-empty">لم تُحمّل البيانات؛ لن نعرض قائمة ناقصة على أنها مكتملة.</div>';
+    countryRetry.hidden=false;failedCountryPages=Array.from({length:countryDirectory[key].pages},(_,i)=>i+1);
+   });
+  }
+  requestAnimationFrame(()=>countryDialog.focus());
+ }
+ function closeCountryModal(){
+  countryModal.hidden=true;document.body.classList.remove('country-reader-open');document.body.style.overflow='';
+  countryOpen.focus();
+ }
+ countryOpen.addEventListener('click',openCountryModal);
+ $('countryModalClose').addEventListener('click',closeCountryModal);
+ countryModal.addEventListener('click',e=>{if(e.target===countryModal)closeCountryModal()});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!countryModal.hidden){e.preventDefault();closeCountryModal()}});
+ countrySearch.addEventListener('input',()=>{activeCountryPage=0;renderCountryRows()});
+ countryPrev.addEventListener('click',()=>{activeCountryPage=Math.max(0,activeCountryPage-1);renderCountryRows()});
+ countryNext.addEventListener('click',()=>{activeCountryPage++;renderCountryRows()});
+ countryRetry.addEventListener('click',()=>loadCountryReaders(activeCountryKey,true).catch(()=>{countryStatusBox.textContent='تعذّرت إعادة المحاولة؛ تحقق من الاتصال وحاول مجددًا.';countryRetry.hidden=false}));
+ countrySelect.addEventListener('change',updateCountryDirectory);
+ updateCountryDirectory();
  countrySelect.addEventListener('change',updateCountryDirectory);
  updateCountryDirectory();
 
