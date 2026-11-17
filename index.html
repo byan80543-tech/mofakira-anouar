@@ -2422,7 +2422,18 @@ function safeFileName(value,fallback){
  const cleaned=String(value||fallback||'anwar-book').replace(/[\\/:*?"<>|]/g,'-').replace(/\s+/g,' ').trim().slice(0,80);
  return cleaned||fallback||'anwar-book';
 }
-function downloadBlob(blob,filename){
+async function downloadBlob(blob,filename){
+ if(typeof window.showSaveFilePicker==='function'){
+  try{
+   const handle=await window.showSaveFilePicker({suggestedName:filename});
+   const writable=await handle.createWritable();
+   await writable.write(blob);await writable.close();
+   return true;
+  }catch(error){
+   if(error&&error.name==='AbortError')return false;
+   console.warn('تعذّر فتح نافذة اختيار مكان الحفظ؛ سيُستخدم التنزيل المعتاد.',error);
+  }
+ }
  try{
   const url=URL.createObjectURL(blob),a=document.createElement('a');
   a.href=url;a.download=filename;a.rel='noopener';a.style.display='none';
@@ -2514,8 +2525,9 @@ async function renderPaPdf(filename){
    context.drawImage(canvas,0,y,canvas.width,slice.height,0,0,canvas.width,slice.height);
    if(page)pdf.addPage();pdf.addImage(slice.toDataURL('image/jpeg',.92),'JPEG',0,0,width,slice.height*width/canvas.width);
   }
-  downloadBlob(pdf.output('blob'),filename);
-  toast('تم تنزيل ملف PDF إلى جهازك ✓',3500);return true;
+  const saved=await downloadBlob(pdf.output('blob'),filename);
+  if(saved)toast('تم حفظ ملف PDF على جهازك ✓',3500);
+  return saved;
  }catch(error){console.warn('تعذّر تصدير PDF',error);toast('تعذّر إنشاء PDF. لم يُحذف أي عمل.',5000);return false}
 }
 async function exportRecords(records,title,format){
@@ -2598,8 +2610,8 @@ async function handleBookFile(file){
   const url=URL.createObjectURL(file),opened=window.open(url,'_blank','noopener');
   if(opened){$('bookFileStatus').textContent='فُتح الملف في علامة جديدة للقراءة.';setTimeout(()=>URL.revokeObjectURL(url),120000);return}
  }
- downloadBlob(file,name);
- $('bookFileStatus').textContent='لم تتوفر مشاركة مباشرة لهذا النوع؛ تم تجهيز نسخة للتنزيل على الجهاز.';
+ await downloadBlob(file,name);
+ $('bookFileStatus').textContent='تم التعامل مع الملف عبر الحفظ أو التنزيل المتاح في هذا المتصفح.';
 }
 
 function showOwnerPanel(which){const own=which==='owner',adh=which==='adhkar';$('ownerPanel').hidden=!own;$('adhkarPanel').hidden=!adh;$('sharePanel').hidden=which!=='share';$('ownerTab').classList.toggle('active',own);$('adhkarTab').classList.toggle('active',adh);$('shareTab').classList.toggle('active',which==='share');if(adh)renderAdhkar('morning')}
