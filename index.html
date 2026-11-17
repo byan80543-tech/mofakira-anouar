@@ -1766,8 +1766,11 @@ dialog[open]>.float-head{display:none!important}
    <b>إذاعة الدروس العلمية · الشيخ عبد الرزاق البدر</b>
   </div>
   <small class="lesson-note">اختر السلسلة، ثم المس اسم الدرس ليبدأ تشغيله فورًا داخل المفكرة.</small>
-  <label for="lessonSeries">السلسلة العلمية</label>
-  <select id="lessonSeries">
+  <button type="button" id="lessonSeriesButton" class="lesson-series-button" aria-haspopup="dialog" aria-controls="lessonSeriesModal" aria-expanded="false">
+   <span class="lesson-series-button-tulip" aria-hidden="true"><img src="assets/tulip-cutout.svg" alt=""></span>
+   <span class="lesson-series-button-copy"><small>السلسلة المختارة</small><strong id="lessonSeriesCurrent">شرح كتاب التوحيد — السلسلة الكاملة (55 درسًا)</strong></span>
+  </button>
+  <select id="lessonSeries" class="lesson-series-native" aria-label="السلسلة العلمية">
    <option value="tawhid">شرح كتاب التوحيد — السلسلة الكاملة (55 درسًا)</option>
    <option value="wasitiyya">شرح العقيدة الواسطية — 50 درسًا</option>
    <option value="dawa">شرح الداء والدواء — 83 درسًا</option>
@@ -1793,6 +1796,18 @@ dialog[open]>.float-head{display:none!important}
    <input id="surahPickerSearch" type="search" placeholder="ابحث عن اسم السورة أو رقمها…" autocomplete="off" aria-label="ابحث عن سورة">
   </label>
   <div id="surahPickerList" class="surah-picker-list" role="listbox" aria-label="سور القرآن الكريم"></div>
+ </section>
+</div>
+<div id="lessonSeriesModal" class="lesson-series-modal" hidden>
+ <section class="lesson-series-dialog" role="dialog" aria-modal="true" aria-label="قائمة السلاسل العلمية">
+  <header class="lesson-series-dialog-head">
+   <button type="button" id="lessonSeriesClose" class="lesson-series-close" aria-label="إغلاق قائمة السلاسل">✕</button>
+  </header>
+  <label class="lesson-series-search">
+   <span aria-hidden="true">⌕</span>
+   <input id="lessonSeriesSearch" type="search" placeholder="ابحث عن سلسلة علمية…" autocomplete="off" aria-label="ابحث عن سلسلة">
+  </label>
+  <div id="lessonSeriesList" class="lesson-series-list" role="listbox" aria-label="السلاسل العلمية"></div>
  </section>
 </div>
 <dialog id="dg">
@@ -4421,6 +4436,58 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  ];
  const groupNames=['شرح كتاب التوحيد','شروح كتب العقيدة والعلوم الشرعية','شروح أخرى','فهرس بقية الصوتيات'];
  series.innerHTML=groups.map((g,i)=>`<optgroup label="${groupNames[i]}">${g.map(k=>`<option value="${k}">${catalog[k].name}${catalog[k].count?' ('+catalog[k].count+' درسًا)':''}</option>`).join('')}</optgroup>`).join('');
+ const seriesButton=$('lessonSeriesButton'),seriesCurrent=$('lessonSeriesCurrent'),seriesModal=$('lessonSeriesModal'),seriesList=$('lessonSeriesList'),seriesSearch=$('lessonSeriesSearch');
+ function updateSeriesLabel(){
+  const option=series.selectedOptions&&series.selectedOptions[0];
+  if(seriesCurrent&&option)seriesCurrent.textContent=option.textContent;
+  if(seriesList)seriesList.querySelectorAll('[data-series-option]').forEach(button=>{
+   const active=button.dataset.seriesOption===series.value;
+   button.setAttribute('aria-selected',String(active));
+   const check=button.querySelector('.lesson-series-option-check');if(check)check.textContent=active?'✓':'';
+  });
+ }
+ function renderSeriesOptions(query){
+  const q=String(query||'').trim().toLocaleLowerCase('ar');
+  seriesList.innerHTML='';
+  Array.from(series.querySelectorAll('optgroup')).forEach(group=>{
+   const section=document.createElement('section');section.className='lesson-series-group';
+   const heading=document.createElement('div');heading.className='lesson-series-group-title';heading.textContent=group.label;section.append(heading);
+   let shown=0;
+   Array.from(group.querySelectorAll('option')).forEach(option=>{
+    if(q&&!option.textContent.toLocaleLowerCase('ar').includes(q)&&!group.label.toLocaleLowerCase('ar').includes(q))return;
+    const button=document.createElement('button');button.type='button';button.className='lesson-series-option';button.dataset.seriesOption=option.value;button.setAttribute('role','option');button.setAttribute('aria-selected',String(option.value===series.value));
+    const tulip=document.createElement('span');tulip.className='lesson-series-option-tulip';tulip.setAttribute('aria-hidden','true');
+    const image=document.createElement('img');image.src='assets/tulip-cutout.svg';image.alt='';image.loading='lazy';image.decoding='async';tulip.append(image);
+    const copy=document.createElement('span');copy.className='lesson-series-option-copy';
+    const name=document.createElement('span');name.className='lesson-series-option-name';name.textContent=option.textContent;
+    const meta=document.createElement('span');meta.className='lesson-series-option-meta';meta.textContent=catalog[option.value]?.count?(catalog[option.value].count+' درسًا'):'فهرس صوتي';
+    const check=document.createElement('span');check.className='lesson-series-option-check';check.setAttribute('aria-hidden','true');check.textContent=option.value===series.value?'✓':'';
+    copy.append(name,meta);button.append(tulip,copy,check);section.append(button);shown++;
+   });
+   if(shown){seriesList.append(section)}else section.hidden=true;
+  });
+  if(!seriesList.children.length){const empty=document.createElement('div');empty.className='lesson-series-empty';empty.textContent='لا توجد سلسلة بهذا الاسم.';seriesList.append(empty)}
+ }
+ function closeSeriesModal(){
+  if(seriesModal.hidden)return;
+  seriesModal.hidden=true;seriesButton.setAttribute('aria-expanded','false');seriesButton.focus();
+ }
+ seriesButton.addEventListener('click',()=>{
+  seriesSearch.value='';renderSeriesOptions('');
+  seriesModal.hidden=false;seriesButton.setAttribute('aria-expanded','true');seriesSearch.focus();
+ });
+ seriesList.addEventListener('click',event=>{
+  const button=event.target.closest('[data-series-option]');if(!button)return;
+  series.value=button.dataset.seriesOption;
+  series.dispatchEvent(new Event('change',{bubbles:true}));
+  updateSeriesLabel();closeSeriesModal();
+ });
+ seriesSearch.addEventListener('input',()=>renderSeriesOptions(seriesSearch.value));
+ seriesModal.addEventListener('click',event=>{if(event.target===seriesModal)closeSeriesModal()});
+ $('lessonSeriesClose').addEventListener('click',closeSeriesModal);
+ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!seriesModal.hidden)closeSeriesModal()});
+ series.addEventListener('change',updateSeriesLabel);
+ updateSeriesLabel();
  let current=0;
  function renderSource(c){links.replaceChildren();const sourceLink=document.createElement('a');sourceLink.href=c.source;sourceLink.target='_blank';sourceLink.rel='noopener noreferrer';sourceLink.textContent=c.sourceLabel||('↗ فهرس المصدر الرسمي (يفتح خارج المفكرة): '+c.name);links.append(sourceLink);if(frame){frame.removeAttribute('src');frame.hidden=true;frame.style.display='none';const mayEmbed=!!c.embed&&series.value!=='maarij';if(mayEmbed){frame.hidden=false;frame.src=c.source;frame.style.display='block';}}}
   function renderMaarijFileLink(c,index){if(series.value!=='maarij')return;const fileLink=document.createElement('a');fileLink.href=c.url(index);fileLink.target='_blank';fileLink.rel='noopener noreferrer';fileLink.textContent='↗ فتح ملف الدرس '+String(index+1).padStart(3,'0')+' خارج المفكرة';links.append(fileLink);}
@@ -4441,7 +4508,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
   audio.src=c.url(current);audio.preload=series.value==='maarij'?'metadata':'none';audio.load();renderSource(c);renderMaarijFileLink(c,current);status.textContent='الدرس '+(current+1)+' · '+c.name+' — جارٍ تحميل ملف الصوت';
   if(auto)audio.play().then(()=>play.textContent='⏸').catch(()=>status.textContent='تعذر التشغيل التلقائي؛ اضغط زر التشغيل.');
  }
- series.addEventListener('change',fill);track.addEventListener('change',()=>loadTrack(false));
+ series.addEventListener('change',()=>{fill();updateSeriesLabel()});track.addEventListener('change',()=>loadTrack(false));
  const lessonList=$('lessonList');
  function markLessonPlaying(){if(!lessonList)return;lessonList.querySelectorAll('[data-lesson-index]').forEach(btn=>{const active=+btn.dataset.lessonIndex===current&&!!audio.src;btn.setAttribute('aria-current',String(active));});}
  if(lessonList)lessonList.addEventListener('click',e=>{const btn=e.target.closest('[data-lesson-index]');if(!btn)return;current=+btn.dataset.lessonIndex;track.value=String(current);loadTrack(true);markLessonPlaying();});
@@ -4856,5 +4923,41 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
 .surah-picker-option{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .surah-picker-option:focus-visible{outline:2px solid #245c43;outline-offset:2px}
 </style>
+
+<style id="anwar-lesson-series-style">
+/* بطاقات السلاسل العلمية: مستطيلات عريضة مع التوليب المحلي نفسه */
+#rd .lesson-series-native{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;opacity:0!important;pointer-events:none!important}
+#rd .lesson-series-button{display:flex;align-items:center;gap:12px;width:100%;min-width:0;min-height:78px;padding:12px 15px;border:1px solid #b8d2bd;border-radius:14px;background:linear-gradient(110deg,#f0f7f0,#e4f0e5);color:#214b32;text-align:right;font:inherit;box-shadow:0 2px 7px rgba(25,75,47,.07)}
+#rd .lesson-series-button-tulip{width:42px;height:46px;display:grid;place-items:center;flex:none;border:1px solid #d5e3d2;border-radius:11px;background:#fbf8eb}
+#rd .lesson-series-button-tulip img{width:34px;height:40px;object-fit:contain}
+#rd .lesson-series-button-copy{display:grid;gap:3px;flex:1;min-width:0}
+#rd .lesson-series-button-copy small{font-size:10px;color:#66826c}
+#rd .lesson-series-button-copy strong{font-size:14px;line-height:1.6;color:#214b32;white-space:normal;overflow-wrap:anywhere}
+.lesson-series-modal{position:fixed;inset:0;z-index:100900;display:grid;place-items:center;padding:calc(12px + env(safe-area-inset-top,0px)) 12px calc(12px + env(safe-area-inset-bottom,0px));background:rgba(7,24,16,.5);backdrop-filter:blur(3px)}
+.lesson-series-modal[hidden]{display:none!important}
+.lesson-series-dialog{display:flex;flex-direction:column;width:min(100%,560px);max-height:min(88dvh,780px);min-height:0;padding:13px;border:1px solid #c5d9c7;border-radius:22px;background:#fbfdfb;color:#203b2a;box-shadow:0 18px 55px rgba(0,0,0,.24);overflow:hidden}
+.lesson-series-dialog-head{display:flex;justify-content:flex-start;padding:0 0 7px}
+.lesson-series-close{width:34px;height:34px;display:grid;place-items:center;border:1px solid #d5e2d6;border-radius:50%;background:#edf5ee;color:#315b3e;font-size:17px}
+.lesson-series-search{display:flex;align-items:center;gap:9px;min-height:43px;margin:2px 0 10px;padding:0 12px;border:1px solid #cbdccf;border-radius:11px;background:#f1f7f2;color:#497253}
+.lesson-series-search span{font-size:23px;line-height:1}
+.lesson-series-search input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:#203b2a;font:inherit;font-size:13px}
+.lesson-series-list{display:grid;gap:8px;min-height:0;overflow:auto;overscroll-behavior:contain;padding:2px 2px 6px}
+.lesson-series-group{display:grid;gap:7px}
+.lesson-series-group-title{padding:5px 4px 2px;color:#315f40;font-family:'Aref Ruqaa',Amiri,serif;font-size:15px;font-weight:700}
+.lesson-series-option{display:flex;align-items:center;gap:12px;width:100%;min-width:0;min-height:66px;padding:9px 12px;border:1px solid #c9ddcc;border-radius:12px;background:linear-gradient(110deg,#f0f7f0,#e5f0e6);color:#254d32;text-align:right;font:inherit;box-shadow:0 2px 6px rgba(30,78,45,.05)}
+.lesson-series-option:active{transform:scale(.995)}
+.lesson-series-option[aria-selected="true"]{border-color:#245c43;background:linear-gradient(110deg,#2d704d,#20563b);color:#fff;box-shadow:0 3px 9px rgba(27,84,53,.16)}
+.lesson-series-option-tulip{width:39px;height:43px;display:grid;place-items:center;flex:none;border:1px solid #d5e3d2;border-radius:10px;background:#fbf8eb}
+.lesson-series-option-tulip img{display:block;width:32px;height:38px;object-fit:contain;object-position:center bottom}
+.lesson-series-option-copy{display:grid;gap:2px;flex:1;min-width:0}
+.lesson-series-option-name{font-size:14px;font-weight:750;line-height:1.65;overflow-wrap:anywhere}
+.lesson-series-option-meta{font-size:10px;opacity:.75}
+.lesson-series-option-check{width:23px;flex:none;text-align:center;font-size:18px;font-weight:900}
+.lesson-series-group[hidden]{display:none!important}
+.lesson-series-empty{padding:20px 8px;text-align:center;color:#718777;font-size:12px}
+@media(max-width:420px){.lesson-series-dialog{width:100%;max-height:min(88dvh,780px);padding:11px}.lesson-series-option{min-height:70px;padding:10px}.lesson-series-option-name{font-size:14px}}
+@media(prefers-reduced-motion:reduce){.lesson-series-option,.lesson-series-button{transition:none!important}}
+</style>
+
 </body>
 </html>
