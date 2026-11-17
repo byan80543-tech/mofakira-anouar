@@ -1870,10 +1870,22 @@ function theme(){
 }
 function chips(){$('chips').innerHTML=[['all','الكل'],['poem','قصائد'],['text','نصوص'],['idea','أفكار'],['pin','⭐ المثبّتة']].map(([k,v])=>`<button class="chip ${flt===k?'on':''}" data-k="${k}">${v}</button>`).join('')}
 function plain(h){const d=document.createElement('div');d.innerHTML=h;return d.innerText||d.textContent||''}
+const notePlainTextCache=new WeakMap();
+function plainNote(n){
+ const html=String(n.html||''),cached=notePlainTextCache.get(n);
+ if(cached&&cached.html===html)return cached.text;
+ const value=plain(html);notePlainTextCache.set(n,{html,text:value});return value;
+}
 function renderList(){
- const q=$('q').value.trim();
- const a=S.notes.filter(n=>(flt==='all'||(flt==='pin'?n.pin:n.type===flt))&&(!q||(n.title+plain(n.html)).includes(q))).sort((x,y)=>(y.pin?1:0)-(x.pin?1:0)||y.ts-x.ts);
- $('cards').innerHTML=a.length?a.map(n=>`<div class="card ${cur&&cur.id===n.id?'sel':''}" data-id="${esc(n.id)}"><b>${n.pin?'⭐ ':''}${IC[n.type]||'📝'} ${esc(n.title||'بلا عنوان')}</b><small>${TYPES[n.type]||'عمل'} · ${fmt(n.ts)}</small><p>${esc(plain(n.html).trim().split('\n')[0]||'…')}</p></div>`).join(''):'<div class="empty" style="padding:20px">لا شيء هنا بعد</div>';
+ const q=$('q').value.trim(),items=[];
+ for(const n of S.notes){
+  if(flt!=='all'&&(flt==='pin'?!n.pin:n.type!==flt))continue;
+  const body=plainNote(n);
+  if(q&&!(String(n.title||'')+' '+body).includes(q))continue;
+  items.push({note:n,body});
+ }
+ items.sort((a,b)=>(b.note.pin?1:0)-(a.note.pin?1:0)||b.note.ts-a.note.ts);
+ $('cards').innerHTML=items.length?items.map(({note:n,body})=>`<div class="card ${cur&&cur.id===n.id?'sel':''}" data-id="${esc(n.id)}"><b>${n.pin?'⭐ ':''}${IC[n.type]||'📝'} ${esc(n.title||'بلا عنوان')}</b><small>${TYPES[n.type]||'عمل'} · ${fmt(n.ts)}</small><p>${esc(body.trim().split('\n')[0]||'…')}</p></div>`).join(''):'<div class="empty" style="padding:20px">لا شيء هنا بعد</div>;
  const k=streak(),u=k===1?'يوم':k===2?'يومان':k<=10?'أيام':'يومًا';
  $('sk').innerHTML=k?`🔥 تكتب منذ <b>${k}</b> ${u} متتالية`:'اكتب اليوم لتبدأ سلسلتك';
 }
@@ -3962,7 +3974,8 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   });
  };
  const observer=new MutationObserver(sync);
- observer.observe(document.body,{subtree:true,attributes:true,attributeFilter:['class','open']});
+ const observedLayers=[palette,font,radio,...dialogs.map(([id])=>$(id))].filter(Boolean);
+ observedLayers.forEach(layer=>observer.observe(layer,{attributes:true,attributeFilter:['class','open']}));
  sync();
  document.addEventListener('keydown',e=>{
   if(e.key!=='Escape')return;
@@ -3995,8 +4008,25 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
 </script>
 
 <script>
-// Sync the closed/open tulip only from playback UI state.
-(()=>{const selector='#rb,#rpp,.reciter-play,.country-reader-play,#lessonPlay,#rd .lesson-item-radio,.reciter-version';const sync=()=>document.querySelectorAll(selector).forEach(el=>{if(!el.classList.contains('reciter-version'))el.dataset.playing=/[⏸Ⅱ]/.test(el.textContent)?'true':'false'});sync();new MutationObserver(sync).observe(document.body,{subtree:true,childList:true,characterData:true});})();
+// Sync only changed radio controls; ignore editor mutations to keep typing responsive.
+(()=>{
+ const selector='#rb,#rpp,.reciter-play,.country-reader-play,#lessonPlay,#rd .lesson-item-radio,.reciter-version';
+ const update=el=>{if(el&&!el.classList.contains('reciter-version'))el.dataset.playing=/[⏸Ⅱ]/.test(el.textContent)?'true':'false'};
+ const scanAdded=node=>{
+  if(!node||node.nodeType!==1||node.closest('#pg'))return;
+  if(node.matches(selector))update(node);
+  node.querySelectorAll(selector).forEach(update);
+ };
+ document.querySelectorAll(selector).forEach(update);
+ const observer=new MutationObserver(records=>{
+  records.forEach(record=>{
+   const target=record.target.nodeType===1?record.target:record.target.parentElement;
+   if(target&&!target.closest('#pg')){const control=target.closest(selector);if(control)update(control)}
+   record.addedNodes.forEach(scanAdded);
+  });
+ });
+ observer.observe(document.body,{subtree:true,childList:true,characterData:true});
+})();
 </script>
 
 
