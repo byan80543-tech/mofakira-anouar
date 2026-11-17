@@ -22,3 +22,5 @@ jobs:
         run: node scripts/test-storage.mjs
       - name: Validate offline app shell and local resources
         run: python3 scripts/validate_app.py
+      - name: Test service-worker lifecycle, caching and offline fallback
+        run: node scripts/test-service-worker.mjs
