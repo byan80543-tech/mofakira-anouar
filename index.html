@@ -1427,6 +1427,23 @@ dialog[open]>.float-head{display:none!important}
  #rib .book-tool-actions button{min-height:33px}
 }
 .app.ed.focus #rib{display:none!important}
+/* توحيد عرض المفكرة على الهاتف وإلغاء أي إزاحة أفقية */
+@media(max-width:800px){
+ html,body{width:100%;max-width:100%;margin:0;overflow-x:hidden}
+ #app{
+  display:flex;width:100%;max-width:100%;min-width:0;
+  margin:0;transform:none
+ }
+ #app>.tb,#app>.lesson-launch-row,#app>main,#app>.st{
+  width:100%;max-width:100%;min-width:0;margin-inline:0
+ }
+ #app>main{min-width:0}
+ #app>main>#list,#app>main>#area{
+  max-width:100%;min-width:0;margin-inline:0
+ }
+ #app>main>#list{width:100%}
+}
+
 /* تقليل إعادة رسم البطاقات خارج الجزء المرئي */
 .card{content-visibility:auto;contain-intrinsic-size:68px}
 </style>
