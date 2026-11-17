@@ -2422,7 +2422,7 @@ function safeFileName(value,fallback){
  const cleaned=String(value||fallback||'anwar-book').replace(/[\\/:*?"<>|]/g,'-').replace(/\s+/g,' ').trim().slice(0,80);
  return cleaned||fallback||'anwar-book';
 }
-async async function downloadBlob(blob,filename){
+async function downloadBlob(blob,filename){
  if(typeof window.showSaveFilePicker==='function'){
   try{
    const handle=await window.showSaveFilePicker({suggestedName:filename});
