@@ -86,6 +86,22 @@ main{flex:1;display:flex;min-height:0}
 #fl em{font:11px Cairo,sans-serif;color:var(--mu);direction:ltr}
 .app.focus .tb,.app.focus .rib,.app.focus #list{display:none}
 .app.focus .st,.app.focus .lesson-launch-row{display:none}
+/* زر خروج واضح من وضع التركيز دون مغادرة المفكرة */
+.focus-exit{
+ display:none;position:fixed;z-index:40000;
+ top:calc(12px + env(safe-area-inset-top,0px));
+ inset-inline-end:12px;
+ width:42px;height:42px;place-items:center;
+ border:1px solid #d8bd7c;border-radius:50%;
+ background:linear-gradient(145deg,#fff8e8,#ead39a);
+ color:#173b58;font:700 27px/1 Arial,sans-serif;
+ box-shadow:0 3px 12px rgba(8,28,48,.24);
+}
+.app.focus .focus-exit{display:grid}
+.focus-exit:focus-visible{outline:3px solid #173b58;outline-offset:3px}
+@media(max-width:800px){
+ .focus-exit{top:calc(10px + env(safe-area-inset-top,0px));inset-inline-end:10px;width:44px;height:44px}
+}
 dialog{box-sizing:border-box;margin:auto;position:fixed;inset:0;border:1px solid var(--bd);border-radius:14px;background:var(--sf);color:var(--tx);width:min(94vw,460px);max-width:calc(100vw - 16px);max-height:calc(100dvh - 24px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow:auto;overscroll-behavior:contain;padding:14px}dialog[open]{display:block}dialog::backdrop{background:rgba(8,20,35,.52)}.float-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:-3px -2px 10px;padding:7px 9px;border:1px solid var(--bd);border-radius:9px;background:var(--bg);cursor:move;touch-action:none;user-select:none}.float-head b{font-size:12px;color:var(--mu)}.float-head button{border:1px solid var(--bd);background:var(--sf);color:var(--tx);border-radius:7px;padding:4px 9px}.float-head .fh-actions{display:flex;gap:5px}
 dialog textarea{width:100%;height:140px;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:8px;direction:ltr}
 #toast{position:fixed;bottom:50px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:8px 16px;border-radius:18px;font-size:13px;opacity:0;transition:.3s;pointer-events:none;z-index:40;max-width:90vw;text-align:center}
@@ -1455,6 +1471,7 @@ dialog[open]>.float-head{display:none!important}
 </head>
 <body>
 <div class="app" id="app">
+<button type="button" id="exitFocus" class="focus-exit" aria-label="الخروج من وضع التركيز" title="الخروج من وضع التركيز">×</button>
 <div class="tb">
  <button class="back" id="bk" aria-label="رجوع">→</button>
  <span class="brand"><svg class="brand-mark" viewBox="0 0 512 512" aria-hidden="true"><path d="M70 420 Q235 320 424 60 Q405 260 70 420Z" fill="#e7c16d" stroke="#fff0bd" stroke-width="9"/><path d="M72 420 Q248 250 424 60 M155 340 L145 255 M220 276 L220 185 M292 202 L310 130 M360 132 L390 92" fill="none" stroke="#76501e" stroke-width="10" stroke-linecap="round"/></svg><span class="logo">مفكرة أنوار</span></span>
@@ -3020,7 +3037,8 @@ document.addEventListener('click',e=>{
  else if(id==='sp')speak();
  else if(id==='fb'){const r=t.getBoundingClientRect(),m=$('fm');m.style.top=r.bottom+4+'px';m.style.left=Math.max(6,Math.min(r.left,innerWidth-266))+'px';fontList('');$('fq').value='';m.classList.toggle('o');loadFontStylesheets(true).catch(error=>{console.warn(error);toast('بعض الخطوط تحتاج إلى اتصال بالإنترنت',3500)})}
  else if(id==='vs'&&cur)insertPoetryVerse();
- else if(id==='fo'){$('app').classList.add('focus');toast('اضغط Esc للخروج من التركيز')}
+ else if(id==='exitFocus'){$('app').classList.remove('focus');requestAnimationFrame(()=>$('fo')?.focus())}
+  else if(id==='fo'){$('app').classList.add('focus');toast('اضغط Esc للخروج من التركيز')}
  else if(id==='ip'){toast('💡 '+PROMPTS[Math.floor(Math.random()*PROMPTS.length)],5000)}
  else if(id==='pn'&&cur){cur.pin=!cur.pin;save();$('pn').textContent=cur.pin?'⭐ تثبيت':'☆ تثبيت';renderList()}
  else if(id==='cy'&&cur){navigator.clipboard&&navigator.clipboard.writeText((cur.title?cur.title+'\n\n':'')+pg.innerText).then(()=>toast('تم النسخ'),()=>toast('تعذّر النسخ'))}
@@ -4166,6 +4184,12 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   if(font?.classList.contains('o')){
    font.classList.remove('o');
    e.preventDefault();e.stopImmediatePropagation();sync();return;
+  }
+  if($('app')?.classList.contains('focus')){
+   $('app').classList.remove('focus');
+   e.preventDefault();e.stopImmediatePropagation();
+   requestAnimationFrame(()=>$('fo')?.focus());
+   return;
   }
  },true);
  if(paletteBtn){
