@@ -1,6 +1,6 @@
 /* Cache only local app shell; remote audio, APIs and fonts are never cached. */
 'use strict';
-const CACHE_NAME='anwar-shell-2026-11-17-v8';
+const CACHE_NAME='anwar-shell-2026-11-17-v9';
 const APP_BASE=new URL('./',self.registration.scope);
 const SHELL_ASSETS=['./','./index.html','./manifest.webmanifest','./file_00000000670481f4ad879246afe6bae2.png','./icon-192.png','./icon-512.png','./vendor/jspdf.umd.min.js','./assets/royal-rose-closed.svg','./assets/royal-rose-open.svg','./assets/tulip-cutout.svg'];
 self.addEventListener('install',event=>{event.waitUntil((async()=>{const cache=await caches.open(CACHE_NAME);await cache.addAll(SHELL_ASSETS);await self.skipWaiting()})())});
