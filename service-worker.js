@@ -1,8 +1,8 @@
 /* Cache only local app shell; remote audio, APIs and fonts are never cached. */
 'use strict';
-const CACHE_NAME='anwar-shell-2026-11-17-v1';
+const CACHE_NAME='anwar-shell-2026-11-17-v2';
 const APP_BASE=new URL('./',self.registration.scope);
-const SHELL_ASSETS=['./','./index.html','./manifest.webmanifest','./file_00000000670481f4ad879246afe6bae2.png','./icon-192.svg','./icon-512.svg','./vendor/jspdf.umd.min.js','./assets/royal-rose-closed.svg','./assets/royal-rose-open.svg','./assets/tulip-cutout.svg'];
+const SHELL_ASSETS=['./','./index.html','./manifest.webmanifest','./file_00000000670481f4ad879246afe6bae2.png','./icon-192.png','./icon-512.png','./vendor/jspdf.umd.min.js','./assets/royal-rose-closed.svg','./assets/royal-rose-open.svg','./assets/tulip-cutout.svg'];
 self.addEventListener('install',event=>{event.waitUntil((async()=>{const cache=await caches.open(CACHE_NAME);await cache.addAll(SHELL_ASSETS);await self.skipWaiting()})())});
 self.addEventListener('activate',event=>{event.waitUntil((async()=>{const keys=await caches.keys();await Promise.all(keys.filter(key=>key.startsWith('anwar-shell-')&&key!==CACHE_NAME).map(key=>caches.delete(key)));await self.clients.claim()})())});
 async function networkFirst(request){
