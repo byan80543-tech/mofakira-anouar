@@ -15,7 +15,7 @@
 
 <meta name="apple-mobile-web-app-title" content="مفكرة أنوار">
 <meta name="theme-color" content="#09264d">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- تُحمّل الخطوط بعد ظهور المفكرة حتى لا تزاحم فتح الصفحة -->
 
 
 
@@ -1869,6 +1869,8 @@ dialog[open]>.float-head{display:none!important}
 </dialog>
 <div id="toast"></div>
 <script>
+requestAnimationFrame(()=>setTimeout(()=>{
+
 const TYPES={poem:'قصيدة',text:'نص',idea:'فكرة'},IC={poem:'🪶',text:'📜',idea:'💡'};
 const FONTS=['Amiri','Amiri Quran','Aref Ruqaa','Aref Ruqaa Ink','Scheherazade New','Lateef','Harmattan','Noto Naskh Arabic','Markazi Text','Mirza','Katibeh','Gulzar','Cairo','Tajawal','Almarai','Alexandria','Changa','Mada','Readex Pro','IBM Plex Sans Arabic','Noto Sans Arabic','Noto Kufi Arabic','Vazirmatn','Rubik','Baloo Bhaijaan 2','Lemonada','Reem Kufi','Reem Kufi Fun','Reem Kufi Ink','El Messiri','Kufam','Lalezar','Rakkas','Jomhuria','Marhey','Vibes','Blaka','Qahiri','Playpen Sans Arabic','Noto Nastaliq Urdu','Traditional Arabic','Simplified Arabic','Sakkal Majalla','Segoe UI','Tahoma','Arial','Times New Roman','Courier New'];
 const PROMPTS=['اكتب عن رائحة المطر على أول تراب بعد غياب طويل','قصيدة عن ضوء مصباح وحيد في آخر الليل','ماذا يقول القمر لمن ينتظر؟','صف وجهًا لا تنساه دون أن تذكر ملامحه','اكتب رسالة إلى نفسك بعد عشر سنوات','قصيدة عن وطن يسكن حقيبة سفر','ما الذي تعلّمته من الصمت؟','اكتب عن قهوة الصباح كأنها صديق قديم','بيت شعر يبدأ بكلمة «لولا»','اكتب عن بابٍ لم تجرؤ على فتحه','قصيدة عن الحنين بثلاث صور فقط'];
@@ -2312,7 +2314,15 @@ function loadFontStylesheets(includeExtended=false){
   });
  }));
 }
-window.addEventListener('load',()=>{loadFontStylesheets(false).catch(error=>console.warn(error))},{once:true});
+function scheduleBaseFonts(){
+ const start=()=>{const loadFonts=()=>loadFontStylesheets(false).catch(error=>console.warn(error));
+  if('requestIdleCallback' in window)window.requestIdleCallback(loadFonts,{timeout:2600});
+  else setTimeout(loadFonts,1400);
+ };
+ if(document.readyState==='complete')start();
+ else window.addEventListener('load',start,{once:true});
+}
+scheduleBaseFonts();
 function fontList(q){$('fl').innerHTML=FONTS.filter(f=>!q||f.toLowerCase().includes(q.toLowerCase())).map(f=>`<div data-f="${f}"><span style="font-family:'${f}',serif;font-size:18px">أنوار الكلمة</span><em>${f}</em></div>`).join('')}
 function buildPA(){
  const p=$('pa'),ff=cur.font?`'${cur.font}',Amiri,serif`:'Amiri,serif';
@@ -3457,7 +3467,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
   return reciterGroupsCache;
  }
  function uniqueRecitationCount(){return groupedReciters().reduce((sum,g)=>sum+g.variants.length,0)}
- let reciterDisplayLimit=36;
+ let reciterDisplayLimit=36,reciterUiReady=false;
  function fill(){
   const selected=+rr.value||0,q=($('rq').value||'').trim().toLocaleLowerCase('ar'),all=groupedReciters();
   rr.innerHTML=R.map((r,i)=>'<option value="'+i+'">'+esc(r[0])+'</option>').join('');
@@ -3561,7 +3571,6 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
   });
   return radioApiPromise;
  }
- fill();
  $('src').textContent='قائمة القرّاء الأساسية جاهزة. تُحمّل التحديثات عند فتح الإذاعة، وتُحمّل المحطات عند طلب البث المباشر.';
  document.querySelectorAll('input[name=rm]').forEach(x=>x.addEventListener('change',()=>{if(started)play()}));
  $('rl').addEventListener('change',()=>{if(started)play()});
@@ -4106,7 +4115,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  try{const p=JSON.parse(localStorage.getItem('anwar_rd')||'null');if(p){const i=R.findIndex(x=>x[0]===p.r);if(i>=0){rr.value=i;cr=i}if(p.n>0&&p.n<115){n=p.n;rsu.value=n}const x=document.querySelector('input[name=rm][value="'+p.m+'"]');if(x&&p.m!=='l')x.checked=true}}catch(e){}
  // سخّن اتصال خادم القارئ المختار وجهّز بيانات السورة الأولى دون تشغيلها أو تحميل بقية السور.
  function warmCurrentSurah(){
-  if(mode()==='l')return;
+  if(started||mode()==='l')return;
   const rawBase=R[cr]&&safeHttpsURL(R[cr][1]);
   const base=rawBase?rawBase.replace(/\/?$/,'/'):'';if(!base)return;
   const url=base+String(n).padStart(3,'0')+'.mp3';
@@ -4121,11 +4130,21 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
    }
   }catch(_e){}
  }
- warmCurrentSurah();
+ function scheduleRadioWarmup(){
+  const connection=navigator.connection||{};
+  if(connection.saveData||/^(slow-2g|2g)$/.test(connection.effectiveType||''))return;
+  const start=()=>{if(!started)warmCurrentSurah()};
+  setTimeout(()=>{
+   if('requestIdleCallback' in window)window.requestIdleCallback(start,{timeout:2200});
+   else start();
+  },1400);
+ }
+ scheduleRadioWarmup();
  rb.addEventListener('click',toggle);pp.addEventListener('click',toggle);
  const radioPanel=$('rd'),radioToggle=$('rg');
  function setRadioPanel(open){
   if(open){
+   if(!reciterUiReady){fill();reciterUiReady=true;}
    ensureReciterCatalog().catch(()=>{});
    $('liveStationArea').hidden=false;
    ensureRadioCatalog();
@@ -4379,8 +4398,9 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  document.addEventListener('click',e=>{if(!e.target.closest('#palettePanel,#paletteBtn'))panel.classList.remove('open')});
  document.addEventListener('keydown',e=>{if(e.key==='Escape')panel.classList.remove('open')});refresh();
 })();
-load();theme();chips();openNote(null);
+load();theme();chips();
 if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.slice().sort((a,b)=>b.ts-a.ts)[0]);
+else openNote(null);
 
 /* تهيئة وإدارة موحّدة لكل الطبقات التي تفتحها الأيقونات */
 (function(){
@@ -4473,6 +4493,8 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  if(fontBtn)fontBtn.setAttribute('aria-controls','fm');
 })();
 
+
+},0));
 </script>
 
 <script>
