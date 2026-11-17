@@ -202,11 +202,10 @@ h.api.newNote();
 const openedDraft=h.api.draftState();
 assert(openedDraft.notes.length===0,'new note does not enter the saved work list immediately');
 assert(h.storage.writeCount===0,'opening new note does not write to storage');
-console.log('DRAFTDEBUG',JSON.stringify(h.api.debugDraft()));
-assert(openedDraft.draft===openedDraft.cur&&!!openedDraft.draft,'new note is held as the active temporary draft');
+assert(openedDraft.draftNote===openedDraft.cur&&!!openedDraft.draft,'new note is held as the active temporary draft');
 assert(h.api.flushPendingEdit(false)===true&&h.api.draftState().notes.length===0&&h.storage.writeCount===0,'leaving an untouched draft does not create or save an empty note');
 h.api.openNote(null);
-assert(h.api.draftState().cur===null&&h.api.draftState().draft===null&&h.api.draftState().notes.length===0,'closing an untouched draft discards it from the active editor');
+assert(h.api.draftState().cur===null&&h.api.draftState().draftNote===null&&h.api.draftState().notes.length===0,'closing an untouched draft discards it from the active editor');
 
 h=makeHarness();
 h.api.newNote();
@@ -219,9 +218,9 @@ h=makeHarness();
 h.api.newNote();
 h.sandbox.pg.innerHTML='<div>بدأت القصيدة هنا</div>';
 h.api.touch();
-assert(h.api.draftState().notes.length===0&&h.api.draftState().draft!==null,'typed content remains a pending draft until the save boundary');
+assert(h.api.draftState().notes.length===0&&h.api.draftState().draftNote!==null,'typed content remains a pending draft until the save boundary');
 assert(h.api.flushPendingEdit(false)===true,'first written draft flushes successfully');
-assert(h.api.draftState().notes.length===1&&h.api.draftState().draft===null,'first actual body text commits the draft exactly once');
+assert(h.api.draftState().notes.length===1&&h.api.draftState().draftNote===null,'first actual body text commits the draft exactly once');
 const firstSaved=JSON.parse(h.storage.getItem('anwar_v1')).notes[0];
 assert(firstSaved.html==='<div>بدأت القصيدة هنا</div>'&&firstSaved.history.length===0,'first save preserves the text without creating a false empty history version');
 
