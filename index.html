@@ -133,21 +133,20 @@ dialog textarea{width:100%;height:140px;background:var(--bg);color:var(--tx);bor
 #rd .lesson-item[aria-current="true"]{border-color:#b58a42;background:linear-gradient(110deg,#fff5d9,#f2e2bd);color:#173d5c;box-shadow:inset 0 0 0 1px #d8bd7c}
 #rd .lesson-tulip{width:30px;height:30px;display:grid;place-items:center;flex:none;overflow:hidden;border-radius:50%;border:1px solid #dfc58d;background:linear-gradient(145deg,#fffaf0,#f0e2c1);box-shadow:inset 0 1px 2px #ffffffb8,0 1px 3px #18334b12}#rd .lesson-tulip img{display:block;width:25px;height:29px;object-fit:contain;object-position:center bottom}
 #rd .lesson-item-name{flex:1;min-width:0;font-size:12px;font-weight:700}
-#rd .lesson-item-radio{width:29px;height:29px;display:grid;place-items:center;flex:none;border:1px solid #c9a96a;border-radius:9px;background:linear-gradient(135deg,#12395f,#1b6680);color:#fff;font-size:15px;box-shadow:0 2px 5px #12395f22}
 /* زهرة أنوار الحرة: بلا قرص أو خلفية، وتفتح دائري متوازن */
-#rb,#rpp,.reciter-play,.country-reader-play,#lessonPlay,#rd .lesson-item-radio{position:relative;display:inline-grid;place-items:center;flex:none;border:0!important;border-radius:0!important;background:transparent!important;color:transparent!important;font-size:0!important;box-shadow:none!important;overflow:visible;padding:0!important}
-#rb::before,#rpp::before,.reciter-play::before,.country-reader-play::before,#lessonPlay::before,#rd .lesson-item-radio::before{content:'';display:block;width:31px;height:31px;border:0!important;background:url('assets/royal-rose-closed.svg') center/contain no-repeat!important;transform:scale(.94);transform-origin:center;transition:transform .36s cubic-bezier(.2,.7,.25,1),filter .36s ease;filter:drop-shadow(0 1px 1px #233c3020)}
+#rb,#rpp,.reciter-play,.country-reader-play,#lessonPlay{position:relative;display:inline-grid;place-items:center;flex:none;border:0!important;border-radius:0!important;background:transparent!important;color:transparent!important;font-size:0!important;box-shadow:none!important;overflow:visible;padding:0!important}
+#rb::before,#rpp::before,.reciter-play::before,.country-reader-play::before,#lessonPlay::before{content:'';display:block;width:31px;height:31px;border:0!important;background:url('assets/royal-rose-closed.svg') center/contain no-repeat!important;transform:scale(.94);transform-origin:center;transition:transform .36s cubic-bezier(.2,.7,.25,1),filter .36s ease;filter:drop-shadow(0 1px 1px #233c3020)}
 
 /* زر التشغيل الأخضر مدمج هندسياً في SVG الخاص ببرعم الوردة */
-#rb[data-playing="true"]::before,#rpp[data-playing="true"]::before,.reciter-play[data-playing="true"]::before,.country-reader-play[data-playing="true"]::before,#lessonPlay[data-playing="true"]::before,#rd .lesson-item-radio[data-playing="true"]::before{width:31px;height:31px;background-image:url('assets/royal-rose-open.svg')!important;animation:anwarFlowerBloom .58s cubic-bezier(.18,.78,.22,1.12) both;filter:drop-shadow(0 1px 1.5px #a83d6a30)}
+#rb[data-playing="true"]::before,#rpp[data-playing="true"]::before,.reciter-play[data-playing="true"]::before,.country-reader-play[data-playing="true"]::before,#lessonPlay[data-playing="true"]::before{width:31px;height:31px;background-image:url('assets/royal-rose-open.svg')!important;animation:anwarFlowerBloom .58s cubic-bezier(.18,.78,.22,1.12) both;filter:drop-shadow(0 1px 1.5px #a83d6a30)}
 @keyframes anwarFlowerBloom{0%{transform:perspective(120px) rotateX(38deg) scale(.34);opacity:.35;filter:blur(1.2px)}48%{transform:perspective(120px) rotateX(-5deg) scale(1.12);opacity:1;filter:blur(0)}76%{transform:perspective(120px) rotateX(2deg) scale(.97)}100%{transform:perspective(120px) rotateX(0) scale(1);opacity:1;filter:blur(0)}}
 #rb.on{background:transparent!important;color:transparent!important;animation:pl 1.6s infinite}
 #rb:focus-visible,#rpp:focus-visible,.reciter-play:focus-visible,.country-reader-play:focus-visible,#lessonPlay:focus-visible{outline:2px solid #d8bd7c;outline-offset:3px;border-radius:50%!important}
-#rb{width:38px;height:38px}#rpp{width:42px;height:42px}.reciter-play,.country-reader-play,#lessonPlay{width:38px;height:38px}#rd .lesson-item-radio{width:34px;height:34px}
+#rb{width:38px;height:38px}#rpp{width:42px;height:42px}.reciter-play,.country-reader-play,#lessonPlay{width:38px;height:38px}
 #rd .reciter-version{display:flex;align-items:center;justify-content:flex-start;gap:8px}
 #rd .reciter-version::before{content:'';display:inline-block;flex:none;width:25px;height:25px;background:url('assets/royal-rose-closed.svg') center/contain no-repeat;filter:drop-shadow(0 1px 1px #233c3020);transition:transform .36s ease,filter .36s ease}
 #rd .reciter-version[data-playing="true"]::before{background-image:url('assets/royal-rose-open.svg');animation:anwarFlowerBloom .58s cubic-bezier(.18,.78,.22,1.12) both;filter:drop-shadow(0 1px 1.5px #a83d6a30)}
-@media(prefers-reduced-motion:reduce){#rb::before,#rpp::before,.reciter-play::before,.country-reader-play::before,#lessonPlay::before,#rd .lesson-item-radio::before,#rd .reciter-version::before{animation:none!important;transition:none!important}}
+@media(prefers-reduced-motion:reduce){#rb::before,#rpp::before,.reciter-play::before,.country-reader-play::before,#lessonPlay::before,#rd .reciter-version::before{animation:none!important;transition:none!important}}
 
 #rd .lesson-empty{padding:12px;text-align:center;color:var(--mu);font-size:12px}#rd .lesson-box a{display:block;color:var(--ac);text-decoration:none;border:1px solid var(--bd);border-radius:7px;padding:8px;background:var(--sf);font-size:12px}#rd .lesson-box audio{width:100%;height:38px}#rd .lesson-note{font-size:11px;color:var(--mu);line-height:1.7}
 #rd select{border:1px solid var(--bd);border-radius:6px;padding:5px;background:var(--bg);color:var(--tx)}
@@ -3371,7 +3370,6 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
    surahPickerList.querySelectorAll('[data-surah-option]').forEach(button=>{
     const active=Number(button.dataset.surahOption)===Number(surahPicker.value);
     button.setAttribute('aria-selected',String(active));
-    const check=button.querySelector('.surah-picker-option-check');if(check)check.textContent=active?'✓':'';
    });
   }
  }
@@ -3381,7 +3379,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
   surahPickerList.innerHTML=options.length?options.map(option=>{
    const number=Number(option.value),active=number===Number(surahPicker.value);
    const name=String(option.textContent).replace(/^\s*\d+\s*[.．-]?\s*/,'');
-   return '<button type="button" class="surah-picker-option" role="option" data-surah-option="'+number+'" aria-selected="'+active+'"><span class="surah-picker-option-tulip" aria-hidden="true"><img src="assets/tulip-cutout.svg" alt="" loading="lazy" decoding="async"></span><span class="surah-picker-option-copy"><span class="surah-picker-option-number">'+number+'.</span><span class="surah-picker-option-name">'+esc(name)+'</span></span><span class="surah-picker-option-check" aria-hidden="true">'+(active?'✓':'')+'</span></button>';
+   return '<button type="button" class="surah-picker-option" role="option" data-surah-option="'+number+'" aria-selected="'+active+'"><span class="surah-picker-option-tulip" aria-hidden="true"><img src="assets/tulip-cutout.svg" alt="" loading="lazy" decoding="async"></span><span class="surah-picker-option-copy"><span class="surah-picker-option-number">'+number+'.</span><span class="surah-picker-option-name">'+esc(name)+'</span></span></button>';
   }).join(''):'<div class="surah-picker-empty">لا توجد سورة بهذا الاسم.</div>';
  }
  function closeSurahPicker(){
@@ -4169,8 +4167,16 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  surahPicker.addEventListener('change',()=>{
   const chosen=Number(surahPicker.value);if(!Number.isInteger(chosen)||chosen<1||chosen>114)return;
   n=chosen;rsu.value=String(n);
-  if(started){st.textContent='تم تغيير السورة إلى '+SU[n-1]+'؛ جارٍ تشغيل الاختيار.';play();}
-  else st.textContent='تم اختيار سورة '+SU[n-1]+'؛ اختر القارئ لبدء التلاوة.';
+  if(started){
+   // اختيار سورة صريح يحوّل أي بث أو إذاعة جارية إلى تلاوة القارئ المختار.
+   cr=Number(rr.value)||0;
+   activePlaybackKind='reader';
+   selectPlaybackMode(readerAdvancePreference);
+   st.textContent='تم اختيار سورة '+SU[n-1]+'؛ جارٍ تحويل التشغيل إليها.';
+   play();
+  }else{
+   st.textContent='تم اختيار سورة '+SU[n-1]+'؛ اختر القارئ لبدء التلاوة.';
+  }
  });
  $('reciterGrid').addEventListener('click',e=>{
   const b=e.target.closest('[data-reciter-play]');if(!b)return;
@@ -4427,7 +4433,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
   track.disabled=!c.count;
   const lessonList=$('lessonList');
   if(lessonList){
-   lessonList.innerHTML=c.count?Array.from({length:c.count},(_,i)=>`<button type="button" class="lesson-item" role="listitem" data-lesson-index="${i}" aria-current="false"><span class="lesson-tulip" aria-hidden="true"><img src="assets/tulip-cutout.svg" alt=""></span><span class="lesson-item-name">${c.trackNames?.[i]||('الدرس '+String(i+1).padStart(2,'0')+' من '+c.count)}</span><span class="lesson-item-radio" aria-hidden="true">▶</span></button>`).join(''):'<div class="lesson-empty">لا تتوفر قائمة تشغيل مباشرة لهذه المادة؛ افتح فهرس المصدر أدناه.</div>';
+   lessonList.innerHTML=c.count?Array.from({length:c.count},(_,i)=>`<button type="button" class="lesson-item" role="listitem" data-lesson-index="${i}" aria-current="false"><span class="lesson-tulip" aria-hidden="true"><img src="assets/tulip-cutout.svg" alt=""></span><span class="lesson-item-name">${c.trackNames?.[i]||('الدرس '+String(i+1).padStart(2,'0')+' من '+c.count)}</span></button>`).join(''):'<div class="lesson-empty">لا تتوفر قائمة تشغيل مباشرة لهذه المادة؛ افتح فهرس المصدر أدناه.</div>';
   }
   renderSource(c);
   status.textContent=c.direct?'قائمة كاملة: '+c.count+' درسًا. اختر الدرس للتشغيل الداخلي أو شغّل السلسلة للانتقال التلقائي.':c.count?'تتوفر '+c.count+' مادة صوتية في هذه السلسلة.':'هذا فهرس للسلاسل الصوتية؛ افتح رابطه في تبويب مستقل لتصفح بقية الصوتيات.';
@@ -4440,7 +4446,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  }
  series.addEventListener('change',fill);track.addEventListener('change',()=>loadTrack(false));
  const lessonList=$('lessonList');
- function markLessonPlaying(){if(!lessonList)return;lessonList.querySelectorAll('[data-lesson-index]').forEach(btn=>{const active=+btn.dataset.lessonIndex===current&&!!audio.src;btn.setAttribute('aria-current',String(active));const icon=btn.querySelector('.lesson-item-radio');if(icon)icon.textContent=active&&!audio.paused?'Ⅱ':'▶';});}
+ function markLessonPlaying(){if(!lessonList)return;lessonList.querySelectorAll('[data-lesson-index]').forEach(btn=>{const active=+btn.dataset.lessonIndex===current&&!!audio.src;btn.setAttribute('aria-current',String(active));});}
  if(lessonList)lessonList.addEventListener('click',e=>{const btn=e.target.closest('[data-lesson-index]');if(!btn)return;current=+btn.dataset.lessonIndex;track.value=String(current);loadTrack(true);markLessonPlaying();});
  audio.addEventListener('play',()=>{
   const radio=window.__anwarRadioAudio;if(radio&&!radio.paused)radio.pause();
@@ -4620,7 +4626,7 @@ else openNote(null);
 <script>
 // Sync only changed radio controls; ignore editor mutations to keep typing responsive.
 (()=>{
- const selector='#rb,#rpp,.reciter-play,.country-reader-play,#lessonPlay,#rd .lesson-item-radio,.reciter-version';
+ const selector='#rb,#rpp,.reciter-play,.country-reader-play,#lessonPlay,.reciter-version';
  const update=el=>{if(el&&!el.classList.contains('reciter-version'))el.dataset.playing=/[⏸Ⅱ]/.test(el.textContent)?'true':'false'};
  const scanAdded=node=>{
   if(!node||node.nodeType!==1||node.closest('#pg'))return;
@@ -4826,7 +4832,6 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
 .surah-picker-option-copy{display:flex;align-items:baseline;gap:6px;flex:1;min-width:0}
 .surah-picker-option-number{font-size:11px;opacity:.72;direction:ltr}
 .surah-picker-option-name{font-size:14px;font-weight:750;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.surah-picker-option-check{width:21px;flex:none;text-align:center;font-size:17px;font-weight:900}
 .surah-picker-empty{padding:20px 8px;text-align:center;color:#718777;font-size:12px}
 #rd .lesson-list{gap:8px;padding:3px 2px 6px}
 #rd .lesson-item{min-height:50px;padding:8px 11px;border:1px solid #c9ddcc;border-radius:11px;background:linear-gradient(110deg,#f0f7f0,#e5f0e6);color:#254d32;box-shadow:0 2px 6px rgba(30,78,45,.055)}
@@ -4834,11 +4839,17 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
 #rd .lesson-tulip{width:34px;height:36px;border:1px solid #d5e3d2;border-radius:9px;background:#fbf8eb;box-shadow:none}
 #rd .lesson-tulip img{width:28px;height:33px}
 #rd .lesson-item-name{font-size:13px;line-height:1.55}
-#rd .lesson-item-radio{color:#245c43}
-#rd .lesson-item[aria-current="true"] .lesson-item-radio{color:#fff}
 #rd #lessonSeries{width:100%;min-height:44px;padding:8px 12px;border:1px solid #b8d2bd;border-radius:11px;background:linear-gradient(135deg,#f1f8f1,#e2efe4);color:#214b32;font:inherit;font-size:13px;font-weight:700}
 @media(prefers-reduced-motion:reduce){.surah-picker-option,.surah-picker-button{transition:none!important}}
 </style>
 
+<style id="anwar-whole-row-selection">
+/* الاختيار من كامل المستطيل؛ لا حاجة إلى زر تشغيل جانبي منفصل */
+#rd .lesson-item{cursor:pointer;text-align:right;-webkit-tap-highlight-color:transparent}
+#rd .lesson-item:focus-visible{outline:2px solid #245c43;outline-offset:2px}
+#rd .lesson-item[aria-current="true"]{border-color:#245c43}
+.surah-picker-option{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.surah-picker-option:focus-visible{outline:2px solid #245c43;outline-offset:2px}
+</style>
 </body>
 </html>
