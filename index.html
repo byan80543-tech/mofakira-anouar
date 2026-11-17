@@ -3214,7 +3214,8 @@ pg.addEventListener('dragover',e=>e.preventDefault());
 pg.addEventListener('drop',e=>{e.preventDefault();const text=e.dataTransfer?.getData('text/plain')||'';if(text)document.execCommand('insertText',false,text);touch()});
 $('t').addEventListener('input',e=>{if(cur&&!storageRecoveryBlocked){capturePendingBefore();cur.title=e.target.value;cur.ts=Date.now();if(tm)clearTimeout(tm);tm=setTimeout(()=>flushPendingEdit(true),500)}});
 $('ty').addEventListener('change',e=>{if(cur&&!storageRecoveryBlocked){flushPendingEdit(false);cur.type=e.target.value;save();renderList();info()}});
-$('q').addEventListener('input',renderList);\n$('archiveSearch').addEventListener('input',renderArchive);
+$('q').addEventListener('input',renderList);
+$('archiveSearch').addEventListener('input',renderArchive);
 $('shareUrl').addEventListener('keydown',e=>{if(e.key==='Enter')makeQR()});
 $('bookFilePicker').addEventListener('change',e=>{
  const file=e.target.files&&e.target.files[0];
