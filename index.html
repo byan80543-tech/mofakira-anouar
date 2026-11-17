@@ -1334,14 +1334,12 @@ dialog[open]>.float-head{display:none!important}
 #bookDialog .anwar-book-head>div{display:grid;gap:3px;min-width:0}
 #bookDialog .anwar-book-head strong{font:700 22px 'Aref Ruqaa',Amiri,serif;color:var(--ac)}
 #bookDialog .anwar-book-head small{font-size:11px;color:var(--mu);line-height:1.6}
-#bookDialog #addBookFile{display:grid;place-items:center;flex:none;width:43px;height:43px;border:1px solid #c9a96a;border-radius:13px;background:linear-gradient(140deg,#fff8e8,#ead39a);color:#173b58;font:400 29px/1 Arial,sans-serif;box-shadow:0 2px 7px rgba(20,45,75,.12)}
-#bookDialog #addBookFile:active{transform:scale(.96)}
 #bookDialog label{display:block;margin:9px 0 3px;font-size:12px;font-weight:700;color:var(--mu)}
 #bookDialog input:not([type=file]),#bookDialog select{width:100%;min-height:42px;margin:3px 0 8px;padding:8px 10px;border:1px solid var(--bd);border-radius:9px;background:var(--bg);color:var(--tx)}
 #bookDialog .anwar-book-note{margin:7px 0 12px;padding:9px 10px;border-radius:9px;background:var(--ac2);color:var(--mu);font-size:11px;line-height:1.8}
 #bookDialog .dialog-actions{position:sticky;bottom:-14px;padding:10px 0 2px;background:var(--sf)}
 #bookDialog #createBook{border-color:var(--ac);background:var(--ac);color:#fff;font-weight:700}
-@media(max-width:800px){#bookDialog .anwar-book-head{margin-top:3px}#bookDialog #addBookFile{width:46px;height:46px}}
+@media(max-width:800px){#bookDialog .anwar-book-head{margin-top:3px}}
 
 
 /* قوالب صفحة الكتابة */
@@ -5113,6 +5111,18 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
 @media(prefers-reduced-motion:reduce){
  #rib .book-tool-chevron{transition:none!important}
 }
+</style>
+
+
+<style id="anwar-remove-book-plus-residue">
+/* تأكيد خلو بطاقة إنشاء الكتاب من أي علامة زائد زخرفية */
+#rib #bookToolPanel .book-tool-head::before,
+#rib #bookToolPanel .book-tool-head::after,
+#rib #bookToolPanel .book-tool-toggle::before,
+#rib #bookToolPanel .book-tool-toggle::after,
+#rib #bookToolPanel .book-tool-icon::before,
+#rib #bookToolPanel .book-tool-icon::after{content:none!important;display:none!important}
+#rib #bookToolPanel #addBookFile{width:auto;height:auto;min-height:34px;border:1px solid var(--bd);border-radius:8px;background:var(--sf);color:var(--mu);font:700 10px Cairo,Tahoma,sans-serif;box-shadow:none}
 </style>
 
 </body>
