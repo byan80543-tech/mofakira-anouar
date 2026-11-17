@@ -237,6 +237,7 @@ body.radio-open{overflow:hidden}
 #rd .curtain-head{top:calc(-10px - env(safe-area-inset-top,0px));padding-top:calc(9px + env(safe-area-inset-top,0px))}
 /* Force the radio header background to span the panel wall; #rd>* previously capped it at 100%. */
 #rd>.curtain-head{width:calc(100% + 28px)!important;max-width:none!important;box-sizing:border-box!important;}
+@media(max-width:800px){#rd>.curtain-head{width:calc(100% + 30px)!important;}}
 #ownerDialog{inset:0!important;margin:0!important;width:100vw!important;max-width:100vw!important;height:100dvh!important;max-height:100dvh!important;border:0!important;border-radius:0!important;padding:calc(18px + env(safe-area-inset-top,0px)) 16px calc(18px + env(safe-area-inset-bottom,0px))!important;overflow:auto!important}
 #ownerDialog>.float-head{display:none!important}
 
