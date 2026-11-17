@@ -1714,11 +1714,9 @@ dialog[open]>.float-head{display:none!important}
  <input id="rq" type="search" placeholder="ابحث عن اسم القارئ…" aria-label="ابحث عن قارئ">
  <div class="reciter-list-head"><span class="reciter-list-title">موسوعة القرّاء والروايات</span><span class="reciter-count" id="reciterCount">جارٍ التحميل…</span></div>
  <small class="reciter-catalog-note">كل مصحف ورواية متاحة يظهران كخيار مستقل، وقد تختلف السور المتاحة من رواية إلى أخرى. والبحث أعلاه يخص قائمة التشغيل داخل أنوار.</small>
- <div class="surah-picker-bar" role="group" aria-label="اختيار سورة القرآن">
-  <div class="surah-picker-copy"><strong>السورة المطلوبة</strong><small>اخترها أولاً ثم اضغط زهرة القارئ</small></div>
-  <button type="button" id="surahPickerButton" class="surah-picker-button" aria-haspopup="dialog" aria-controls="surahPickerModal" aria-expanded="false">
-   <span class="surah-picker-button-copy"><small>السورة المختارة</small><strong id="surahPickerCurrent">1. الفاتحة</strong></span>
-   <span class="surah-picker-button-caret" aria-hidden="true">⌄</span>
+ <div class="surah-picker-bar" role="group" aria-label="اختيار السورة">
+  <button type="button" id="surahPickerButton" class="surah-picker-button" aria-haspopup="dialog" aria-controls="surahPickerModal" aria-expanded="false" aria-label="فتح قائمة السور">
+   <span class="surah-picker-button-copy"><strong id="surahPickerCurrent">1. الفاتحة</strong></span>
   </button>
   <select id="surahPicker" class="surah-picker-native" aria-label="اختر السورة التي تريد الاستماع إليها" tabindex="-1" aria-hidden="true"></select>
  </div>
@@ -1786,9 +1784,8 @@ dialog[open]>.float-head{display:none!important}
   <small class="lesson-note">التسجيلات ذات روابط MP3 المباشرة تعمل بالمشغل الداخلي مع الانتقال التلقائي. ولحماية واجهة المفكرة، لا تُضمَّن صفحة «تعليق على معارج القبول» الخارجية داخلها؛ ويُفتح رابط الفهرس أو ملف الدرس في تبويب مستقل عند الحاجة.</small>
  </div></div>
 <div id="surahPickerModal" class="surah-picker-modal" hidden>
- <section class="surah-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="surahPickerTitle">
+ <section class="surah-picker-dialog" role="dialog" aria-modal="true" aria-label="قائمة السور">
   <header class="surah-picker-dialog-head">
-   <div><strong id="surahPickerTitle">اختر سورة القرآن الكريم</strong><small>114 سورة · اختر السورة التي تريد الاستماع إليها</small></div>
    <button type="button" id="surahPickerClose" class="surah-picker-close" aria-label="إغلاق قائمة السور">✕</button>
   </header>
   <label class="surah-picker-search-wrap">
@@ -4840,6 +4837,14 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
 #rd .lesson-tulip img{width:28px;height:33px}
 #rd .lesson-item-name{font-size:13px;line-height:1.55}
 #rd #lessonSeries{width:100%;min-height:44px;padding:8px 12px;border:1px solid #b8d2bd;border-radius:11px;background:linear-gradient(135deg,#f1f8f1,#e2efe4);color:#214b32;font:inherit;font-size:13px;font-weight:700}
+@media(prefers-reduced-motion:reduce){.surah-picker-option,.surah-picker-button{transition:none!important}}
+/* إطار السورة نفسه قابل للنقر، بلا سهم أو عناوين مكررة */
+.surah-picker-bar{display:block;padding:0;border:0;background:transparent;box-shadow:none}
+.surah-picker-button{display:flex;align-items:center;justify-content:flex-start;min-height:76px;padding:18px 22px;border:1px solid #b8d2bd;border-radius:15px;background:linear-gradient(135deg,#f1f8f1,#e2efe4);color:#214b32;text-align:right}
+.surah-picker-button-copy{display:block;width:100%}
+.surah-picker-button-copy strong{font-size:21px;font-weight:800;color:#214b32}
+.surah-picker-dialog-head{justify-content:flex-start;padding:0 0 8px;border:0}
+.surah-picker-close{width:34px;height:34px;opacity:.86}
 @media(prefers-reduced-motion:reduce){.surah-picker-option,.surah-picker-button{transition:none!important}}
 </style>
 
