@@ -1237,7 +1237,8 @@ dialog[open]>.float-head{display:none!important}
 
 /* قرص سبحة أنوار العائم */
 .anwar-floating-tasbih{position:fixed;z-index:1800;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));width:66px;height:66px;display:grid;place-items:center;padding:0;border:1px solid #e8cf91;border-radius:50%;background:radial-gradient(circle at 32% 22%,#fff8e7 0%,#ead29a 46%,#ba8e4c 100%);box-shadow:0 7px 22px #0d233847,0 0 0 4px #d7bd7c30,inset 0 2px 4px #fff9;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;transition:box-shadow .2s,transform .2s}
-.anwar-floating-tasbih:active{cursor:grabbing;transform:scale(.96)}.anwar-floating-tasbih:focus-visible{outline:3px solid #173d59;outline-offset:4px}
+.anwar-floating-tasbih:active{cursor:grabbing;transform:scale(.96)}
+.anwar-floating-tasbih[hidden]{display:none!important}.anwar-floating-tasbih:focus-visible{outline:3px solid #173d59;outline-offset:4px}
 .anwar-float-halo{position:absolute;inset:3px;border:1px solid #ffffffb8;border-radius:50%;pointer-events:none}.anwar-float-art{position:relative;z-index:1;width:47px;height:47px;filter:drop-shadow(0 2px 2px #32141a40);pointer-events:none}
 .anwar-tasbih-overlay{position:fixed;inset:0;z-index:5000;display:grid;place-items:center;padding:calc(18px + env(safe-area-inset-top,0px)) 14px calc(18px + env(safe-area-inset-bottom,0px));overflow:auto;overscroll-behavior:contain;background:radial-gradient(ellipse at 50% 0%,#c9a96a2b,transparent 42%),#04101fd9;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .anwar-tasbih-overlay[hidden]{display:none!important}.anwar-tasbih-dialog{width:min(590px,100%);max-height:calc(100dvh - 36px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow:auto;overscroll-behavior:contain;border:1px solid #d8bd7c;border-radius:22px;background:linear-gradient(155deg,#fffdf7,#f4ead3 58%,#e9dcc0);color:#233c52;box-shadow:0 20px 60px #0006,inset 0 1px #fff}
