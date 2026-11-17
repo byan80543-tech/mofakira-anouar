@@ -1717,7 +1717,11 @@ dialog[open]>.float-head{display:none!important}
  <small class="reciter-catalog-note">كل مصحف ورواية متاحة يظهران كخيار مستقل، وقد تختلف السور المتاحة من رواية إلى أخرى. والبحث أعلاه يخص قائمة التشغيل داخل أنوار.</small>
  <div class="surah-picker-bar" role="group" aria-label="اختيار سورة القرآن">
   <div class="surah-picker-copy"><strong>السورة المطلوبة</strong><small>اخترها أولاً ثم اضغط زهرة القارئ</small></div>
-  <select id="surahPicker" aria-label="اختر السورة التي تريد الاستماع إليها"></select>
+  <button type="button" id="surahPickerButton" class="surah-picker-button" aria-haspopup="dialog" aria-controls="surahPickerModal" aria-expanded="false">
+   <span class="surah-picker-button-copy"><small>السورة المختارة</small><strong id="surahPickerCurrent">1. الفاتحة</strong></span>
+   <span class="surah-picker-button-caret" aria-hidden="true">⌄</span>
+  </button>
+  <select id="surahPicker" class="surah-picker-native" aria-label="اختر السورة التي تريد الاستماع إليها" tabindex="-1" aria-hidden="true"></select>
  </div>
  <div class="reader-advance-bar" role="group" aria-label="طريقة التنقل بين السور في قوائم القراء">
   <div class="reader-advance-copy"><strong>التنقل بين السور</strong><small>اختر كيف تتابع تلاوة القارئ</small></div>
@@ -1782,6 +1786,19 @@ dialog[open]>.float-head{display:none!important}
   <iframe id="lessonFrame" title="مشغل السلسلة من مصدرها" style="display:none;width:100%;height:360px;border:1px solid var(--bd);border-radius:9px;background:var(--sf)" loading="lazy" allow="autoplay; encrypted-media; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
   <small class="lesson-note">التسجيلات ذات روابط MP3 المباشرة تعمل بالمشغل الداخلي مع الانتقال التلقائي. ولحماية واجهة المفكرة، لا تُضمَّن صفحة «تعليق على معارج القبول» الخارجية داخلها؛ ويُفتح رابط الفهرس أو ملف الدرس في تبويب مستقل عند الحاجة.</small>
  </div></div>
+<div id="surahPickerModal" class="surah-picker-modal" hidden>
+ <section class="surah-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="surahPickerTitle">
+  <header class="surah-picker-dialog-head">
+   <div><strong id="surahPickerTitle">اختر سورة القرآن الكريم</strong><small>114 سورة · اختر السورة التي تريد الاستماع إليها</small></div>
+   <button type="button" id="surahPickerClose" class="surah-picker-close" aria-label="إغلاق قائمة السور">✕</button>
+  </header>
+  <label class="surah-picker-search-wrap">
+   <span aria-hidden="true">⌕</span>
+   <input id="surahPickerSearch" type="search" placeholder="ابحث عن اسم السورة أو رقمها…" autocomplete="off" aria-label="ابحث عن سورة">
+  </label>
+  <div id="surahPickerList" class="surah-picker-list" role="listbox" aria-label="سور القرآن الكريم"></div>
+ </section>
+</div>
 <dialog id="dg">
  <p><b>نسخة احتياطية</b><br><small>انسخ النص واحفظه، أو الصق نسخة سابقة ثم اضغط استعادة.</small></p>
  <textarea id="bt"></textarea>
@@ -3345,6 +3362,53 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  rr.innerHTML=R.map((r,i)=>`<option value="${i}">${esc(r[0])}</option>`).join('');
  rsu.innerHTML=SU.map((s,i)=>`<option value="${i+1}">${i+1}. ${esc(s)}</option>`).join('');
  const surahPicker=$('surahPicker');surahPicker.innerHTML=rsu.innerHTML;surahPicker.value=String(n);
+ const surahPickerButton=$('surahPickerButton'),surahPickerCurrent=$('surahPickerCurrent');
+ const surahPickerModal=$('surahPickerModal'),surahPickerList=$('surahPickerList'),surahPickerSearch=$('surahPickerSearch');
+ function syncSurahPickerLabel(){
+  const selected=surahPicker.selectedOptions&&surahPicker.selectedOptions[0];
+  if(surahPickerCurrent&&selected)surahPickerCurrent.textContent=selected.textContent;
+  if(surahPickerList){
+   surahPickerList.querySelectorAll('[data-surah-option]').forEach(button=>{
+    const active=Number(button.dataset.surahOption)===Number(surahPicker.value);
+    button.setAttribute('aria-selected',String(active));
+    const check=button.querySelector('.surah-picker-option-check');if(check)check.textContent=active?'✓':'';
+   });
+  }
+ }
+ function renderSurahPickerOptions(query){
+  const q=String(query||'').trim().toLocaleLowerCase('ar');
+  const options=Array.from(surahPicker.options).filter(option=>!q||option.textContent.toLocaleLowerCase('ar').includes(q)||String(option.value).includes(q));
+  surahPickerList.innerHTML=options.length?options.map(option=>{
+   const number=Number(option.value),active=number===Number(surahPicker.value);
+   const name=String(option.textContent).replace(/^\s*\d+\s*[.．-]?\s*/,'');
+   return '<button type="button" class="surah-picker-option" role="option" data-surah-option="'+number+'" aria-selected="'+active+'"><span class="surah-picker-option-tulip" aria-hidden="true"><img src="assets/tulip-cutout.svg" alt="" loading="lazy" decoding="async"></span><span class="surah-picker-option-copy"><span class="surah-picker-option-number">'+number+'.</span><span class="surah-picker-option-name">'+esc(name)+'</span></span><span class="surah-picker-option-check" aria-hidden="true">'+(active?'✓':'')+'</span></button>';
+  }).join(''):'<div class="surah-picker-empty">لا توجد سورة بهذا الاسم.</div>';
+ }
+ function closeSurahPicker(){
+  if(!surahPickerModal||surahPickerModal.hidden)return;
+  surahPickerModal.hidden=true;
+  if(surahPickerButton)surahPickerButton.setAttribute('aria-expanded','false');
+  if(surahPickerButton)surahPickerButton.focus();
+ }
+ if(surahPickerButton)surahPickerButton.addEventListener('click',()=>{
+  renderSurahPickerOptions('');
+  surahPickerSearch.value='';
+  surahPickerModal.hidden=false;
+  surahPickerButton.setAttribute('aria-expanded','true');
+  surahPickerSearch.focus();
+ });
+ if(surahPickerList)surahPickerList.addEventListener('click',event=>{
+  const option=event.target.closest('[data-surah-option]');if(!option)return;
+  surahPicker.value=String(option.dataset.surahOption);
+  surahPicker.dispatchEvent(new Event('change',{bubbles:true}));
+  closeSurahPicker();
+ });
+ if(surahPickerSearch)surahPickerSearch.addEventListener('input',()=>renderSurahPickerOptions(surahPickerSearch.value));
+ if(surahPickerModal)surahPickerModal.addEventListener('click',event=>{if(event.target===surahPickerModal)closeSurahPicker()});
+ $('surahPickerClose').addEventListener('click',closeSurahPicker);
+ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&surahPickerModal&&!surahPickerModal.hidden)closeSurahPicker()});
+ surahPicker.addEventListener('change',syncSurahPickerLabel);
+ syncSurahPickerLabel();
  const mode=()=>document.querySelector('input[name=rm]:checked').value;
  const readerAdvanceSelect=$('readerAdvanceMode');
  let readerAdvancePreference='c',activePlaybackKind='radio';
@@ -3391,7 +3455,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
    try{au.currentTime=0}catch(_e){}
   }
   $('ro').href=u;$('ro').hidden=true;
-  rsu.value=String(n);surahPicker.value=String(n);st.textContent='جارٍ تشغيل سورة '+SU[n-1]+' داخل أنوار…';
+  rsu.value=String(n);surahPicker.value=String(n);syncSurahPickerLabel();st.textContent='جارٍ تشغيل سورة '+SU[n-1]+' داخل أنوار…';
   clearTimeout(wd);
   wd=setTimeout(()=>{
    if(requestId!==playRequestId)return;
@@ -4732,5 +4796,49 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
  window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js',{scope:'./'}).catch(error=>console.warn('تعذّر تسجيل عامل خدمة مفكرة أنوار',error)));
 }
 </script>
+
+<style id="anwar-green-lists-style">
+/* قوائم خضراء هادئة مع إعادة استخدام زهرة التوليب المحلية نفسها */
+.surah-picker-native{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;opacity:0!important;pointer-events:none!important}
+.surah-picker-button{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-width:0;min-height:48px;padding:7px 12px;border:1px solid #b8d2bd;border-radius:11px;background:linear-gradient(135deg,#f1f8f1,#e2efe4);color:#214b32;text-align:right;font:inherit;box-shadow:0 2px 6px rgba(25,75,47,.06)}
+.surah-picker-button-copy{display:grid;gap:1px;min-width:0}
+.surah-picker-button-copy small{font-size:10px;color:#63816a}
+.surah-picker-button-copy strong{font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.surah-picker-button-caret{display:grid;place-items:center;flex:none;width:29px;height:29px;border-radius:9px;background:#d2e5d5;color:#245c43;font-size:21px}
+.surah-picker-button:active{transform:scale(.995)}
+.surah-picker-modal{position:fixed;inset:0;z-index:100800;display:grid;place-items:center;padding:calc(12px + env(safe-area-inset-top,0px)) 12px calc(12px + env(safe-area-inset-bottom,0px));background:rgba(7,24,16,.48);backdrop-filter:blur(3px)}
+.surah-picker-modal[hidden]{display:none!important}
+.surah-picker-dialog{display:flex;flex-direction:column;width:min(100%,520px);max-height:min(86dvh,760px);min-height:0;padding:13px;border:1px solid #c5d9c7;border-radius:22px;background:#fbfdfb;color:#203b2a;box-shadow:0 18px 55px rgba(0,0,0,.24);overflow:hidden}
+.surah-picker-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:3px 2px 11px;border-bottom:1px solid #e0e9e1}
+.surah-picker-dialog-head>div{display:grid;gap:3px;min-width:0}
+.surah-picker-dialog-head strong{font-family:'Aref Ruqaa',Amiri,serif;font-size:19px;color:#245c43}
+.surah-picker-dialog-head small{font-size:10px;color:#748879}
+.surah-picker-close{width:34px;height:34px;display:grid;place-items:center;flex:none;border:1px solid #d5e2d6;border-radius:50%;background:#edf5ee;color:#315b3e;font-size:17px}
+.surah-picker-search-wrap{display:flex;align-items:center;gap:9px;min-height:43px;margin:11px 0 9px;padding:0 12px;border:1px solid #cbdccf;border-radius:11px;background:#f1f7f2;color:#497253}
+.surah-picker-search-wrap span{font-size:23px;line-height:1}
+.surah-picker-search-wrap input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:#203b2a;font:inherit;font-size:13px}
+.surah-picker-list{display:grid;grid-template-columns:1fr;gap:7px;min-height:0;overflow:auto;overscroll-behavior:contain;padding:2px 2px 5px}
+.surah-picker-option{display:flex;align-items:center;gap:11px;width:100%;min-height:48px;padding:7px 11px;border:1px solid #d1e2d3;border-radius:11px;background:linear-gradient(110deg,#f0f7f0,#e6f1e7);color:#254d32;text-align:right;font:inherit;transition:background .12s,border-color .12s}
+.surah-picker-option:active{transform:scale(.995)}
+.surah-picker-option[aria-selected="true"]{border-color:#245c43;background:linear-gradient(110deg,#2d704d,#20563b);color:#fff;box-shadow:0 3px 9px rgba(27,84,53,.16)}
+.surah-picker-option-tulip{width:31px;height:34px;display:grid;place-items:center;flex:none;border:1px solid #d8e4cf;border-radius:9px;background:#fbf8eb}
+.surah-picker-option-tulip img{display:block;width:25px;height:30px;object-fit:contain;object-position:center bottom}
+.surah-picker-option-copy{display:flex;align-items:baseline;gap:6px;flex:1;min-width:0}
+.surah-picker-option-number{font-size:11px;opacity:.72;direction:ltr}
+.surah-picker-option-name{font-size:14px;font-weight:750;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.surah-picker-option-check{width:21px;flex:none;text-align:center;font-size:17px;font-weight:900}
+.surah-picker-empty{padding:20px 8px;text-align:center;color:#718777;font-size:12px}
+#rd .lesson-list{gap:8px;padding:3px 2px 6px}
+#rd .lesson-item{min-height:50px;padding:8px 11px;border:1px solid #c9ddcc;border-radius:11px;background:linear-gradient(110deg,#f0f7f0,#e5f0e6);color:#254d32;box-shadow:0 2px 6px rgba(30,78,45,.055)}
+#rd .lesson-item[aria-current="true"]{border-color:#245c43;background:linear-gradient(110deg,#2d704d,#20563b);color:#fff;box-shadow:0 3px 9px rgba(27,84,53,.15)}
+#rd .lesson-tulip{width:34px;height:36px;border:1px solid #d5e3d2;border-radius:9px;background:#fbf8eb;box-shadow:none}
+#rd .lesson-tulip img{width:28px;height:33px}
+#rd .lesson-item-name{font-size:13px;line-height:1.55}
+#rd .lesson-item-radio{color:#245c43}
+#rd .lesson-item[aria-current="true"] .lesson-item-radio{color:#fff}
+#rd #lessonSeries{width:100%;min-height:44px;padding:8px 12px;border:1px solid #b8d2bd;border-radius:11px;background:linear-gradient(135deg,#f1f8f1,#e2efe4);color:#214b32;font:inherit;font-size:13px;font-weight:700}
+@media(prefers-reduced-motion:reduce){.surah-picker-option,.surah-picker-button{transition:none!important}}
+</style>
+
 </body>
 </html>
