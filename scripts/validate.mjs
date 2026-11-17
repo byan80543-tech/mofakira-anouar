@@ -35,6 +35,11 @@ ok(html.includes("applyPaperClass(n.paper)"),'opening a note restores its saved 
 ok(html.includes("e.key==='Tab'") && html.includes("e.key==='Enter'&&!e.shiftKey"),'poetry layout supports keyboard navigation between hemistichs');
 ok(html.includes("else if(id==='vs'&&cur)insertPoetryVerse()"),'verse button inserts structured split-hemistich rows');
 ok(html.includes('paper-export paper-') && html.includes('paper-export.paper-poetry .v{'),'selected paper layout is preserved in PDF and HTML exports');
+ok(html.includes('grid-template-columns:max-content max-content') && html.includes('width:max-content'),'long poem hemistich frames expand to their text width');
+ok(html.includes('white-space:pre;overflow-wrap:normal;word-break:normal;hyphens:none'),'long hemistichs never wrap or break inside their frame');
+ok(html.includes('#pg.paper-poetry{overflow-x:auto'),'poetry page supports horizontal scrolling on narrow screens');
+ok(html.includes("size:v.size,paper:v.paper||'plain'"),'restoring a previous version restores its paper layout too');
+
 ok(html.includes('async function ensurePdfLibraries()'),'PDF libraries load only when PDF export is requested');
 ok(html.includes('async function makeQR()'),'QR library loads only when QR generation is requested');
 ok(!/<script\b[^>]*\bsrc\s*=\s*["'][^"']*(?:html2canvas|qrcodejs|jspdf)/i.test(html),'heavy PDF and QR libraries are not loaded by static script tags');
