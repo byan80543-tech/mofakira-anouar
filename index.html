@@ -1315,6 +1315,12 @@ dialog[open]>.float-head{display:none!important}
 
 /* قوالب صفحة الكتابة */
 #pg.paper-plain{background-color:#fff!important;color:#222!important;background-image:none}
+#pa .paper-export.paper-ruled{background-image:repeating-linear-gradient(to bottom,transparent 0,transparent calc(2.05em - 1px),rgba(104,137,170,.22) calc(2.05em - 1px),rgba(104,137,170,.22) 2.05em);background-size:100% 2.05em}
+#pa .paper-export.paper-framed{border:5px double #c9b78f;padding:38px 42px}
+#pa .paper-export.paper-poetry .v{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;text-align:center;margin:7px 0}
+#pa .paper-export.paper-poetry .v span{display:flex;align-items:center;justify-content:center;min-height:2.35em;padding:3px 9px;border:1px solid #c8b58c;border-radius:6px;overflow-wrap:anywhere}
+#pa .paper-export.paper-plain{background:#fff;color:#222}
+
 #pg.paper-ruled{
  background-image:repeating-linear-gradient(to bottom,transparent 0,transparent calc(2.05em - 1px),rgba(104,137,170,.22) calc(2.05em - 1px),rgba(104,137,170,.22) 2.05em);
  background-size:100% 2.05em;background-position:0 0;background-origin:content-box
@@ -2085,7 +2091,7 @@ function fontList(q){$('fl').innerHTML=FONTS.filter(f=>!q||f.toLowerCase().inclu
 function buildPA(){
  const p=$('pa'),ff=cur.font?`'${cur.font}',Amiri,serif`:'Amiri,serif';
  p.style.fontFamily=ff;p.style.fontSize=(cur.size||20)+'px';
- p.innerHTML=`<h1>${esc(cur.title||'بلا عنوان')}</h1><div class="m">${TYPES[cur.type]} · ${fmt(cur.ts)}</div><hr><div>${san(pg.innerHTML)}</div><div class="f">مفكرة أنوار · © 2026 Anouar Oumlili · جميع الحقوق محفوظة</div>`;
+ p.innerHTML=`<h1>${esc(cur.title||'بلا عنوان')}</h1><div class="m">${TYPES[cur.type]} · ${fmt(cur.ts)}</div><hr><div class="paper-export paper-${cur.paper||'plain'}">${san(pg.innerHTML)}</div><div class="f">مفكرة أنوار · © 2026 Anouar Oumlili · جميع الحقوق محفوظة</div>`;
 }
 async function printFile(){
  const dl=window.claude&&await window.claude.use('downloads');
@@ -2650,8 +2656,8 @@ function recordsText(records,title){
  return parts.join('\n');
 }
 function recordsHtml(records,title){
- const items=records.map(note=>'<section class="book-item"><h2>'+esc(note.title||'بلا عنوان')+'</h2><p class="meta">'+esc(TYPES[note.type]||'عمل')+' · '+esc(fmt(note.ts))+'</p><div>'+san(note.html||'')+'</div></section>').join('');
- return '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(title)+'</title><style>body{max-width:850px;margin:0 auto;padding:28px 22px;color:#222;background:#fff;font:20px/2 Amiri,"Noto Naskh Arabic",serif}h1{text-align:center;color:#173d5c;font-size:34px}h2{text-align:center;font-size:27px}.meta{color:#777;text-align:center;font:12px Tahoma,sans-serif;border-bottom:1px solid #c9a96a;padding-bottom:12px}.book-item{margin:34px 0;page-break-before:always;break-before:page}.book-item:first-of-type{page-break-before:auto;break-before:auto}@media print{body{padding:0}.book-item{break-before:page;page-break-before:always}}</style></head><body><h1>'+esc(title)+'</h1>'+items+'<footer style="margin-top:40px;text-align:center;color:#999;font:11px Tahoma,sans-serif">مفكرة أنوار · © 2026 Anouar Oumlili</footer></body></html>';
+ const items=records.map(note=>'<section class="book-item"><h2>'+esc(note.title||'بلا عنوان')+'</h2><p class="meta">'+esc(TYPES[note.type]||'عمل')+' · '+esc(fmt(note.ts))+'</p><div class="paper-export paper-'+(note.paper||'plain')+'">'+san(note.html||'')+'</div></section>').join('');
+ return '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(title)+'</title><style>body{max-width:850px;margin:0 auto;padding:28px 22px;color:#222;background:#fff;font:20px/2 Amiri,"Noto Naskh Arabic",serif}h1{text-align:center;color:#173d5c;font-size:34px}h2{text-align:center;font-size:27px}.meta{color:#777;text-align:center;font:12px Tahoma,sans-serif;border-bottom:1px solid #c9a96a;padding-bottom:12px}.book-item{margin:34px 0;page-break-before:always;break-before:page}.paper-export.paper-ruled{background-image:repeating-linear-gradient(to bottom,transparent 0,transparent calc(2.05em - 1px),rgba(104,137,170,.22) calc(2.05em - 1px),rgba(104,137,170,.22) 2.05em);background-size:100% 2.05em}.paper-export.paper-framed{border:5px double #c9b78f;padding:38px 42px}.paper-export.paper-poetry .v{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;text-align:center;margin:7px 0}.paper-export.paper-poetry .v span{display:flex;align-items:center;justify-content:center;min-height:2.35em;padding:3px 9px;border:1px solid #c8b58c;border-radius:6px;overflow-wrap:anywhere}.paper-export.paper-plain{background:#fff;color:#222}.book-item:first-of-type{page-break-before:auto;break-before:auto}@media print{body{padding:0}.book-item{break-before:page;page-break-before:always}}</style></head><body><h1>'+esc(title)+'</h1>'+items+'<footer style="margin-top:40px;text-align:center;color:#999;font:11px Tahoma,sans-serif">مفكرة أنوار · © 2026 Anouar Oumlili</footer></body></html>';
 }
 function xmlEscape(value){
  return String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
@@ -2766,7 +2772,7 @@ async function exportRecords(records,title,format){
  if(format==='docx')return downloadBlob(recordsDocx(records,title),base+'.docx');
  if(format==='pdf'){
   $('pa').style.cssText='position:fixed;left:-10000px;top:0;width:794px;padding:48px 58px;background:#fff;color:#111;font-family:Amiri,serif;font-size:20px;line-height:2;direction:rtl';
-  $('pa').innerHTML='<section class="book-cover"><div style="font-size:60px;color:#b58a43">✒</div><h1>'+esc(title)+'</h1><p>مختارات من أعمال</p><h2 style="font-size:32px">Anouar Oumlili</h2><p>أنوار أومليلي · المغرب</p><p style="margin-top:70px;font-size:15px">مفكرة أنوار</p></section>'+records.map(note=>'<section class="book-item"><h2>'+esc(note.title||'بلا عنوان')+'</h2><div class="m">'+esc(TYPES[note.type]||'عمل')+' · '+esc(fmt(note.ts))+'</div><hr><div>'+san(note.html||'')+'</div></section>').join('')+'<div class="f">مفكرة أنوار · © 2026 Anouar Oumlili · جميع الحقوق محفوظة</div>';
+  $('pa').innerHTML='<section class="book-cover"><div style="font-size:60px;color:#b58a43">✒</div><h1>'+esc(title)+'</h1><p>مختارات من أعمال</p><h2 style="font-size:32px">Anouar Oumlili</h2><p>أنوار أومليلي · المغرب</p><p style="margin-top:70px;font-size:15px">مفكرة أنوار</p></section>'+records.map(note=>'<section class="book-item"><h2>'+esc(note.title||'بلا عنوان')+'</h2><div class="m">'+esc(TYPES[note.type]||'عمل')+' · '+esc(fmt(note.ts))+'</div><hr><div class="paper-export paper-'+(note.paper||'plain')+'">'+san(note.html||'')+'</div></section>').join('')+'<div class="f">مفكرة أنوار · © 2026 Anouar Oumlili · جميع الحقوق محفوظة</div>';
   return await renderPaPdf(base+'.pdf');
  }
  toast('صيغة غير مدعومة',3000);return false;
