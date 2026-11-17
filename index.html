@@ -1370,38 +1370,44 @@ dialog[open]>.float-head{display:none!important}
 <section id="libraryPage" hidden aria-hidden="true" aria-label="المكتبة" role="dialog" aria-modal="true">
  <div class="library-shell">
   <header class="library-top" aria-label="مكتبة أنوار">
-   <div class="library-brand"><span class="library-mark" aria-hidden="true">📖</span><div class="library-brand-copy"><strong>مكتبة أنوار</strong><small>رفوف من المعرفة العربية</small></div></div>
+   <div class="library-brand"><span class="library-mark" aria-hidden="true">📖</span><div class="library-brand-copy"><strong>مكتبة أنوار</strong><small>المصحف والسبحة</small></div></div>
    <div class="library-top-actions">
-    <button type="button" id="librarySaved" aria-label="محفوظاتي" title="محفوظاتي" aria-pressed="false"><span aria-hidden="true">♡</span></button>
-    <button type="button" id="libraryTheme" aria-label="تغيير لون المكتبة" title="تغيير لون المكتبة"><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18h1.2a2 2 0 0 0 1.5-3.3 1.8 1.8 0 0 1 1.4-3h1.1A4.8 4.8 0 0 0 22 9.9C22 6.1 17.5 3 12 3Z"/><path d="M7.5 10h.01M10 6.8h.01M15 7.2h.01M17.5 10.5h.01"/></svg></button>
+     <button type="button" id="libraryTheme" aria-label="تغيير لون المكتبة" title="تغيير لون المكتبة"><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18h1.2a2 2 0 0 0 1.5-3.3 1.8 1.8 0 0 1 1.4-3h1.1A4.8 4.8 0 0 0 22 9.9C22 6.1 17.5 3 12 3Z"/><path d="M7.5 10h.01M10 6.8h.01M15 7.2h.01M17.5 10.5h.01"/></svg></button>
     <button type="button" id="libraryClose" aria-label="إغلاق المكتبة">✕</button>
    </div>
   </header>
   <div hidden aria-hidden="true">
-   <span id="libraryHeroTitle">الكتب</span>
+   <span id="libraryHeroTitle">المصحف والسبحة</span>
    <span id="libraryHeroText"></span>
   </div>
-  <label class="library-search"><span aria-hidden="true">⌕</span><input id="librarySearch" type="search" placeholder="ابحث عن كتاب أو مؤلف…" autocomplete="off" aria-label="ابحث عن كتاب"></label>
   <section id="libraryHome">
-   <div id="libraryBooks" class="library-books" aria-label="كتب المكتبة"></div>
-   <section id="anwarTasbih" class="anwar-tasbih" aria-label="السبحة الإلكترونية">
-    <div class="tasbih-heading"><span class="tasbih-mark" aria-hidden="true">۞</span><div><strong>السبحة</strong><small>اذكر الله بقلب حاضر</small></div></div>
-    <div class="tasbih-phrase" id="tasbihPhrase">أستغفر الله العظيم وأتوب إليه</div>
-    <div class="tasbih-count" id="tasbihCount" aria-live="polite">0</div>
-    <div class="tasbih-label">تسبيحاتك</div>
-    <div class="tasbih-actions">
-     <button type="button" id="tasbihMinus" aria-label="إنقاص العدد">−</button>
-     <button type="button" id="tasbihTap" class="tasbih-tap" aria-label="سجل استغفاراً">سبّح</button>
-     <button type="button" id="tasbihReset" aria-label="تصفير العداد">↺</button>
+   <div id="libraryBooks" class="library-books" aria-label="المصحف والسبحة"></div>
+  </section>
+  <section id="tasbihView" class="library-panel tasbih-view" hidden aria-label="السبحة الإلكترونية">
+   <header class="tasbih-screen-head">
+    <button type="button" id="tasbihBack" aria-label="العودة إلى المكتبة">‹ المكتبة</button>
+    <strong>السبحة الإلكترونية</strong>
+    <span aria-hidden="true">۞</span>
+   </header>
+   <section id="anwarTasbih" class="anwar-tasbih" aria-label="عداد التسبيح">
+    <div class="tasbih-heading"><span class="tasbih-mark" aria-hidden="true">۞</span><div><strong>اذكر الله بقلب حاضر</strong><small>سبحة أنوار الرقمية</small></div></div>
+    <div class="tasbih-body">
+     <div class="tasbih-bead-strand" aria-hidden="true">
+      <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+     </div>
+     <div class="tasbih-content">
+      <div class="tasbih-phrase" id="tasbihPhrase">أستغفر الله العظيم وأتوب إليه</div>
+      <div class="tasbih-count" id="tasbihCount" aria-live="polite">0</div>
+      <div class="tasbih-label">عدد التسبيحات</div>
+      <div class="tasbih-actions">
+       <button type="button" id="tasbihMinus" aria-label="إنقاص العدد">−</button>
+       <button type="button" id="tasbihTap" class="tasbih-tap" aria-label="سجل تسبيحة واحدة">سبّح</button>
+       <button type="button" id="tasbihReset" aria-label="تصفير العداد">↺</button>
+      </div>
+      <div class="tasbih-voice-row"><button type="button" id="tasbihVoice" aria-pressed="false">🎙️ العدّ بالصوت</button><small id="tasbihVoiceStatus">قل «أستغفر الله» ليُسجّل العدد تلقائياً</small></div>
+     </div>
     </div>
-    <div class="tasbih-voice-row"><button type="button" id="tasbihVoice" aria-pressed="false">🎙️ العدّ بالصوت</button><small id="tasbihVoiceStatus">قل «أستغفر الله» ليُسجّل العدد تلقائياً</small></div>
    </section>
-  </section>
-  <section id="librarySearchView" class="library-panel" hidden>
-   <div id="librarySearchResults" class="library-books" aria-label="نتائج البحث"></div>
-  </section>
-  <section id="librarySavedView" class="library-panel" hidden>
-   <div id="librarySavedResults" class="library-books" aria-label="الكتب المحفوظة"></div>
   </section>
  </div>
 </section>
@@ -1897,6 +1903,158 @@ button:focus:not(:focus-visible){outline:none}
 #libraryReaderView .reader-loading{padding:28px;text-align:center;color:var(--lib-muted);font:14px Cairo,Tahoma,sans-serif}
 
 
+
+
+
+/* مكتبة أنوار الجديدة: المصحف والسبحة فقط */
+#libraryPage #libraryBooks{
+ grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:14px!important;max-width:720px!important;margin:10px auto 0!important
+}
+#libraryPage .library-book-card{min-width:0!important}
+#libraryPage .library-book-save{display:none!important}
+#libraryPage .library-tasbih-card .tasbih-book-cover{
+ background:linear-gradient(145deg,#1b7890 0%,#15516f 52%,#092b4c 100%)!important;
+ border-color:#d8bd7c!important;
+}
+#libraryPage .library-tasbih-card .tasbih-cover-beads{
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ gap:5px!important;margin:0 auto 5px!important;direction:ltr!important
+}
+#libraryPage .library-tasbih-card .tasbih-cover-beads i{
+ display:block!important;width:13px!important;height:13px!important;border-radius:50%!important;
+ border:1px solid #e7d39b!important;
+ background:radial-gradient(circle at 30% 25%,#b6e6f2 0%,#5ba5c6 30%,#174c75 78%)!important;
+ box-shadow:0 2px 4px #061b2b88!important
+}
+#libraryPage .tasbih-view[hidden]{display:none!important}
+#libraryPage .tasbih-view{
+ width:100%;max-width:760px;margin:0 auto;padding:7px 12px 22px;
+}
+#libraryPage .tasbih-screen-head{
+ display:flex;align-items:center;justify-content:space-between;gap:10px;
+ min-height:42px;padding:3px 2px 10px;color:var(--lib-text)
+}
+#libraryPage .tasbih-screen-head strong{
+ font:700 17px 'Aref Ruqaa',Amiri,serif;color:var(--lib-text)
+}
+#libraryPage .tasbih-screen-head>span{color:var(--lib-gold);font-size:21px}
+#libraryPage .tasbih-screen-head button{
+ border:1px solid var(--lib-line);border-radius:9px;background:var(--lib-card);
+ color:var(--lib-text);padding:7px 12px;font:600 11px Cairo,Tahoma,sans-serif
+}
+#libraryPage .anwar-tasbih{
+ width:min(100%,590px)!important;min-height:390px!important;margin:8px auto 12px!important;
+ padding:22px 17px 19px!important;border:1px solid #d8c18c!important;border-radius:20px!important;
+ background:linear-gradient(155deg,#fffdf7 0%,#f5efdf 65%,#ece2ca 100%)!important;
+ color:#183c58!important;box-shadow:0 8px 24px rgba(23,46,65,.12)!important;text-align:center!important
+}
+#libraryPage .tasbih-heading{
+ display:flex!important;align-items:center!important;justify-content:center!important;gap:10px!important;
+ color:#173e5b!important
+}
+#libraryPage .tasbih-mark{
+ width:42px!important;height:42px!important;border:1px solid #c6a96b!important;
+ color:#98743d!important;background:#fffaf0!important
+}
+#libraryPage .tasbih-heading strong{color:#173e5b!important;font-size:20px!important}
+#libraryPage .tasbih-heading small{color:#8a7654!important}
+#libraryPage .tasbih-body{
+ display:grid!important;grid-template-columns:58px minmax(0,1fr)!important;
+ align-items:center!important;gap:12px!important;width:min(100%,420px)!important;
+ margin:10px auto 0!important;direction:rtl!important
+}
+#libraryPage .tasbih-bead-strand{
+ position:relative!important;display:flex!important;flex-direction:column!important;
+ align-items:center!important;justify-content:center!important;gap:8px!important;
+ min-height:260px!important;padding:10px 0!important
+}
+#libraryPage .tasbih-bead-strand:before{
+ content:""!important;position:absolute!important;top:12px!important;bottom:12px!important;
+ left:50%!important;width:2px!important;transform:translateX(-50%)!important;
+ background:linear-gradient(#cbb47f,#8a7045,#cbb47f)!important;z-index:0!important
+}
+#libraryPage .tasbih-bead-strand i{
+ position:relative!important;z-index:1!important;display:block!important;width:21px!important;height:21px!important;
+ border-radius:50%!important;border:1px solid #c5a66c!important;
+ background:radial-gradient(circle at 30% 25%,#c6edf4 0%,#68b5d0 25%,#276e96 67%,#12456b 100%)!important;
+ box-shadow:inset 0 1px 2px #ffffffa8,0 2px 4px #173e5b30!important
+}
+#libraryPage .tasbih-content{min-width:0!important;text-align:center!important}
+#libraryPage .tasbih-phrase{
+ margin:10px 0 8px!important;color:#274761!important;font:700 18px/1.8 'Amiri',serif!important
+}
+#libraryPage .tasbih-count{
+ color:#174e72!important;font:700 58px/1.25 Cairo,Tahoma,sans-serif!important;
+ font-variant-numeric:tabular-nums!important
+}
+#libraryPage .tasbih-label{color:#8a7654!important;font:11px Cairo,Tahoma,sans-serif!important}
+#libraryPage .tasbih-actions{
+ display:flex!important;align-items:center!important;justify-content:center!important;gap:13px!important;margin:18px 0!important
+}
+#libraryPage .tasbih-actions button{
+ width:43px!important;height:43px!important;border:1px solid #d0b77f!important;border-radius:50%!important;
+ background:#fff9e9!important;color:#31536b!important;font-size:22px!important
+}
+#libraryPage .tasbih-actions .tasbih-tap{
+ width:82px!important;height:82px!important;border:5px double #d3b775!important;
+ background:radial-gradient(circle at 32% 22%,#79bdd0 0%,#246b8d 46%,#123e61 100%)!important;
+ color:#fff9e8!important;font:700 18px Cairo,sans-serif!important;
+ box-shadow:0 5px 13px #173e5b35,inset 0 2px 4px #ffffff55!important
+}
+#libraryPage .tasbih-voice-row{display:grid!important;justify-items:center!important;gap:7px!important}
+#libraryPage .tasbih-voice-row button{
+ width:auto!important;height:auto!important;padding:8px 15px!important;border:1px solid #c8b17e!important;
+ border-radius:22px!important;background:#fff9e9!important;color:#244a67!important;font:600 12px Cairo,Tahoma,sans-serif!important
+}
+#libraryPage .tasbih-voice-row button[aria-pressed="true"]{background:#dceee7!important;color:#23543f!important}
+#libraryPage .tasbih-voice-row small{color:#8a7654!important;font:10px/1.8 Cairo,Tahoma,sans-serif!important}
+#libraryPage #libraryTheme{z-index:5!important;pointer-events:auto!important}
+#libraryReaderView[data-reader-book="mushaf-madinah"] .pdf-reader-toolbar,
+#libraryReaderView[data-reader-book="mushaf-madinah"] .pdf-reader-footer{
+ background:#123e61!important;color:#fff5dc!important;border-color:#c9a96a!important
+}
+#libraryReaderView[data-reader-book="mushaf-madinah"] .pdf-reader-toolbar button,
+#libraryReaderView[data-reader-book="mushaf-madinah"] .pdf-reader-footer button{
+ background:#fff8e8!important;color:#25445d!important;border-color:#d3ba82!important
+}
+#libraryReaderView[data-reader-book="mushaf-madinah"] .pdf-reader-heading strong,
+#libraryReaderView[data-reader-book="mushaf-madinah"] .pdf-reader-heading small,
+#libraryReaderView[data-reader-book="mushaf-madinah"] .pdf-reader-footer{color:#fff2d5!important}
+#libraryReaderView[data-reader-book="mushaf-madinah"] .pdf-reader-controls{
+ background:#164a6b!important;border-color:#c9a96a!important
+}
+#libraryReaderView[data-reader-book="mushaf-madinah"] .pdf-reader-controls button{
+ background:#fff8e8!important;color:#21445f!important;border-color:#d3ba82!important
+}
+#libraryReaderView[data-reader-book="mushaf-madinah"] .pdf-reader-stage{
+ background:#e9e1d2!important;padding:10px 6px 18px!important
+}
+#libraryReaderView[data-reader-book="mushaf-madinah"] .pdf-reader-sheet{
+ border:3px double #c8ad77!important;border-radius:3px!important;
+ background:#fffaf0!important;padding:5px!important;box-shadow:0 8px 24px #4d402d38!important
+}
+@media(max-width:430px){
+ #libraryPage .tasbih-view{padding-inline:7px!important}
+ #libraryPage .anwar-tasbih{padding:18px 10px 15px!important;min-height:350px!important}
+ #libraryPage .tasbih-body{grid-template-columns:43px minmax(0,1fr)!important;gap:7px!important}
+ #libraryPage .tasbih-bead-strand{min-height:245px!important;gap:7px!important}
+ #libraryPage .tasbih-bead-strand i{width:18px!important;height:18px!important}
+ #libraryPage .tasbih-count{font-size:50px!important}
+ #libraryPage .tasbih-actions{gap:8px!important}
+ #libraryPage .tasbih-actions .tasbih-tap{width:72px!important;height:72px!important}
+}
+@media(max-width:390px){
+ #libraryPage #libraryBooks{gap:11px!important}
+ #libraryPage .library-book-cover{min-height:180px!important;padding:11px 7px 9px!important}
+ #libraryPage .library-book-caption strong{font-size:12px!important}
+}
+@media(min-width:620px){
+ #libraryPage #libraryBooks{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(min-width:900px){
+ #libraryPage #libraryBooks{grid-template-columns:repeat(2,minmax(0,1fr))!important;max-width:720px!important}
+}
 </style></head><body>${$('pa').innerHTML}\x3Cscript>onload=function(){setTimeout(function(){print()},900)}<\/script>
 
 
@@ -3197,22 +3355,16 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  if(!page||!openButton)return;
  const $=id=>document.getElementById(id);
  const categories=[
-  {id:'quran',name:'القرآن الكريم',short:'مصحف بصفحات هادئة كالمصحف الورقي',icon:'📖',description:'مصحف المدينة برواية حفص، بواجهة ورقية دافئة ومريحة للعين.',resources:[
+  {id:'quran',name:'القرآن الكريم',short:'مصحف ورقي للقراءة صفحةً صفحة',icon:'📖',description:'مصحف المدينة بالرسم العثماني، بواجهة قراءة تحاكي صفحات المصحف الورقي.',resources:[
    {id:'mushaf-madinah',title:'مصحف المدينة النبوية — رواية حفص',author:'مجمع الملك فهد لطباعة المصحف الشريف',description:'المصحف الشريف بالرسم العثماني، رواية حفص عن عاصم.',source:'نسخة PDF · 605 صفحات · 5.3 MB',pages:605,size:'5.3 MB',pdfUrl:'https://wahatalitqan.com/downloads/mushaf-madinah.pdf',tags:'القرآن الكريم المصحف حفص المدينة النبوية'}
-  ]},
-  {id:'tawhid',name:'كتاب التوحيد',short:'كتاب التوحيد الذي هو حق الله على العبيد',icon:'☝️',description:'كتاب التوحيد للإمام محمد بن عبد الوهاب، نسخة PDF خفيفة من ويكي مصدر.',resources:[
-   {id:'kitab-tawhid',title:'كتاب التوحيد الذي هو حق الله على العبيد',author:'الإمام محمد بن عبد الوهاب',description:'نسخة مصورة مصنفة في الملكية العامة، 151 صفحة.',source:'ويكي مصدر · ملكية عامة',pages:151,size:'1.4 MB',pdfUrl:'https://upload.wikimedia.org/wikisource/ar/6/6b/%D9%83%D8%AA%D8%A7%D8%A8_%D8%A7%D9%84%D8%AA%D9%88%D8%AD%D9%8A%D8%AF.pdf',tags:'التوحيد العقيدة محمد بن عبد الوهاب'}
-  ]},
-  {id:'mizan',name:'ميزان الذهب',short:'ميزان الذهب في صناعة شعر العرب',icon:'⚖️',description:'كتاب أحمد الهاشمي في علم العروض والقافية وفنون الشعر.',resources:[
-   {id:'mizan-al-dhahab',title:'ميزان الذهب في صناعة شعر العرب',author:'أحمد الهاشمي',description:'نسخة رقمية من مستودع جامعي، للقراءة داخل القارئ.',source:'المستودع الرقمي · PDF',pdfUrl:'https://htilibr.ntu.edu.iq/wp-content/uploads/2024/08/%D9%85%D9%8A%D8%B2%D8%A7%D9%86-%D8%A7%D9%84%D8%B0%D9%87%D8%A8-%D9%81%D9%8A-%D8%B5%D9%86%D8%A7%D8%B9%D8%A9-%D8%B4%D8%B9%D8%B1-%D8%A7%D9%84%D8%B9%D8%B1%D8%A8-%D8%A3%D8%AD%D9%85%D8%AF-%D8%A7%D9%84%D9%87%D8%A7%D8%B4%D9%85%D9%8A.pdf',tags:'ميزان الذهب العروض القافية الشعر أحمد الهاشمي'}
   ]}
  ];
  const readerView=document.createElement('section');
  readerView.id='libraryReaderView';
  readerView.className='library-pdf-reader';
  readerView.hidden=true;
- readerView.setAttribute('aria-label','قارئ الكتب PDF');
- readerView.innerHTML='<header class="pdf-reader-toolbar"><button type="button" id="readerBack" aria-label="العودة إلى الكتب">‹ الكتب</button><div class="pdf-reader-heading"><strong id="readerTitle"></strong><small id="readerMeta">قارئ PDF داخل مكتبة أنوار</small></div><span class="pdf-reader-badge">PDF</span></header><nav class="pdf-reader-controls" aria-label="أدوات القراءة"><button type="button" id="readerPrev" aria-label="الصفحة السابقة">‹</button><label class="pdf-reader-pagebox"><input id="readerPage" type="number" min="1" value="1" inputmode="numeric" aria-label="رقم الصفحة"><span>/ <b id="readerPages">—</b></span></label><button type="button" id="readerNext" aria-label="الصفحة التالية">›</button><i class="pdf-reader-control-sep"></i><button type="button" id="readerZoomOut" aria-label="تصغير">−</button><span id="readerZoomLabel" class="pdf-reader-zoom-label">100%</span><button type="button" id="readerZoomIn" aria-label="تكبير">＋</button><button type="button" id="readerBookmark" aria-label="إضافة علامة مرجعية" aria-pressed="false">☆</button><button type="button" id="readerBookmarks" aria-label="عرض العلامات المرجعية">▤</button><button type="button" id="readerContents" aria-label="فهرس الكتاب" hidden>☷</button><button type="button" id="readerTheme" aria-label="تغيير وضع القراءة">☾</button></nav><div id="readerBookmarkPanel" class="pdf-reader-popover" hidden></div><div id="readerContentsPanel" class="pdf-reader-popover" hidden></div><main id="readerStage" class="pdf-reader-stage"><div id="readerLoading" class="pdf-reader-loading" role="status">جارٍ تحميل صفحات الكتاب داخل المفكرة…</div><div id="readerPdfSheet" class="pdf-reader-sheet" hidden><canvas id="readerCanvas" aria-label="صفحة الكتاب"></canvas></div><section id="readerFallback" class="pdf-reader-fallback" hidden><div class="pdf-reader-fallback-mark">PDF</div><strong id="readerFallbackTitle">تعذّر العرض المباشر</strong><p id="readerFallbackText">قد يمنع مصدر الملف عرضه داخل قارئ المفكرة. يمكنك تجربة القارئ المضمن البديل دون تنزيل الملف إلى الهاتف.</p><button type="button" id="readerGoogleFallback">جرّب القارئ المضمن البديل</button><iframe id="readerFrame" title="القارئ البديل لملف PDF" loading="lazy" allow="fullscreen" hidden></iframe></section></main><footer class="pdf-reader-footer"><span id="readerStatus" role="status">جاهز للقراءة</span><button type="button" id="readerRetry" aria-label="إعادة تحميل الكتاب">إعادة المحاولة ↻</button></footer>';
+ readerView.setAttribute('aria-label','قارئ المصحف الشريف');
+ readerView.innerHTML='<header class="pdf-reader-toolbar"><button type="button" id="readerBack" aria-label="العودة إلى المكتبة">‹ المكتبة</button><div class="pdf-reader-heading"><strong id="readerTitle"></strong><small id="readerMeta">قارئ PDF داخل مكتبة أنوار</small></div><span class="pdf-reader-badge">PDF</span></header><nav class="pdf-reader-controls" aria-label="أدوات القراءة"><button type="button" id="readerPrev" aria-label="الصفحة السابقة">‹</button><label class="pdf-reader-pagebox"><input id="readerPage" type="number" min="1" value="1" inputmode="numeric" aria-label="رقم الصفحة"><span>/ <b id="readerPages">—</b></span></label><button type="button" id="readerNext" aria-label="الصفحة التالية">›</button><i class="pdf-reader-control-sep"></i><button type="button" id="readerZoomOut" aria-label="تصغير">−</button><span id="readerZoomLabel" class="pdf-reader-zoom-label">100%</span><button type="button" id="readerZoomIn" aria-label="تكبير">＋</button><button type="button" id="readerBookmark" aria-label="إضافة علامة مرجعية" aria-pressed="false">☆</button><button type="button" id="readerBookmarks" aria-label="عرض العلامات المرجعية">▤</button><button type="button" id="readerContents" aria-label="فهرس الكتاب" hidden>☷</button><button type="button" id="readerTheme" aria-label="تغيير وضع القراءة">☾</button></nav><div id="readerBookmarkPanel" class="pdf-reader-popover" hidden></div><div id="readerContentsPanel" class="pdf-reader-popover" hidden></div><main id="readerStage" class="pdf-reader-stage"><div id="readerLoading" class="pdf-reader-loading" role="status">جارٍ تحميل صفحات الكتاب داخل المفكرة…</div><div id="readerPdfSheet" class="pdf-reader-sheet" hidden><canvas id="readerCanvas" aria-label="صفحة الكتاب"></canvas></div><section id="readerFallback" class="pdf-reader-fallback" hidden><div class="pdf-reader-fallback-mark">PDF</div><strong id="readerFallbackTitle">تعذّر العرض المباشر</strong><p id="readerFallbackText">قد يمنع مصدر الملف عرضه داخل قارئ المفكرة. يمكنك تجربة القارئ المضمن البديل دون تنزيل الملف إلى الهاتف.</p><button type="button" id="readerGoogleFallback">جرّب القارئ المضمن البديل</button><iframe id="readerFrame" title="القارئ البديل لملف PDF" loading="lazy" allow="fullscreen" hidden></iframe></section></main><footer class="pdf-reader-footer"><span id="readerStatus" role="status">جاهز للقراءة</span><button type="button" id="readerRetry" aria-label="إعادة تحميل الكتاب">إعادة المحاولة ↻</button></footer>';
  const libraryShell=page.querySelector('.library-shell')||page;
  libraryShell.append(readerView);
  let activeReader=null,activePdfDocument=null,activePdfLoadingTask=null;
@@ -3383,11 +3535,11 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   if(activePdfDocument){try{await activePdfDocument.destroy()}catch(e){}activePdfDocument=null}
   if(request!==readerOpenRequest)return;
   readerReturnView=activeLibraryView;
-  ['libraryHome','librarySearchView','librarySavedView'].forEach(id=>$(id).hidden=true);
+  ['libraryHome','tasbihView'].forEach(id=>$(id).hidden=true);
   readerView.hidden=false;
   readerView.dataset.readerBook=book.id;
-  $('readerTitle').textContent=book.title;
-  $('readerMeta').textContent=[book.author,book.pages?book.pages+' صفحة':'',book.size||'',book.source].filter(Boolean).join(' · ')+' · قراءة داخل المفكرة';
+  $('readerTitle').textContent='المصحف الشريف';
+  $('readerMeta').textContent='مصحف المدينة النبوية · الرسم العثماني · رواية حفص';
   $('readerFrame').src='about:blank';$('readerFrame').hidden=true;
   $('readerBookmarkPanel').hidden=true;$('readerContentsPanel').hidden=true;
   $('readerGoogleFallback').hidden=false;
@@ -3469,7 +3621,6 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  window.addEventListener('resize',()=>{
   if(!readerView.hidden&&activePdfDocument)goToReaderPage(activePdfPage);
  });
- const saveKey='anwar_library_saved_v1';
  const libraryThemeKey='anwar_library_theme_v1';
  const libraryThemes=['white','cream','pearl','blue'];
  const libraryThemeNames={white:'أبيض وذهبي',cream:'عاجي وذهبي',pearl:'لؤلؤي وذهبي',blue:'أزرق هادئ وذهبي'};
@@ -3490,62 +3641,52 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   if(button){button.title='لون المكتبة: '+libraryThemeNames[theme]+' · اضغط للتغيير';button.setAttribute('aria-label','تغيير لون المكتبة. اللون الحالي '+libraryThemeNames[theme]);button.dataset.currentTheme=theme;}
  }
  applyLibraryTheme();
- let saved=[];
- try{const raw=localStorage.getItem(saveKey);const parsed=raw?JSON.parse(raw):[];if(Array.isArray(parsed))saved=parsed.filter(x=>typeof x==='string')}catch(e){}
  let activeLibraryView='libraryHome',readerReturnView='libraryHome',previousOverflow='',previousFocus=null;
  const resources=()=>categories.flatMap(c=>c.resources.map(r=>({...r,categoryId:c.id,categoryName:c.name})));
- const category=id=>categories.find(c=>c.id===id);
  const resource=id=>resources().find(r=>r.id===id);
- const persist=()=>{try{localStorage.setItem(saveKey,JSON.stringify(saved))}catch(e){setNotice('تعذّر حفظ المحفوظات على هذا الجهاز؛ قد تكون مساحة التخزين غير متاحة.')}};
  function setNotice(message){$('libraryHeroText').textContent=message}
  function show(view){
   activeLibraryView=view;
-  ['libraryHome','librarySearchView','librarySavedView'].forEach(id=>$(id).hidden=id!==view);
-  $('librarySaved').setAttribute('aria-pressed',String(view==='librarySavedView'));
+  ['libraryHome','tasbihView'].forEach(id=>$(id).hidden=id!==view);
  }
  function makeResourceCard(r){
   const article=document.createElement('article');article.className='library-book-card';
   article.dataset.resourceId=r.id;
   const open=document.createElement('button');open.type='button';open.className='library-book-open';open.dataset.readBook=r.id;
-  open.setAttribute('aria-label','افتح كتاب '+r.title+' بصيغة PDF');
+  open.setAttribute('aria-label','افتح '+r.title+' داخل قارئ المصحف');
   const cover=document.createElement('span');cover.className='library-book-cover';
-  const imprint=document.createElement('small');imprint.textContent='مكتبة أنوار';
-  const title=document.createElement('strong');title.textContent=r.title;
-  const author=document.createElement('em');author.textContent=r.author||'كتاب تراثي';
-  const format=document.createElement('span');format.className='library-book-format';format.textContent='PDF';
+  const imprint=document.createElement('small');imprint.textContent='مصحف أنوار';
+  const title=document.createElement('strong');title.textContent='المصحف الشريف';
+  const author=document.createElement('em');author.textContent='مصحف المدينة · رواية حفص';
+  const format=document.createElement('span');format.className='library-book-format';format.textContent='اقرأ القرآن';
   cover.append(imprint,title,author,format);
   const caption=document.createElement('span');caption.className='library-book-caption';
-  const captionTitle=document.createElement('strong');captionTitle.textContent=r.title;
-  const captionAuthor=document.createElement('small');
-  captionAuthor.textContent=[r.author,r.pages?r.pages+' صفحة':'',r.size||''].filter(Boolean).join(' · ');
-  caption.append(captionTitle,captionAuthor);open.append(cover,caption);
-  const bookmark=document.createElement('button');bookmark.type='button';bookmark.className='library-book-save';bookmark.dataset.saveResource=r.id;
-  const isSaved=saved.includes(r.id);bookmark.textContent=isSaved?'★':'♡';
-  bookmark.setAttribute('aria-label',isSaved?'إزالة من المحفوظات':'إضافة إلى المحفوظات');
-  bookmark.setAttribute('aria-pressed',String(isSaved));
-  article.append(open,bookmark);return article;
+  const captionTitle=document.createElement('strong');captionTitle.textContent='المصحف الشريف';
+  const captionAuthor=document.createElement('small');captionAuthor.textContent='صفحات ورقية · قراءة داخلية';
+  caption.append(captionTitle,captionAuthor);open.append(cover,caption);article.append(open);
+  return article;
+ }
+ function makeTasbihCard(){
+  const article=document.createElement('article');article.className='library-book-card library-tasbih-card';
+  const open=document.createElement('button');open.type='button';open.className='library-book-open';open.dataset.openTasbih='true';
+  open.setAttribute('aria-label','افتح السبحة الإلكترونية');
+  const cover=document.createElement('span');cover.className='library-book-cover tasbih-book-cover';
+  const beads=document.createElement('span');beads.className='tasbih-cover-beads';
+  for(let i=0;i<9;i++){const bead=document.createElement('i');beads.append(bead)}
+  const imprint=document.createElement('small');imprint.textContent='مكتبة أنوار';
+  const title=document.createElement('strong');title.textContent='السبحة الإلكترونية';
+  const author=document.createElement('em');author.textContent='عداد باللمس والصوت';
+  const format=document.createElement('span');format.className='library-book-format';format.textContent='ابدأ الذكر';
+  cover.append(beads,imprint,title,author,format);
+  const caption=document.createElement('span');caption.className='library-book-caption';
+  const captionTitle=document.createElement('strong');captionTitle.textContent='السبحة الإلكترونية';
+  const captionAuthor=document.createElement('small');captionAuthor.textContent='تسبيح · استغفار · عدّ صوتي';
+  caption.append(captionTitle,captionAuthor);open.append(cover,caption);article.append(open);
+  return article;
  }
  function goHome(){
-  $('librarySearch').value='';
   renderBooks();
   show('libraryHome');
- }
- function showSaved(){
-  $('librarySearch').value='';
-  const list=$('librarySavedResults');list.replaceChildren();
-  const items=saved.map(resource).filter(Boolean);
-  if(!items.length){const empty=document.createElement('div');empty.className='library-empty';empty.textContent='لا توجد كتب محفوظة بعد';list.append(empty)}
-  else items.forEach(r=>list.append(makeResourceCard(r)));
-  show('librarySavedView');
- }
- function search(q){
-  const term=q.trim().toLocaleLowerCase('ar');
-  if(!term){goHome();return}
-  const matches=resources().filter(r=>(r.title+' '+r.description+' '+r.author+' '+r.source+' '+r.tags).toLocaleLowerCase('ar').includes(term));
-  const list=$('librarySearchResults');list.replaceChildren();
-  if(!matches.length){const empty=document.createElement('div');empty.className='library-empty';empty.textContent='لا توجد كتب مطابقة';list.append(empty)}
-  else matches.forEach(r=>list.append(makeResourceCard(r)));
-  show('librarySearchView');
  }
  function open(){
   if(!page.hidden)return;
@@ -3573,7 +3714,9 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   const list=$('libraryBooks');
   if(!list)return;
   list.replaceChildren();
-  resources().forEach(book=>list.append(makeResourceCard(book)));
+  const mushaf=resources().find(book=>book.id==='mushaf-madinah');
+  if(mushaf)list.append(makeResourceCard(mushaf));
+  list.append(makeTasbihCard());
  }
 
  renderBooks();
@@ -3622,16 +3765,12 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
    try{localStorage.setItem(libraryThemeKey,libraryThemes[libraryThemeIndex])}catch(e){}
    return;
   }
+  const tasbihButton=e.target.closest('[data-open-tasbih]');
+  if(tasbihButton){show('tasbihView');$('tasbihBack').focus();return}
   const readButton=e.target.closest('[data-read-book]');
   if(readButton){const book=resource(readButton.dataset.readBook);if(book)openReader(book);return}
-  const saveButton=e.target.closest('[data-save-resource]');
-  if(saveButton){
-   const id=saveButton.dataset.saveResource;
-   saved=saved.includes(id)?saved.filter(x=>x!==id):[...saved,id];
-   persist();saveButton.textContent=saved.includes(id)?'★':'♡';saveButton.setAttribute('aria-pressed',String(saved.includes(id)));
-   if(activeLibraryView==='librarySavedView')showSaved();
-  }
  });
+ $('tasbihBack').addEventListener('click',()=>show('libraryHome'));
  document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&!page.hidden){
    e.preventDefault();e.stopImmediatePropagation();
