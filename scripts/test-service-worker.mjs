@@ -27,7 +27,7 @@ const makeCache=()=>({
   async put(request,response){store.set(absolute(request),response.clone())}
 });
 const caches={
-  async open(name){if(!store.has('__cache-name:'+name))store.set('__cache-name:'+name,true);return cacheObjects.get(name)||createAndSave(name)},
+  async open(name){return cacheObjects.get(name)||createAndSave(name)},
   async keys(){return [...cacheObjects.keys()]},
   async delete(name){return cacheObjects.delete(name)}
 };
@@ -57,6 +57,8 @@ await installEvent.promise;
 assert.equal(skipWaitingCalled,true,'install calls skipWaiting');
 assert.equal(store.get(absolute('./index.html'))?.body,'cached:./index.html','install precaches the local HTML shell');
 assert.equal(store.get(absolute('./manifest.webmanifest'))?.body,'cached:./manifest.webmanifest','install precaches the web manifest');
+assert.equal(store.get(absolute('./icon-192.png'))?.body,'cached:./icon-192.png','install precaches the 192px PWA icon');
+assert.equal(store.get(absolute('./icon-512.png'))?.body,'cached:./icon-512.png','install precaches the 512px PWA icon');
 
 const activateEvent={promise:null,waitUntil(p){this.promise=p}};
 listeners.get('activate')(activateEvent);
