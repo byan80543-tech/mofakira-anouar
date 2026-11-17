@@ -19,6 +19,13 @@ const originalIcon='file_00000000670481f4ad879246afe6bae2.png';
 const declared=(manifest.icons??[]).find(i=>i.src.split('?')[0]===originalIcon && i.sizes==='1536x1536' && i.type==='image/png');
 ok(!!declared,'manifest declares the original 1536x1536 PNG icon');
 ok(fs.existsSync(path.join(root,originalIcon)),'original high-resolution icon file exists');
+const iconSizes=new Set((manifest.icons??[]).flatMap(icon=>String(icon.sizes??'').split(/\\s+/)));
+ok(iconSizes.has('192x192'),'manifest declares a 192x192 PWA icon');
+ok(iconSizes.has('512x512'),'manifest declares a 512x512 PWA icon');
+for(const icon of manifest.icons??[]){
+  const iconPath=String(icon.src??'').split('?')[0];
+  ok(!!iconPath&&fs.existsSync(path.join(root,iconPath)),`manifest icon exists: ${iconPath}`);
+}
 
 const ids=[...html.matchAll(/(?:^|\s)id\s*=\s*["']([^"']+)["']/gim)].map(m=>m[1]);
 const duplicateIds=ids.filter((id,i)=>ids.indexOf(id)!==i);
