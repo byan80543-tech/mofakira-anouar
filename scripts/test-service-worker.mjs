@@ -87,8 +87,6 @@ listeners.get('fetch')(cachedAsset);
 assert.equal(await (await cachedAsset.response).text(),'cached:./index.html','same-origin static assets are served from cache first');
 assert.equal(networkCalls,callsBeforeAsset,'cache-first asset hit does not call the network');
 
-assert.equal(networkCalls,callsBeforeAsset,'cache-first asset hit does not call the network');
-
 online=true;
 const lazyPdfLibrary={request:{url:new URL('vendor/jspdf.umd.min.js',scopeUrl).href,method:'GET',mode:'cors'},response:null,respondWith(p){this.response=p}};
 listeners.get('fetch')(lazyPdfLibrary);
