@@ -1314,7 +1314,7 @@ dialog[open]>.float-head{display:none!important}
 
 
 /* قوالب صفحة الكتابة */
-#pg.paper-plain{background-image:none}
+#pg.paper-plain{background-color:#fff!important;color:#222!important;background-image:none}
 #pg.paper-ruled{
  background-image:repeating-linear-gradient(to bottom,transparent 0,transparent calc(2.05em - 1px),rgba(104,137,170,.22) calc(2.05em - 1px),rgba(104,137,170,.22) 2.05em);
  background-size:100% 2.05em;background-position:0 0;background-origin:content-box
@@ -1979,22 +1979,26 @@ function setPaperStyle(style){
 }
 function focusVerseCell(cell){
  if(!cell)return;
+ pg.focus();
  const range=document.createRange(),selection=window.getSelection();
  range.selectNodeContents(cell);range.collapse(false);
- selection.removeAllRanges();selection.addRange(range);saved=range.cloneRange();pg.focus();
+ selection.removeAllRanges();selection.addRange(range);saved=range.cloneRange();
 }
 function insertPoetryVerse(afterRow=null){
  if(!cur)return;
- if(cur.paper!=='poetry'){capturePendingBefore();cur.paper='poetry';applyPaperClass('poetry')}
+ capturePendingBefore();
+ if(cur.paper!=='poetry'){cur.paper='poetry';applyPaperClass('poetry')}
  const row=document.createElement('div');row.className='v';
- for(let i=0;i<2;i++){const cell=document.createElement('span');cell.appendChild(document.createTextNode('\u200b'));row.appendChild(cell)}
+ for(let i=0;i<2;i++)row.appendChild(document.createElement('span'));
  if(afterRow&&pg.contains(afterRow))afterRow.after(row);
  else{
   restore();
   const selection=window.getSelection();
-  if(selection&&selection.rangeCount&&pg.contains(selection.anchorNode)){
-   const range=selection.getRangeAt(0);range.deleteContents();range.insertNode(row);
-  }else pg.appendChild(row);
+  const anchor=selection&&selection.rangeCount?selection.anchorNode:null;
+  let block=anchor?(anchor.nodeType===1?anchor:anchor.parentElement):null;
+  while(block&&block.parentElement!==pg)block=block.parentElement;
+  if(block&&block!==pg)block.after(row);
+  else pg.appendChild(row);
  }
  focusVerseCell(row.children[0]);touch();
 }
