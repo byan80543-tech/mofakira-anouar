@@ -3120,6 +3120,10 @@ document.addEventListener('click',e=>{
  if(!e.target.closest('#fm')&&t?.id!=='fb')$('fm').classList.remove('o');
  if(!e.target.closest('#paperStylePanel')&&t?.id!=='paperStyleBtn'){$('paperStylePanel').hidden=true;$('paperStyleBtn').setAttribute('aria-expanded','false')}
  if(!t)return;
+ if(t.dataset.archiveFilter!==undefined){archiveFilter=t.dataset.archiveFilter;renderArchive();return}
+ if(t.dataset.archiveId){const selected=S.notes.find(n=>n.id===t.dataset.archiveId);if(selected){openNote(selected);$('archiveDialog').close()}return}
+ if(t.id==='archiveBtn'){openArchive();return}
+ if(t.id==='closeArchive'){$('archiveDialog').close();return}
  if(t.dataset.f){applyFont(t.dataset.f);return}
  if(t.classList.contains('chip')){flt=t.dataset.k;chips();renderList();return}
  if(t.classList.contains('card')){openNote(S.notes.find(n=>n.id===t.dataset.id));return}
