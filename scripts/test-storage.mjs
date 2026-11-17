@@ -76,12 +76,19 @@ function makeHarness(initial={}){
     createNoteId:(()=>{let id=0;return()=>String(++id)})(),
     applyPaperClass(){},
     storageRecoveryBlocked:false,storageRecoveryRaw:null,storageRecoveryExported:false,storageRecoveryMode:'none',storageRecoveryBackupAvailable:false,
+    VAULT_STORAGE_KEY:'anwar_vault_v1',VAULT_BACKUP_KEY:'anwar_vault_backup_v1',
+    vaultKey:{testKey:true},vaultTemplate:{format:'mock-vault'},vaultUnlocked:true,
+    vaultSaveQueue:Promise.resolve(),vaultLastWriteError:null,vaultBackupWarningShown:false,
+    AnwarVaultCrypto:{
+      async encryptWithKey(key,template,plaintext){return {format:'mock-vault',payload:String(plaintext).split('').reverse().join(''),salt:'test-salt'}},
+      async decryptWithKey(key,envelope){if(!envelope||envelope.format!=='mock-vault')throw new Error('bad mock envelope');return String(envelope.payload).split('').reverse().join('')}
+    },
     $:id=>elements[id]||(elements[id]={hidden:false,disabled:false,value:'',textContent:'',style:{},classList:{add(){},remove(){}},setAttribute(){}}),
     toast:m=>messages.push(String(m)),
     confirm:()=>true,
     theme(){},chips(){},renderList(){}
   };
-  vm.runInNewContext(extracted+"\nthis.api={load,save,startFreshNotebook,retryStorageAccess,restoreStorageBackup,exportStorageRecovery,snapshot:()=>({S,storageRecoveryBlocked,storageRecoveryRaw,storageRecoveryExported,storageRecoveryMode,storageRecoveryBackupAvailable}),\n      activateEdit:(note,previous,html)=>{cur=note;pendingBefore=previous;pg.innerHTML=html},\n      draftState:()=>({cur,draftNote,notes:S.notes}),touch,newNote,openNote,flushPendingEdit};",sandbox,{timeout:3000});
+  vm.runInNewContext(extracted+"\nthis.api={load,save,startFreshNotebook,retryStorageAccess,restoreStorageBackup,exportStorageRecovery,waitForWrites:()=>vaultSaveQueue,writeError:()=>vaultLastWriteError,decryptMock:key=>AnwarVaultCrypto.decryptWithKey(vaultKey,JSON.parse(localStorage.getItem(key)||'null')),snapshot:()=>({S,storageRecoveryBlocked,storageRecoveryRaw,storageRecoveryExported,storageRecoveryMode,storageRecoveryBackupAvailable}),\n      activateEdit:(note,previous,html)=>{cur=note;pendingBefore=previous;pg.innerHTML=html},\n      draftState:()=>({cur,draftNote,notes:S.notes}),touch,newNote,openNote,flushPendingEdit};",sandbox,{timeout:3000});
   return {api:sandbox.api,storage,elements,messages,sandbox,download};
 }
 const assert=(condition,message)=>{
@@ -170,18 +177,26 @@ assert(h.api.snapshot().storageRecoveryBlocked&&h.api.snapshot().storageRecovery
 
 h=makeHarness();
 h.api.snapshot().S.notes.push(note('saved'));
-assert(h.api.save()===true,'save reports success when primary storage is writable');
-assert(JSON.parse(h.storage.getItem('anwar_v1')).notes[0].id==='saved','save writes the primary state');
-assert(JSON.parse(h.storage.getItem('anwar_v1_backup_v2')).notes[0].id==='saved','save refreshes the secondary backup');
+assert(h.api.save()===true,'save queues an encrypted write when the vault is open');
+await h.api.waitForWrites();
+const encryptedPrimary=h.storage.getItem('anwar_vault_v1');
+assert(!!encryptedPrimary&&!encryptedPrimary.includes('نص تجريبي'),'primary data is stored as an opaque encrypted envelope');
+assert(JSON.parse(await h.api.decryptMock('anwar_vault_v1')).notes[0].id==='saved','encrypted primary envelope decrypts to the saved state');
+assert(JSON.parse(await h.api.decryptMock('anwar_vault_backup_v1')).notes[0].id==='saved','secondary backup is also encrypted and decryptable');
+assert(h.storage.getItem('anwar_v1')===null&&h.storage.getItem('anwar_v1_backup_v2')===null,'normal save never writes legacy plaintext storage keys');
 
 h=makeHarness();
-h.storage.failKey='anwar_v1_backup_v2';
+h.storage.failKey='anwar_vault_backup_v1';
 h.api.snapshot().S.notes.push(note('primary-only'));
-assert(h.api.save()===true&&JSON.parse(h.storage.getItem('anwar_v1')).notes[0].id==='primary-only','primary save remains successful when secondary backup is unavailable');
+assert(h.api.save()===true,'primary encrypted save is queued when backup storage is unavailable');
+await h.api.waitForWrites();
+assert(JSON.parse(await h.api.decryptMock('anwar_vault_v1')).notes[0].id==='primary-only'&&!h.api.writeError(),'primary encrypted save remains valid when its secondary backup cannot be updated');
 
 h=makeHarness();
-h.storage.failKey='anwar_v1';
-assert(h.api.save()===false,'unwritable primary storage reports a failed save');
+h.storage.failKey='anwar_vault_v1';
+assert(h.api.save()===true,'save reports that an encrypted write was queued');
+await h.api.waitForWrites();
+assert(!!h.api.writeError(),'a failed encrypted primary write is surfaced to the lock guard');
 
 
 h=makeHarness();
@@ -192,7 +207,8 @@ h.api.activateEdit(edited,{
 },'<div>آخر كتابة</div>');
 edited.title='بعد التعديل';
 assert(h.api.flushPendingEdit(false)===true,'pending edit flush reports a successful save');
-const flushed=JSON.parse(h.storage.getItem('anwar_v1')).notes[0];
+await h.api.waitForWrites();
+const flushed=JSON.parse(await h.api.decryptMock('anwar_vault_v1')).notes[0];
 assert(flushed.html==='<div>آخر كتابة</div>'&&flushed.title==='بعد التعديل','latest editor content and title are saved before navigation');
 assert(flushed.history.length===1&&flushed.history[0].html==='<div>النص القديم</div>','flush preserves the previous version in note history');
 
@@ -221,7 +237,8 @@ h.api.touch();
 assert(h.api.draftState().notes.length===0&&h.api.draftState().draftNote!==null,'typed content remains a pending draft until the save boundary');
 assert(h.api.flushPendingEdit(false)===true,'first written draft flushes successfully');
 assert(h.api.draftState().notes.length===1&&h.api.draftState().draftNote===null,'first actual body text commits the draft exactly once');
-const firstSaved=JSON.parse(h.storage.getItem('anwar_v1')).notes[0];
+await h.api.waitForWrites();
+const firstSaved=JSON.parse(await h.api.decryptMock('anwar_vault_v1')).notes[0];
 assert(firstSaved.html==='<div>بدأت القصيدة هنا</div>'&&(firstSaved.history||[]).length===0,'first save preserves the text without creating a false empty history version');
 
 h=makeHarness();

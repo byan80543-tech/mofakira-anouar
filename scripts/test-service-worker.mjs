@@ -13,6 +13,11 @@ class TestResponse{
   async text(){return this.body}
 }
 const absolute=input=>new URL(typeof input==='string'?input:input.url,scopeUrl).href;
+const makeFetchEvent=request=>({
+  request,response:null,background:null,
+  respondWith(p){this.response=p},
+  waitUntil(p){this.background=p}
+});
 const makeCache=()=>({
   async addAll(items){for(const item of items)store.set(absolute(item),new TestResponse('cached:'+item))},
   async match(request,options={}){
@@ -57,6 +62,7 @@ await installEvent.promise;
 assert.equal(skipWaitingCalled,true,'install calls skipWaiting');
 assert.equal(store.get(absolute('./index.html'))?.body,'cached:./index.html','install precaches the local HTML shell');
 assert.equal(store.get(absolute('./manifest.webmanifest'))?.body,'cached:./manifest.webmanifest','install precaches the web manifest');
+assert.equal(store.get(absolute('./vault-crypto.js'))?.body,'cached:./vault-crypto.js','install precaches the local vault cryptography helper');
 assert.equal(store.has(absolute('./icon-192.png')),false,'PWA icon is fetched and cached only when requested');
 assert.equal(store.has(absolute('./icon-512.png')),false,'large PWA icon is not part of the initial shell cache');
 assert.equal(store.has(absolute('./vendor/jspdf.umd.min.js')),false,'PDF library is not part of the initial shell cache');
@@ -69,39 +75,42 @@ assert.equal(cacheObjects.has('anwar-shell-old'),false,'activate deletes previou
 assert.equal(cacheObjects.has('unrelated-cache'),true,'activate preserves caches owned by other applications');
 assert.equal(clientsClaimed,true,'activate claims controlled clients');
 
-const onLineNavigation={request:{url:new URL('online-route/',scopeUrl).href,method:'GET',mode:'navigate'},response:null,respondWith(p){this.response=p}};
+const onLineNavigation=makeFetchEvent({url:new URL('online-route/',scopeUrl).href,method:'GET',mode:'navigate'});
 listeners.get('fetch')(onLineNavigation);
 assert.ok(onLineNavigation.response,'same-origin navigation is intercepted');
 const onlineResponse=await onLineNavigation.response;
-assert.match(await onlineResponse.text(),/^network:/,'navigation uses the network when available');
+assert.equal(await onlineResponse.text(),'cached:./','navigation serves the cached app shell immediately');
+await onLineNavigation.background;
+assert.equal(store.get(absolute('online-route/'))?.body,'network:'+absolute('online-route/'),'successful background refresh updates the navigation cache');
 
 online=false;
-const offlineNavigation={request:{url:new URL('offline-route/',scopeUrl).href,method:'GET',mode:'navigate'},response:null,respondWith(p){this.response=p}};
+const offlineNavigation=makeFetchEvent({url:new URL('offline-route/',scopeUrl).href,method:'GET',mode:'navigate'});
 listeners.get('fetch')(offlineNavigation);
 const offlineResponse=await offlineNavigation.response;
 assert.equal(await offlineResponse.text(),'cached:./','offline navigation falls back to the cached application shell');
+await offlineNavigation.background;
 
 const callsBeforeAsset=networkCalls;
-const cachedAsset={request:{url:new URL('index.html?revision=next',scopeUrl).href,method:'GET',mode:'cors'},response:null,respondWith(p){this.response=p}};
+const cachedAsset=makeFetchEvent({url:new URL('index.html?revision=next',scopeUrl).href,method:'GET',mode:'cors'});
 listeners.get('fetch')(cachedAsset);
 assert.equal(await (await cachedAsset.response).text(),'cached:./index.html','same-origin static assets are served from cache first');
 assert.equal(networkCalls,callsBeforeAsset,'cache-first asset hit does not call the network');
 
 online=true;
-const lazyPdfLibrary={request:{url:new URL('vendor/jspdf.umd.min.js',scopeUrl).href,method:'GET',mode:'cors'},response:null,respondWith(p){this.response=p}};
+const lazyPdfLibrary=makeFetchEvent({url:new URL('vendor/jspdf.umd.min.js',scopeUrl).href,method:'GET',mode:'cors'});
 listeners.get('fetch')(lazyPdfLibrary);
 assert.match(await (await lazyPdfLibrary.response).text(),/^network:/,'on-demand PDF library can be fetched when first requested');
 assert.ok(store.has(absolute('./vendor/jspdf.umd.min.js')),'on-demand PDF library is cached after first successful request');
 online=false;
-const cachedPdfLibrary={request:{url:new URL('vendor/jspdf.umd.min.js',scopeUrl).href,method:'GET',mode:'cors'},response:null,respondWith(p){this.response=p}};
+const cachedPdfLibrary=makeFetchEvent({url:new URL('vendor/jspdf.umd.min.js',scopeUrl).href,method:'GET',mode:'cors'});
 listeners.get('fetch')(cachedPdfLibrary);
 assert.match(await (await cachedPdfLibrary.response).text(),/^network:/,'cached PDF library remains available offline after first load');
 
-const externalAudio={request:{url:'https://audio.example.test/live.mp3',method:'GET',mode:'cors'},response:null,respondWith(p){this.response=p}};
+const externalAudio=makeFetchEvent({url:'https://audio.example.test/live.mp3',method:'GET',mode:'cors'});
 listeners.get('fetch')(externalAudio);
 assert.equal(externalAudio.response,null,'external audio is left network-only');
 
-const postRequest={request:{url:new URL('api/write',scopeUrl).href,method:'POST',mode:'cors'},response:null,respondWith(p){this.response=p}};
+const postRequest=makeFetchEvent({url:new URL('api/write',scopeUrl).href,method:'POST',mode:'cors'});
 listeners.get('fetch')(postRequest);
 assert.equal(postRequest.response,null,'non-GET requests are not intercepted');
 
