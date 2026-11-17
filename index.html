@@ -3380,14 +3380,29 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
    }else{
     ++playRequestId;clearTimeout(wd);au.pause();st.textContent='متوقف مؤقتًا';
    }
-  }else{cr=+rr.value||0;play()}
+  }else{
+   cr=+rr.value||0;
+   // زر الوردة في الصفحة الرئيسة هو إذاعة متواصلة دائمًا، لا وضع سورة واحدة.
+   const continuousMode=document.querySelector('input[name="rm"][value="c"]');
+   if(continuousMode)continuousMode.checked=true;
+   play();
+  }
   ui();
  }
  au.addEventListener('playing',()=>{clearTimeout(wd);ui()});
  au.addEventListener('waiting',()=>{if(started&&!au.paused)st.textContent='جارٍ تحميل التلاوة…'});
  au.addEventListener('stalled',()=>{if(started&&!au.paused)st.textContent='الاتصال بخادم الصوت بطيء؛ جارٍ انتظار التلاوة…'});
  au.addEventListener('pause',ui);
- au.addEventListener('ended',()=>{if(mode()==='l'){play()}else if(mode()==='c'){const a=availableSurahs(),i=a.indexOf(n);if(i>=0&&i<a.length-1){n=a[i+1];play()}else{started=false;ui();st.textContent='انتهت التلاوات المتاحة لهذا القارئ'}}else{started=false;ui();st.textContent='انتهت السورة'}});
+ au.addEventListener('ended',()=>{
+  if(mode()==='l'){
+   play();
+  }else if(mode()==='c'){
+   // الإذاعة المتواصلة تنتقل إلى السورة التالية، وتعود إلى أول سورة بعد آخر سورة متاحة.
+   moveSurah(1);
+  }else{
+   started=false;ui();st.textContent='انتهت السورة';
+  }
+ });
  au.addEventListener('error',()=>{
   if(!au.src)return;
   ++playRequestId;clearTimeout(wd);started=false;ui();
