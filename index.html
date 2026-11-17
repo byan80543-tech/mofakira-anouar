@@ -1885,7 +1885,7 @@ function renderList(){
   items.push({note:n,body});
  }
  items.sort((a,b)=>(b.note.pin?1:0)-(a.note.pin?1:0)||b.note.ts-a.note.ts);
- $('cards').innerHTML=items.length?items.map(({note:n,body})=>`<div class="card ${cur&&cur.id===n.id?'sel':''}" data-id="${esc(n.id)}"><b>${n.pin?'⭐ ':''}${IC[n.type]||'📝'} ${esc(n.title||'بلا عنوان')}</b><small>${TYPES[n.type]||'عمل'} · ${fmt(n.ts)}</small><p>${esc(body.trim().split('\n')[0]||'…')}</p></div>`).join(''):'<div class="empty" style="padding:20px">لا شيء هنا بعد</div>;
+ $('cards').innerHTML=items.length?items.map(({note:n,body})=>`<div class="card ${cur&&cur.id===n.id?'sel':''}" data-id="${esc(n.id)}"><b>${n.pin?'⭐ ':''}${IC[n.type]||'📝'} ${esc(n.title||'بلا عنوان')}</b><small>${TYPES[n.type]||'عمل'} · ${fmt(n.ts)}</small><p>${esc(body.trim().split('\n')[0]||'…')}</p></div>`).join(''):'<div class="empty" style="padding:20px">لا شيء هنا بعد</div>';
  const k=streak(),u=k===1?'يوم':k===2?'يومان':k<=10?'أيام':'يومًا';
  $('sk').innerHTML=k?`🔥 تكتب منذ <b>${k}</b> ${u} متتالية`:'اكتب اليوم لتبدأ سلسلتك';
 }
