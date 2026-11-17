@@ -1481,11 +1481,14 @@ dialog[open]>.float-head{display:none!important}
  </select>
  <label for="bookFormat">صيغة الحفظ</label>
  <select id="bookFormat">
-  <option value="docx">Word · مستند قابل للتحرير</option>
+  <option value="pdf">PDF · للقراءة والطباعة</option>
+  <option value="docx" selected>Word · مستند قابل للتحرير</option>
+  <option value="txt">TXT · نص بسيط</option>
+  <option value="html">HTML · صفحة ويب</option>
  </select>
  <p id="bookFileStatus" class="anwar-book-note" aria-live="polite">＋ اختر مستنداً من هاتفك. تُدرج ملفات TXT وHTML وCSV في الصفحة؛ أما PDF وملفات Office والصور فتُفتح أو تُشارك دون تغيير أصلها.</p>
  <input type="file" id="bookFilePicker" hidden accept=".txt,.md,.csv,.html,.htm,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.ods,.odp,.rtf,.png,.jpg,.jpeg,.webp,.gif">
- <div class="dialog-actions"><button type="button" id="cancelBook">إغلاق</button><button type="button" id="createBook">تنزيل الكتاب</button></div>
+ <div class="dialog-actions"><button type="button" id="cancelBook">إغلاق</button><button type="button" id="createBook">حفظ الكتاب</button></div>
 </dialog>
 <dialog id="historyDialog"><h3 style="margin-top:0">سجل إصدارات العمل</h3><p style="color:var(--mu);font-size:12px">تُحفظ لقطات سابقة تلقائيًا عند تعديل العمل. نحتفظ بآخر 15 إصدارًا.</p><div id="historyItems"></div><div class="dialog-actions" style="margin-top:12px"><button type="button" id="closeHistory">إغلاق</button></div></dialog>
 <dialog id="ownerDialog">
@@ -2594,7 +2597,7 @@ async function createBook(){
   const ok=await exportRecords(notes,title,format);
   if(ok)$('bookDialog').close();
  }catch(error){console.warn('تعذّر إنشاء الكتاب',error);toast('تعذّر إنشاء الكتاب. بقيت أعمالك محفوظة.',5000)}
- finally{button.disabled=false;button.textContent='تنزيل الكتاب'}
+ finally{button.disabled=false;button.textContent='حفظ الكتاب'}
 }
 function insertImportedText(text,filename){
  if(!cur)newNote();
