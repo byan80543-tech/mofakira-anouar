@@ -32,7 +32,7 @@ function makeHarness(initial={},failReads=false){
     showVaultGate(mode,message){calls.mode=mode;calls.message=message},
     prepareLegacyStateForVault(){calls.legacyPrepared=true;return true},
     showStorageRecoveryNotice(title,message,raw){calls.recovery={title,message,raw}},
-    clearStorageRecovery(){calls.cleared=true;this.storageRecoveryBlocked=false},
+    clearStorageRecovery(){calls.cleared=true;sandbox.storageRecoveryBlocked=false},
     toast(message){calls.toasts.push(String(message))},
     theme(){},
     chips(){},
