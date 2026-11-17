@@ -1370,23 +1370,23 @@ dialog[open]>.float-head{display:none!important}
 <section id="libraryPage" hidden aria-hidden="true" aria-label="المكتبة" role="dialog" aria-modal="true">
  <div class="library-shell">
   <header class="library-top" aria-label="مكتبة أنوار">
-   <div class="library-brand"><span class="library-mark" aria-hidden="true">📖</span><div class="library-brand-copy"><strong>مكتبة أنوار</strong><small>المصحف والسبحة</small></div></div>
+   <div class="library-brand"><span class="library-mark" aria-hidden="true">📖</span><div class="library-brand-copy"><strong>سبحة أنوار</strong><small>رفيق الذكر أينما تنقلت</small></div></div>
    <div class="library-top-actions">
      <button type="button" id="libraryTheme" aria-label="تغيير لون المكتبة" title="تغيير لون المكتبة"><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18h1.2a2 2 0 0 0 1.5-3.3 1.8 1.8 0 0 1 1.4-3h1.1A4.8 4.8 0 0 0 22 9.9C22 6.1 17.5 3 12 3Z"/><path d="M7.5 10h.01M10 6.8h.01M15 7.2h.01M17.5 10.5h.01"/></svg></button>
     <button type="button" id="libraryClose" aria-label="إغلاق المكتبة">✕</button>
    </div>
   </header>
   <div hidden aria-hidden="true">
-   <span id="libraryHeroTitle">المصحف والسبحة</span>
+   <span id="libraryHeroTitle">سبحة أنوار</span>
    <span id="libraryHeroText"></span>
   </div>
   <section id="libraryHome">
-   <div id="libraryBooks" class="library-books" aria-label="المصحف والسبحة"></div>
+   <div id="libraryBooks" class="library-books" aria-label="محتوى المكتبة"></div>
   </section>
   <section id="tasbihView" class="library-panel tasbih-view" hidden aria-label="السبحة الإلكترونية">
    <header class="tasbih-screen-head">
-    <button type="button" id="tasbihBack" aria-label="العودة إلى المكتبة">‹ المكتبة</button>
-    <strong>السبحة الإلكترونية</strong>
+    <button type="button" id="tasbihFloatEnable" aria-label="تصغير السبحة إلى زر عائم">↘ عائمة</button>
+    <strong>سبحة أنوار</strong>
     <span aria-hidden="true">۞</span>
    </header>
    <section id="anwarTasbih" class="anwar-tasbih" aria-label="عداد التسبيح">
@@ -1412,6 +1412,16 @@ dialog[open]>.float-head{display:none!important}
  </div>
 </section>
 
+
+<div id="anwarFloatingTasbih" class="anwar-floating-tasbih" hidden aria-label="السبحة العائمة">
+ <div class="anwar-float-glow" aria-hidden="true"></div>
+ <span class="anwar-float-symbol" aria-hidden="true">۞</span>
+ <strong id="anwarFloatCount" dir="ltr">0</strong>
+ <button type="button" id="anwarFloatTap" aria-label="إضافة استغفار">+</button>
+ <button type="button" id="anwarFloatVoice" aria-label="تشغيل أو إيقاف العد الصوتي">🎙</button>
+ <button type="button" id="anwarFloatOpen" aria-label="فتح السبحة">⌃</button>
+ <button type="button" id="anwarFloatHide" aria-label="إخفاء السبحة العائمة">×</button>
+</div>
 <div id="toast"></div>
 <script>
 const TYPES={poem:'قصيدة',text:'نص',idea:'فكرة'},IC={poem:'🪶',text:'📜',idea:'💡'};
@@ -2106,6 +2116,54 @@ button:focus:not(:focus-visible){outline:none}
  #readerTasbih{min-width:54px!important;padding-inline:9px!important}
  #libraryReaderView[data-reader-book="mushaf-madinah"] .pdf-reader-stage{padding:7px 4px 12px!important}
 }
+
+/* سبحة أنوار: واجهة الذكر فقط، دون رفوف أو أغلفة كتب */
+#libraryPage .library-shell>header .library-brand-copy strong{font-family:'Aref Ruqaa',Amiri,serif}
+#libraryPage #libraryHome{display:none!important}
+#libraryPage .tasbih-view{width:100%;max-width:680px;margin:0 auto;padding:clamp(8px,3vw,24px)}
+#libraryPage .tasbih-screen-head{justify-content:center;position:relative;min-height:54px}
+#libraryPage .tasbih-screen-head>span{display:none}
+#libraryPage .tasbih-screen-head strong{font-size:clamp(23px,5vw,32px);letter-spacing:.2px}
+#libraryPage #tasbihFloatEnable{
+ position:absolute;inset-inline-start:0;top:7px;border:1px solid #c9ad70;border-radius:20px;
+ background:#fff8e8;color:#234e6c;padding:8px 13px;font:700 11px Cairo,Tahoma,sans-serif
+}
+#libraryPage .anwar-tasbih{
+ position:relative;overflow:hidden;min-height:420px!important;
+ background:radial-gradient(ellipse at 50% 0%,#fff 0%,#f8f1df 54%,#e9dfc8 100%)!important;
+ border:1px solid #d7bd7b!important;box-shadow:0 14px 40px rgba(21,55,76,.13),inset 0 0 0 5px #ffffff8c!important
+}
+#libraryPage .anwar-tasbih:before{
+ content:"";position:absolute;inset:10px;border:1px solid #d7c18e;border-radius:14px;pointer-events:none
+}
+#libraryPage .tasbih-heading{position:relative;z-index:1}
+#libraryPage .tasbih-mark{box-shadow:0 0 20px #d4bb7960}
+#libraryPage .tasbih-bead-strand i{transition:transform .18s,box-shadow .18s}
+#libraryPage .anwar-tasbih.tasbih-pulse .tasbih-bead-strand i{animation:anwarBeadPulse .5s ease}
+#libraryPage .anwar-tasbih.tasbih-pulse .tasbih-count{animation:anwarCountPulse .35s ease}
+@keyframes anwarBeadPulse{50%{transform:scale(1.22);box-shadow:0 0 16px #62b8d8}}
+@keyframes anwarCountPulse{50%{text-shadow:0 0 18px #8cc9df;transform:scale(1.06)}}
+.anwar-floating-tasbih{
+ position:fixed;z-index:2147483000;right:14px;bottom:calc(18px + env(safe-area-inset-bottom,0px));
+ display:flex;align-items:center;gap:7px;min-height:54px;padding:7px 10px;
+ border:1px solid #d6bd7c;border-radius:28px;
+ background:linear-gradient(135deg,#103c5b,#176b87 62%,#143c5a);
+ color:#fff9e9;box-shadow:0 8px 28px #092b4666,0 0 0 3px #d9c48b38;
+ direction:rtl;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+ animation:anwarFloatIn .35s cubic-bezier(.2,.8,.2,1)
+}
+.anwar-floating-tasbih[hidden]{display:none!important}
+.anwar-float-glow{position:absolute;inset:-3px;border-radius:inherit;pointer-events:none;box-shadow:0 0 18px #6cc5df66;animation:anwarFloatGlow 2.8s ease-in-out infinite}
+.anwar-float-symbol{font-size:20px;color:#f1d994;text-shadow:0 0 10px #fff2b4}
+#anwarFloatCount{min-width:34px;text-align:center;font:700 17px Cairo,Tahoma,sans-serif;font-variant-numeric:tabular-nums}
+.anwar-floating-tasbih button{position:relative;z-index:1;width:35px;height:35px;border:1px solid #ffffff54;border-radius:50%;background:#ffffff18;color:#fff9e9;font:700 17px Cairo,Tahoma,sans-serif}
+#anwarFloatTap{background:#f1d994;color:#173d59;border-color:#fff1c2;font-size:22px}
+#anwarFloatVoice[aria-pressed="true"]{background:#c5e8d8;color:#164632;border-color:#d8f6e7}
+#anwarFloatHide{width:27px;height:27px;font-size:15px;background:#ffffff0d}
+@keyframes anwarFloatIn{from{opacity:0;transform:translateY(14px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes anwarFloatGlow{50%{opacity:.45;box-shadow:0 0 25px #6cc5dfaa}}
+@media(max-width:420px){.anwar-floating-tasbih{right:9px;bottom:calc(12px + env(safe-area-inset-bottom,0px));gap:5px;padding:6px 8px}.anwar-floating-tasbih button{width:32px;height:32px}}
+@media(prefers-reduced-motion:reduce){.anwar-floating-tasbih,.anwar-float-glow,#libraryPage .tasbih-bead-strand i,#libraryPage .tasbih-count{animation:none!important;transition:none!important}}
 </style></head><body>${$('pa').innerHTML}\x3Cscript>onload=function(){setTimeout(function(){print()},900)}<\/script>
 
 
@@ -3708,9 +3766,8 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   $('rib')?.classList.remove('open');$('toolsToggle')?.setAttribute('aria-expanded','false');
   app.setAttribute('aria-hidden','true');app.inert=true;
   page.hidden=false;page.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
-  show('libraryHome');
-  const mushaf=resource('mushaf-madinah');
-  if(mushaf)openReader(mushaf);
+  show('tasbihView');
+  $('tasbihCount').textContent=tasbihValue.toLocaleString('ar');
  }
  function close(){
   if(page.hidden)return;
@@ -3739,8 +3796,24 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
    if(message)tasbihVoiceStatus.textContent=message;
   }
  }
- function paintTasbih(){tasbihCount.textContent=tasbihValue.toLocaleString('ar');try{localStorage.setItem(tasbihKey,String(tasbihValue))}catch(e){}}
- function addTasbih(n=1){tasbihValue=Math.max(0,tasbihValue+n);paintTasbih()}
+ const floatWidget=$('anwarFloatingTasbih'),floatCount=$('anwarFloatCount'),floatTap=$('anwarFloatTap'),floatVoice=$('anwarFloatVoice'),floatOpen=$('anwarFloatOpen'),floatHide=$('anwarFloatHide');
+ const floatEnabledKey='anwar_floating_tasbih_enabled_v1';
+ function paintTasbih(){
+  const formatted=tasbihValue.toLocaleString('ar');
+  tasbihCount.textContent=formatted;
+  if(floatCount)floatCount.textContent=formatted;
+  try{localStorage.setItem(tasbihKey,String(tasbihValue))}catch(e){}
+ }
+ function setFloatingVisible(enabled){
+  if(!floatWidget)return;
+  floatWidget.hidden=!enabled;
+  try{localStorage.setItem(floatEnabledKey,enabled?'1':'0')}catch(e){}
+ }
+ function addTasbih(n=1){
+  tasbihValue=Math.max(0,tasbihValue+n);paintTasbih();
+  const card=$('anwarTasbih');
+  if(card){card.classList.remove('tasbih-pulse');void card.offsetWidth;card.classList.add('tasbih-pulse');}
+ }
  paintTasbih();
  tasbihTap.addEventListener('click',()=>addTasbih(1));
  tasbihMinus.addEventListener('click',()=>addTasbih(-1));
@@ -3759,12 +3832,19 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   };
   voiceRecognition.onerror=event=>{tasbihVoiceStatus.textContent=event.error==='not-allowed'?'لم يُسمح بالميكروفون. فعّل الإذن من إعدادات المتصفح.':'تعذر التعرف الصوتي؛ جرّب مرة أخرى أو استخدم العداد اليدوي.';};
   voiceRecognition.onend=()=>{voiceActive=false;tasbihVoice.setAttribute('aria-pressed','false');tasbihVoice.textContent='🎙️ العدّ بالصوت';};
-  tasbihVoice.addEventListener('click',()=>{
+  const toggleVoice=()=>{
    if(voiceActive){voiceRecognition.stop();voiceActive=false;tasbihVoiceStatus.textContent='توقف العد الصوتي.';return;}
    try{voiceRecognition.start();voiceActive=true;tasbihVoice.setAttribute('aria-pressed','true');tasbihVoice.textContent='إيقاف الاستماع';tasbihVoiceStatus.textContent='أستمع الآن… قل «أستغفر الله» بوضوح.';}
    catch(e){tasbihVoiceStatus.textContent='تعذر تشغيل الميكروفون. انتظر لحظة ثم حاول مجددا.';}
-  });
+  };
+  tasbihVoice.addEventListener('click',toggleVoice);
+  floatVoice.addEventListener('click',()=>tasbihVoice.click());
  }
+ floatTap.addEventListener('click',()=>addTasbih(1));
+ floatOpen.addEventListener('click',()=>{open();});
+ floatHide.addEventListener('click',()=>setFloatingVisible(false));
+ $('tasbihFloatEnable').addEventListener('click',()=>{setFloatingVisible(true);close();});
+ try{setFloatingVisible(localStorage.getItem(floatEnabledKey)==='1')}catch(e){setFloatingVisible(false)}
  openButton.addEventListener('click',open);
  $('libraryClose').addEventListener('click',close);
  page.addEventListener('click',e=>{
@@ -3781,7 +3861,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   const readButton=e.target.closest('[data-read-book]');
   if(readButton){const book=resource(readButton.dataset.readBook);if(book)openReader(book);return}
  });
- $('tasbihBack').addEventListener('click',()=>{stopTasbihVoice('توقف العد الصوتي.');show('libraryHome');readerView.hidden=false;$('readerTasbih').focus()});
+
  document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&!page.hidden){
    e.preventDefault();e.stopImmediatePropagation();
