@@ -222,7 +222,7 @@ assert(h.api.draftState().notes.length===0&&h.api.draftState().draftNote!==null,
 assert(h.api.flushPendingEdit(false)===true,'first written draft flushes successfully');
 assert(h.api.draftState().notes.length===1&&h.api.draftState().draftNote===null,'first actual body text commits the draft exactly once');
 const firstSaved=JSON.parse(h.storage.getItem('anwar_v1')).notes[0];
-assert(firstSaved.html==='<div>بدأت القصيدة هنا</div>'&&firstSaved.history.length===0,'first save preserves the text without creating a false empty history version');
+assert(firstSaved.html==='<div>بدأت القصيدة هنا</div>'&&(firstSaved.history||[]).length===0,'first save preserves the text without creating a false empty history version');
 
 h=makeHarness();
 h.api.newNote();
