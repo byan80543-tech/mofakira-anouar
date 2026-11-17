@@ -213,7 +213,7 @@ assert(h.api.draftState().notes.length===0,'a title-only draft disappears when c
 
 h=makeHarness();
 h.api.newNote();
-h.api.sandbox.pg.innerHTML='<div>بدأت القصيدة هنا</div>';
+h.sandbox.pg.innerHTML='<div>بدأت القصيدة هنا</div>';
 h.api.touch();
 assert(h.api.draftState().notes.length===1&&h.api.draftState().draft===null,'first actual body text commits the draft exactly once');
 assert(h.api.flushPendingEdit(false)===true,'first written draft flushes successfully');
