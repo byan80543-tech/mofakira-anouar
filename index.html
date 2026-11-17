@@ -3714,6 +3714,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  }
  function close(){
   if(page.hidden)return;
+  stopTasbihVoice('توقف العد الصوتي عند مغادرة المكتبة.');
   readerOpenRequest++;
   if(!readerView.hidden){readerView.hidden=true}
   if(readerRenderTask){try{readerRenderTask.cancel()}catch(e){}readerRenderTask=null}
@@ -3729,6 +3730,15 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  const tasbihKey='anwar_tasbih_count_v1';
  let tasbihValue=0,voiceRecognition=null,voiceActive=false;
  try{tasbihValue=Math.max(0,parseInt(localStorage.getItem(tasbihKey)||'0',10)||0)}catch(e){}
+ function stopTasbihVoice(message){
+  if(voiceRecognition&&voiceActive){
+   voiceActive=false;
+   try{voiceRecognition.stop()}catch(e){}
+   tasbihVoice.setAttribute('aria-pressed','false');
+   tasbihVoice.textContent='🎙️ العدّ بالصوت';
+   if(message)tasbihVoiceStatus.textContent=message;
+  }
+ }
  function paintTasbih(){tasbihCount.textContent=tasbihValue.toLocaleString('ar');try{localStorage.setItem(tasbihKey,String(tasbihValue))}catch(e){}}
  function addTasbih(n=1){tasbihValue=Math.max(0,tasbihValue+n);paintTasbih()}
  paintTasbih();
@@ -3771,7 +3781,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   const readButton=e.target.closest('[data-read-book]');
   if(readButton){const book=resource(readButton.dataset.readBook);if(book)openReader(book);return}
  });
- $('tasbihBack').addEventListener('click',()=>{show('libraryHome');readerView.hidden=false;$('readerTasbih').focus()});
+ $('tasbihBack').addEventListener('click',()=>{stopTasbihVoice('توقف العد الصوتي.');show('libraryHome');readerView.hidden=false;$('readerTasbih').focus()});
  document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&!page.hidden){
    e.preventDefault();e.stopImmediatePropagation();
