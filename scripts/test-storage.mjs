@@ -199,7 +199,10 @@ assert(flushed.history.length===1&&flushed.history[0].html==='<div>النص ال
 // A fresh note remains an in-memory draft until the writer enters actual text.
 h=makeHarness();
 h.api.newNote();
-assert(h.api.draftState().notes.length===0&&h.storage.writeCount===0&&h.api.draftState().draft===h.api.draftState().cur,'new note opens as an unpersisted draft');
+const openedDraft=h.api.draftState();
+assert(openedDraft.notes.length===0,'new note does not enter the saved work list immediately');
+assert(h.storage.writeCount===0,'opening new note does not write to storage');
+assert(openedDraft.draft===openedDraft.cur&&!!openedDraft.draft,'new note is held as the active temporary draft');
 assert(h.api.flushPendingEdit(false)===true&&h.api.draftState().notes.length===0&&h.storage.writeCount===0,'leaving an untouched draft does not create or save an empty note');
 h.api.openNote(null);
 assert(h.api.draftState().cur===null&&h.api.draftState().draft===null&&h.api.draftState().notes.length===0,'closing an untouched draft discards it from the active editor');
