@@ -843,6 +843,40 @@ dialog[open]>.float-head{display:none!important}
  padding:5px 1px 24px!important;
  direction:rtl!important
 }
+
+/* مكتبة أنوار الجديدة: رفوف محدودة وسبحة مدمجة */
+#libraryPage #libraryBooks{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
+#libraryPage .library-book-card[data-resource-id="mushaf-madinah"] .library-book-cover{
+ background:linear-gradient(145deg,#f4e8c9,#e5d2a7 58%,#d4bd8b)!important;color:#654b27!important;
+ border:1px solid #b99a60!important;box-shadow:inset 0 0 0 5px #fff9e8,inset 0 0 0 6px #b99a60,0 6px 15px #0002!important
+}
+#libraryPage .library-book-card[data-resource-id="mushaf-madinah"] .library-book-cover:before{border:1px solid #a98950!important}
+#libraryPage .library-book-card[data-resource-id="mushaf-madinah"] .library-book-cover>small,
+#libraryPage .library-book-card[data-resource-id="mushaf-madinah"] .library-book-cover>strong,
+#libraryPage .library-book-card[data-resource-id="mushaf-madinah"] .library-book-cover>em{color:#654b27!important;text-shadow:none!important}
+#libraryPage .library-book-card[data-resource-id="mushaf-madinah"] .library-book-format{background:#fff8e9!important;color:#735629!important;border-color:#b99a60!important}
+#libraryPage .anwar-tasbih{
+ width:min(100%,620px);margin:22px auto 12px;padding:21px 17px 17px;border:1px solid var(--lib-line);
+ border-radius:22px;background:linear-gradient(155deg,var(--lib-card),var(--lib-bg));box-shadow:var(--lib-shadow);text-align:center
+}
+#libraryPage .tasbih-heading{display:flex;align-items:center;justify-content:center;gap:10px;color:var(--lib-text)}
+#libraryPage .tasbih-mark{display:grid;place-items:center;width:43px;height:43px;border:1px solid var(--lib-gold);border-radius:50%;color:var(--lib-gold);font-size:25px}
+#libraryPage .tasbih-heading div{display:grid;gap:2px;text-align:right}
+#libraryPage .tasbih-heading strong{font:700 18px 'Aref Ruqaa',Amiri,serif}
+#libraryPage .tasbih-heading small{color:var(--lib-muted);font:11px Cairo,Tahoma,sans-serif}
+#libraryPage .tasbih-phrase{margin:20px 0 5px;color:var(--lib-text);font:700 17px/1.8 'Amiri',serif}
+#libraryPage .tasbih-count{color:var(--lib-gold);font:700 54px/1.2 'Cairo',Tahoma,sans-serif;font-variant-numeric:tabular-nums}
+#libraryPage .tasbih-label{color:var(--lib-muted);font:11px Cairo,Tahoma,sans-serif}
+#libraryPage .tasbih-actions{display:flex;align-items:center;justify-content:center;gap:13px;margin:17px 0}
+#libraryPage .tasbih-actions button,#libraryPage .tasbih-voice-row button{
+ border:1px solid var(--lib-line);background:var(--lib-gold-soft);color:var(--lib-text);border-radius:50%;width:43px;height:43px;font-size:21px;cursor:pointer
+}
+#libraryPage .tasbih-actions .tasbih-tap{width:78px;height:78px;border:5px double #d7bd7b;background:linear-gradient(145deg,#e8d4a5,#c4a66b);color:#263b35;font:700 18px 'Cairo',sans-serif;box-shadow:0 5px 14px #0002}
+#libraryPage .tasbih-voice-row{display:grid;justify-items:center;gap:7px}
+#libraryPage .tasbih-voice-row button{width:auto;height:auto;padding:9px 16px;border-radius:22px;font:600 12px Cairo,Tahoma,sans-serif}
+#libraryPage .tasbih-voice-row button[aria-pressed="true"]{background:#d9e8d8;color:#244d35;border-color:#7d9d80}
+#libraryPage .tasbih-voice-row small{color:var(--lib-muted);font:10px/1.7 Cairo,Tahoma,sans-serif}
+
 #libraryPage .library-book-card{
  position:relative!important;display:flex!important;flex-direction:column!important;
  align-items:stretch!important;justify-content:flex-start!important;
@@ -1343,6 +1377,18 @@ dialog[open]>.float-head{display:none!important}
   <label class="library-search"><span aria-hidden="true">⌕</span><input id="librarySearch" type="search" placeholder="ابحث عن كتاب أو مؤلف…" autocomplete="off" aria-label="ابحث عن كتاب"></label>
   <section id="libraryHome">
    <div id="libraryBooks" class="library-books" aria-label="كتب المكتبة"></div>
+   <section id="anwarTasbih" class="anwar-tasbih" aria-label="السبحة الإلكترونية">
+    <div class="tasbih-heading"><span class="tasbih-mark" aria-hidden="true">۞</span><div><strong>السبحة</strong><small>اذكر الله بقلب حاضر</small></div></div>
+    <div class="tasbih-phrase" id="tasbihPhrase">أستغفر الله العظيم وأتوب إليه</div>
+    <div class="tasbih-count" id="tasbihCount" aria-live="polite">0</div>
+    <div class="tasbih-label">تسبيحاتك</div>
+    <div class="tasbih-actions">
+     <button type="button" id="tasbihMinus" aria-label="إنقاص العدد">−</button>
+     <button type="button" id="tasbihTap" class="tasbih-tap" aria-label="سجل استغفاراً">سبّح</button>
+     <button type="button" id="tasbihReset" aria-label="تصفير العداد">↺</button>
+    </div>
+    <div class="tasbih-voice-row"><button type="button" id="tasbihVoice" aria-pressed="false">🎙️ العدّ بالصوت</button><small id="tasbihVoiceStatus">قل «أستغفر الله» ليُسجّل العدد تلقائياً</small></div>
+   </section>
   </section>
   <section id="librarySearchView" class="library-panel" hidden>
    <div id="librarySearchResults" class="library-books" aria-label="نتائج البحث"></div>
@@ -3144,42 +3190,14 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  if(!page||!openButton)return;
  const $=id=>document.getElementById(id);
  const categories=[
-  {id:'quran',name:'القرآن الكريم',short:'المصحف الشريف وعلوم القرآن',icon:'📖',description:'المصحف الشريف للقراءة في صفحة PDF واضحة.',resources:[
-   {id:'mushaf-madinah',title:'مصحف المدينة النبوية — رواية حفص',author:'مجمع الملك فهد لطباعة المصحف الشريف',description:'المصحف الشريف بالرسم العثماني، رواية حفص عن عاصم.',source:'واحة الإتقان · ملف PDF مجاني',pages:605,size:'5.3 MB',pdfUrl:'https://wahatalitqan.com/downloads/mushaf-madinah.pdf',tags:'القرآن الكريم المصحف حفص المدينة النبوية'}
+  {id:'quran',name:'القرآن الكريم',short:'مصحف بصفحات هادئة كالمصحف الورقي',icon:'📖',description:'مصحف المدينة برواية حفص، بواجهة ورقية دافئة ومريحة للعين.',resources:[
+   {id:'mushaf-madinah',title:'مصحف المدينة النبوية — رواية حفص',author:'مجمع الملك فهد لطباعة المصحف الشريف',description:'المصحف الشريف بالرسم العثماني، رواية حفص عن عاصم.',source:'نسخة PDF · 605 صفحات · 5.3 MB',pages:605,size:'5.3 MB',pdfUrl:'https://wahatalitqan.com/downloads/mushaf-madinah.pdf',tags:'القرآن الكريم المصحف حفص المدينة النبوية'}
   ]},
-  {id:'hadith',name:'السنة النبوية',short:'كتب الحديث وشروح السنة',icon:'📜',description:'مصادر الحديث النبوي، ونضيف بقية الكتب والمجلدات تباعا.',resources:[
-   {id:'sahih-bukhari-vol1',title:'صحيح البخاري — طبعة وزارة الأوقاف المصرية',author:'الإمام محمد بن إسماعيل البخاري',description:'نسخة مصورة من صحيح البخاري، طبعة وزارة الأوقاف المصرية.',source:'ويكي مصدر · نسخة قديمة في الملكية العامة',pages:2048,size:'51.96 MB',pdfUrl:'https://upload.wikimedia.org/wikisource/ar/c/c0/%D8%B5%D8%AD%D9%8A%D8%AD_%D8%A7%D9%84%D8%A8%D8%AE%D8%A7%D8%B1%D9%8A.pdf',tags:'السنة الحديث صحيح البخاري البخاري'},
-   {id:'riyad-salihin',title:'رياض الصالحين',author:'الإمام يحيى بن شرف النووي',description:'نسخة مصورة قديمة من كتاب رياض الصالحين، متاحة في الملكية العامة.',source:'ويكيميديا كومنز · PDF',pages:536,size:'13.44 MB',pdfUrl:'https://upload.wikimedia.org/wikipedia/commons/f/f1/%D8%B1%D9%8A%D8%A7%D8%B6_%D8%A7%D9%84%D8%B5%D8%A7%D9%84%D8%AD%D9%8A%D9%86_%28%D8%AF%D8%A7%D8%B1_%D8%A7%D9%84%D8%B1%D9%8A%D8%A7%D9%86%29.pdf',tags:'السنة الحديث رياض الصالحين النووي'}
+  {id:'tawhid',name:'كتاب التوحيد',short:'كتاب التوحيد الذي هو حق الله على العبيد',icon:'☝️',description:'كتاب التوحيد للإمام محمد بن عبد الوهاب، نسخة PDF خفيفة من ويكي مصدر.',resources:[
+   {id:'kitab-tawhid',title:'كتاب التوحيد الذي هو حق الله على العبيد',author:'الإمام محمد بن عبد الوهاب',description:'نسخة مصورة مصنفة في الملكية العامة، 151 صفحة.',source:'ويكي مصدر · ملكية عامة',pages:151,size:'1.4 MB',pdfUrl:'https://upload.wikimedia.org/wikisource/ar/6/6b/%D9%83%D8%AA%D8%A7%D8%A8_%D8%A7%D9%84%D8%AA%D9%88%D8%AD%D9%8A%D8%AF.pdf',tags:'التوحيد العقيدة محمد بن عبد الوهاب'}
   ]},
-  {id:'grammar',name:'النحو والصرف',short:'أمهات كتب النحو وقواعد العربية',icon:'✒️',description:'كتب النحو والصرف، من أصول الصناعة إلى المتون والشروح.',resources:[
-   {id:'kitab-sibawayh-vol1',title:'الكتاب لسيبويه — المجلد الأول',author:'سيبويه · تحقيق عبد السلام هارون',description:'المجلد الأول من طبعة الخانجي المحققة لعبد السلام هارون.',source:'المكتبة الوقفية · PDF',pdfUrl:'https://archive.org/download/WAQ54211/01_54211.pdf',tags:'النحو الصرف سيبويه الكتاب'},
-   {id:'kitab-sibawayh-vol2',title:'الكتاب لسيبويه — المجلد الثاني',author:'سيبويه · تحقيق عبد السلام هارون',description:'المجلد الثاني من الطبعة المحققة لكتاب سيبويه.',source:'المكتبة الوقفية · PDF',pdfUrl:'https://archive.org/download/WAQ54211/02_54212.pdf',tags:'النحو الصرف سيبويه الكتاب'},
-   {id:'kitab-sibawayh-vol3',title:'الكتاب لسيبويه — المجلد الثالث',author:'سيبويه · تحقيق عبد السلام هارون',description:'المجلد الثالث من الطبعة المحققة لكتاب سيبويه.',source:'المكتبة الوقفية · PDF',pdfUrl:'https://archive.org/download/WAQ54211/03_54213.pdf',tags:'النحو الصرف سيبويه الكتاب'},
-   {id:'kitab-sibawayh-vol4',title:'الكتاب لسيبويه — المجلد الرابع',author:'سيبويه · تحقيق عبد السلام هارون',description:'المجلد الرابع من الطبعة المحققة لكتاب سيبويه.',source:'المكتبة الوقفية · PDF',pdfUrl:'https://archive.org/download/WAQ54211/04_54214.pdf',tags:'النحو الصرف سيبويه الكتاب'},
-   {id:'kitab-sibawayh-index',title:'فهارس كتاب سيبويه التحليلية',author:'إعداد فهارس الطبعة المحققة',description:'الفهارس التحليلية المرافقة لطبعة كتاب سيبويه.',source:'المكتبة الوقفية · PDF',pdfUrl:'https://archive.org/download/WAQ54211/05_54215.pdf',tags:'النحو الصرف سيبويه فهارس تحليلية'}
-  ]},
-  {id:'balagha',name:'البلاغة',short:'المعاني والبيان والبديع',icon:'✨',description:'كتب البلاغة العربية وأمهات مباحث البيان والمعاني.',resources:[
-   {id:'balagha-wadiha',title:'البلاغة الواضحة',author:'علي الجارم ومصطفى أمين',description:'كتاب البلاغة الواضحة، وله دليل مستقل ضمن المجموعة نفسها.',source:'المكتبة الوقفية · PDF',pdfUrl:'https://archive.org/download/WAQblwa/blwa.pdf',tags:'بلاغة بيان معاني بديع الجارم أمين'},
-   {id:'dalil-balagha-wadiha',title:'دليل البلاغة الواضحة',author:'علي الجارم',description:'الدليل المرافق لكتاب البلاغة الواضحة من طبعة دار المعارف.',source:'المكتبة الوقفية · PDF',pdfUrl:'https://archive.org/download/WAQblwa/dablwa.pdf',tags:'بلاغة بيان معاني بديع دليل الجارم'},
-   {id:'dalail-ijaz',title:'دلائل الإعجاز',author:'عبد القاهر الجرجاني · تحقيق محمود محمد شاكر',description:'من أمهات كتب النظم والبيان والإعجاز اللغوي.',source:'Arabic Collections Online · جامعة نيويورك',size:'48.09 MB · نسخة منخفضة الدقة',pdfUrl:'https://mc.dlib.nyu.edu/files/books/auc_aco000865/auc_aco000865_lo.pdf',tags:'بلاغة إعجاز الجرجاني النظم'}
-  ]},
-  {id:'arood',name:'علم العروض والقافية',short:'الأوزان والزحافات والعلل',icon:'⚖️',description:'كتب علم الخليل وأوزان الشعر والقافية وتطبيقاتها.',resources:[
-   {id:'dirasat-arood',title:'دراسات في العروض والقافية',author:'عبد الله درويش',description:'مدخل دراسي إلى العروض والقافية في ملف مصور.',source:'المكتبة الوقفية · PDF',pages:149,size:'2 MB',pdfUrl:'https://archive.org/download/waq80595/80595.pdf',tags:'العروض القافية البحور الشعر'}
-  ]},
-  {id:'adab',name:'الأدب العربي',short:'النثر والرسائل والنوادر',icon:'📚',description:'مصنفات الأدب العربي القديم والنثر والبيان وأخبار العرب.',resources:[
-   {id:'bayan-tabyin-vol1',title:'البيان والتبيين',author:'الجاحظ',description:'نسخة مصورة من طبعة المكتبة التجارية الكبرى، مصر 1345هـ.',source:'ويكي مصدر · نسخة قديمة في الملكية العامة',pages:264,size:'4.06 MB',pdfUrl:'https://upload.wikimedia.org/wikisource/ar/7/75/%D8%A7%D9%84%D8%A8%D9%8A%D8%A7%D9%86_%D9%88%D8%A7%D9%84%D8%AA%D8%A8%D9%8A%D9%8A%D9%861.pdf',tags:'الأدب الجاحظ البيان التبيين النثر البلاغة'},
-   {id:'uyun-akhbar',title:'عيون الأخبار',author:'ابن قتيبة الدينوري',description:'نسخة مصورة تضم أربعة مجلدات من كتاب عيون الأخبار.',source:'ويكي مصدر · نسخة قديمة في الملكية العامة',pages:505,size:'19.46 MB',pdfUrl:'https://upload.wikimedia.org/wikisource/ar/4/40/%D8%B9%D9%8A%D9%88%D9%86_%D8%A7%D9%84%D8%A3%D8%AE%D8%A8%D8%A7%D8%B1.pdf',tags:'الأدب ابن قتيبة أخبار نوادر'}
-  ]},
-  {id:'maqamat',name:'المقامات والنوادر',short:'مقامات الحريري والهمذاني',icon:'🪶',description:'المقامات الأدبية والنثر المسجوع والحكايات والنوادر.',resources:[
-   {id:'maqamat-hariri',title:'مقامات الحريري',author:'القاسم بن علي الحريري',description:'نسخة مصورة من طبعة لندن سنة 1315هـ، وعددها 500 صفحة.',source:'ويكي مصدر · طبعة لندن 1315هـ (ملكية عامة)',pages:500,size:'32.96 MB',pdfUrl:'https://upload.wikimedia.org/wikisource/ar/c/c1/%D9%85%D9%82%D8%A7%D9%85%D8%A7%D8%AA_%D8%A7%D9%84%D8%AD%D8%B1%D9%8A%D8%B1%D9%8A.pdf',tags:'المقامات الحريري الهمذاني نوادر نثر'}
-  ]},
-  {id:'ibn-taymiyyah',name:'كتب ابن تيمية',short:'مؤلفات شيخ الإسلام ورسائله',icon:'📘',description:'نبدأ بمجلد من مجموع الفتاوى، وتضاف بقية المجلدات والرسائل تدريجيا.',resources:[
-   {id:'majmoo-fatawa-vol1',title:'مجموع الفتاوى — الجزء الأول',author:'شيخ الإسلام أحمد بن تيمية',description:'المجلد الأول من مجموع الفتاوى، ضمن الطبعة المصورة المتاحة للقراءة.',source:'المكتبة الوقفية · PDF',pdfUrl:'https://archive.org/download/mfsiaitmmfsiaitm/mfsiaitm01.pdf',tags:'ابن تيمية مجموع الفتاوى فتاوى عقيدة'}
-  ]},
-  {id:'ibn-alqayyim',name:'كتب ابن القيم الجوزية',short:'المؤلفات والتهذيب والسلوك',icon:'📗',description:'نبدأ بمدارج السالكين، وتضاف بقية الكتب والمجلدات تباعا.',resources:[
-   {id:'madarij-salikin-vol1',title:'مدارج السالكين — المجلد الأول',author:'الإمام ابن قيم الجوزية · تحقيق محمد المعتصم بالله البغدادي',description:'المجلد الأول من طبعة دار الكتاب العربي، 1423هـ.',source:'المكتبة الوقفية · PDF',pdfUrl:'https://archive.org/download/WAQ140248/01_140248.pdf',tags:'ابن القيم ابن قيم الجوزية مدارج السالكين'},
-   {id:'madarij-salikin-vol2',title:'مدارج السالكين — المجلد الثاني',author:'ابن قيم الجوزية · تحقيق محمد المعتصم بالله البغدادي',description:'المجلد الثاني من طبعة دار الكتاب العربي.',source:'المكتبة الوقفية · PDF',pdfUrl:'https://archive.org/download/WAQ140248/02_140247.pdf',tags:'ابن القيم ابن قيم الجوزية مدارج السالكين'},
-   {id:'madarij-salikin-vol3',title:'مدارج السالكين — المجلد الثالث',author:'ابن قيم الجوزية · تحقيق محمد المعتصم بالله البغدادي',description:'المجلد الثالث من طبعة دار الكتاب العربي.',source:'المكتبة الوقفية · PDF',pdfUrl:'https://archive.org/download/WAQ140248/03_140246.pdf',tags:'ابن القيم ابن قيم الجوزية مدارج السالكين'}
+  {id:'mizan',name:'ميزان الذهب',short:'ميزان الذهب في صناعة شعر العرب',icon:'⚖️',description:'كتاب أحمد الهاشمي في علم العروض والقافية وفنون الشعر.',resources:[
+   {id:'mizan-al-dhahab',title:'ميزان الذهب في صناعة شعر العرب',author:'أحمد الهاشمي',description:'نسخة رقمية من مستودع جامعي، للقراءة داخل القارئ.',source:'المستودع الرقمي · PDF',pdfUrl:'https://htilibr.ntu.edu.iq/wp-content/uploads/2024/08/%D9%85%D9%8A%D8%B2%D8%A7%D9%86-%D8%A7%D9%84%D8%B0%D9%87%D8%A8-%D9%81%D9%8A-%D8%B5%D9%86%D8%A7%D8%B9%D8%A9-%D8%B4%D8%B9%D8%B1-%D8%A7%D9%84%D8%B9%D8%B1%D8%A8-%D8%A3%D8%AD%D9%85%D8%AF-%D8%A7%D9%84%D9%87%D8%A7%D8%B4%D9%85%D9%8A.pdf',tags:'ميزان الذهب العروض القافية الشعر أحمد الهاشمي'}
   ]}
  ];
  const readerView=document.createElement('section');
@@ -3479,6 +3497,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  }
  function makeResourceCard(r){
   const article=document.createElement('article');article.className='library-book-card';
+  article.dataset.resourceId=r.id;
   const open=document.createElement('button');open.type='button';open.className='library-book-open';open.dataset.readBook=r.id;
   open.setAttribute('aria-label','افتح كتاب '+r.title+' بصيغة PDF');
   const cover=document.createElement('span');cover.className='library-book-cover';
@@ -3548,7 +3567,39 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   list.replaceChildren();
   resources().forEach(book=>list.append(makeResourceCard(book)));
  }
+
  renderBooks();
+ // عداد السبحة: الحفظ محلي على الجهاز، والعد الصوتي اختياري بإذن المستخدم.
+ const tasbihCount=$('tasbihCount'),tasbihTap=$('tasbihTap'),tasbihMinus=$('tasbihMinus'),tasbihReset=$('tasbihReset'),tasbihVoice=$('tasbihVoice'),tasbihVoiceStatus=$('tasbihVoiceStatus');
+ const tasbihKey='anwar_tasbih_count_v1';
+ let tasbihValue=0,voiceRecognition=null,voiceActive=false;
+ try{tasbihValue=Math.max(0,parseInt(localStorage.getItem(tasbihKey)||'0',10)||0)}catch(e){}
+ function paintTasbih(){tasbihCount.textContent=tasbihValue.toLocaleString('ar');try{localStorage.setItem(tasbihKey,String(tasbihValue))}catch(e){}}
+ function addTasbih(n=1){tasbihValue=Math.max(0,tasbihValue+n);paintTasbih()}
+ paintTasbih();
+ tasbihTap.addEventListener('click',()=>addTasbih(1));
+ tasbihMinus.addEventListener('click',()=>addTasbih(-1));
+ tasbihReset.addEventListener('click',()=>{tasbihValue=0;paintTasbih();});
+ const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SpeechRecognition){tasbihVoice.disabled=true;tasbihVoiceStatus.textContent='العد الصوتي غير مدعوم في هذا المتصفح؛ يمكنك استخدام العداد اليدوي.';}
+ else{
+  voiceRecognition=new SpeechRecognition();voiceRecognition.lang='ar-SA';voiceRecognition.continuous=true;voiceRecognition.interimResults=false;
+  voiceRecognition.onresult=event=>{
+   for(let i=event.resultIndex;i<event.results.length;i++){
+    if(!event.results[i].isFinal)continue;
+    const said=event.results[i][0].transcript||'';
+    const matches=said.match(/(?:أستغفر|استغفر)\s+الله/g);
+    if(matches&&matches.length){addTasbih(matches.length);tasbihVoiceStatus.textContent='سُجّل '+matches.length+' استغفار · '+said.trim();}
+   }
+  };
+  voiceRecognition.onerror=event=>{tasbihVoiceStatus.textContent=event.error==='not-allowed'?'لم يُسمح بالميكروفون. فعّل الإذن من إعدادات المتصفح.':'تعذر التعرف الصوتي؛ جرّب مرة أخرى أو استخدم العداد اليدوي.';};
+  voiceRecognition.onend=()=>{voiceActive=false;tasbihVoice.setAttribute('aria-pressed','false');tasbihVoice.textContent='🎙️ العدّ بالصوت';};
+  tasbihVoice.addEventListener('click',()=>{
+   if(voiceActive){voiceRecognition.stop();voiceActive=false;tasbihVoiceStatus.textContent='توقف العد الصوتي.';return;}
+   try{voiceRecognition.start();voiceActive=true;tasbihVoice.setAttribute('aria-pressed','true');tasbihVoice.textContent='إيقاف الاستماع';tasbihVoiceStatus.textContent='أستمع الآن… قل «أستغفر الله» بوضوح.';}
+   catch(e){tasbihVoiceStatus.textContent='تعذر تشغيل الميكروفون. انتظر لحظة ثم حاول مجددا.';}
+  });
+ }
  openButton.addEventListener('click',open);
  $('libraryClose').addEventListener('click',close);
  $('librarySaved').addEventListener('click',showSaved);
