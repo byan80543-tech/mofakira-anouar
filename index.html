@@ -1167,6 +1167,45 @@ dialog[open]>.float-head{display:none!important}
 #libraryReaderView[data-reader-book="mushaf-madinah"] .pdf-reader-controls{background:#f3ead7!important;border-color:#d8c69f!important}
 #libraryReaderView[data-reader-book="mushaf-madinah"] .pdf-reader-controls button{background:#fff8e9!important;color:#765b2d!important;border-color:#d0b77f!important}
 #libraryReaderView[data-reader-book="mushaf-madinah"] .pdf-reader-footer{background:#f3ead7!important;color:#6d5732!important;border-color:#d8c69f!important}
+
+/* انبثاق المكتبة: لوحة مستقلة تملأ الشاشة وتتمركز فيها السبحة */
+#libraryPage{
+ width:100vw!important;height:100dvh!important;min-height:100dvh!important;
+ inset:0!important;overflow:hidden!important;background:var(--lib-bg,#f4f0e6)!important;
+}
+#libraryPage .library-shell{
+ width:100%!important;max-width:none!important;height:100%!important;min-height:100dvh!important;
+ margin:0!important;padding:calc(10px + env(safe-area-inset-top,0px)) clamp(12px,3vw,30px) calc(12px + env(safe-area-inset-bottom,0px))!important;
+ gap:clamp(8px,2vh,18px)!important;
+}
+#libraryPage .library-top{
+ flex:none;width:100%;max-width:1200px;margin:0 auto;
+}
+#libraryPage .tasbih-view{
+ flex:1 1 auto!important;width:100%!important;max-width:none!important;min-height:0!important;
+ margin:0!important;padding:clamp(6px,2vh,20px) 0!important;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+#libraryPage .tasbih-screen-head{
+ flex:none;width:min(100%,900px);margin:0 auto clamp(8px,2vh,18px)!important;
+}
+#libraryPage .anwar-tasbih{
+ width:min(100%,680px)!important;max-width:680px!important;
+ min-height:min( min(62vh,520px), 520px)!important;
+ margin:0 auto!important;display:flex;flex-direction:column;justify-content:center;
+ padding:clamp(18px,4vh,34px) clamp(14px,4vw,30px)!important;
+}
+@media(max-width:600px){
+ #libraryPage .library-shell{padding-inline:10px!important}
+ #libraryPage .tasbih-view{justify-content:center;padding-block:4px!important}
+ #libraryPage .anwar-tasbih{width:100%!important;min-height:min(58vh,460px)!important}
+}
+@media(max-height:650px){
+ #libraryPage .tasbih-screen-head{margin-bottom:5px!important;min-height:40px!important}
+ #libraryPage .anwar-tasbih{min-height:0!important;padding-block:12px!important}
+ #libraryPage .tasbih-phrase{margin-top:10px!important}
+}
+
 </style>
 </head>
 <body>
