@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import { webcrypto } from 'node:crypto';
 
-globalThis.crypto=webcrypto;
+if(!globalThis.crypto?.subtle){
+ Object.defineProperty(globalThis,'crypto',{value:webcrypto,configurable:true});
+}
 await import('../vault-crypto.js');
 const vault=globalThis.AnwarVaultCrypto;
 assert.ok(vault,'vault crypto API is installed');
