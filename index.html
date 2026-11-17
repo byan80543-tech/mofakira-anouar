@@ -2152,15 +2152,19 @@ function finishVaultOpen(){
  renderList();
 }
 async function bootVault(){
- let savedVault=null;
- try{savedVault=localStorage.getItem(VAULT_STORAGE_KEY)}
- catch(error){
+ let savedVault=null,savedBackup=null;
+ try{
+  savedVault=localStorage.getItem(VAULT_STORAGE_KEY);
+  if(savedVault===null)savedBackup=localStorage.getItem(VAULT_BACKUP_KEY);
+ }catch(error){
   showStorageRecoveryNotice('المتصفح لا يتيح الوصول إلى الخزنة','تعذّر الوصول إلى مخزن التشفير. لا تحذف بيانات الموقع؛ أعد المحاولة بعد السماح بالتخزين.',null);
   theme();chips();openNote(null);return;
  }
- if(savedVault!==null){
+ if(savedVault!==null||savedBackup!==null){
   S=emptyStorageState();
-  showVaultGate('unlock','أدخل عبارة المرور لفك تشفير أعمالك. لا تُحفظ كلمة المرور على الجهاز.');
+  showVaultGate('unlock',savedVault!==null
+   ?'أدخل عبارة المرور لفك تشفير أعمالك. لا تُحفظ كلمة المرور على الجهاز.'
+   :'تعذّر العثور على السجل الأساسي، لكن توجد نسخة احتياطية مشفرة. أدخل عبارة المرور لاستعادتها.');
   theme();chips();openNote(null);
   return;
  }
