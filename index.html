@@ -2847,7 +2847,7 @@ document.addEventListener('click',e=>{
  if(t.classList.contains('card')){openNote(S.notes.find(n=>n.id===t.dataset.id));return}
  if(t.dataset.c){cmd(t.dataset.c);return}
  const id=t.id;
- if(id==='bookToolToggle')setBookToolExpanded(!$('bookToolContent').hidden,true);
+ if(id==='bookToolToggle')setBookToolExpanded($('bookToolContent').hidden,true);
  else if(id==='newBook')openBookDialog();
  else if(id==='createBook')createBook();
  else if(id==='addBookFile')$('bookFilePicker').click();
