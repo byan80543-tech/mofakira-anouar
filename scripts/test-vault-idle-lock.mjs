@@ -24,8 +24,9 @@ function makeHarness(){
     console
   };
   vm.runInNewContext(source+'\nthis.api={recordVaultActivity,enforceVaultIdleLock,clearVaultIdleTimer};',sandbox,{timeout:3000});
-  function advance(ms){
+  function advance(ms,runDue=true){
     now+=ms;
+    if(!runDue)return;
     let ran=true;
     while(ran){
       ran=false;
