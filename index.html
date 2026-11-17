@@ -1667,7 +1667,7 @@ dialog[open]>.float-head{display:none!important}
 <div class="st"><span id="info"></span><span>تكبير <input type="range" id="zm" min="60" max="150" value="100"></span></div>
 
 <div class="rib" id="rib">
- <div class="g"><div><button class="b" id="prn" title="طباعة">🖨️</button><button class="b" id="pdf" title="تنزيل PDF">📄</button><button class="b word-export" id="word" title="تنزيل Word (DOCX)" aria-label="تنزيل Word">W</button><button class="b" id="new2" title="جديد">➕</button><select id="ty" aria-label="نوع العمل" title="نوع العمل"><option value="poem">قصيدة</option><option value="text">نص</option><option value="idea">فكرة</option></select></div><small>الملف</small></div>
+ <div class="g"><div><button class="b" id="prn" title="طباعة">🖨️</button><button class="b" id="pdf" title="تنزيل PDF">📄</button><button class="b word-export" id="word" title="تنزيل Word (DOCX)" aria-label="تنزيل Word">W</button><select id="ty" aria-label="نوع العمل" title="نوع العمل"><option value="poem">قصيدة</option><option value="text">نص</option><option value="idea">فكرة</option></select></div><small>الملف</small></div>
  <div class="g"><div><button class="b" id="fb" title="نوع الخط" style="min-width:110px">الخط ▾</button><button class="b" id="paperStyleBtn" title="تغيير شكل الورقة" aria-expanded="false">▤ الورقة</button><select id="sz" title="حجم الخط"><option>14</option><option>16</option><option>18</option><option selected>20</option><option>24</option><option>28</option><option>32</option><option>40</option><option>56</option></select></div><small>الخط</small></div>
  <div id="paperStylePanel" class="paper-style-panel" hidden role="group" aria-label="اختيار شكل الورقة">
  <div class="paper-style-title">شكل صفحة الكتابة</div>
@@ -3277,7 +3277,7 @@ document.addEventListener('click',e=>{
  else if(id==='makeQR')makeQR();
  else if(id==='downloadQR')downloadQRPoster();
  else if(id==='downloadIcon')downloadAppIcon();
- else if(id==='new'||id==='new2')newNote();
+ else if(id==='new')newNote();
  else if(id==='bk'){openNote(null);$('app').classList.remove('focus')}
  else if(id==='th'){S.theme=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';save();theme()}
  else if(id==='prn')doPrint();
