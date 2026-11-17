@@ -4488,10 +4488,11 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!seriesModal.hidden)closeSeriesModal()});
  series.addEventListener('change',updateSeriesLabel);
  updateSeriesLabel();
- let current=0;
+ let current=0,lessonPlayRequest=0;
  function renderSource(c){links.replaceChildren();const sourceLink=document.createElement('a');sourceLink.href=c.source;sourceLink.target='_blank';sourceLink.rel='noopener noreferrer';sourceLink.textContent=c.sourceLabel||('↗ فهرس المصدر الرسمي (يفتح خارج المفكرة): '+c.name);links.append(sourceLink);if(frame){frame.removeAttribute('src');frame.hidden=true;frame.style.display='none';const mayEmbed=!!c.embed&&series.value!=='maarij';if(mayEmbed){frame.hidden=false;frame.src=c.source;frame.style.display='block';}}}
   function renderMaarijFileLink(c,index){if(series.value!=='maarij')return;const fileLink=document.createElement('a');fileLink.href=c.url(index);fileLink.target='_blank';fileLink.rel='noopener noreferrer';fileLink.textContent='↗ فتح ملف الدرس '+String(index+1).padStart(3,'0')+' خارج المفكرة';links.append(fileLink);}
  function fill(){
+  ++lessonPlayRequest;
   const c=catalog[series.value];current=0;audio.pause();audio.removeAttribute('src');audio.preload=series.value==='maarij'?'metadata':'none';audio.load();play.textContent='▶';audio.style.display=c.direct?'block':'none';if(frame){frame.removeAttribute('src');frame.hidden=true;frame.style.display='none';}
   track.innerHTML=c.count?Array.from({length:c.count},(_,i)=>`<option value="${i}">${c.trackNames?.[i]||('الدرس '+String(i+1).padStart(2,'0')+' من '+c.count)}</option>`).join(''):'<option value="0">افتح فهرس الدروس من المصدر الرسمي</option>';
   track.disabled=!c.count;
@@ -4499,16 +4500,41 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
   if(lessonList){
    lessonList.innerHTML=c.count?Array.from({length:c.count},(_,i)=>`<button type="button" class="lesson-item" role="listitem" data-lesson-index="${i}" aria-current="false"><span class="lesson-tulip" aria-hidden="true"><img src="assets/tulip-cutout.svg" alt=""></span><span class="lesson-item-name">${c.trackNames?.[i]||('الدرس '+String(i+1).padStart(2,'0')+' من '+c.count)}</span></button>`).join(''):'<div class="lesson-empty">لا تتوفر قائمة تشغيل مباشرة لهذه المادة؛ افتح فهرس المصدر أدناه.</div>';
   }
-  renderSource(c);
+  renderSource(c);updateSeriesLabel();
   status.textContent=c.direct?'قائمة كاملة: '+c.count+' درسًا. اختر الدرس للتشغيل الداخلي أو شغّل السلسلة للانتقال التلقائي.':c.count?'تتوفر '+c.count+' مادة صوتية في هذه السلسلة.':'هذا فهرس للسلاسل الصوتية؛ افتح رابطه في تبويب مستقل لتصفح بقية الصوتيات.';
  }
  function loadTrack(auto){
-  const c=catalog[series.value];current=+track.value||0;
-  if(!c.direct){renderSource(c);status.textContent='هذه السلسلة لا تملك رابط MP3 مباشراً في المفكرة؛ افتح فهرس المصدر في تبويب مستقل.';return;}
-  audio.src=c.url(current);audio.preload=series.value==='maarij'?'metadata':'none';audio.load();renderSource(c);renderMaarijFileLink(c,current);status.textContent='الدرس '+(current+1)+' · '+c.name+' — جارٍ تحميل ملف الصوت';
-  if(auto)audio.play().then(()=>play.textContent='⏸').catch(()=>status.textContent='تعذر التشغيل التلقائي؛ اضغط زر التشغيل.');
+  const c=catalog[series.value],index=Number(track.value)||0;
+  if(!c||!c.direct){renderSource(c||catalog.allAqidah);status.textContent='هذه السلسلة فهرس صوتي وليست قائمة MP3 داخلية؛ افتح رابط المصدر أدناه.';return;}
+  if(index<0||index>=c.count){status.textContent='رقم الدرس غير موجود في هذه السلسلة.';return;}
+  current=index;
+  const requestId=++lessonPlayRequest;
+  const source=c.url(current);
+  audio.pause();audio.src=source;audio.preload=series.value==='maarij'?'metadata':'none';audio.load();
+  play.textContent='▶';renderSource(c);renderMaarijFileLink(c,current);markLessonPlaying();
+  status.textContent='الدرس '+(current+1)+' من '+c.count+' · '+c.name+' — جارٍ تحميل ملف الصوت';
+  if(auto){
+   try{
+    const attempt=audio.play();
+    if(attempt&&typeof attempt.then==='function'){
+     attempt.then(()=>{
+      if(requestId===lessonPlayRequest)play.textContent='⏸';
+     }).catch(error=>{
+      if(requestId!==lessonPlayRequest)return;
+      play.textContent='▶';
+      status.textContent=error?.name==='NotAllowedError'
+       ?'المتصفح منع التشغيل التلقائي؛ اضغط زر التشغيل لبدء الدرس.'
+       :'تعذّر بدء الدرس؛ تحقق من الاتصال ثم اضغط إعادة المحاولة.';
+     });
+    }else play.textContent='⏸';
+   }catch(error){
+    if(requestId===lessonPlayRequest){
+     play.textContent='▶';status.textContent='تعذّر بدء الدرس؛ اضغط زر التشغيل للمحاولة مجددًا.';
+    }
+   }
+  }
  }
- series.addEventListener('change',()=>{fill();updateSeriesLabel()});track.addEventListener('change',()=>loadTrack(false));
+ series.addEventListener('change',fill);track.addEventListener('change',()=>{loadTrack(false);markLessonPlaying()});
  const lessonList=$('lessonList');
  function markLessonPlaying(){if(!lessonList)return;lessonList.querySelectorAll('[data-lesson-index]').forEach(btn=>{const active=+btn.dataset.lessonIndex===current&&!!audio.src;btn.setAttribute('aria-current',String(active));});}
  if(lessonList)lessonList.addEventListener('click',e=>{const btn=e.target.closest('[data-lesson-index]');if(!btn)return;current=+btn.dataset.lessonIndex;track.value=String(current);loadTrack(true);markLessonPlaying();});
@@ -4519,9 +4545,35 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  });
  audio.addEventListener('pause',markLessonPlaying);
  audio.addEventListener('playing',markLessonPlaying);
- play.addEventListener('click',()=>{const radio=window.__anwarRadioAudio;if(radio&&!radio.paused)radio.pause();const c=catalog[series.value];if(!c.direct){renderSource(c);status.textContent='هذا فهرس للسلاسل وليس درساً صوتياً مستقلاً؛ افتح رابط الفهرس في تبويب مستقل لتصفح بقية الصوتيات.';return;}if(!audio.src)loadTrack(false);if(audio.paused)audio.play().then(()=>play.textContent='⏸').catch(()=>status.textContent='تعذر تشغيل الملف؛ افتح المصدر الأصلي.');else{audio.pause();play.textContent='▶';}});
- $('lessonPrev').addEventListener('click',()=>{if(!catalog[series.value].direct)return;current=Math.max(0,(+track.value||0)-1);track.value=current;loadTrack(true)});
- $('lessonNext').addEventListener('click',()=>{if(!catalog[series.value].direct)return;current=Math.min(catalog[series.value].count-1,(+track.value||0)+1);track.value=current;loadTrack(true)});
+ play.addEventListener('click',()=>{
+  const radio=window.__anwarRadioAudio;if(radio&&!radio.paused)radio.pause();
+  const c=catalog[series.value];
+  if(!c||!c.direct){renderSource(c||catalog.allAqidah);status.textContent='هذا فهرس للسلاسل وليس درسًا صوتيًا مباشرًا؛ افتح رابط المصدر أدناه.';return;}
+  if(!audio.src)loadTrack(false);
+  if(audio.paused){
+   const requestId=lessonPlayRequest;
+   try{
+    const attempt=audio.play();
+    if(attempt&&typeof attempt.then==='function')attempt.then(()=>{
+     if(requestId===lessonPlayRequest)play.textContent='⏸';
+    }).catch(error=>{
+     if(requestId!==lessonPlayRequest)return;
+     play.textContent='▶';
+     status.textContent=error?.name==='NotAllowedError'?'اضغط زر التشغيل للسماح ببدء الدرس.':'تعذّر تشغيل الدرس؛ أعد المحاولة أو افتح المصدر الأصلي.';
+    });
+   }catch(error){play.textContent='▶';status.textContent='تعذّر تشغيل الدرس؛ أعد المحاولة.'}
+  }else{audio.pause();play.textContent='▶';}
+ });
+ $('lessonPrev').addEventListener('click',()=>{
+  const c=catalog[series.value];if(!c||!c.direct)return;
+  if(current<=0){status.textContent='أنت في أول درس من هذه السلسلة.';return;}
+  current--;track.value=String(current);loadTrack(true);
+ });
+ $('lessonNext').addEventListener('click',()=>{
+  const c=catalog[series.value];if(!c||!c.direct)return;
+  if(current>=c.count-1){status.textContent='وصلت إلى آخر درس في هذه السلسلة.';return;}
+  current++;track.value=String(current);loadTrack(true);
+ });
  audio.addEventListener('playing',()=>{
   play.textContent='⏸';
   status.textContent='يُشغّل الآن: '+catalog[series.value].name+' — الدرس '+(current+1);
@@ -4541,7 +4593,15 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
   }
  });
  audio.addEventListener('pause',()=>{if(!audio.ended){play.textContent='▶';if('mediaSession' in navigator)try{navigator.mediaSession.playbackState='paused'}catch(e){}}});
- audio.addEventListener('ended',()=>{if(current<catalog[series.value].count-1){current++;track.value=current;loadTrack(true)}else{play.textContent='▶';status.textContent='انتهت السلسلة.';if('mediaSession' in navigator)try{navigator.mediaSession.playbackState='none'}catch(e){}}});
+ audio.addEventListener('ended',()=>{
+  const c=catalog[series.value];
+  if(c&&current<c.count-1){
+   current++;track.value=String(current);loadTrack(true);
+  }else{
+   play.textContent='▶';status.textContent='انتهت السلسلة.';markLessonPlaying();
+   if('mediaSession' in navigator)try{navigator.mediaSession.playbackState='none'}catch(e){}
+  }
+ });
  audio.addEventListener('error',()=>{
   play.textContent='▶';
   const c=catalog[series.value];
