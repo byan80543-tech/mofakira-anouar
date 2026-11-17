@@ -20,6 +20,13 @@ ok(html.includes("setBookToolExpanded($('bookToolContent').hidden,true)"),'book 
 ok(html.includes('id="ownerBtn"') && !html.includes('id="newBookTool"'),'ownership shortcut remains in the tools panel without the old book shortcut');
 ok(!html.includes('<dialog id="bookDialog">'),'book creation no longer consumes a separate modal');
 ok(html.includes('loadFontStylesheets(false)') && html.includes('loadFontStylesheets(true)'),'font packs are deferred until after initial render or opened on demand');
+ok(html.includes('id="paperStyleBtn"') && html.includes('id="paperStylePanel"'),'paper style selector is present in the toolbar');
+ok(['plain','ruled','poetry','framed'].every(style=>html.includes('data-paper="'+style+'"')),'all four paper layouts are available');
+ok(html.includes("paper:['plain','ruled','poetry','framed'].includes(n.paper)"),'paper layout is stored per note');
+ok(html.includes("paper:['plain','ruled','poetry','framed'].includes(v.paper)"),'paper layout is preserved in history snapshots');
+ok(html.includes('#pg.paper-ruled') && html.includes('#pg.paper-framed') && html.includes('#pg.paper-poetry .v'),'paper style CSS includes ruled, framed, and split-verse layouts');
+ok(html.includes("e.key==='Tab'") && html.includes("e.key==='Enter'&&!e.shiftKey"),'poetry layout supports keyboard navigation between hemistichs');
+ok(html.includes("else if(id==='vs'&&cur)insertPoetryVerse()"),'verse button inserts structured split-hemistich rows');
 ok(html.includes('async function ensurePdfLibraries()'),'PDF libraries load only when PDF export is requested');
 ok(html.includes('async function makeQR()'),'QR library loads only when QR generation is requested');
 ok(!/<script\b[^>]*\bsrc\s*=\s*["'][^"']*(?:html2canvas|qrcodejs|jspdf)/i.test(html),'heavy PDF and QR libraries are not loaded by static script tags');
