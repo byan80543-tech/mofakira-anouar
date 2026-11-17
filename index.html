@@ -1657,7 +1657,7 @@ function load(){
   console.warn('تعذّرت قراءة التخزين المحلي لمفكرة أنوار',error);
   return;
  }
- if(raw!==null&&raw!==''){
+ if(raw!==null){
   try{S=readStoredState(raw);return}
   catch(primaryError){console.warn('تعذّرت قراءة الحالة الأساسية لمفكرة أنوار',primaryError)}
   let backupAvailable=false;
@@ -2519,7 +2519,7 @@ document.addEventListener('click',e=>{
  else if(id==='restoreBackup')restoreStorageBackup();
  else if(id==='startFresh')startFreshNotebook();
  else if(id==='cp'){$('bt').select();navigator.clipboard&&navigator.clipboard.writeText($('bt').value).then(()=>toast('تم النسخ'),()=>{})}
- else if(id==='rs'){try{const backupText=$('bt').value;if(backupText.length>4500000)throw new Error('الحجم كبير جدًا');if(storageRecoveryBlocked&&storageRecoveryRaw!==null&&!storageRecoveryExported){toast('نزّل ملف الاسترداد الخام أولًا قبل استبدال البيانات التالفة.',6000);return}const d=JSON.parse(backupText);if(!d||!Array.isArray(d.notes)||d.notes.length>2500||d.notes.some(n=>!n||typeof n!=='object'||String(n.html||n.text||'').length>450000))throw new Error('بنية النسخة غير مقبولة');const next=normalizeState(d),serialized=JSON.stringify(next);localStorage.setItem('anwar_v1',serialized);try{localStorage.setItem('anwar_v1_backup_v2',serialized)}catch(backupError){console.warn('تعذّر تحديث النسخة الاحتياطية الثانوية بعد الاستيراد',backupError)}S=next;storageRecoveryBlocked=false;storageRecoveryRaw=null;storageRecoveryExported=false;$('storageRecoveryNotice').hidden=true;openNote(null);theme();$('dg').close();toast('تمت الاستعادة والتحقق من النسخة')}catch(x){toast(x&&x.message==='الحجم كبير جدًا'?'النسخة أكبر من الحد الآمن للاستيراد.':'النسخة غير صالحة أو تعذّر حفظها؛ لم تتغير البيانات الحالية.',6000)}}
+ else if(id==='rs'){try{const backupText=$('bt').value;if(backupText.length>4500000)throw new Error('الحجم كبير جدًا');if(storageRecoveryBlocked&&storageRecoveryRaw!==null&&!storageRecoveryExported){toast('نزّل ملف الاسترداد الخام أولًا قبل استبدال البيانات التالفة.',6000);return}const d=JSON.parse(backupText);if(!d||!Array.isArray(d.notes)||d.notes.length>2500||d.notes.some(n=>!n||typeof n!=='object'||String(n.html||n.text||'').length>450000))throw new Error('بنية النسخة غير مقبولة');const next=normalizeState(d),serialized=JSON.stringify(next);localStorage.setItem('anwar_v1',serialized);try{localStorage.setItem('anwar_v1_backup_v2',serialized)}catch(backupError){console.warn('تعذّر تحديث النسخة الاحتياطية الثانوية بعد الاستيراد',backupError)}S=next;clearStorageRecovery();openNote(null);theme();$('dg').close();toast('تمت الاستعادة والتحقق من النسخة')}catch(x){toast(x&&x.message==='الحجم كبير جدًا'?'النسخة أكبر من الحد الآمن للاستيراد.':'النسخة غير صالحة أو تعذّر حفظها؛ لم تتغير البيانات الحالية.',6000)}}
  else if(id==='cl')$('dg').close();
  else if(id==='ownerBtn')$('ownerDialog').showModal();
  else if(id==='closeOwner')$('ownerDialog').close();
