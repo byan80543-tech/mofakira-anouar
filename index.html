@@ -1369,7 +1369,7 @@ dialog[open]>.float-head{display:none!important}
  </button>
  </div>
 <div class="rib" id="rib">
- <div class="g"><div><button class="b" id="prn" title="طباعة">🖨️</button><button class="b" id="pdf" title="تنزيل PDF">📄</button><button class="b" id="new2" title="جديد">➕</button></div><small>الملف</small></div>
+ <div class="g"><div><button class="b" id="prn" title="طباعة">🖨️</button><button class="b" id="pdf" title="تنزيل PDF">📄</button><button class="b" id="newBookTool" title="إنشاء كتاب بصيغ متعددة">📖</button><button class="b" id="new2" title="جديد">➕</button></div><small>الملف</small></div>
  <div class="g"><div><button class="b" id="fb" title="نوع الخط" style="min-width:110px">الخط ▾</button><select id="sz" title="حجم الخط"><option>14</option><option>16</option><option>18</option><option selected>20</option><option>24</option><option>28</option><option>32</option><option>40</option><option>56</option></select></div><small>الخط</small></div>
  <div class="g"><div><button class="b" data-c="bold"><b>B</b></button><button class="b" data-c="italic"><i>I</i></button><button class="b" data-c="underline"><u>U</u></button><input type="color" id="fc" value="#222222" title="لون الخط"><input type="color" id="hc" value="#fff2a8" title="تمييز"></div><small>التنسيق</small></div>
  <div class="g"><div><button class="b" data-c="justifyRight">▶≡</button><button class="b" data-c="justifyCenter">≡</button><button class="b" data-c="justifyLeft">≡◀</button><button class="b" data-c="justifyFull">☰</button><button class="b" data-c="insertUnorderedList">•≡</button><button class="b" data-c="insertOrderedList">1≡</button></div><small>الفقرة</small></div>
@@ -1485,7 +1485,7 @@ dialog[open]>.float-head{display:none!important}
   <option value="txt">TXT · نص بسيط</option>
   <option value="html">HTML · صفحة ويب</option>
  </select>
- <p id="bookFileStatus" class="anwar-book-note" aria-live="polite">＋ اختر مستنداً من هاتفك. تُدرج النصوص المدعومة في العمل المفتوح، وتُفتح الملفات الأخرى أو تُشارك مع التطبيقات المناسبة.</p>
+ <p id="bookFileStatus" class="anwar-book-note" aria-live="polite">＋ اختر مستنداً من هاتفك. تُدرج ملفات TXT وHTML وCSV في الصفحة؛ أما PDF وملفات Office والصور فتُفتح أو تُشارك دون تغيير أصلها.</p>
  <input type="file" id="bookFilePicker" hidden accept=".txt,.md,.csv,.html,.htm,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.ods,.odp,.rtf,.png,.jpg,.jpeg,.webp,.gif">
  <div class="dialog-actions"><button type="button" id="cancelBook">إغلاق</button><button type="button" id="createBook">تنزيل الكتاب</button></div>
 </dialog>
@@ -2563,7 +2563,11 @@ function insertImportedText(text,filename){
  const clean=String(text||'').replace(/\u0000/g,'').slice(0,500000);
  if(!clean.trim()){toast('الملف لا يحتوي على نص قابل للإدراج.');return}
  const html=clean.split(/\r?\n/).map(line=>'<div>'+esc(line||'')+'</div>').join('');
- restore();document.execCommand('insertHTML',false,html);touch();
+ pg.focus();
+ const selection=window.getSelection();
+ if(saved&&pg.contains(saved.startContainer))restore();
+ else if(selection){selection.removeAllRanges();const range=document.createRange();range.selectNodeContents(pg);range.collapse(false);selection.addRange(range)}
+ document.execCommand('insertHTML',false,html);touch();
  $('bookFileStatus').textContent='تم إدراج نص الملف «'+filename+'» في العمل المفتوح.';
  toast('تم استيراد النص إلى المفكرة ✓',3500);
 }
@@ -2691,6 +2695,7 @@ document.addEventListener('click',e=>{
  const id=t.id;
  if(id==='toolsToggle'){const open=$('rib').classList.toggle('open');t.setAttribute('aria-expanded',String(open));t.textContent=open?'✕ إخفاء الأدوات':'✒ الأدوات'}
  else if(id==='newBook')openBookDialog();
+ else if(id==='newBookTool')openBookDialog();
  else if(id==='cancelBook')$('bookDialog').close();
  else if(id==='createBook')createBook();
  else if(id==='addBookFile')$('bookFilePicker').click();
