@@ -1437,7 +1437,7 @@ dialog[open]>.float-head{display:none!important}
 <section id="libraryPage" hidden aria-hidden="true" aria-label="المكتبة" role="dialog" aria-modal="true">
  <div class="library-shell">
   <header class="library-top" aria-label="مكتبة أنوار">
-   <div class="library-brand"><span class="library-mark" aria-hidden="true">🌷</span><div class="library-brand-copy"><strong>سبحة أنوار</strong><small>رفيق الذكر أينما تنقلت</small></div></div>
+   <div class="library-brand"><span class="library-mark" aria-hidden="true"><img class="anwar-tulip-img" src="assets/tulip-cutout.svg" alt=""></span><div class="library-brand-copy"><strong>سبحة أنوار</strong><small>رفيق الذكر أينما تنقلت</small></div></div>
    <div class="library-top-actions">
      <button type="button" id="libraryTheme" aria-label="تغيير لون المكتبة" title="تغيير لون المكتبة"><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18h1.2a2 2 0 0 0 1.5-3.3 1.8 1.8 0 0 1 1.4-3h1.1A4.8 4.8 0 0 0 22 9.9C22 6.1 17.5 3 12 3Z"/><path d="M7.5 10h.01M10 6.8h.01M15 7.2h.01M17.5 10.5h.01"/></svg></button>
     <button type="button" id="libraryClose" aria-label="إغلاق المكتبة">✕</button>
@@ -1454,10 +1454,10 @@ dialog[open]>.float-head{display:none!important}
    <header class="tasbih-screen-head">
     <button type="button" id="tasbihFloatEnable" aria-label="تصغير السبحة إلى زر عائم">↘ عائمة</button>
     <strong>سبحة أنوار</strong>
-    <span aria-hidden="true">🌷</span>
+    <span class="tasbih-head-tulip" aria-hidden="true"><img class="anwar-tulip-img" src="assets/tulip-cutout.svg" alt=""></span>
    </header>
    <section id="anwarTasbih" class="anwar-tasbih" aria-label="عداد التسبيح">
-    <div class="tasbih-heading"><span class="tasbih-mark" aria-hidden="true">🌷</span><div><strong>اذكر الله بقلب حاضر</strong><small>سبحة أنوار الرقمية</small></div></div>
+    <div class="tasbih-heading"><span class="tasbih-mark" aria-hidden="true"><img class="anwar-tulip-img" src="assets/tulip-cutout.svg" alt=""></span><div><strong>اذكر الله بقلب حاضر</strong><small>سبحة أنوار الرقمية</small></div></div>
     <div class="tasbih-body">
      <div class="tasbih-bead-strand" aria-hidden="true">
       <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
@@ -1494,7 +1494,7 @@ dialog[open]>.float-head{display:none!important}
 
 <div id="anwarFloatingTasbih" class="anwar-floating-tasbih" hidden aria-label="السبحة العائمة">
  <div class="anwar-float-glow" aria-hidden="true"></div>
- <span class="anwar-float-symbol" aria-hidden="true">🌷</span>
+ <span class="anwar-float-symbol" aria-hidden="true"><img class="anwar-tulip-img" src="assets/tulip-cutout.svg" alt=""></span>
  <strong id="anwarFloatCount" dir="ltr">0</strong>
  <button type="button" id="anwarFloatTap" aria-label="إضافة استغفار">+</button>
  <button type="button" id="anwarFloatVoice" aria-label="تشغيل أو إيقاف العد الصوتي">🎙</button>
@@ -2243,6 +2243,18 @@ button:focus:not(:focus-visible){outline:none}
 @keyframes anwarFloatGlow{50%{opacity:.45;box-shadow:0 0 25px #6cc5dfaa}}
 @media(max-width:420px){.anwar-floating-tasbih{right:9px;bottom:calc(12px + env(safe-area-inset-bottom,0px));gap:5px;padding:6px 8px}.anwar-floating-tasbih button{width:32px;height:32px}}
 @media(prefers-reduced-motion:reduce){.anwar-floating-tasbih,.anwar-float-glow,#libraryPage .tasbih-bead-strand i,#libraryPage .tasbih-count{animation:none!important;transition:none!important}}
+
+/* زهور التوليب المصوّرة بدل رموز الإيموجي */
+.anwar-tulip-img{display:block;max-width:100%;max-height:100%;object-fit:contain;object-position:center;pointer-events:none;filter:drop-shadow(0 1px 2px #442b2530)}
+#libraryPage .library-mark{padding:3px!important;overflow:hidden}
+#libraryPage .library-mark .anwar-tulip-img{width:29px;height:34px}
+#libraryPage .tasbih-mark{overflow:visible!important}
+#libraryPage .tasbih-mark .anwar-tulip-img{width:30px;height:42px}
+#libraryPage .tasbih-screen-head>.tasbih-head-tulip{display:grid!important;place-items:center;width:30px;height:39px;flex:none}
+#libraryPage .tasbih-head-tulip .anwar-tulip-img{width:28px;height:39px}
+.anwar-float-symbol{display:grid;place-items:center;width:27px;height:38px;flex:none;line-height:1}
+.anwar-float-symbol .anwar-tulip-img{width:25px;height:36px}
+.country-reader-seal .anwar-tulip-img{width:23px;height:30px}
 </style></head><body>${$('pa').innerHTML}\x3Cscript>onload=function(){setTimeout(function(){print()},900)}<\/script>
 
 
@@ -2783,7 +2795,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
   if(countryActiveAudio)stopCountryAudio();
   const q=countryNorm(countrySearch.value);
   const filtered=activeCountryRows.filter(row=>!q||countryNorm(row.name).includes(q));
-  countryList.innerHTML=filtered.length?filtered.map(r=>'<div class="country-reader-item" role="listitem" data-country-reciter="'+esc(r.slug)+'" data-country-profile="'+esc(r.profileUrl)+'"><span class="country-reader-seal" aria-hidden="true">🌷</span><span class="country-reader-name">'+esc(r.name)+'</span><small>'+(r.recordings>1?new Intl.NumberFormat('ar').format(r.recordings)+' تلاوات':(r.recordings===1?'تلاوة':'قارئ'))+'</small><button type="button" class="country-reader-play" data-country-play aria-label="تشغيل تلاوة '+esc(r.name)+' داخل المفكرة" title="تشغيل داخل أنوار">▶</button></div>').join(''):'<div class="country-reader-empty">'+(q?'لا توجد أسماء مطابقة في هذه الصفحة. انتقل إلى الصفحة التالية أو غيّر البحث.':'لا توجد أسماء في هذه الصفحة.')+'</div>';
+  countryList.innerHTML=filtered.length?filtered.map(r=>'<div class="country-reader-item" role="listitem" data-country-reciter="'+esc(r.slug)+'" data-country-profile="'+esc(r.profileUrl)+'"><span class="country-reader-seal" aria-hidden="true"><img class="anwar-tulip-img" src="assets/tulip-cutout.svg" alt=""></span><span class="country-reader-name">'+esc(r.name)+'</span><small>'+(r.recordings>1?new Intl.NumberFormat('ar').format(r.recordings)+' تلاوات':(r.recordings===1?'تلاوة':'قارئ'))+'</small><button type="button" class="country-reader-play" data-country-play aria-label="تشغيل تلاوة '+esc(r.name)+' داخل المفكرة" title="تشغيل داخل أنوار">▶</button></div>').join(''):'<div class="country-reader-empty">'+(q?'لا توجد أسماء مطابقة في هذه الصفحة. انتقل إلى الصفحة التالية أو غيّر البحث.':'لا توجد أسماء في هذه الصفحة.')+'</div>';
   countryCountBox.textContent=new Intl.NumberFormat('ar').format(filtered.length)+(countryTotalCount?' / '+new Intl.NumberFormat('ar').format(countryTotalCount):'');
   countryPageBox.textContent=activeCountryPage+' / '+countryTotalPages;
   countryPrev.disabled=activeCountryPage<=1||countryPageBusy;
@@ -3882,9 +3894,28 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   if(floatCount)floatCount.textContent=formatted;
   try{localStorage.setItem(tasbihKey,String(tasbihValue))}catch(e){}
  }
+ function clampFloatingPosition(){
+  if(!floatWidget||floatWidget.hidden)return;
+  const rect=floatWidget.getBoundingClientRect();
+  const x=Math.max(4,Math.min(window.innerWidth-rect.width-4,rect.left));
+  const y=Math.max(4,Math.min(window.innerHeight-rect.height-4,rect.top));
+  floatWidget.style.left=x+'px';
+  floatWidget.style.top=y+'px';
+  floatWidget.style.right='auto';
+  floatWidget.style.bottom='auto';
+  try{localStorage.setItem('anwar_float_position_v1',JSON.stringify({x,y}))}catch(e){}
+ }
  function setFloatingVisible(enabled){
   if(!floatWidget)return;
+  if(floatWidget.parentElement!==document.body)document.body.appendChild(floatWidget);
   floatWidget.hidden=!enabled;
+  floatWidget.setAttribute('aria-hidden',enabled?'false':'true');
+  if(enabled){
+   floatWidget.style.display='flex';
+   requestAnimationFrame(clampFloatingPosition);
+  }else{
+   floatWidget.style.removeProperty('display');
+  }
   try{localStorage.setItem(floatEnabledKey,enabled?'1':'0')}catch(e){}
  }
  function addTasbih(n=1){
@@ -3952,11 +3983,25 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  const finishFloatDrag=e=>{if(floatDrag&&floatDrag.id===e.pointerId){floatDrag=null}};
  floatSymbol.addEventListener('pointerup',finishFloatDrag);
  floatSymbol.addEventListener('pointercancel',finishFloatDrag);
- try{const pos=JSON.parse(localStorage.getItem('anwar_float_position_v1')||'null');if(pos&&Number.isFinite(pos.x)&&Number.isFinite(pos.y)){floatWidget.style.left=Math.max(4,Math.min(window.innerWidth-floatWidget.offsetWidth-4,pos.x))+'px';floatWidget.style.top=Math.max(4,Math.min(window.innerHeight-floatWidget.offsetHeight-4,pos.y))+'px';floatWidget.style.right='auto';floatWidget.style.bottom='auto'}}catch(e){}
+ try{
+  const pos=JSON.parse(localStorage.getItem('anwar_float_position_v1')||'null');
+  if(pos&&Number.isFinite(pos.x)&&Number.isFinite(pos.y)){
+   // لا نقيس عرض العنصر وهو مخفي؛ القياس المؤجل يتم بعد إظهاره حتى لا ينتقل خارج الشاشة.
+   floatWidget.style.left=pos.x+'px';
+   floatWidget.style.top=pos.y+'px';
+   floatWidget.style.right='auto';
+   floatWidget.style.bottom='auto';
+  }
+ }catch(e){}
+ window.addEventListener('resize',()=>{if(!floatWidget.hidden)requestAnimationFrame(clampFloatingPosition)});
 
  floatOpen.addEventListener('click',()=>{open();});
  floatHide.addEventListener('click',()=>setFloatingVisible(false));
- $('tasbihFloatEnable').addEventListener('click',()=>{setFloatingVisible(true);close();});
+ $('tasbihFloatEnable').addEventListener('click',()=>{
+  close();
+  // أظهر الشريط بعد إغلاق النافذة، ثم اضبط موضعه بعد اكتمال القياس.
+  setFloatingVisible(true);
+ });
  try{setFloatingVisible(localStorage.getItem(floatEnabledKey)==='1')}catch(e){setFloatingVisible(false)}
  openButton.addEventListener('click',open);
  $('libraryClose').addEventListener('click',close);
