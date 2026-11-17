@@ -2573,12 +2573,31 @@ function recordsDocx(records,title){
   {name:'word/styles.xml',content:styles}
  ]);
 }
+const anwarLazyScripts=new Map();
+function loadScriptOnce(src,integrity){
+ if((src.includes('html2canvas')&&window.html2canvas)||(src.includes('jspdf')&&window.jspdf)||(src.includes('qrcode')&&window.QRCode))return Promise.resolve();
+ if(anwarLazyScripts.has(src))return anwarLazyScripts.get(src);
+ const task=new Promise((resolve,reject)=>{
+  const script=document.createElement('script');script.src=src;
+  if(integrity){script.integrity=integrity;script.crossOrigin='anonymous';script.referrerPolicy='no-referrer'}
+  script.onload=()=>resolve();
+  script.onerror=()=>{script.remove();reject(new Error('Library load failed: '+src))};
+  document.head.append(script);
+ });
+ anwarLazyScripts.set(src,task);task.catch(()=>anwarLazyScripts.delete(src));return task;
+}
+async function ensurePdfLibraries(){
+ await Promise.all([
+  loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js','sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA=='),
+  loadScriptOnce(new URL('vendor/jspdf.umd.min.js',document.baseURI).href)
+ ]);
+ if(!window.html2canvas||!window.jspdf)throw new Error('PDF libraries are unavailable');
+}
 async function renderPaPdf(filename){
- if(!window.html2canvas||!window.jspdf){toast('تعذّر تحميل مكتبات PDF؛ تحقق من الاتصال ثم أعد المحاولة.',5000);return false}
- toast('جارٍ تجهيز ملف PDF…',5000);
+ toast('جارٍ تجهيز مكتبات وملف PDF…',5000);
  try{
-  await document.fonts.ready;
-  const canvas=await html2canvas($('pa'),{scale:2,backgroundColor:'#fff',useCORS:true});
+  await ensurePdfLibraries();await document.fonts.ready;
+  const canvas=await window.html2canvas($('pa'),{scale:2,backgroundColor:'#fff',useCORS:true});
   const pdf=new window.jspdf.jsPDF({unit:'pt',format:'a4'});
   const width=pdf.internal.pageSize.getWidth(),height=pdf.internal.pageSize.getHeight();
   const pageHeight=Math.floor(canvas.width*height/width);
@@ -2589,9 +2608,8 @@ async function renderPaPdf(filename){
    if(page)pdf.addPage();pdf.addImage(slice.toDataURL('image/jpeg',.92),'JPEG',0,0,width,slice.height*width/canvas.width);
   }
   const saved=await downloadBlob(pdf.output('blob'),filename);
-  if(saved)toast('تم حفظ ملف PDF على جهازك ✓',3500);
-  return saved;
- }catch(error){console.warn('تعذّر تصدير PDF',error);toast('تعذّر إنشاء PDF. لم يُحذف أي عمل.',5000);return false}
+  if(saved)toast('تم حفظ ملف PDF على جهازك ✓',3500);return saved;
+ }catch(error){console.warn('تعذّر تصدير PDF',error);toast('تعذّر إنشاء PDF. تحقق من الاتصال ثم أعد المحاولة؛ لم يُحذف أي عمل.',5500);return false}
 }
 function openDocumentBlob(blob,filename){
  try{
@@ -2717,7 +2735,16 @@ async function handleBookFile(file){
 }
 
 function showOwnerPanel(which){const own=which==='owner',adh=which==='adhkar';$('ownerPanel').hidden=!own;$('adhkarPanel').hidden=!adh;$('sharePanel').hidden=which!=='share';$('ownerTab').classList.toggle('active',own);$('adhkarTab').classList.toggle('active',adh);$('shareTab').classList.toggle('active',which==='share');if(adh)renderAdhkar('morning')}
-function makeQR(){const url=$('shareUrl').value.trim();if(!/^https?:\/\//i.test(url)){toast('أدخل رابطًا عامًا يبدأ بـ https:// أو http://');return}if(!window.QRCode){toast('مكتبة QR لم تُحمّل؛ تحقق من اتصال الإنترنت');return}const box=$('qrPreview');box.innerHTML='';new QRCode(box,{text:url,width:200,height:200,colorDark:'#102b45',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});$('downloadQR').disabled=false;toast('تم إنشاء رمز QR للرابط')}
+async function makeQR(){
+ const url=$('shareUrl').value.trim();
+ if(!/^https?:\\/\\//i.test(url)){toast('أدخل رابطًا عامًا يبدأ بـ https:// أو http://');return}
+ try{await loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js','sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==')}
+ catch(error){console.warn('تعذّر تحميل مكتبة QR',error);toast('تعذّر تحميل مكتبة رمز QR؛ تحقق من الاتصال وحاول مجددًا.');return}
+ if(!window.QRCode){toast('مكتبة QR غير متاحة في هذا المتصفح');return}
+ const box=$('qrPreview');box.innerHTML='';
+ new window.QRCode(box,{text:url,width:200,height:200,colorDark:'#102b45',colorLight:'#ffffff',correctLevel:window.QRCode.CorrectLevel.H});
+ $('downloadQR').disabled=false;toast('تم إنشاء رمز QR للرابط');
+}
 function downloadAppIcon(){
  const href=new URL('icon-512.svg?v=20261116-4',location.href).href;
  const img=new Image();
