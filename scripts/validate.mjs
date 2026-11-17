@@ -15,6 +15,11 @@ ok(html.includes('href="icon-192.png?v=20261117-1" sizes="192x192"'),'browser fa
 ok(html.includes('<link rel="apple-touch-icon" href="icon-192.png?v=20261117-1"'),'Apple touch icon uses the optimized 192px PNG');
 ok(!html.includes('file_00000000670481f4ad879246afe6bae2.png'),'the oversized source icon is not loaded by the page');
 ok(!manifest.icons.some(i=>String(i.src).includes('file_00000000670481f4ad879246afe6bae2.png')),'manifest excludes the oversized source icon');
+ok(html.includes('id="bookToolPanel"') && html.includes('id="bookToolContent" hidden'),'book creation is compact and collapsed inside the tools panel');
+ok(html.includes("setBookToolExpanded($('bookToolContent').hidden,true)"),'book panel toggle opens and closes correctly');
+ok(html.includes('id="ownerBtn"') && !html.includes('id="newBookTool"'),'ownership shortcut remains in the tools panel without the old book shortcut');
+ok(!html.includes('<dialog id="bookDialog">'),'book creation no longer consumes a separate modal');
+ok(html.includes('loadFontStylesheets(false)') && html.includes('loadFontStylesheets(true)'),'font packs are deferred until after initial render or opened on demand');
 ok(html.includes('async function ensurePdfLibraries()'),'PDF libraries load only when PDF export is requested');
 ok(html.includes('async function makeQR()'),'QR library loads only when QR generation is requested');
 ok(!/<script\b[^>]*\bsrc\s*=\s*["'][^"']*(?:html2canvas|qrcodejs|jspdf)/i.test(html),'heavy PDF and QR libraries are not loaded by static script tags');
