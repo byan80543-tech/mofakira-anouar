@@ -2749,7 +2749,8 @@ async function handleBookFile(file){
 function showOwnerPanel(which){const own=which==='owner',adh=which==='adhkar';$('ownerPanel').hidden=!own;$('adhkarPanel').hidden=!adh;$('sharePanel').hidden=which!=='share';$('ownerTab').classList.toggle('active',own);$('adhkarTab').classList.toggle('active',adh);$('shareTab').classList.toggle('active',which==='share');if(adh)renderAdhkar('morning')}
 async function makeQR(){
  const url=$('shareUrl').value.trim();
- if(!/^https?:\\/\\//i.test(url)){toast('أدخل رابطًا عامًا يبدأ بـ https:// أو http://');return}
+ let parsedUrl;try{parsedUrl=new URL(url)}catch(error){toast('أدخل رابطًا عامًا يبدأ بـ https:// أو http://');return}
+ if(parsedUrl.protocol!=='https:'&&parsedUrl.protocol!=='http:'){toast('يسمح بروابط HTTP وHTTPS فقط');return}
  try{await loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js','sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==')}
  catch(error){console.warn('تعذّر تحميل مكتبة QR',error);toast('تعذّر تحميل مكتبة رمز QR؛ تحقق من الاتصال وحاول مجددًا.');return}
  if(!window.QRCode){toast('مكتبة QR غير متاحة في هذا المتصفح');return}
