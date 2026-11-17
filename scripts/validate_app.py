@@ -84,7 +84,7 @@ def png_dimensions(path: Path) -> tuple[int, int] | None:
     try:
         with path.open("rb") as image_file:
             header = image_file.read(24)
-        if len(header) < 24 or header[:8] != b"\\x89PNG\\r\\n\\x1a\\n" or header[12:16] != b"IHDR":
+        if len(header) < 24 or header[:8] != b"\x89PNG\r\n\x1a\n" or header[12:16] != b"IHDR":
             return None
         return struct.unpack(">II", header[16:24])
     except OSError:
@@ -166,7 +166,7 @@ def main() -> int:
         declared_png_sizes = [
             tuple(map(int, match.groups()))
             for size in str(icon.get("sizes", "")).split()
-            if (match := re.fullmatch(r"(\\d+)x(\\d+)", size))
+            if (match := re.fullmatch(r"(\d+)x(\d+)", size))
         ]
         actual_dimensions = png_dimensions(image_path) if image_path.is_file() else None
         for expected_dimensions in declared_png_sizes:
