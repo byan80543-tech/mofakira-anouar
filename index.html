@@ -2420,8 +2420,8 @@ function safeFileName(value,fallback){
  const cleaned=String(value||fallback||'anwar-book').replace(/[\\/:*?"<>|]/g,'-').replace(/\s+/g,' ').trim().slice(0,80);
  return cleaned||fallback||'anwar-book';
 }
-async function downloadBlob(blob,filename){
- if(typeof window.showSaveFilePicker==='function'){
+async function downloadBlob(blob,filename,options={}){
+ if(!options.direct&&typeof window.showSaveFilePicker==='function'){
   try{
    const handle=await window.showSaveFilePicker({suggestedName:filename});
    const writable=await handle.createWritable();
@@ -2567,7 +2567,7 @@ async function doWord(){
  flushPendingEdit(false);
  try{
   const filename=safeFileName(cur.title,'anwar-note')+'.docx';
-  const saved=await downloadBlob(recordsDocx([cur],cur.title||'أنوار'),filename);
+  const saved=await downloadBlob(recordsDocx([cur],cur.title||'أنوار'),filename,{direct:true});
   if(saved)toast('تم حفظ مستند Word على جهازك ✓',3500);
  }catch(error){
   console.warn('تعذّر تصدير Word',error);
