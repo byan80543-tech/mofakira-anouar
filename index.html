@@ -1949,6 +1949,8 @@ const $=id=>document.getElementById(id),pg=$('pg');
 const VAULT_STORAGE_KEY='anwar_vault_v1',VAULT_BACKUP_KEY='anwar_vault_backup_v1';
 let vaultKey=null,vaultTemplate=null,vaultUnlocked=false,vaultGateMode='setup',vaultReady=false;
 let vaultSaveQueue=Promise.resolve(),vaultLastWriteError=null,vaultBackupWarningShown=false;
+const VAULT_IDLE_LOCK_MS=5*60*1000;
+let vaultIdleTimer=null,vaultLastActivityAt=0;
 const hasOwn=(object,key)=>Object.prototype.hasOwnProperty.call(object,key);
 const esc=s=>String(s??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
 function safeHttpsURL(value){try{const u=new URL(String(value));return u.protocol==='https:'?u.href:''}catch(e){return ''}}
@@ -2037,6 +2039,30 @@ function readStoredState(raw){
  return normalized;
 }
 
+function clearVaultIdleTimer(){
+ if(vaultIdleTimer!==null){clearTimeout(vaultIdleTimer);vaultIdleTimer=null}
+}
+function armVaultIdleTimer(){
+ clearVaultIdleTimer();
+ if(!vaultUnlocked)return;
+ const remaining=VAULT_IDLE_LOCK_MS-(Date.now()-vaultLastActivityAt);
+ vaultIdleTimer=setTimeout(()=>{
+  vaultIdleTimer=null;
+  if(!vaultUnlocked)return;
+  if(Date.now()-vaultLastActivityAt>=VAULT_IDLE_LOCK_MS)lockVault();
+  else armVaultIdleTimer();
+ },Math.max(1,remaining));
+}
+function recordVaultActivity(event){
+ if(!vaultUnlocked||(event&&event.isTrusted===false))return;
+ vaultLastActivityAt=Date.now();
+ armVaultIdleTimer();
+}
+function enforceVaultIdleLock(){
+ if(!vaultUnlocked)return;
+ if(Date.now()-vaultLastActivityAt>=VAULT_IDLE_LOCK_MS){lockVault();return}
+ armVaultIdleTimer();
+}
 function showVaultGate(mode,message){
  vaultGateMode=mode;
  const gate=$('vaultGate'),title=$('vaultTitle'),description=$('vaultDescription');
@@ -2147,6 +2173,7 @@ function finishVaultOpen(){
  vaultUnlocked=true;
  vaultReady=true;
  vaultLastWriteError=null;
+ recordVaultActivity();
  $('vaultGate').hidden=true;
  $('vaultLockBtn').hidden=false;
  theme();
@@ -2265,6 +2292,7 @@ async function submitVaultForm(event){
 }
 async function lockVault(){
  if(!vaultUnlocked)return;
+ clearVaultIdleTimer();
  try{
   if(tm){clearTimeout(tm);tm=null}
   if(typeof flushPendingEdit==='function')flushPendingEdit(false);
@@ -2286,6 +2314,7 @@ async function lockVault(){
   toast('قُفلت المفكرة. بقيت البيانات محفوظة بالتشفير.',3500);
  }catch(error){
   toast(error.message||'تعذّر قفل المفكرة قبل إتمام الحفظ.',6000);
+  if(vaultUnlocked){vaultLastActivityAt=Date.now();armVaultIdleTimer()}
  }
 }
 async function openEncryptedBackupDialog(){
@@ -3744,7 +3773,13 @@ $('fc').addEventListener('input',e=>cmd('foreColor',e.target.value));
 $('hc').addEventListener('input',e=>{restore();document.execCommand('styleWithCSS',false,true);document.execCommand('hiliteColor',false,e.target.value);document.execCommand('styleWithCSS',false,false);touch()});
 $('zm').addEventListener('input',e=>{pg.style.zoom=e.target.value/100});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')$('app').classList.remove('focus')});
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushPendingEdit(false)});
+for(const eventName of ['pointerdown','keydown','input','touchstart','wheel']){
+ document.addEventListener(eventName,recordVaultActivity,true);
+}
+document.addEventListener('visibilitychange',()=>{
+ if(document.visibilityState==='hidden')flushPendingEdit(false);
+ else enforceVaultIdleLock();
+});
 addEventListener('pagehide',()=>flushPendingEdit(false));
 addEventListener('beforeunload',()=>flushPendingEdit(false));
 (function(){
