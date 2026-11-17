@@ -2,7 +2,7 @@
   "id": "/mofakira-anouar/",
   "name": "مفكرة أنوار",
   "short_name": "مفكرة أنوار",
-  "description": "مفكرة أنوار — تطبيق أدبي من تطوير صاحب المشروع ومطوّره Anouar Oumlili (أنوار أومليلي)، الحسيمة، المملكة المغربية.",
+  "description": "مفكرة أنوار — تطبيق أدبي من تطوير صاحب المشروع ومطوّره Anouar Oumlili (أنوار أومليلي)، الحسيمة، المملكة المغربية. يعمل غلاف المفكرة المحلي بعد تحميله مرة واحدة؛ تبقى الإذاعات والخطوط وواجهات البيانات الخارجية بحاجة إلى الإنترنت.",
   "lang": "ar",
   "dir": "rtl",
   "start_url": "/mofakira-anouar/",
@@ -13,10 +13,27 @@
   "theme_color": "#09264d",
   "icons": [
     {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
       "src": "file_00000000670481f4ad879246afe6bae2.png?v=20261116-5",
-      "sizes": "1536x1536",
+      "sizes": "1254x1254",
       "type": "image/png",
       "purpose": "any"
     }
-  ]
+  ],
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "prefer_related_applications": false
 }

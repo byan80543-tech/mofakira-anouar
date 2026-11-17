@@ -10,6 +10,7 @@ const between=(start,end)=>{
 const extracted=[
   between('function cleanNote(n){','function createNoteId(){'),
   between('function showStorageRecoveryNotice(','function exportStorageRecovery()'),
+  between('function exportStorageRecovery(){','function save(){'),
   between('function save(){','function toast('),
   between('let pendingBefore=null;','function saveSel(){')
 ].join('\n');
@@ -17,10 +18,11 @@ const extracted=[
 function makeHarness(initial={}){
   const values=new Map(Object.entries(initial).map(([k,v])=>[k,String(v)]));
   const storage={
-    failKey:null,
-    getItem(key){return values.has(key)?values.get(key):null},
+    failKey:null,failGetKey:null,writeCount:0,
+    getItem(key){if(this.failGetKey===key)throw new Error('simulated storage read failure');return values.has(key)?values.get(key):null},
     setItem(key,value){
       if(this.failKey===key)throw new Error('simulated storage failure');
+      this.writeCount++;
       values.set(key,String(value));
     },
     values
@@ -33,12 +35,22 @@ function makeHarness(initial={}){
       description:{textContent:''}
     },
     exportRecovery:{disabled:false},
-    startFresh:{hidden:true}
+    startFresh:{hidden:true},
+    restoreBackup:{hidden:true},
+    retryStorageAccess:{hidden:false},
+    storageRecoveryTitle:{textContent:''},
+    storageRecoveryMessage:{textContent:''}
   };
-  const messages=[];
+  const messages=[],download={blob:null,anchor:null,appended:null};
+  class FakeBlob{constructor(parts,options={}){this.parts=parts;this.type=options.type||''}}
+  const fakeURL={createObjectURL(blob){download.blob=blob;return 'blob:anwar-recovery'},revokeObjectURL(url){download.revoked=url}};
+  const fakeDocument={
+    createElement(tag){const anchor={tagName:tag,clicked:false,removed:false,click(){this.clicked=true},remove(){this.removed=true}};download.anchor=anchor;return anchor},
+    body:{append(anchor){download.appended=anchor}}
+  };
   const sandbox={
     console:{warn(){},error(){}},
-    Date,Math,JSON,Set,Number,String,Array,Object,Error,
+    Date,Math,JSON,Set,Number,String,Array,Object,Error,Blob:FakeBlob,URL:fakeURL,document:fakeDocument,setTimeout(){}, 
     TYPES:{poem:'قصيدة',text:'نص',idea:'فكرة'},
     FONTS:['Amiri','Tajawal'],
     hasOwn:(o,k)=>Object.prototype.hasOwnProperty.call(o,k),
@@ -48,14 +60,14 @@ function makeHarness(initial={}){
     localStorage:storage,
     S:{notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[]},
     cur:null,tm:null,pendingBefore:null,pg:{innerHTML:''},clearTimeout(){},
-    storageRecoveryBlocked:false,storageRecoveryRaw:null,storageRecoveryExported:false,
+    storageRecoveryBlocked:false,storageRecoveryRaw:null,storageRecoveryExported:false,storageRecoveryMode:'none',storageRecoveryBackupAvailable:false,
     $:id=>elements[id]||(elements[id]={hidden:false,disabled:false}),
     toast:m=>messages.push(String(m)),
     confirm:()=>true,
-    openNote(){},theme(){},chips(){}
+    openNote(){},theme(){},chips(){},renderList(){}
   };
-  vm.runInNewContext(extracted+"\nthis.api={load,save,startFreshNotebook,snapshot:()=>({S,storageRecoveryBlocked,storageRecoveryRaw,storageRecoveryExported}),\n      activateEdit:(note,previous,html)=>{cur=note;pendingBefore=previous;pg.innerHTML=html},\n      flushPendingEdit};",sandbox,{timeout:3000});
-  return {api:sandbox.api,storage,elements,messages};
+  vm.runInNewContext(extracted+"\nthis.api={load,save,startFreshNotebook,retryStorageAccess,restoreStorageBackup,exportStorageRecovery,snapshot:()=>({S,storageRecoveryBlocked,storageRecoveryRaw,storageRecoveryExported,storageRecoveryMode,storageRecoveryBackupAvailable}),\n      activateEdit:(note,previous,html)=>{cur=note;pendingBefore=previous;pg.innerHTML=html},\n      flushPendingEdit};",sandbox,{timeout:3000});
+  return {api:sandbox.api,storage,elements,messages,sandbox,download};
 }
 const assert=(condition,message)=>{
   if(!condition)throw new Error('FAIL: '+message);
@@ -75,8 +87,15 @@ assert(h.api.snapshot().S.notes.length===1&&h.api.snapshot().S.notes[0].id==='n1
 
 h=makeHarness({'anwar_v1':'{broken-json','anwar_v1_backup_v2':state(note('backup'))});
 h.api.load();
-assert(h.api.snapshot().S.notes[0]?.id==='backup','corrupt primary falls back to backup');
-assert(JSON.parse(h.storage.getItem('anwar_v1')).notes[0].id==='backup','restored backup repairs the primary key');
+assert(h.api.snapshot().storageRecoveryBlocked&&h.api.snapshot().storageRecoveryRaw==='{broken-json','corrupt primary enters recovery without losing its raw value');
+assert(h.storage.getItem('anwar_v1')==='{broken-json','corrupt primary is not overwritten automatically');
+assert(!h.elements.restoreBackup.hidden,'a valid backup is offered for explicit recovery');
+h.api.restoreStorageBackup();
+assert(h.storage.getItem('anwar_v1')==='{broken-json','backup restore is blocked until raw export');
+h.api.exportStorageRecovery();
+assert(h.download.blob.parts.join('')==='{broken-json'&&h.download.blob.type==='application/json;charset=utf-8'&&h.download.anchor.download==='anwar-storage-recovery-raw.json'&&h.download.anchor.clicked&&h.api.snapshot().storageRecoveryExported,'raw recovery export creates and clicks a downloadable Blob');
+h.api.restoreStorageBackup();
+assert(!h.api.snapshot().storageRecoveryBlocked&&JSON.parse(h.storage.getItem('anwar_v1')).notes[0].id==='backup','valid backup restores only after raw export');
 
 h=makeHarness({'anwar_v1_backup_v2':state(note('orphan-backup'))});
 h.api.load();
@@ -84,7 +103,11 @@ assert(h.api.snapshot().S.notes[0]?.id==='orphan-backup','missing primary key re
 
 h=makeHarness({'anwar_v1':JSON.stringify({notes:[null,'bad',false]}),'anwar_v1_backup_v2':state(note('clean-backup'))});
 h.api.load();
-assert(h.api.snapshot().S.notes[0]?.id==='clean-backup','all-invalid notes trigger backup fallback');
+assert(h.api.snapshot().storageRecoveryBlocked&&h.api.snapshot().storageRecoveryBackupAvailable,'an all-invalid primary is held for recovery while a valid backup is offered');
+h.api.exportStorageRecovery();
+assert(h.download.blob.parts.join('')===h.api.snapshot().storageRecoveryRaw&&h.download.anchor.clicked,'invalid primary recovery export downloads its raw value');
+h.api.restoreStorageBackup();
+assert(h.api.snapshot().S.notes[0]?.id==='clean-backup','explicit backup restore recovers all-invalid primary after raw export');
 
 h=makeHarness({'anwar_v1':state(null,note('valid-row'))});
 h.api.load();
@@ -103,9 +126,32 @@ h=makeHarness({
 h.api.load();
 assert(!h.elements.startFresh.hidden,'fresh-start action is shown for damaged data');
 h.api.startFreshNotebook();
-assert(!h.api.snapshot().storageRecoveryBlocked&&h.api.snapshot().S.notes.length===0,'fresh start clears recovery lock');
+assert(h.api.snapshot().storageRecoveryBlocked&&h.storage.getItem('anwar_v1')==='corrupt','fresh start cannot overwrite damaged data before raw export');
+h.api.exportStorageRecovery();
+assert(h.download.anchor.clicked&&h.api.snapshot().storageRecoveryExported,'fresh-start path requires an actual raw export action');
+h.api.startFreshNotebook();
+assert(!h.api.snapshot().storageRecoveryBlocked&&h.api.snapshot().S.notes.length===0,'fresh start clears recovery lock after raw export');
 assert(h.storage.getItem('anwar_library_saved_v1')===JSON.stringify(['saved-book']),'fresh start preserves saved library items');
 assert(h.storage.getItem('anwar_rd')===JSON.stringify({r:'reader',n:12,m:'l'}),'fresh start preserves radio state');
+
+h=makeHarness();
+h.storage.failGetKey='anwar_v1';
+h.api.load();
+assert(h.api.snapshot().storageRecoveryBlocked&&h.api.snapshot().storageRecoveryMode==='unavailable','blocked localStorage access is distinct from corrupt JSON');
+h.storage.failGetKey=null;
+assert(h.api.retryStorageAccess()===true&&!h.api.snapshot().storageRecoveryBlocked,'retry succeeds when browser storage access returns');
+
+h=makeHarness({'anwar_v1_backup_v2':state(note('retry-backup'))});
+h.storage.failGetKey='anwar_v1';
+h.api.load();
+const writesBeforeRetry=h.storage.writeCount;
+h.storage.failGetKey=null;
+assert(h.api.retryStorageAccess()===true&&h.api.snapshot().S.notes[0]?.id==='retry-backup','retry loads a valid backup when the primary key is absent');
+assert(h.storage.getItem('anwar_v1')===null&&h.storage.writeCount===writesBeforeRetry,'retry remains read-only and does not rewrite the missing primary record');
+
+h=makeHarness({'anwar_v1_backup_v2':''});
+h.api.load();
+assert(h.api.snapshot().storageRecoveryBlocked&&h.api.snapshot().storageRecoveryRaw==='','an empty backup value is treated as corrupt data, not as a missing backup');
 
 h=makeHarness();
 h.api.snapshot().S.notes.push(note('saved'));

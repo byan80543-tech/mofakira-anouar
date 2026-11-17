@@ -1362,7 +1362,7 @@ dialog[open]>.float-head{display:none!important}
  <div class="g"><div><button class="b" id="vs">📜 بيت</button><button class="b" id="sp">🔊 إلقاء</button><button class="b" id="fo">🎯 تركيز</button><button class="b" id="ip">💡 إلهام</button><button class="b" id="pn">☆ تثبيت</button><button class="b" id="cy">📋</button><button class="b" id="hist">🕘 الإصدارات</button><button class="b dn" id="dl">🗑️</button></div><small>أدوات أنوار</small></div>
  <div class="g"><div><button class="b" id="ownerBtn" aria-label="الملكية والأذكار" title="الملكية والأذكار">✒ الملكية والأذكار</button></div><small>هوية أنوار</small></div>
 </div>
-<section id="storageRecoveryNotice" hidden role="alert" aria-live="assertive"><div><strong>توقّف الحفظ حمايةً لبياناتك</strong><span>تعذّر فتح بيانات المفكرة السابقة. يمكنك تنزيل البيانات الخام أو بدء مفكرة نظيفة. لن تتأثر الإذاعة أو بقية أدوات المفكرة.</span></div><div class="storage-recovery-actions"><button type="button" id="exportRecovery">تنزيل الملف الخام</button><button type="button" id="startFresh" hidden>بدء مفكرة جديدة</button></div></section>
+<section id="storageRecoveryNotice" hidden role="alert" aria-live="assertive"><div><strong id="storageRecoveryTitle">توقّف الحفظ حمايةً لبياناتك</strong><span id="storageRecoveryMessage">تعذّر فتح بيانات المفكرة. لن نكتب فوق أي بيانات قبل التحقق منها.</span></div><div class="storage-recovery-actions"><button type="button" id="exportRecovery">تنزيل الملف الخام</button><button type="button" id="restoreBackup" hidden>استعادة النسخة الاحتياطية</button><button type="button" id="startFresh" hidden>بدء مفكرة جديدة</button><button type="button" id="retryStorageAccess">إعادة فحص التخزين</button></div></section>
 <main>
  <section id="list">
   <input id="q" type="search" placeholder="ابحث…">
@@ -1540,7 +1540,7 @@ dialog[open]>.float-head{display:none!important}
 const TYPES={poem:'قصيدة',text:'نص',idea:'فكرة'},IC={poem:'🪶',text:'📜',idea:'💡'};
 const FONTS=['Amiri','Amiri Quran','Aref Ruqaa','Aref Ruqaa Ink','Scheherazade New','Lateef','Harmattan','Noto Naskh Arabic','Markazi Text','Mirza','Katibeh','Gulzar','Cairo','Tajawal','Almarai','Alexandria','Changa','Mada','Readex Pro','IBM Plex Sans Arabic','Noto Sans Arabic','Noto Kufi Arabic','Vazirmatn','Rubik','Baloo Bhaijaan 2','Lemonada','Reem Kufi','Reem Kufi Fun','Reem Kufi Ink','El Messiri','Kufam','Lalezar','Rakkas','Jomhuria','Marhey','Vibes','Blaka','Qahiri','Playpen Sans Arabic','Noto Nastaliq Urdu','Traditional Arabic','Simplified Arabic','Sakkal Majalla','Segoe UI','Tahoma','Arial','Times New Roman','Courier New'];
 const PROMPTS=['اكتب عن رائحة المطر على أول تراب بعد غياب طويل','قصيدة عن ضوء مصباح وحيد في آخر الليل','ماذا يقول القمر لمن ينتظر؟','صف وجهًا لا تنساه دون أن تذكر ملامحه','اكتب رسالة إلى نفسك بعد عشر سنوات','قصيدة عن وطن يسكن حقيبة سفر','ما الذي تعلّمته من الصمت؟','اكتب عن قهوة الصباح كأنها صديق قديم','بيت شعر يبدأ بكلمة «لولا»','اكتب عن بابٍ لم تجرؤ على فتحه','قصيدة عن الحنين بثلاث صور فقط'];
-let S={notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[]},cur=null,flt='all',tm,speaking=false,saved=null,storageRecoveryBlocked=false,storageRecoveryRaw=null,storageRecoveryExported=false;
+let S={notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[]},cur=null,flt='all',tm,speaking=false,saved=null,storageRecoveryBlocked=false,storageRecoveryRaw=null,storageRecoveryExported=false,storageRecoveryMode='none',storageRecoveryBackupAvailable=false;
 const $=id=>document.getElementById(id),pg=$('pg');
 const hasOwn=(object,key)=>Object.prototype.hasOwnProperty.call(object,key);
 const esc=s=>String(s??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
@@ -1601,6 +1601,7 @@ function normalizeState(data){
  });
  return {notes,theme:d.theme==='dark'?'dark':d.theme==='light'?'light':'',palette:['blue','green','purple','rose','amber','slate'].includes(d.palette)?d.palette:'blue',wallColor:['mist','cream','sky','mint','lavender','blush','slate','night'].includes(d.wallColor)?d.wallColor:'mist',paperColor:['white','cream','sky','mint','lavender','blush','gray','night'].includes(d.paperColor)?d.paperColor:'white',days:Array.isArray(d.days)?d.days.filter(x=>typeof x==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x)).slice(-400):[]};
 }
+function emptyStorageState(){return {notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[]}}
 function createNoteId(){
  const base=Date.now().toString(36),used=new Set(S.notes.map(n=>String(n.id)));
  let id=base,suffix=2;
@@ -1609,65 +1610,146 @@ function createNoteId(){
 }
 function showStorageRecoveryNotice(title,message,raw){
  storageRecoveryBlocked=true;
+ storageRecoveryMode=raw===null?'unavailable':'corrupt';
  storageRecoveryRaw=typeof raw==='string'?raw:null;
- S={notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[]};
- const panel=$('storageRecoveryNotice');
- if(panel){
-  const heading=panel.querySelector('strong'),description=panel.querySelector('span');
-  if(heading)heading.textContent=title;
-  if(description)description.textContent=message;
-  panel.hidden=false;
- }
- const exportButton=$('exportRecovery'),freshButton=$('startFresh');
- if(exportButton)exportButton.disabled=storageRecoveryRaw===null;
- if(freshButton)freshButton.hidden=storageRecoveryRaw===null;
+ storageRecoveryExported=false;
+ storageRecoveryBackupAvailable=false;
+ S=emptyStorageState();
+ const panel=$('storageRecoveryNotice'),heading=$('storageRecoveryTitle'),description=$('storageRecoveryMessage');
+ if(heading)heading.textContent=title;
+ if(description)description.textContent=message;
+ if(panel)panel.hidden=false;
+ updateStorageRecoveryNotice();
 }
 function readStoredState(raw){
  const parsed=JSON.parse(raw);
- if(!parsed||typeof parsed!=='object'||Array.isArray(parsed))throw new Error('البيانات المحفوظة ليست كائنًا صالحًا');
+ if(!parsed||typeof parsed!=='object'||Array.isArray(parsed)||!Array.isArray(parsed.notes))throw new Error('بنية سجل التخزين غير معروفة');
+ if(parsed.notes.length>2500||parsed.notes.some(n=>n&&typeof n==='object'&&!Array.isArray(n)&&(typeof n.html==='string'?n.html:n.text).length>450000))throw new Error('سجل التخزين يتجاوز حدود السلامة');
  const normalized=normalizeState(parsed);
- if(Array.isArray(parsed.notes)&&parsed.notes.length>0&&normalized.notes.length===0)throw new Error('لم يبق أي سجل صالح بعد فحص البيانات');
+ if(parsed.notes.length>0&&normalized.notes.length===0)throw new Error('لم يبق أي سجل صالح بعد فحص البيانات');
  return normalized;
+}
+function updateStorageRecoveryNotice(){
+ const panel=$('storageRecoveryNotice'),title=$('storageRecoveryTitle'),message=$('storageRecoveryMessage'),exportButton=$('exportRecovery'),freshButton=$('startFresh'),restoreButton=$('restoreBackup'),retryButton=$('retryStorageAccess');
+ if(!panel)return;
+ panel.hidden=false;
+ if(storageRecoveryMode==='unavailable'){
+  if(title)title.textContent='المتصفح لا يتيح الوصول إلى التخزين';
+  if(message)message.textContent='تعذّر على المتصفح فتح مخزن مفكرة أنوار. لا يمكن الجزم بوجود بيانات سابقة أو بفسادها؛ لا تمسح بيانات الموقع، وأعد المحاولة في متصفح يسمح بالتخزين المحلي.';
+ }else{
+  if(title)title.textContent='توقّف الحفظ حمايةً لبياناتك';
+  if(message)message.textContent='تعذّر تحليل سجل مفكرة أنوار المحفوظ. نزّل الملف الخام أولاً، ثم استعد نسخة احتياطية صالحة أو ابدأ مفكرة جديدة.';
+ }
+ if(exportButton)exportButton.disabled=storageRecoveryRaw===null;
+ if(freshButton)freshButton.hidden=storageRecoveryMode!=='corrupt';
+ if(restoreButton)restoreButton.hidden=!(storageRecoveryMode==='corrupt'&&storageRecoveryBackupAvailable);
+ if(retryButton)retryButton.hidden=false;
+}
+function clearStorageRecovery(){
+ storageRecoveryBlocked=false;storageRecoveryRaw=null;storageRecoveryExported=false;storageRecoveryMode='none';storageRecoveryBackupAvailable=false;
+ const panel=$('storageRecoveryNotice');if(panel)panel.hidden=true;
 }
 function load(){
  let raw;
  try{raw=localStorage.getItem('anwar_v1')}
  catch(error){
-  showStorageRecoveryNotice('التخزين المحلي غير متاح','منع هذا المتصفح الوصول إلى بيانات المفكرة. افتح الموقع في تبويب عادي أو متصفح يسمح بالتخزين ثم أعد المحاولة.',null);
+  showStorageRecoveryNotice('المتصفح لا يتيح الوصول إلى التخزين','تعذّر على المتصفح الوصول إلى بيانات المفكرة. أعد المحاولة دون مسح بيانات الموقع.',null);
   console.warn('تعذّرت قراءة التخزين المحلي لمفكرة أنوار',error);
   return;
  }
- if(raw!==null&&raw!==''){
+ if(raw!==null){
+  try{S=readStoredState(raw);return}
+  catch(primaryError){console.warn('تعذّرت قراءة الحالة الأساسية لمفكرة أنوار',primaryError)}
+  let backupAvailable=false;
   try{
-   S=readStoredState(raw);
+   const backupRaw=localStorage.getItem('anwar_v1_backup_v2');
+   if(backupRaw){readStoredState(backupRaw);backupAvailable=true}
+  }catch(backupError){console.warn('لم تتوفر نسخة احتياطية صالحة للقراءة',backupError)}
+  showStorageRecoveryNotice('تعذّر فتح بيانات المفكرة','احتفظنا بالسجل الخام دون تغييره. نزّله أولاً قبل استعادة النسخة الاحتياطية أو بدء مفكرة جديدة.',raw);
+  storageRecoveryBackupAvailable=backupAvailable;
+  updateStorageRecoveryNotice();
+  return;
+ }
+ if(raw===null){
+  let backupRaw=null;
+  try{backupRaw=localStorage.getItem('anwar_v1_backup_v2')}
+  catch(backupError){
+   showStorageRecoveryNotice('المتصفح لا يتيح الوصول إلى التخزين','تعذّر فحص النسخة الاحتياطية. أعد المحاولة دون مسح بيانات الموقع.',null);
+   console.warn('تعذّرت قراءة النسخة الاحتياطية',backupError);
    return;
-  }catch(primaryError){
-   console.warn('تعذّرت قراءة الحالة الأساسية لمفكرة أنوار',primaryError);
   }
+  if(backupRaw!==null){
+   try{
+    S=readStoredState(backupRaw);
+    try{localStorage.setItem('anwar_v1',JSON.stringify(S))}catch(repairError){console.warn('تعذّر إنشاء السجل الأساسي من النسخة الاحتياطية',repairError)}
+    toast('استعدنا نسخة سليمة من الحفظ الاحتياطي.',4500);
+    return;
+   }catch(backupError){
+    showStorageRecoveryNotice('تعذّر فتح النسخة الاحتياطية','النسخة الاحتياطية غير قابلة للتحليل. نزّل سجلها الخام قبل بدء مفكرة جديدة.',backupRaw);
+    console.warn('النسخة الاحتياطية غير صالحة',backupError);
+    return;
+   }
+  }
+  S=emptyStorageState();
+ }
+}
+function retryStorageAccess(){
+ if(!storageRecoveryBlocked)return false;
+ let raw;
+ try{raw=localStorage.getItem('anwar_v1')}
+ catch(error){toast('لا يزال المتصفح يمنع الوصول إلى التخزين؛ لم تُغيّر أي بيانات.',5000);return false}
+ if(raw===null){
+  let backupRaw;
+  try{backupRaw=localStorage.getItem('anwar_v1_backup_v2')}
+  catch(error){toast('عاد الوصول إلى السجل الأساسي، لكن تعذّر فحص النسخة الاحتياطية؛ لم تُغيّر أي بيانات.',5000);return false}
+  if(backupRaw!==null){
+   try{S=readStoredState(backupRaw)}
+   catch(error){
+    storageRecoveryRaw=backupRaw;storageRecoveryMode='corrupt';storageRecoveryBlocked=true;storageRecoveryExported=false;storageRecoveryBackupAvailable=false;
+    updateStorageRecoveryNotice();toast('النسخة الاحتياطية غير صالحة؛ نزّل قيمتها الخام قبل بدء مفكرة جديدة.',5000);return false;
+   }
+  }else S=emptyStorageState();
+  clearStorageRecovery();openNote(null);theme();chips();renderList();
+  toast('عاد الوصول إلى التخزين. عُرضت النسخة الاحتياطية دون إعادة كتابة السجل الأساسي.',4500);
+  return true;
  }
  try{
+  S=readStoredState(raw);
+  clearStorageRecovery();openNote(null);theme();chips();renderList();
+  toast('عاد الوصول إلى بيانات المفكرة بنجاح.',4000);
+  return true;
+ }catch(error){
+  storageRecoveryRaw=raw;storageRecoveryMode='corrupt';storageRecoveryBlocked=true;storageRecoveryExported=false;
+  storageRecoveryBackupAvailable=false;
+  try{const backupRaw=localStorage.getItem('anwar_v1_backup_v2');if(backupRaw)readStoredState(backupRaw),storageRecoveryBackupAvailable=true}catch(backupError){}
+  updateStorageRecoveryNotice();
+  toast('ما زال سجل التخزين غير قابل للتحليل؛ نزّل نسخته الخام قبل الاستعادة.',5000);
+  return false;
+ }
+}
+function restoreStorageBackup(){
+ if(!storageRecoveryBlocked||storageRecoveryMode!=='corrupt'||storageRecoveryRaw===null)return;
+ if(!storageRecoveryExported){toast('نزّل ملف الاسترداد الخام أولاً قبل استبدال البيانات التالفة.',6000);return}
+ try{
   const backupRaw=localStorage.getItem('anwar_v1_backup_v2');
-  if(backupRaw){
-   S=readStoredState(backupRaw);
-   const repaired=JSON.stringify(S);
-   try{localStorage.setItem('anwar_v1',repaired)}catch(repairError){console.warn('تعذّر إصلاح النسخة الأساسية تلقائيًا',repairError)}
-   toast('استعدنا نسخة سليمة من الحفظ الاحتياطي.',4500);
-   return;
-  }
- }catch(backupError){console.warn('لم تتوفر نسخة حفظ احتياطية قابلة للقراءة',backupError)}
- if(raw===null)return;
- showStorageRecoveryNotice('تعذّر فتح بيانات المفكرة','تعذّرت قراءة البيانات المحفوظة. بما أن هذه بيانات تجريبية، يمكنك بدء مفكرة نظيفة؛ ولن تتأثر المكتبة أو الإذاعة.',raw);
+  if(!backupRaw)throw new Error('لا توجد نسخة احتياطية');
+  const restored=readStoredState(backupRaw),serialized=JSON.stringify(restored);
+  localStorage.setItem('anwar_v1',serialized);
+  try{localStorage.setItem('anwar_v1_backup_v2',serialized)}catch(backupError){console.warn('تعذّر تحديث النسخة الاحتياطية الثانوية',backupError)}
+  S=restored;clearStorageRecovery();openNote(null);theme();chips();renderList();
+  toast('تمت استعادة النسخة الاحتياطية بعد حفظ السجل الخام.',4500);
+ }catch(error){toast('تعذّرت استعادة النسخة الاحتياطية؛ بقي السجل الخام دون تغيير.',5000);console.warn('تعذّرت استعادة النسخة الاحتياطية',error)}
 }
 function startFreshNotebook(){
  if(!storageRecoveryBlocked)return;
- if(!confirm('سيتم استبدال بيانات المفكرة التجريبية فقط والبدء بصفحة فارغة. لن تتأثر مكتبة أنوار أو الإذاعة. هل تتابع؟'))return;
- const fresh={notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[]};
+ if(storageRecoveryMode==='corrupt'&&storageRecoveryRaw!==null&&!storageRecoveryExported){toast('نزّل ملف الاسترداد الخام أولاً قبل بدء مفكرة جديدة.',6000);return}
+ if(!confirm('سيتم استبدال بيانات المفكرة التجريبية فقط والبدء بصفحة فارغة. لن تتأثر المكتبة أو الإذاعة. هل تتابع؟'))return;
+ const fresh=emptyStorageState();
  try{
   const serialized=JSON.stringify(fresh);
   localStorage.setItem('anwar_v1',serialized);
   try{localStorage.setItem('anwar_v1_backup_v2',serialized)}catch(backupError){console.warn('تعذّر إنشاء نسخة احتياطية أولية',backupError)}
-  S=fresh;cur=null;storageRecoveryBlocked=false;storageRecoveryRaw=null;storageRecoveryExported=false;
-  $('storageRecoveryNotice').hidden=true;
+  S=fresh;cur=null;clearStorageRecovery();
   openNote(null);theme();chips();
   toast('بدأت مفكرة أنوار ببيانات نظيفة.',3500);
  }catch(error){
@@ -1675,7 +1757,7 @@ function startFreshNotebook(){
   toast('تعذّر تهيئة المفكرة؛ لم يتم تغيير بيانات المكتبة أو الإذاعة.',5000);
  }
 }
-function exportStorageRecovery(){if(storageRecoveryRaw===null){toast('تعذّر قراءة البيانات الخام من المتصفح؛ لا تمسح بيانات الموقع.',5000);return}try{const blob=new Blob([storageRecoveryRaw],{type:'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='anwar-storage-recovery-raw.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);storageRecoveryExported=true;toast('تم تجهيز ملف الاسترداد الخام. احتفظ به قبل الاستعادة.',5000)}catch(e){toast('تعذّر تنزيل ملف الاسترداد الخام؛ لا تحذف بيانات المتصفح.',5000)}}
+function exportStorageRecovery(){if(storageRecoveryMode!=='corrupt'||storageRecoveryRaw===null){toast('لا تتوفر قيمة خام قابلة للتنزيل. أعد فحص وصول المتصفح إلى التخزين أولاً.',5000);return}try{const blob=new Blob([storageRecoveryRaw],{type:'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='anwar-storage-recovery-raw.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);storageRecoveryExported=true;toast('تم تجهيز ملف الاسترداد الخام. احتفظ به قبل الاستعادة.',5000)}catch(e){toast('تعذّر تنزيل ملف الاسترداد الخام؛ لا تحذف بيانات المتصفح.',5000)}}
 function save(){if(storageRecoveryBlocked){toast('الحفظ متوقف حمايةً للبيانات القديمة. ابدأ مفكرة نظيفة أو استعد نسخة سليمة.',5000);return false}try{const serialized=JSON.stringify(S);localStorage.setItem('anwar_v1',serialized);try{localStorage.setItem('anwar_v1_backup_v2',serialized)}catch(backupError){console.warn('حُفظت المفكرة لكن تعذّر تحديث النسخة الاحتياطية الثانوية',backupError)}return true}catch(e){console.warn('تعذّر حفظ بيانات مفكرة أنوار محلياً',e);toast('تعذّر الحفظ: مساحة التخزين غير متاحة أو ممتلئة. صدّر أعمالك المهمة.',5000);return false}}
 function toast(m,d){const t=$('toast');t.textContent=m;t.classList.add('s');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('s'),d||2000)}
 const iso=d=>d.toISOString().slice(0,10);
@@ -1820,6 +1902,8 @@ async function printFile(){
 #storageRecoveryNotice button{flex:none;border:1px solid #a97b33;border-radius:9px;padding:8px 11px;background:#fffaf0;color:#513b19;font-size:11px;font-weight:700}
 #storageRecoveryNotice button:disabled{opacity:.45;cursor:not-allowed}
 #storageRecoveryNotice .storage-recovery-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+#storageRecoveryNotice #retryStorageAccess{border-color:#8ca4bd;background:#fff;color:#173d5c}
+#storageRecoveryNotice #restoreBackup{border-color:#8b9c70;background:#f5f8ee;color:#354525}
 #storageRecoveryNotice #startFresh{background:#f4e5c9;border-color:#8f6a2e;color:#493515}
 /* تحسين هادئ لسطوح الكتابة وقائمة الأعمال */
 .card{border-radius:11px;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
@@ -2441,9 +2525,11 @@ document.addEventListener('click',e=>{
  else if(id==='dl'&&cur){if(confirm('حذف هذا العمل نهائيًا؟')){S.notes=S.notes.filter(n=>n!==cur);save();openNote(null)}}
  else if(id==='bkp'){$('bt').value=JSON.stringify(S);$('dg').showModal()}
  else if(id==='exportRecovery')exportStorageRecovery();
+ else if(id==='retryStorageAccess')retryStorageAccess();
+ else if(id==='restoreBackup')restoreStorageBackup();
  else if(id==='startFresh')startFreshNotebook();
  else if(id==='cp'){$('bt').select();navigator.clipboard&&navigator.clipboard.writeText($('bt').value).then(()=>toast('تم النسخ'),()=>{})}
- else if(id==='rs'){try{const backupText=$('bt').value;if(backupText.length>4500000)throw new Error('الحجم كبير جدًا');if(storageRecoveryBlocked&&storageRecoveryRaw!==null&&!storageRecoveryExported){toast('نزّل ملف الاسترداد الخام أولًا قبل استبدال البيانات التالفة.',6000);return}const d=JSON.parse(backupText);if(!d||!Array.isArray(d.notes)||d.notes.length>2500||d.notes.some(n=>!n||typeof n!=='object'||String(n.html||n.text||'').length>450000))throw new Error('بنية النسخة غير مقبولة');const next=normalizeState(d),serialized=JSON.stringify(next);localStorage.setItem('anwar_v1',serialized);try{localStorage.setItem('anwar_v1_backup_v2',serialized)}catch(backupError){console.warn('تعذّر تحديث النسخة الاحتياطية الثانوية بعد الاستيراد',backupError)}S=next;storageRecoveryBlocked=false;storageRecoveryRaw=null;storageRecoveryExported=false;$('storageRecoveryNotice').hidden=true;openNote(null);theme();$('dg').close();toast('تمت الاستعادة والتحقق من النسخة')}catch(x){toast(x&&x.message==='الحجم كبير جدًا'?'النسخة أكبر من الحد الآمن للاستيراد.':'النسخة غير صالحة أو تعذّر حفظها؛ لم تتغير البيانات الحالية.',6000)}}
+ else if(id==='rs'){try{const backupText=$('bt').value;if(backupText.length>4500000)throw new Error('الحجم كبير جدًا');if(storageRecoveryBlocked&&storageRecoveryRaw!==null&&!storageRecoveryExported){toast('نزّل ملف الاسترداد الخام أولًا قبل استبدال البيانات التالفة.',6000);return}const d=JSON.parse(backupText);if(!d||!Array.isArray(d.notes)||d.notes.length>2500||d.notes.some(n=>!n||typeof n!=='object'||String(n.html||n.text||'').length>450000))throw new Error('بنية النسخة غير مقبولة');const next=normalizeState(d),serialized=JSON.stringify(next);localStorage.setItem('anwar_v1',serialized);try{localStorage.setItem('anwar_v1_backup_v2',serialized)}catch(backupError){console.warn('تعذّر تحديث النسخة الاحتياطية الثانوية بعد الاستيراد',backupError)}S=next;clearStorageRecovery();openNote(null);theme();$('dg').close();toast('تمت الاستعادة والتحقق من النسخة')}catch(x){toast(x&&x.message==='الحجم كبير جدًا'?'النسخة أكبر من الحد الآمن للاستيراد.':'النسخة غير صالحة أو تعذّر حفظها؛ لم تتغير البيانات الحالية.',6000)}}
  else if(id==='cl')$('dg').close();
  else if(id==='ownerBtn')$('ownerDialog').showModal();
  else if(id==='closeOwner')$('ownerDialog').close();
@@ -3732,6 +3818,12 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   });
  }
 })();;
+</script>
+<script>
+// Cache the local application shell; external radio, APIs and fonts remain network-dependent.
+if('serviceWorker' in navigator&&location.protocol==='https:'){
+ window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js',{scope:'./'}).catch(error=>console.warn('تعذّر تسجيل عامل خدمة مفكرة أنوار',error)));
+}
 </script>
 </body>
 </html>
