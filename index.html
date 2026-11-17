@@ -1577,6 +1577,15 @@ dialog[open]>.float-head{display:none!important}
 }
 </style>
 
+
+<style>
+.reader-advance-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 12px;border:1px solid #d9c18d;border-radius:12px;background:linear-gradient(115deg,#fff9eb,#f1e4c8);box-shadow:0 2px 8px rgba(8,38,77,.045)}
+.reader-advance-copy{display:grid;gap:2px;min-width:0;color:#183a57}
+.reader-advance-copy strong{font-size:13px}
+.reader-advance-copy small{font-size:10px;color:#78694e}
+.reader-advance-bar select{flex:1;min-width:0;max-width:260px;min-height:40px;padding:7px 10px;border:1px solid #d9c18d;border-radius:9px;background:#fffdf8;color:#183a57;font:inherit;font-size:12px}
+@media(max-width:420px){.reader-advance-bar{align-items:stretch;flex-direction:column;gap:6px}.reader-advance-bar select{max-width:none;width:100%}}
+</style>
 </head>
 <body>
 <div class="app" id="app">
@@ -1709,6 +1718,13 @@ dialog[open]>.float-head{display:none!important}
  <div class="surah-picker-bar" role="group" aria-label="اختيار سورة القرآن">
   <div class="surah-picker-copy"><strong>السورة المطلوبة</strong><small>اخترها أولاً ثم اضغط زهرة القارئ</small></div>
   <select id="surahPicker" aria-label="اختر السورة التي تريد الاستماع إليها"></select>
+ </div>
+ <div class="reader-advance-bar" role="group" aria-label="طريقة التنقل بين السور في قوائم القراء">
+  <div class="reader-advance-copy"><strong>التنقل بين السور</strong><small>اختر كيف تتابع تلاوة القارئ</small></div>
+  <select id="readerAdvanceMode" aria-label="طريقة التنقل بين السور">
+   <option value="c">تلقائي · ينتقل إلى السورة التالية</option>
+   <option value="s">يدوي · أختار السورة بنفسي</option>
+  </select>
  </div>
 
  <div hidden aria-hidden="true"><button type="button" id="countryQuickToggle" aria-expanded="false"></button><div id="countryQuickPanel" hidden></div><button type="button" id="countryRandomPlay"></button><select id="reciterCountry"><option value=""></option></select><button type="button" id="reciterCountryOpen" disabled></button><small id="reciterCountryStatus"></small></div>
@@ -3330,6 +3346,22 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  rsu.innerHTML=SU.map((s,i)=>`<option value="${i+1}">${i+1}. ${esc(s)}</option>`).join('');
  const surahPicker=$('surahPicker');surahPicker.innerHTML=rsu.innerHTML;surahPicker.value=String(n);
  const mode=()=>document.querySelector('input[name=rm]:checked').value;
+ const readerAdvanceSelect=$('readerAdvanceMode');
+ let readerAdvancePreference='c',activePlaybackKind='radio';
+ try{const savedAdvance=localStorage.getItem('anwar_reader_advance');if(savedAdvance==='c'||savedAdvance==='s')readerAdvancePreference=savedAdvance}catch(_e){}
+ if(readerAdvanceSelect)readerAdvanceSelect.value=readerAdvancePreference;
+ function selectPlaybackMode(value){const control=document.querySelector('input[name="rm"][value="'+(value==='s'?'s':'c')+'"]');if(control)control.checked=true;}
+ if(readerAdvanceSelect)readerAdvanceSelect.addEventListener('change',()=>{
+  readerAdvancePreference=readerAdvanceSelect.value==='s'?'s':'c';
+  try{localStorage.setItem('anwar_reader_advance',readerAdvancePreference)}catch(_e){}
+  // The visitor's preference applies to reciter-list playback, never to the radio broadcast.
+  if(activePlaybackKind==='reader'){
+   selectPlaybackMode(readerAdvancePreference);
+   st.textContent=readerAdvancePreference==='c'
+    ?'سيواصل هذا القارئ تلقائيًا إلى السورة التالية.'
+    :'وضع الاختيار اليدوي: ستتوقف التلاوة عند نهاية السورة.';
+  }
+ });
  function ui(){const on=started&&!au.paused,live=mode()==='l';pp.textContent=on?'⏸':'▶';rb.textContent=on?'⏸':'▶';rb.classList.toggle('on',on);$('radioNow').textContent=on?(live?($('rl').selectedOptions[0]||{text:'إذاعة مباشرة'}).text:'القارئ: '+R[cr][0]):'إذاعة أنوار القرآنية';$('radioSub').textContent=on?(live?'بث إذاعي مباشر · استمع الآن':'سورة '+SU[n-1]+' · تلاوة متتابعة'):'اختر قارئك أو افتح البث المباشر';$('radioLiveDot').classList.toggle('playing',on);document.querySelector('.radio-hero').classList.toggle('playing',on);$('reciterGrid').querySelectorAll('[data-reciter-play]').forEach(b=>{const active=on&&!live&&+b.dataset.reciterPlay===cr,label=b.dataset.playLabel||'';b.dataset.playing=String(active);b.textContent=b.classList.contains('reciter-version')?label:(active?'Ⅱ':'▶')});if(on)st.textContent=live?'بث مباشر: '+($('rl').selectedOptions[0]||{text:''}).text:'يُتلى الآن: سورة '+SU[n-1]+' — '+R[cr][0]}
  function availableSurahs(){const a=R[cr]&&Array.isArray(R[cr][2])?R[cr][2]:null;return a&&a.length?a:Array.from({length:114},(_,i)=>i+1)}
  function moveSurah(step){const a=availableSurahs(),i=a.indexOf(n),next=i<0?0:(i+step+a.length)%a.length;n=a[next];rsu.value=String(n);play()}
@@ -3392,9 +3424,9 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
    }
   }else{
    cr=+rr.value||0;
-   // زر الوردة في الصفحة الرئيسة هو إذاعة متواصلة دائمًا، لا وضع سورة واحدة.
-   const continuousMode=document.querySelector('input[name="rm"][value="c"]');
-   if(continuousMode)continuousMode.checked=true;
+   // زر الإذاعة في الصفحة الرئيسة يظل متواصلاً مهما كان اختيار الزائر لقوائم القراء.
+   activePlaybackKind='radio';
+   selectPlaybackMode('c');
    play();
   }
   ui();
@@ -3405,12 +3437,14 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  au.addEventListener('pause',ui);
  au.addEventListener('ended',()=>{
   if(mode()==='l'){
+   // إذا انتهى اتصال البث المباشر، أعد محاولة الاتصال بالمحطة نفسها.
    play();
-  }else if(mode()==='c'){
-   // الإذاعة المتواصلة تنتقل إلى السورة التالية، وتعود إلى أول سورة بعد آخر سورة متاحة.
+  }else if(activePlaybackKind==='radio'||mode()==='c'){
+   // الإذاعة لا تتوقف عند نهاية السورة؛ تنتقل دائمًا إلى التالية ثم تعود للأولى.
    moveSurah(1);
   }else{
-   started=false;ui();st.textContent='انتهت السورة';
+   // في قوائم القراء، يحترم الوضع اليدوي اختيار الزائر ويتوقف عند نهاية السورة.
+   started=false;ui();st.textContent='انتهت السورة؛ اختر السورة التالية للمتابعة.';
   }
  });
  au.addEventListener('error',()=>{
@@ -4068,14 +4102,33 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  countrySelect.addEventListener('change',updateCountryDirectory);
  updateCountryDirectory();
 
- surahPicker.addEventListener('change',()=>{const chosen=Number(surahPicker.value);if(!Number.isInteger(chosen)||chosen<1||chosen>114)return;n=chosen;rsu.value=String(n);st.textContent='تم اختيار سورة '+SU[n-1]+'؛ اختر القارئ لبدء التلاوة.';});
- $('reciterGrid').addEventListener('click',e=>{const b=e.target.closest('[data-reciter-play]');if(!b)return;const menu=b.closest('details.reciter-variants-menu');if(menu)menu.open=false;const i=+b.dataset.reciterPlay;if(started&&!au.paused&&mode()==='c'&&cr===i){au.pause();st.textContent='أوقفت التلاوة مؤقتاً';ui();return;}cr=i;rr.value=String(i);const available=availableSurahs();if(!available.includes(n)){n=available[0]||1;surahPicker.value=String(n);st.textContent='هذه الرواية لا توفر السورة المختارة؛ تم الانتقال إلى أول سورة متاحة.';}rsu.value=String(n);document.querySelector('input[name=rm][value="c"]').checked=true;play()});
+ surahPicker.addEventListener('change',()=>{
+  const chosen=Number(surahPicker.value);if(!Number.isInteger(chosen)||chosen<1||chosen>114)return;
+  n=chosen;rsu.value=String(n);
+  if(started){st.textContent='تم تغيير السورة إلى '+SU[n-1]+'؛ جارٍ تشغيل الاختيار.';play();}
+  else st.textContent='تم اختيار سورة '+SU[n-1]+'؛ اختر القارئ لبدء التلاوة.';
+ });
+ $('reciterGrid').addEventListener('click',e=>{
+  const b=e.target.closest('[data-reciter-play]');if(!b)return;
+  const menu=b.closest('details.reciter-variants-menu');if(menu)menu.open=false;
+  const i=+b.dataset.reciterPlay;
+  if(started&&!au.paused&&activePlaybackKind==='reader'&&cr===i){
+   au.pause();st.textContent='أوقفت التلاوة مؤقتاً';ui();return;
+  }
+  activePlaybackKind='reader';
+  cr=i;rr.value=String(i);
+  selectPlaybackMode(readerAdvancePreference);
+  const available=availableSurahs();
+  if(!available.includes(n)){n=available[0]||1;surahPicker.value=String(n);st.textContent='هذه الرواية لا توفر السورة المختارة؛ تم الانتقال إلى أول سورة متاحة.';}
+  rsu.value=String(n);play();
+ });
  $('liveRadioPlay').addEventListener('click',()=>{
   if(!$('rl').value){
    st.textContent='لم تجهز محطة البث بعد؛ جارٍ تحميل المحطات. اضغط الاستماع بعد ظهور زر التشغيل.';
    ensureRadioCatalog();
    return;
   }
+  activePlaybackKind='live';
   document.querySelector('input[name=rm][value="l"]').checked=true;
   play();
  });
@@ -4112,7 +4165,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
    au.addEventListener('ended',()=>{try{navigator.mediaSession.playbackState='none'}catch(e){}});
   }
  au.addEventListener('playing',()=>{try{localStorage.setItem('anwar_rd',JSON.stringify({r:R[cr][0],n:n,m:mode()}))}catch(e){}});
- try{const p=JSON.parse(localStorage.getItem('anwar_rd')||'null');if(p){const i=R.findIndex(x=>x[0]===p.r);if(i>=0){rr.value=i;cr=i}if(p.n>0&&p.n<115){n=p.n;rsu.value=n}const x=document.querySelector('input[name=rm][value="'+p.m+'"]');if(x&&p.m!=='l')x.checked=true}}catch(e){}
+ try{const p=JSON.parse(localStorage.getItem('anwar_rd')||'null');if(p){const i=R.findIndex(x=>x[0]===p.r);if(i>=0){rr.value=i;cr=i}if(p.n>0&&p.n<115){n=p.n;rsu.value=n}}selectPlaybackMode(readerAdvancePreference)}catch(e){}
  // سخّن اتصال خادم القارئ المختار وجهّز بيانات السورة الأولى دون تشغيلها أو تحميل بقية السور.
  function warmCurrentSurah(){
   if(started||mode()==='l')return;
@@ -4165,7 +4218,10 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&radioPanel.classList.contains('o'))setRadioPanel(false)});
  window.addEventListener('resize',()=>{if(radioPanel.classList.contains('o'))radioPanel.style.setProperty('--curtain-top','0px')});
  $('rnx').addEventListener('click',()=>moveSurah(1));
- rr.addEventListener('change',()=>{cr=+rr.value||0;if(started)play()});
+ rr.addEventListener('change',()=>{
+  cr=+rr.value||0;
+  if(started){if(activePlaybackKind==='reader')selectPlaybackMode(readerAdvancePreference);play();}
+ });
  rsu.addEventListener('change',()=>{n=+rsu.value;if(!availableSurahs().includes(n)){st.textContent='هذه السورة غير متاحة ضمن مصحف القارئ المختار.';return;}play()});
  $('rv').addEventListener('input',e=>{
   const volume=Math.max(0,Math.min(1,+e.target.value||0));
