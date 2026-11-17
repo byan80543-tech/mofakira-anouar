@@ -3463,11 +3463,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  const app=document.getElementById('app');
  if(!page||!openButton)return;
  const $=id=>document.getElementById(id);
- const categories=[
-  {id:'quran',name:'القرآن الكريم',short:'مصحف ورقي للقراءة صفحةً صفحة',icon:'📖',description:'مصحف المدينة بالرسم العثماني، بواجهة قراءة تحاكي صفحات المصحف الورقي.',resources:[
-   {id:'mushaf-madinah',title:'مصحف المدينة النبوية — رواية حفص',author:'مجمع الملك فهد لطباعة المصحف الشريف',description:'المصحف الشريف بالرسم العثماني، رواية حفص عن عاصم.',source:'نسخة PDF · 605 صفحات · 5.3 MB',pages:605,size:'5.3 MB',pdfUrl:'https://wahatalitqan.com/downloads/mushaf-madinah.pdf',tags:'القرآن الكريم المصحف حفص المدينة النبوية'}
-  ]}
- ];
+ const categories=[];
  const readerView=document.createElement('section');
  readerView.id='libraryReaderView';
  readerView.className='library-pdf-reader';
@@ -3793,6 +3789,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
    try{voiceRecognition.stop()}catch(e){}
    tasbihVoice.setAttribute('aria-pressed','false');
    tasbihVoice.textContent='🎙️ العدّ بالصوت';
+   if(floatVoice)floatVoice.setAttribute('aria-pressed','false');
    if(message)tasbihVoiceStatus.textContent=message;
   }
  }
@@ -3819,7 +3816,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  tasbihMinus.addEventListener('click',()=>addTasbih(-1));
  tasbihReset.addEventListener('click',()=>{tasbihValue=0;paintTasbih();});
  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!SpeechRecognition){tasbihVoice.disabled=true;tasbihVoiceStatus.textContent='العد الصوتي غير مدعوم في هذا المتصفح؛ يمكنك استخدام العداد اليدوي.';}
+ if(!SpeechRecognition){tasbihVoice.disabled=true;floatVoice.disabled=true;floatVoice.title='العد الصوتي غير مدعوم في هذا المتصفح';tasbihVoiceStatus.textContent='العد الصوتي غير مدعوم في هذا المتصفح؛ يمكنك استخدام العداد اليدوي.';}
  else{
   voiceRecognition=new SpeechRecognition();voiceRecognition.lang='ar-SA';voiceRecognition.continuous=true;voiceRecognition.interimResults=false;
   voiceRecognition.onresult=event=>{
@@ -3831,7 +3828,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
    }
   };
   voiceRecognition.onerror=event=>{tasbihVoiceStatus.textContent=event.error==='not-allowed'?'لم يُسمح بالميكروفون. فعّل الإذن من إعدادات المتصفح.':'تعذر التعرف الصوتي؛ جرّب مرة أخرى أو استخدم العداد اليدوي.';};
-  voiceRecognition.onend=()=>{voiceActive=false;tasbihVoice.setAttribute('aria-pressed','false');tasbihVoice.textContent='🎙️ العدّ بالصوت';};
+  voiceRecognition.onend=()=>{voiceActive=false;tasbihVoice.setAttribute('aria-pressed','false');tasbihVoice.textContent='🎙️ العدّ بالصوت';floatVoice.setAttribute('aria-pressed','false');};
   const toggleVoice=()=>{
    if(voiceActive){voiceRecognition.stop();voiceActive=false;tasbihVoiceStatus.textContent='توقف العد الصوتي.';return;}
    try{voiceRecognition.start();voiceActive=true;tasbihVoice.setAttribute('aria-pressed','true');tasbihVoice.textContent='إيقاف الاستماع';tasbihVoiceStatus.textContent='أستمع الآن… قل «أستغفر الله» بوضوح.';}
@@ -3841,6 +3838,32 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   floatVoice.addEventListener('click',()=>tasbihVoice.click());
  }
  floatTap.addEventListener('click',()=>addTasbih(1));
+ let floatDrag=null;
+ const floatSymbol=$('anwarFloatingTasbih').querySelector('.anwar-float-symbol');
+ floatSymbol.style.touchAction='none';
+ floatSymbol.title='اسحب السبحة لتغيير مكانها';
+ floatSymbol.addEventListener('pointerdown',e=>{
+  const rect=floatWidget.getBoundingClientRect();
+  floatDrag={id:e.pointerId,dx:e.clientX-rect.left,dy:e.clientY-rect.top,moved:false};
+  floatSymbol.setPointerCapture(e.pointerId);
+ });
+ floatSymbol.addEventListener('pointermove',e=>{
+  if(!floatDrag||floatDrag.id!==e.pointerId)return;
+  const dx=e.clientX-(floatWidget.getBoundingClientRect().left+floatDrag.dx);
+  const dy=e.clientY-(floatWidget.getBoundingClientRect().top+floatDrag.dy);
+  if(Math.abs(dx)+Math.abs(dy)>3)floatDrag.moved=true;
+  if(floatDrag.moved){
+   const x=Math.max(4,Math.min(window.innerWidth-floatWidget.offsetWidth-4,e.clientX-floatDrag.dx));
+   const y=Math.max(4,Math.min(window.innerHeight-floatWidget.offsetHeight-4,e.clientY-floatDrag.dy));
+   floatWidget.style.left=x+'px';floatWidget.style.top=y+'px';floatWidget.style.right='auto';floatWidget.style.bottom='auto';
+   try{localStorage.setItem('anwar_float_position_v1',JSON.stringify({x,y}))}catch(e){}
+  }
+ });
+ const finishFloatDrag=e=>{if(floatDrag&&floatDrag.id===e.pointerId){floatDrag=null}};
+ floatSymbol.addEventListener('pointerup',finishFloatDrag);
+ floatSymbol.addEventListener('pointercancel',finishFloatDrag);
+ try{const pos=JSON.parse(localStorage.getItem('anwar_float_position_v1')||'null');if(pos&&Number.isFinite(pos.x)&&Number.isFinite(pos.y)){floatWidget.style.left=Math.max(4,Math.min(window.innerWidth-floatWidget.offsetWidth-4,pos.x))+'px';floatWidget.style.top=Math.max(4,Math.min(window.innerHeight-floatWidget.offsetHeight-4,pos.y))+'px';floatWidget.style.right='auto';floatWidget.style.bottom='auto'}}catch(e){}
+
  floatOpen.addEventListener('click',()=>{open();});
  floatHide.addEventListener('click',()=>setFloatingVisible(false));
  $('tasbihFloatEnable').addEventListener('click',()=>{setFloatingVisible(true);close();});
