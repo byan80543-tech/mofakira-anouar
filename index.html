@@ -1324,7 +1324,7 @@ dialog[open]>.float-head{display:none!important}
  <button id="th" aria-label="الوضع">◐</button>
  <button id="paletteBtn" aria-label="تغيير ألوان المفكرة" title="تغيير ألوان المفكرة">🎨</button>
  <button id="bkp" aria-label="نسخ احتياطي">💾</button>
- <button id="toolsToggle" aria-expanded="false" aria-controls="rib" title="فتح أدوات الكتابة والملكية">✒ الأدوات</button>
+ 
 </div>
 
 <div id="palettePanel" role="dialog" aria-label="اختيار ألوان المفكرة">
@@ -1369,14 +1369,7 @@ dialog[open]>.float-head{display:none!important}
   <span class="lesson-launch-caret" aria-hidden="true">⌄</span>
  </button>
  </div>
-<div class="rib" id="rib">
- <div class="g"><div><button class="b" id="prn" title="طباعة">🖨️</button><button class="b" id="pdf" title="تنزيل PDF">📄</button><button class="b word-export" id="word" title="تنزيل Word (DOCX)" aria-label="تنزيل Word">W</button><button class="b" id="newBookTool" title="إنشاء كتاب Word">📖</button><button class="b" id="new2" title="جديد">➕</button></div><small>الملف</small></div>
- <div class="g"><div><button class="b" id="fb" title="نوع الخط" style="min-width:110px">الخط ▾</button><select id="sz" title="حجم الخط"><option>14</option><option>16</option><option>18</option><option selected>20</option><option>24</option><option>28</option><option>32</option><option>40</option><option>56</option></select></div><small>الخط</small></div>
- <div class="g"><div><button class="b" data-c="bold"><b>B</b></button><button class="b" data-c="italic"><i>I</i></button><button class="b" data-c="underline"><u>U</u></button><input type="color" id="fc" value="#222222" title="لون الخط"><input type="color" id="hc" value="#fff2a8" title="تمييز"></div><small>التنسيق</small></div>
- <div class="g"><div><button class="b" data-c="justifyRight">▶≡</button><button class="b" data-c="justifyCenter">≡</button><button class="b" data-c="justifyLeft">≡◀</button><button class="b" data-c="justifyFull">☰</button><button class="b" data-c="insertUnorderedList">•≡</button><button class="b" data-c="insertOrderedList">1≡</button></div><small>الفقرة</small></div>
- <div class="g"><div><button class="b" id="vs">📜 بيت</button><button class="b" id="sp">🔊 إلقاء</button><button class="b" id="fo">🎯 تركيز</button><button class="b" id="ip">💡 إلهام</button><button class="b" id="pn">☆ تثبيت</button><button class="b" id="cy">📋</button><button class="b" id="hist">🕘 الإصدارات</button><button class="b dn" id="dl">🗑️</button></div><small>أدوات أنوار</small></div>
- <div class="g"><div><button class="b" id="ownerBtn" aria-label="الملكية والأذكار" title="الملكية والأذكار">✒ الملكية والأذكار</button></div><small>هوية أنوار</small></div>
-</div>
+
 <section id="storageRecoveryNotice" hidden role="alert" aria-live="assertive"><div><strong id="storageRecoveryTitle">توقّف الحفظ حمايةً لبياناتك</strong><span id="storageRecoveryMessage">تعذّر فتح بيانات المفكرة. لن نكتب فوق أي بيانات قبل التحقق منها.</span></div><div class="storage-recovery-actions"><button type="button" id="exportRecovery">تنزيل الملف الخام</button><button type="button" id="restoreBackup" hidden>استعادة النسخة الاحتياطية</button><button type="button" id="startFresh" hidden>بدء مفكرة جديدة</button><button type="button" id="retryStorageAccess">إعادة فحص التخزين</button></div></section>
 <main>
  <section id="list">
@@ -1390,7 +1383,15 @@ dialog[open]>.float-head{display:none!important}
  <section id="area"><div id="pg" contenteditable="true" data-ph="ابدأ الكتابة هنا… استخدم زر «بيت» لكتابة الصدر والعجز"></div><div class="empty" id="em" style="display:none">اختر عملًا أو أنشئ عملًا جديدًا</div></section>
 </main>
 <div class="st"><span id="info"></span><span>تكبير <input type="range" id="zm" min="60" max="150" value="100"></span></div>
-</div>
+
+<div class="rib" id="rib">
+ <div class="g"><div><button class="b" id="prn" title="طباعة">🖨️</button><button class="b" id="pdf" title="تنزيل PDF">📄</button><button class="b word-export" id="word" title="تنزيل Word (DOCX)" aria-label="تنزيل Word">W</button><button class="b" id="newBookTool" title="إنشاء كتاب Word">📖</button><button class="b" id="new2" title="جديد">➕</button></div><small>الملف</small></div>
+ <div class="g"><div><button class="b" id="fb" title="نوع الخط" style="min-width:110px">الخط ▾</button><select id="sz" title="حجم الخط"><option>14</option><option>16</option><option>18</option><option selected>20</option><option>24</option><option>28</option><option>32</option><option>40</option><option>56</option></select></div><small>الخط</small></div>
+ <div class="g"><div><button class="b" data-c="bold"><b>B</b></button><button class="b" data-c="italic"><i>I</i></button><button class="b" data-c="underline"><u>U</u></button><input type="color" id="fc" value="#222222" title="لون الخط"><input type="color" id="hc" value="#fff2a8" title="تمييز"></div><small>التنسيق</small></div>
+ <div class="g"><div><button class="b" data-c="justifyRight">▶≡</button><button class="b" data-c="justifyCenter">≡</button><button class="b" data-c="justifyLeft">≡◀</button><button class="b" data-c="justifyFull">☰</button><button class="b" data-c="insertUnorderedList">•≡</button><button class="b" data-c="insertOrderedList">1≡</button></div><small>الفقرة</small></div>
+ <div class="g"><div><button class="b" id="vs">📜 بيت</button><button class="b" id="sp">🔊 إلقاء</button><button class="b" id="fo">🎯 تركيز</button><button class="b" id="ip">💡 إلهام</button><button class="b" id="pn">☆ تثبيت</button><button class="b" id="cy">📋</button><button class="b" id="hist">🕘 الإصدارات</button><button class="b dn" id="dl">🗑️</button></div><small>أدوات أنوار</small></div>
+ <div class="g"><div><button class="b" id="ownerBtn" aria-label="الملكية والأذكار" title="الملكية والأذكار">✒ الملكية والأذكار</button></div><small>هوية أنوار</small></div>
+</div></div>
 <div id="fm"><input id="fq" placeholder="ابحث عن خط…"><div id="fl"></div></div>
 <div id="pa"></div>
 <div id="rd" aria-label="لوحة الإذاعة">
@@ -2458,7 +2459,20 @@ function recordsText(records,title){
 }
 function recordsHtml(records,title){
  const items=records.map(note=>'<section class="book-item"><h2>'+esc(note.title||'بلا عنوان')+'</h2><p class="meta">'+esc(TYPES[note.type]||'عمل')+' · '+esc(fmt(note.ts))+'</p><div>'+san(note.html||'')+'</div></section>').join('');
- return '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(title)+'</title><style>body{max-width:850px;margin:0 auto;padding:28px 22px;color:#222;background:#fff;font:20px/2 Amiri,"Noto Naskh Arabic",serif}h1{text-align:center;color:#173d5c;font-size:34px}h2{text-align:center;font-size:27px}.meta{color:#777;text-align:center;font:12px Tahoma,sans-serif;border-bottom:1px solid #c9a96a;padding-bottom:12px}.book-item{margin:34px 0;page-break-before:always;break-before:page}.book-item:first-of-type{page-break-before:auto;break-before:auto}@media print{body{padding:0}.book-item{break-before:page;page-break-before:always}}</style></head><body><h1>'+esc(title)+'</h1>'+items+'<footer style="margin-top:40px;text-align:center;color:#999;font:11px Tahoma,sans-serif">مفكرة أنوار · © 2026 Anouar Oumlili</footer></body></html>';
+ return '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(title)+'</title><style>body{max-width:850px;margin:0 auto;padding:28px 22px;color:#222;background:#fff;font:20px/2 Amiri,"Noto Naskh Arabic",serif}h1{text-align:center;color:#173d5c;font-size:34px}h2{text-align:center;font-size:27px}.meta{color:#777;text-align:center;font:12px Tahoma,sans-serif;border-bottom:1px solid #c9a96a;padding-bottom:12px}.book-item{margin:34px 0;page-break-before:always;break-before:page}.book-item:first-of-type{page-break-before:auto;break-before:auto}@media print{body{padding:0}.book-item{break-before:page;page-break-before:always}}
+/* لوحة أدوات أنوار الدائمة: تستثمر المساحة أسفل المفكرة */
+#rib{display:flex!important;position:relative!important;inset:auto!important;order:6;flex:none;flex-wrap:wrap;gap:7px;align-items:stretch;max-height:30vh;overflow-x:hidden;overflow-y:auto;padding:8px 9px calc(8px + env(safe-area-inset-bottom,0px));background:var(--sf);border-top:1px solid var(--bd);overscroll-behavior:contain}
+#rib .mobile-layer-header{display:none!important}
+#rib .g{min-width:0;flex:1 1 145px}
+#rib .g>div{justify-content:center}
+@media(max-width:800px){
+ #rib{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;max-height:34vh;padding:7px 8px calc(7px + env(safe-area-inset-bottom,0px))}
+ #rib .g{width:100%;min-width:0;padding:5px}
+ #rib .g>div{gap:3px}
+ #rib .g .b{min-height:34px;flex:1 1 auto;padding:5px 6px;font-size:12px}
+ #rib .g small{text-align:center}
+}
+</style></head><body><h1>'+esc(title)+'</h1>'+items+'<footer style="margin-top:40px;text-align:center;color:#999;font:11px Tahoma,sans-serif">مفكرة أنوار · © 2026 Anouar Oumlili</footer></body></html>';
 }
 function xmlEscape(value){
  return String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
@@ -3845,15 +3859,10 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   if(paletteBtn)paletteBtn.setAttribute('aria-expanded','false');
  });
  if(font)makeHeader(font,'اختيار نوع الخط',()=>font.classList.remove('o'));
- if(rib)makeHeader(rib,'أدوات الكتابة',()=>{
-  rib.classList.remove('open');
-  if(toolsBtn){toolsBtn.setAttribute('aria-expanded','false');toolsBtn.textContent='✒ الأدوات'}
- });
  const active=()=>!!(
   document.querySelector('dialog[open]')||
   palette?.classList.contains('open')||
   font?.classList.contains('o')||
-  rib?.classList.contains('open')||
   radio?.classList.contains('o')
  );
  const sync=()=>{
@@ -3862,10 +3871,9 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
    document.documentElement.classList.toggle('anwar-overlay-open',on);
   if(document.body.classList.contains('anwar-overlay-open')!==on)
    document.body.classList.toggle('anwar-overlay-open',on);
-  [palette,font,rib,radio].filter(Boolean).forEach(el=>{
+  [palette,font,radio].filter(Boolean).forEach(el=>{
    const shown=el===palette?el.classList.contains('open'):
-    el===font?el.classList.contains('o'):
-    el===rib?el.classList.contains('open'):el.classList.contains('o');
+    el===font?el.classList.contains('o'):el.classList.contains('o');
    el.setAttribute('aria-hidden',String(!shown));
    if(shown)el.setAttribute('aria-modal','true');
    else el.removeAttribute('aria-modal');
@@ -3893,11 +3901,6 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
    font.classList.remove('o');
    e.preventDefault();e.stopImmediatePropagation();sync();return;
   }
-  if(rib?.classList.contains('open')){
-   rib.classList.remove('open');
-   if(toolsBtn){toolsBtn.setAttribute('aria-expanded','false');toolsBtn.textContent='☷ الأدوات'}
-   e.preventDefault();e.stopImmediatePropagation();sync();
-  }
  },true);
  if(paletteBtn){
   paletteBtn.setAttribute('aria-controls','palettePanel');
@@ -3905,7 +3908,6 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   paletteBtn.addEventListener('click',()=>requestAnimationFrame(()=>paletteBtn.setAttribute('aria-expanded',String(!!palette?.classList.contains('open')))));
  }
  if(fontBtn)fontBtn.setAttribute('aria-controls','fm');
- if(toolsBtn)toolsBtn.setAttribute('aria-controls','rib');
 })();
 
 </script>
