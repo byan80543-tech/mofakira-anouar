@@ -2062,6 +2062,17 @@ function showVaultGate(mode,message){
  passwordInput.disabled=false;
  requestAnimationFrame(()=>passwordInput.focus());
 }
+function continueVaultAfterRecovery(){
+ if(vaultUnlocked)return;
+ let stored=null;
+ try{stored=localStorage.getItem(VAULT_STORAGE_KEY)}catch(error){return}
+ if(stored!==null){
+  S=emptyStorageState();
+  showVaultGate('unlock','أدخل عبارة المرور لفك تشفير أعمالك المحفوظة.');
+ }else{
+  showVaultGate('setup','تمت معالجة الاسترداد. أنشئ عبارة مرور لتشفير المفكرة قبل متابعة الكتابة.');
+ }
+}
 function prepareLegacyStateForVault(){
  let primary=null,backup=null;
  try{
@@ -2282,9 +2293,23 @@ async function openEncryptedBackupDialog(){
   toast('تعذّر إنشاء نسخة احتياطية مشفرة. لم نعرض البيانات بصيغة مكشوفة.',6000);
  }
 }
-function downloadEncryptedBackup(){
+function readEncryptedBackupText(){
  const textValue=$('bt').value.trim();
- if(!textValue){toast('أنشئ النسخة المشفرة أو الصق ملفًا مشفرًا أولًا.',4500);return}
+ if(!textValue)throw new Error('لا توجد نسخة احتياطية في الحقل.');
+ const envelope=JSON.parse(textValue);
+ AnwarVaultCrypto.validateEnvelope(envelope);
+ return textValue;
+}
+function copyEncryptedBackup(){
+ try{
+  const textValue=readEncryptedBackupText();
+  if(!navigator.clipboard||!navigator.clipboard.writeText){$('bt').select();toast('النسخة مشفرة. حدد النص لنسخه يدويًا.',4500);return}
+  navigator.clipboard.writeText(textValue).then(()=>toast('تم نسخ النسخة الاحتياطية المشفرة.',3500),()=>toast('تعذّر النسخ؛ يمكنك تحديد النص يدويًا.',4500));
+ }catch(error){toast('النسخ متاح للنسخ الاحتياطية المشفرة فقط.',4500)}
+}
+function downloadEncryptedBackup(){
+ let textValue='';
+ try{textValue=readEncryptedBackupText()}catch(error){toast('التنزيل متاح لملف خزنة مشفر صالح فقط.',4500);return}
  try{
   const blob=new Blob([textValue],{type:'application/json;charset=utf-8'});
   const url=URL.createObjectURL(blob),anchor=document.createElement('a');
@@ -2391,6 +2416,12 @@ function load(){
 }
 function retryStorageAccess(){
  if(!storageRecoveryBlocked)return false;
+ let existingVault=null;
+ try{existingVault=localStorage.getItem(VAULT_STORAGE_KEY)}catch(error){toast('لا يزال المتصفح يمنع الوصول إلى الخزنة؛ لم تتغير أي بيانات.',5000);return false}
+ if(existingVault!==null){
+  S=emptyStorageState();clearStorageRecovery();showVaultGate('unlock','أدخل عبارة المرور لفك تشفير أعمالك المحفوظة.');theme();chips();openNote(null);
+  return true;
+ }
  let raw;
  try{raw=localStorage.getItem('anwar_v1')}
  catch(error){toast('لا يزال المتصفح يمنع الوصول إلى التخزين؛ لم تُغيّر أي بيانات.',5000);return false}
@@ -2406,12 +2437,14 @@ function retryStorageAccess(){
    }
   }else S=emptyStorageState();
   clearStorageRecovery();openNote(null);theme();chips();renderList();
+  continueVaultAfterRecovery();
   toast('عاد الوصول إلى التخزين. عُرضت النسخة الاحتياطية دون إعادة كتابة السجل الأساسي.',4500);
   return true;
  }
  try{
   S=readStoredState(raw);
   clearStorageRecovery();openNote(null);theme();chips();renderList();
+  continueVaultAfterRecovery();
   toast('عاد الوصول إلى بيانات المفكرة بنجاح.',4000);
   return true;
  }catch(error){
@@ -2433,6 +2466,7 @@ function restoreStorageBackup(){
   localStorage.setItem('anwar_v1',serialized);
   try{localStorage.setItem('anwar_v1_backup_v2',serialized)}catch(backupError){console.warn('تعذّر تحديث النسخة الاحتياطية الثانوية',backupError)}
   S=restored;clearStorageRecovery();openNote(null);theme();chips();renderList();
+  continueVaultAfterRecovery();
   toast('تمت استعادة النسخة الاحتياطية بعد حفظ السجل الخام.',4500);
  }catch(error){toast('تعذّرت استعادة النسخة الاحتياطية؛ بقي السجل الخام دون تغيير.',5000);console.warn('تعذّرت استعادة النسخة الاحتياطية',error)}
 }
@@ -2447,6 +2481,7 @@ function startFreshNotebook(){
   try{localStorage.setItem('anwar_v1_backup_v2',serialized)}catch(backupError){console.warn('تعذّر إنشاء نسخة احتياطية أولية',backupError)}
   S=fresh;cur=null;clearStorageRecovery();
   openNote(null);theme();chips();
+  continueVaultAfterRecovery();
   toast('بدأت مفكرة أنوار ببيانات نظيفة.',3500);
  }catch(error){
   console.warn('تعذّر بدء مفكرة نظيفة',error);
@@ -3622,7 +3657,7 @@ document.addEventListener('click',e=>{
  else if(id==='retryStorageAccess')retryStorageAccess();
  else if(id==='restoreBackup')restoreStorageBackup();
  else if(id==='startFresh')startFreshNotebook();
- else if(id==='cp'){$('bt').select();navigator.clipboard&&navigator.clipboard.writeText($('bt').value).then(()=>toast('تم النسخ'),()=>{})}
+ else if(id==='cp'){copyEncryptedBackup()}
  else if(id==='rs'){restoreEncryptedBackup()}
  else if(id==='cl')$('dg').close();
  else if(id==='ownerBtn')$('ownerDialog').showModal();
@@ -4983,7 +5018,6 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  document.addEventListener('keydown',e=>{if(e.key==='Escape')panel.classList.remove('open')});refresh();
 })();
 $('vaultForm').addEventListener('submit',submitVaultForm);
-$('vaultLockBtn').addEventListener('click',lockVault);
 $('backupPassword').value='';
 bootVault();
 
