@@ -57,8 +57,10 @@ await installEvent.promise;
 assert.equal(skipWaitingCalled,true,'install calls skipWaiting');
 assert.equal(store.get(absolute('./index.html'))?.body,'cached:./index.html','install precaches the local HTML shell');
 assert.equal(store.get(absolute('./manifest.webmanifest'))?.body,'cached:./manifest.webmanifest','install precaches the web manifest');
-assert.equal(store.get(absolute('./icon-192.png'))?.body,'cached:./icon-192.png','install precaches the 192px PWA icon');
-assert.equal(store.get(absolute('./icon-512.png'))?.body,'cached:./icon-512.png','install precaches the 512px PWA icon');
+assert.equal(store.has(absolute('./icon-192.png')),false,'PWA icon is fetched and cached only when requested');
+assert.equal(store.has(absolute('./icon-512.png')),false,'large PWA icon is not part of the initial shell cache');
+assert.equal(store.has(absolute('./vendor/jspdf.umd.min.js')),false,'PDF library is not part of the initial shell cache');
+assert.equal(store.has(absolute('./file_00000000670481f4ad879246afe6bae2.png')),false,'oversized source icon is excluded from the shell cache');
 
 const activateEvent={promise:null,waitUntil(p){this.promise=p}};
 listeners.get('activate')(activateEvent);
@@ -84,6 +86,18 @@ const cachedAsset={request:{url:new URL('index.html?revision=next',scopeUrl).hre
 listeners.get('fetch')(cachedAsset);
 assert.equal(await (await cachedAsset.response).text(),'cached:./index.html','same-origin static assets are served from cache first');
 assert.equal(networkCalls,callsBeforeAsset,'cache-first asset hit does not call the network');
+
+assert.equal(networkCalls,callsBeforeAsset,'cache-first asset hit does not call the network');
+
+online=true;
+const lazyPdfLibrary={request:{url:new URL('vendor/jspdf.umd.min.js',scopeUrl).href,method:'GET',mode:'cors'},response:null,respondWith(p){this.response=p}};
+listeners.get('fetch')(lazyPdfLibrary);
+assert.match(await (await lazyPdfLibrary.response).text(),/^network:/,'on-demand PDF library can be fetched when first requested');
+assert.ok(store.has(absolute('./vendor/jspdf.umd.min.js')),'on-demand PDF library is cached after first successful request');
+online=false;
+const cachedPdfLibrary={request:{url:new URL('vendor/jspdf.umd.min.js',scopeUrl).href,method:'GET',mode:'cors'},response:null,respondWith(p){this.response=p}};
+listeners.get('fetch')(cachedPdfLibrary);
+assert.match(await (await cachedPdfLibrary.response).text(),/^network:/,'cached PDF library remains available offline after first load');
 
 const externalAudio={request:{url:'https://audio.example.test/live.mp3',method:'GET',mode:'cors'},response:null,respondWith(p){this.response=p}};
 listeners.get('fetch')(externalAudio);
