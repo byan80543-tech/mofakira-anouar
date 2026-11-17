@@ -5,6 +5,7 @@ import vm from 'node:vm';
 const root=process.cwd();
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const manifest=JSON.parse(fs.readFileSync(path.join(root,'manifest.webmanifest'),'utf8'));
+const vaultCrypto=fs.readFileSync(path.join(root,'vault-crypto.js'),'utf8');
 const failures=[];
 const ok=(condition,message)=>{if(!condition)failures.push(message);else console.log('PASS',message)};
 
@@ -44,6 +45,12 @@ ok(html.includes('async function ensurePdfLibraries()'),'PDF libraries load only
 ok(html.includes('async function makeQR()'),'QR library loads only when QR generation is requested');
 ok(!/<script\b[^>]*\bsrc\s*=\s*["'][^"']*(?:html2canvas|qrcodejs|jspdf)/i.test(html),'heavy PDF and QR libraries are not loaded by static script tags');
 ok(!html.includes('Object.hasOwn('),'storage normalization avoids unsupported Object.hasOwn calls');
+ok(html.includes('src="./vault-crypto.js?v=20261117-1"'),'the local vault crypto helper is loaded by the notebook');
+ok(html.includes('id="vaultGate"') && html.includes('id="vaultLockBtn"'),'password gate and manual vault lock controls are present');
+ok(/function save\(\)[\s\S]*?AnwarVaultCrypto\.encryptWithKey/.test(html),'notebook saves use encrypted vault persistence');
+ok(vaultCrypto.includes("CIPHER='AES-256-GCM'") && vaultCrypto.includes("ITERATIONS=600000"),'vault helper pins AES-GCM and the approved PBKDF2 work factor');
+try{new vm.Script(vaultCrypto,{filename:'vault-crypto.js'});ok(true,'vault cryptography helper JavaScript syntax is valid')}catch(error){failures.push('vault-crypto.js: '+error.message)}
+
 const iconSizes=new Set((manifest.icons??[]).flatMap(icon=>String(icon.sizes??'').split(/\s+/)));
 ok(iconSizes.has('192x192'),'manifest declares a 192x192 PWA icon');
 ok(iconSizes.has('512x512'),'manifest declares a 512x512 PWA icon');
