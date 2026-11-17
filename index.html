@@ -1317,8 +1317,8 @@ dialog[open]>.float-head{display:none!important}
 #pg.paper-plain{background-color:#fff!important;color:#222!important;background-image:none}
 #pa .paper-export.paper-ruled{background-image:repeating-linear-gradient(to bottom,transparent 0,transparent calc(2.05em - 1px),rgba(104,137,170,.22) calc(2.05em - 1px),rgba(104,137,170,.22) 2.05em);background-size:100% 2.05em}
 #pa .paper-export.paper-framed{border:5px double #c9b78f;padding:38px 42px}
-#pa .paper-export.paper-poetry .v{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;text-align:center;margin:7px 0}
-#pa .paper-export.paper-poetry .v span{display:flex;align-items:center;justify-content:center;min-height:2.35em;padding:3px 9px;border:1px solid #c8b58c;border-radius:6px;overflow-wrap:anywhere}
+#pa .paper-export.paper-poetry .v{display:grid;grid-template-columns:max-content max-content;width:max-content;min-width:100%;max-width:none;gap:9px;text-align:center;margin:7px 0}
+#pa .paper-export.paper-poetry .v span{display:flex;align-items:center;justify-content:center;width:max-content;min-width:max-content;max-width:none;min-height:2.35em;padding:3px 12px;border:1px solid #c8b58c;border-radius:6px;white-space:pre;overflow-wrap:normal;word-break:normal;hyphens:none}
 #pa .paper-export.paper-plain{background:#fff;color:#222}
 
 #pg.paper-ruled{
@@ -1330,15 +1330,19 @@ dialog[open]>.float-head{display:none!important}
  padding:48px 56px!important;
  box-shadow:0 8px 26px rgba(20,35,55,.12),inset 0 0 0 5px rgba(201,183,143,.10)!important
 }
+#pg.paper-poetry{overflow-x:auto;overflow-y:auto;overscroll-behavior-x:contain}
 #pg.paper-poetry .v{
- display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+ display:grid;grid-template-columns:max-content max-content;
+ width:max-content;min-width:100%;max-width:none;
  gap:9px;align-items:stretch;text-align:center;margin:7px 0
 }
 #pg.paper-poetry .v span{
  display:flex;align-items:center;justify-content:center;
- min-width:0;min-height:2.35em;box-sizing:border-box;
- padding:3px 9px;border:1px solid #c8b58c;border-radius:6px;
- background:rgba(255,255,255,.22);white-space:pre-wrap;overflow-wrap:anywhere
+ width:max-content;min-width:max-content;max-width:none;
+ min-height:2.35em;box-sizing:border-box;
+ padding:3px 12px;border:1px solid #c8b58c;border-radius:6px;
+ background:rgba(255,255,255,.22);
+ white-space:pre;overflow-wrap:normal;word-break:normal;hyphens:none
 }
 #pg.paper-poetry .v span:empty::before{content:"الشطر";color:#b7aa91;font-size:.72em}
 .paper-style-panel{
@@ -2796,7 +2800,7 @@ async function doWord(){
 }
 
 function openHistory(){if(!cur){toast('افتح عملًا أولًا');return}clearTimeout(tm);if(pendingBefore){cur.history=cur.history||[];if(pendingBefore.html!==cur.html)cur.history.push(pendingBefore);cur.history=cur.history.slice(-15);pendingBefore=null}const h=(cur.history||[]).slice().reverse();$('historyItems').innerHTML=h.length?h.map((v,i)=>`<button type="button" class="history-item" data-ver="${h.length-1-i}"><span>${esc(v.title||'بلا عنوان')} · ${TYPES[v.type]||'عمل'}</span><small>${fmt(v.ts)}</small></button>`).join(''):'<p class="empty">لا توجد إصدارات سابقة لهذا العمل بعد.</p>';$('historyDialog').showModal()}
-function restoreHistory(i){if(!cur)return;const h=cur.history||[],v=h[i];if(!v)return;if(!confirm('استعادة هذا الإصدار؟ سيُحفظ الإصدار الحالي في السجل قبل الاستعادة.'))return;h.push({title:cur.title,type:cur.type,html:cur.html,ts:cur.ts,font:cur.font,size:cur.size,paper:cur.paper||'plain'});cur.history=h.slice(-15);Object.assign(cur,{title:v.title,type:v.type,html:v.html,ts:Date.now(),font:v.font,size:v.size});pg.innerHTML=san(cur.html);$('t').value=cur.title;$('ty').value=cur.type;save();openNote(cur);$('historyDialog').close();toast('تمت استعادة الإصدار')}
+function restoreHistory(i){if(!cur)return;const h=cur.history||[],v=h[i];if(!v)return;if(!confirm('استعادة هذا الإصدار؟ سيُحفظ الإصدار الحالي في السجل قبل الاستعادة.'))return;h.push({title:cur.title,type:cur.type,html:cur.html,ts:cur.ts,font:cur.font,size:cur.size,paper:cur.paper||'plain'});cur.history=h.slice(-15);Object.assign(cur,{title:v.title,type:v.type,html:v.html,ts:Date.now(),font:v.font,size:v.size,paper:v.paper||'plain'});pg.innerHTML=san(cur.html);$('t').value=cur.title;$('ty').value=cur.type;save();openNote(cur);$('historyDialog').close();toast('تمت استعادة الإصدار')}
 function setBookToolExpanded(open,scroll=false){
  const app=$('app'),panel=$('bookToolPanel'),content=$('bookToolContent'),toggle=$('bookToolToggle');
  if(!app||!panel||!content||!toggle)return;
