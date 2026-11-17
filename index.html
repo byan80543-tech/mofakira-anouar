@@ -5028,5 +5028,102 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
 @media(prefers-reduced-motion:reduce){.lesson-series-option,.lesson-series-button{transition:none!important}}
 </style>
 
+
+<style id="anwar-book-tool-grid-style">
+/* شبكة أدوات الهاتف: بطاقة إنشاء الكتاب تشغل الخانة السادسة الفارغة كمربع */
+@media(max-width:800px){
+ .app.ed #rib{grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-auto-rows:min-content;align-items:start}
+ .app.ed #rib .book-tool-card{
+  grid-column:auto!important;
+  flex:0 0 auto!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  aspect-ratio:1/1;
+  align-self:stretch;
+  justify-content:center;
+  padding:8px!important;
+  overflow:hidden;
+  border-radius:13px;
+ }
+ .app.ed #rib .book-tool-head{
+  position:relative;
+  display:flex;
+  flex:1;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  width:100%;
+  height:100%;
+  min-height:0;
+ }
+ .app.ed #rib .book-tool-toggle{
+  display:flex;
+  flex:1;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  width:100%;
+  min-height:0;
+  padding:8px 3px 15px;
+  border:1px solid var(--bd);
+  border-radius:11px;
+  background:var(--sf);
+  text-align:center;
+ }
+ .app.ed #rib .book-tool-icon{
+  width:49px;
+  height:49px;
+  border-radius:13px;
+  font-size:27px;
+ }
+ .app.ed #rib .book-tool-title{flex:none;width:100%;text-align:center;justify-items:center}
+ .app.ed #rib .book-tool-title strong{font-size:15px;line-height:1.5}
+ .app.ed #rib .book-tool-title small{font-size:9px;line-height:1.5;white-space:normal}
+ .app.ed #rib .book-tool-chevron{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);font-size:15px}
+ .app.ed #rib .book-tool-head #addBookFile{
+  position:absolute;
+  top:3px;
+  inset-inline-start:3px;
+  z-index:2;
+  width:29px;
+  height:29px;
+  font-size:20px;
+ }
+ /* عند فتح البطاقة تتمدد على الصفين لتبقى حقول الكتاب مريحة */
+ .app.ed #rib .book-tool-card.expanded{
+  grid-column:1/-1!important;
+  aspect-ratio:auto;
+  overflow:visible;
+ }
+ .app.ed #rib .book-tool-card.expanded .book-tool-head{
+  height:auto;
+  min-height:38px;
+  flex-direction:row;
+  justify-content:space-between;
+ }
+ .app.ed #rib .book-tool-card.expanded .book-tool-toggle{
+  flex:1;
+  flex-direction:row;
+  justify-content:flex-start;
+  min-height:37px;
+  padding:5px 8px;
+  border:0;
+  background:transparent;
+  text-align:right;
+ }
+ .app.ed #rib .book-tool-card.expanded .book-tool-icon{width:29px;height:29px;font-size:17px;border-radius:8px}
+ .app.ed #rib .book-tool-card.expanded .book-tool-title{flex:1;width:auto;text-align:right;justify-items:start}
+ .app.ed #rib .book-tool-card.expanded .book-tool-chevron{position:static;transform:none}
+ .app.ed #rib .book-tool-card.expanded .book-tool-head #addBookFile{position:static;width:34px;height:34px;font-size:23px}
+ .app.ed #rib .book-tool-card.expanded .book-tool-content:not([hidden]){grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(prefers-reduced-motion:reduce){
+ #rib .book-tool-chevron{transition:none!important}
+}
+</style>
+
 </body>
 </html>
