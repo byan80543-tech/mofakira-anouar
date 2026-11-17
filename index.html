@@ -1455,7 +1455,7 @@ dialog[open]>.float-head{display:none!important}
  </label>
  <p id="bookFileStatus" class="anwar-book-note" aria-live="polite">＋ اختر مستنداً من هاتفك. تُدرج ملفات TXT وHTML وCSV في الصفحة؛ أما PDF وملفات Office والصور فتُفتح أو تُشارك دون تغيير أصلها.</p>
  <input type="file" id="bookFilePicker" hidden accept=".txt,.md,.csv,.html,.htm,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.ods,.odp,.rtf,.png,.jpg,.jpeg,.webp,.gif">
- <div class="book-tool-actions"><button type="button" id="cancelBook">إخفاء</button><button type="button" id="createBook">حفظ الكتاب</button></div>
+ <div class="book-tool-actions"><button type="button" id="createBook">حفظ الكتاب</button></div>
 </div>
 </div></div>
 <div id="fm"><input id="fq" placeholder="ابحث عن خط…"><div id="fl"></div></div>
@@ -2785,7 +2785,6 @@ document.addEventListener('click',e=>{
  if(t.dataset.c){cmd(t.dataset.c);return}
  const id=t.id;
  if(id==='newBook')openBookDialog();
- else if(id==='cancelBook'){$('app').classList.remove('book-open')}
  else if(id==='createBook')createBook();
  else if(id==='addBookFile')$('bookFilePicker').click();
  else if(id==='hist')openHistory();
