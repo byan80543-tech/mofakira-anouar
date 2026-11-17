@@ -37,8 +37,11 @@ button{cursor:pointer}
 .logo{font-family:'Aref Ruqaa',Amiri,serif;font-size:22px;font-weight:400;white-space:nowrap}
 #t{flex:1;min-width:0;background:rgba(255,255,255,.15);border:none;border-radius:6px;color:#fff;padding:5px 10px;text-align:center;outline:none}
 #t::placeholder{color:#e4ecf8}
-/* حقل العنوان يظهر أثناء التحرير فقط؛ لا يحجز مساحة في قائمة الأعمال */
-.app:not(.ed) #t{display:none}
+/* حسم تخطيط حقل العنوان: يختفي من تدفق الشريط بالكامل خارج وضع التحرير */
+#app:not(.ed) > .tb > #t{
+ display:none!important;flex:0 0 0!important;width:0!important;min-width:0!important;max-width:0!important;
+ margin:0!important;padding:0!important;border:0!important
+}
 .tb select,.tb button{background:rgba(255,255,255,.15);border:none;border-radius:6px;color:#fff;padding:5px 9px}
 .tb option{color:#222}
 .rib{display:flex;gap:2px;align-items:stretch;overflow-x:auto;background:var(--sf);border-bottom:1px solid var(--bd);padding:4px 8px}
