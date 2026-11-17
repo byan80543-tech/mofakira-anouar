@@ -37,6 +37,8 @@ button{cursor:pointer}
 .logo{font-family:'Aref Ruqaa',Amiri,serif;font-size:22px;font-weight:400;white-space:nowrap}
 #t{flex:1;min-width:0;background:rgba(255,255,255,.15);border:none;border-radius:6px;color:#fff;padding:5px 10px;text-align:center;outline:none}
 #t::placeholder{color:#e4ecf8}
+/* حقل العنوان يظهر أثناء التحرير فقط؛ لا يحجز مساحة في قائمة الأعمال */
+.app:not(.ed) #t{display:none}
 .tb select,.tb button{background:rgba(255,255,255,.15);border:none;border-radius:6px;color:#fff;padding:5px 9px}
 .tb option{color:#222}
 .rib{display:flex;gap:2px;align-items:stretch;overflow-x:auto;background:var(--sf);border-bottom:1px solid var(--bd);padding:4px 8px}
