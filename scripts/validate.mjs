@@ -11,14 +11,14 @@ const ok=(condition,message)=>{if(!condition)failures.push(message);else console
 ok(manifest.name==='مفكرة أنوار' && manifest.short_name==='مفكرة أنوار','PWA name and short_name');
 ok(manifest.start_url==='/mofakira-anouar/' && manifest.scope==='/mofakira-anouar/','GitHub Pages start_url and scope');
 ok(html.includes('rel="manifest" href="manifest.webmanifest'),'HTML references the current manifest path');
-ok(html.includes('file_00000000670481f4ad879246afe6bae2.png?v=20261116-5'),'browser favicon uses the original high-resolution PNG');
-ok(html.includes('<link rel="apple-touch-icon" href="file_00000000670481f4ad879246afe6bae2.png?v=20261116-5"'),'Apple touch icon uses the original high-resolution PNG');
+ok(html.includes('href="icon-192.png?v=20261117-1" sizes="192x192"'),'browser favicon uses the optimized 192px PNG');
+ok(html.includes('<link rel="apple-touch-icon" href="icon-192.png?v=20261117-1"'),'Apple touch icon uses the optimized 192px PNG');
+ok(!html.includes('file_00000000670481f4ad879246afe6bae2.png'),'the oversized source icon is not loaded by the page');
+ok(!manifest.icons.some(i=>String(i.src).includes('file_00000000670481f4ad879246afe6bae2.png')),'manifest excludes the oversized source icon');
+ok(html.includes('async function ensurePdfLibraries()'),'PDF libraries load only when PDF export is requested');
+ok(html.includes('async function makeQR()'),'QR library loads only when QR generation is requested');
+ok(!/\\bsrc\\s*=\\s*["'][^"']*(?:html2canvas|qrcodejs|jspdf)/i.test(html),'heavy PDF and QR libraries are not loaded by static script tags');
 ok(!html.includes('Object.hasOwn('),'storage normalization avoids unsupported Object.hasOwn calls');
-
-const originalIcon='file_00000000670481f4ad879246afe6bae2.png';
-const declared=(manifest.icons??[]).find(i=>i.src.split('?')[0]===originalIcon && i.sizes==='1254x1254' && i.type==='image/png');
-ok(!!declared,'manifest declares the original 1254x1254 PNG icon');
-ok(fs.existsSync(path.join(root,originalIcon)),'original high-resolution icon file exists');
 const iconSizes=new Set((manifest.icons??[]).flatMap(icon=>String(icon.sizes??'').split(/\s+/)));
 ok(iconSizes.has('192x192'),'manifest declares a 192x192 PWA icon');
 ok(iconSizes.has('512x512'),'manifest declares a 512x512 PWA icon');
