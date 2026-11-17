@@ -46,6 +46,7 @@ button{cursor:pointer}
 .b{border:1px solid transparent;background:none;border-radius:6px;padding:4px 7px;min-width:30px;font-size:14px;white-space:nowrap}
 .b:hover,.b.on{background:var(--ac2);border-color:var(--ac)}
 .b.dn{color:var(--dn)}
+.word-export{color:#185abd!important;font-weight:800;font-family:Arial,sans-serif}
 .rib select,.rib input[type=color]{border:1px solid var(--bd);border-radius:6px;background:var(--bg);height:28px}
 .rib input[type=color]{width:30px;padding:1px}
 main{flex:1;display:flex;min-height:0}
@@ -1369,7 +1370,7 @@ dialog[open]>.float-head{display:none!important}
  </button>
  </div>
 <div class="rib" id="rib">
- <div class="g"><div><button class="b" id="prn" title="طباعة">🖨️</button><button class="b" id="pdf" title="تنزيل PDF">📄</button><button class="b" id="newBookTool" title="إنشاء كتاب بصيغ متعددة">📖</button><button class="b" id="new2" title="جديد">➕</button></div><small>الملف</small></div>
+ <div class="g"><div><button class="b" id="prn" title="طباعة">🖨️</button><button class="b" id="pdf" title="تنزيل PDF">📄</button><button class="b word-export" id="word" title="تنزيل Word (DOCX)" aria-label="تنزيل Word">W</button><button class="b" id="newBookTool" title="إنشاء كتاب Word">📖</button><button class="b" id="new2" title="جديد">➕</button></div><small>الملف</small></div>
  <div class="g"><div><button class="b" id="fb" title="نوع الخط" style="min-width:110px">الخط ▾</button><select id="sz" title="حجم الخط"><option>14</option><option>16</option><option>18</option><option selected>20</option><option>24</option><option>28</option><option>32</option><option>40</option><option>56</option></select></div><small>الخط</small></div>
  <div class="g"><div><button class="b" data-c="bold"><b>B</b></button><button class="b" data-c="italic"><i>I</i></button><button class="b" data-c="underline"><u>U</u></button><input type="color" id="fc" value="#222222" title="لون الخط"><input type="color" id="hc" value="#fff2a8" title="تمييز"></div><small>التنسيق</small></div>
  <div class="g"><div><button class="b" data-c="justifyRight">▶≡</button><button class="b" data-c="justifyCenter">≡</button><button class="b" data-c="justifyLeft">≡◀</button><button class="b" data-c="justifyFull">☰</button><button class="b" data-c="insertUnorderedList">•≡</button><button class="b" data-c="insertOrderedList">1≡</button></div><small>الفقرة</small></div>
@@ -1467,7 +1468,7 @@ dialog[open]>.float-head{display:none!important}
 </dialog>
 <dialog id="bookDialog">
  <header class="anwar-book-head">
-  <div><strong>إنشاء كتاب</strong><small>اجمع أعمالك واحفظها بالصيغة التي تناسبك</small></div>
+  <div><strong>إنشاء كتاب Word</strong><small>اجمع أعمالك في مستند Word قابل للتحرير</small></div>
   <button type="button" id="addBookFile" aria-label="إضافة مستند من الهاتف" title="اختيار مستند من الهاتف">＋</button>
  </header>
  <label for="bookTitle">عنوان الكتاب</label><input id="bookTitle" value="مختارات من مفكرة أنوار" maxlength="100">
@@ -1480,10 +1481,7 @@ dialog[open]>.float-head{display:none!important}
  </select>
  <label for="bookFormat">صيغة الحفظ</label>
  <select id="bookFormat">
-  <option value="pdf">PDF · للقراءة والطباعة</option>
   <option value="docx">Word · مستند قابل للتحرير</option>
-  <option value="txt">TXT · نص بسيط</option>
-  <option value="html">HTML · صفحة ويب</option>
  </select>
  <p id="bookFileStatus" class="anwar-book-note" aria-live="polite">＋ اختر مستنداً من هاتفك. تُدرج ملفات TXT وHTML وCSV في الصفحة؛ أما PDF وملفات Office والصور فتُفتح أو تُشارك دون تغيير أصلها.</p>
  <input type="file" id="bookFilePicker" hidden accept=".txt,.md,.csv,.html,.htm,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.ods,.odp,.rtf,.png,.jpg,.jpeg,.webp,.gif">
@@ -2564,6 +2562,18 @@ async function doPdf(){
  flushPendingEdit(false);buildPA();
  await renderPaPdf(safeFileName(cur.title,'anwar-note')+'.pdf');
 }
+async function doWord(){
+ if(!cur){toast('افتح عملاً أولاً');return}
+ flushPendingEdit(false);
+ try{
+  const filename=safeFileName(cur.title,'anwar-note')+'.docx';
+  const saved=await downloadBlob(recordsDocx([cur],cur.title||'أنوار'),filename);
+  if(saved)toast('تم حفظ مستند Word على جهازك ✓',3500);
+ }catch(error){
+  console.warn('تعذّر تصدير Word',error);
+  toast('تعذّر إنشاء ملف Word. لم يُحذف أي عمل.',5000);
+ }
+}
 
 function openHistory(){if(!cur){toast('افتح عملًا أولًا');return}clearTimeout(tm);if(pendingBefore){cur.history=cur.history||[];if(pendingBefore.html!==cur.html)cur.history.push(pendingBefore);cur.history=cur.history.slice(-15);pendingBefore=null}const h=(cur.history||[]).slice().reverse();$('historyItems').innerHTML=h.length?h.map((v,i)=>`<button type="button" class="history-item" data-ver="${h.length-1-i}"><span>${esc(v.title||'بلا عنوان')} · ${TYPES[v.type]||'عمل'}</span><small>${fmt(v.ts)}</small></button>`).join(''):'<p class="empty">لا توجد إصدارات سابقة لهذا العمل بعد.</p>';$('historyDialog').showModal()}
 function restoreHistory(i){if(!cur)return;const h=cur.history||[],v=h[i];if(!v)return;if(!confirm('استعادة هذا الإصدار؟ سيُحفظ الإصدار الحالي في السجل قبل الاستعادة.'))return;h.push({title:cur.title,type:cur.type,html:cur.html,ts:cur.ts,font:cur.font,size:cur.size});cur.history=h.slice(-15);Object.assign(cur,{title:v.title,type:v.type,html:v.html,ts:Date.now(),font:v.font,size:v.size});pg.innerHTML=san(cur.html);$('t').value=cur.title;$('ty').value=cur.type;save();openNote(cur);$('historyDialog').close();toast('تمت استعادة الإصدار')}
@@ -2739,6 +2749,7 @@ document.addEventListener('click',e=>{
  else if(id==='th'){S.theme=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';save();theme()}
  else if(id==='prn')doPrint();
  else if(id==='pdf')doPdf();
+ else if(id==='word')doWord();
  else if(id==='sp')speak();
  else if(id==='fb'){const r=t.getBoundingClientRect(),m=$('fm');m.style.top=r.bottom+4+'px';m.style.left=Math.max(6,Math.min(r.left,innerWidth-266))+'px';fontList('');$('fq').value='';m.classList.toggle('o')}
  else if(id==='vs'&&cur){restore();document.execCommand('insertHTML',false,'<div class="v"><span>&#8203;</span><span>&#8203;</span></div><div><br></div>');touch()}
