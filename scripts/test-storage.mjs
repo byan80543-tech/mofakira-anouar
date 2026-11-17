@@ -81,7 +81,7 @@ function makeHarness(initial={}){
     confirm:()=>true,
     theme(){},chips(){},renderList(){}
   };
-  vm.runInNewContext(extracted+"\nthis.api={load,save,startFreshNotebook,retryStorageAccess,restoreStorageBackup,exportStorageRecovery,snapshot:()=>({S,storageRecoveryBlocked,storageRecoveryRaw,storageRecoveryExported,storageRecoveryMode,storageRecoveryBackupAvailable}),\n      activateEdit:(note,previous,html)=>{cur=note;pendingBefore=previous;pg.innerHTML=html},\n      draftState:()=>({cur,draftNote,notes:S.notes}),touch,newNote,openNote,flushPendingEdit};",sandbox,{timeout:3000});
+  vm.runInNewContext(extracted+"\nthis.api={load,save,startFreshNotebook,retryStorageAccess,restoreStorageBackup,exportStorageRecovery,snapshot:()=>({S,storageRecoveryBlocked,storageRecoveryRaw,storageRecoveryExported,storageRecoveryMode,storageRecoveryBackupAvailable}),\n      activateEdit:(note,previous,html)=>{cur=note;pendingBefore=previous;pg.innerHTML=html},\n      draftState:()=>({cur,draftNote,notes:S.notes}),debugDraft:()=>({curId:cur&&cur.id,draftId:draftNote&&draftNote.id,same:cur===draftNote}),touch,newNote,openNote,flushPendingEdit};",sandbox,{timeout:3000});
   return {api:sandbox.api,storage,elements,messages,sandbox,download};
 }
 const assert=(condition,message)=>{
@@ -202,6 +202,7 @@ h.api.newNote();
 const openedDraft=h.api.draftState();
 assert(openedDraft.notes.length===0,'new note does not enter the saved work list immediately');
 assert(h.storage.writeCount===0,'opening new note does not write to storage');
+console.log('DRAFTDEBUG',JSON.stringify(h.api.debugDraft()));
 assert(openedDraft.draft===openedDraft.cur&&!!openedDraft.draft,'new note is held as the active temporary draft');
 assert(h.api.flushPendingEdit(false)===true&&h.api.draftState().notes.length===0&&h.storage.writeCount===0,'leaving an untouched draft does not create or save an empty note');
 h.api.openNote(null);
