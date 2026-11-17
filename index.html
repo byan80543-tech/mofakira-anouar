@@ -1748,7 +1748,7 @@ dialog[open]>.float-head{display:none!important}
 const TYPES={poem:'قصيدة',text:'نص',idea:'فكرة'},IC={poem:'🪶',text:'📜',idea:'💡'};
 const FONTS=['Amiri','Amiri Quran','Aref Ruqaa','Aref Ruqaa Ink','Scheherazade New','Lateef','Harmattan','Noto Naskh Arabic','Markazi Text','Mirza','Katibeh','Gulzar','Cairo','Tajawal','Almarai','Alexandria','Changa','Mada','Readex Pro','IBM Plex Sans Arabic','Noto Sans Arabic','Noto Kufi Arabic','Vazirmatn','Rubik','Baloo Bhaijaan 2','Lemonada','Reem Kufi','Reem Kufi Fun','Reem Kufi Ink','El Messiri','Kufam','Lalezar','Rakkas','Jomhuria','Marhey','Vibes','Blaka','Qahiri','Playpen Sans Arabic','Noto Nastaliq Urdu','Traditional Arabic','Simplified Arabic','Sakkal Majalla','Segoe UI','Tahoma','Arial','Times New Roman','Courier New'];
 const PROMPTS=['اكتب عن رائحة المطر على أول تراب بعد غياب طويل','قصيدة عن ضوء مصباح وحيد في آخر الليل','ماذا يقول القمر لمن ينتظر؟','صف وجهًا لا تنساه دون أن تذكر ملامحه','اكتب رسالة إلى نفسك بعد عشر سنوات','قصيدة عن وطن يسكن حقيبة سفر','ما الذي تعلّمته من الصمت؟','اكتب عن قهوة الصباح كأنها صديق قديم','بيت شعر يبدأ بكلمة «لولا»','اكتب عن بابٍ لم تجرؤ على فتحه','قصيدة عن الحنين بثلاث صور فقط'];
-let S={notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[]},cur=null,flt='all',tm,speaking=false,saved=null,storageRecoveryBlocked=false,storageRecoveryRaw=null,storageRecoveryExported=false,storageRecoveryMode='none',storageRecoveryBackupAvailable=false;
+let S={notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[]},cur=null,draftNote=null,flt='all',tm,speaking=false,saved=null,storageRecoveryBlocked=false,storageRecoveryRaw=null,storageRecoveryExported=false,storageRecoveryMode='none',storageRecoveryBackupAvailable=false;
 const $=id=>document.getElementById(id),pg=$('pg');
 const hasOwn=(object,key)=>Object.prototype.hasOwnProperty.call(object,key);
 const esc=s=>String(s??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
@@ -2004,13 +2004,23 @@ function renderList(){
 }
 function openNote(n){
  if(cur&&cur!==n)flushPendingEdit(false);
+ if(draftNote&&draftNote!==n)draftNote=null;
  cur=n;const on=!!n;
  pg.style.display=on?'':'none';$('em').style.display=on?'none':'';
  if(on){pg.innerHTML=san(n.html);pg.style.fontFamily=n.font?`'${n.font}',Amiri,serif`:'';pg.style.fontSize=(n.size||20)+'px';applyPaperClass(n.paper);$('t').value=n.title;$('ty').value=n.type;$('pn').textContent=n.pin?'⭐ تثبيت':'☆ تثبيت';$('sz').value=n.size||20;$('app').classList.add('ed')}
  else {$('app').classList.remove('ed');$('paperStylePanel').hidden=true;$('paperStyleBtn').setAttribute('aria-expanded','false')}
  renderList();info();
 }
-function newNote(){if(storageRecoveryBlocked){toast('أنزل ملف الاسترداد أولاً، ثم استعد نسخة سليمة قبل إنشاء أعمال جديدة.',6000);return}const n={id:createNoteId(),title:'',type:'poem',html:'',pin:false,ts:Date.now(),font:'Amiri',size:20,paper:'plain'};S.notes.push(n);if(!save()){S.notes.pop();return}openNote(n);pg.focus()}
+function newNote(){
+ if(storageRecoveryBlocked){toast('أنزل ملف الاسترداد أولاً، ثم استعد نسخة سليمة قبل إنشاء أعمال جديدة.',6000);return}
+ if(cur)flushPendingEdit(false);
+ if(draftNote===cur)draftNote=null;
+ cur=null;
+ const n={id:createNoteId(),title:'',type:'poem',html:'',pin:false,ts:Date.now(),font:'Amiri',size:20,paper:'plain'};
+ draftNote=n;
+ openNote(n);
+ pg.focus();
+}
 function applyPaperClass(style){
  const allowed=['plain','ruled','poetry','framed'];
  const paper=allowed.includes(style)?style:'plain';
@@ -2077,11 +2087,23 @@ function capturePendingBefore(){
  if(!cur||pendingBefore!==null)return;
  pendingBefore={title:cur.title,type:cur.type,html:cur.html,ts:cur.ts,font:cur.font,size:cur.size,paper:cur.paper||'plain'};
 }
+function commitDraftIfReady(){
+ if(!cur||cur!==draftNote)return true;
+ const body=plain(cur.html).replace(/\u200b/g,'').trim();
+ if(!body)return false;
+ if(!S.notes.some(note=>note.id===cur.id))S.notes.push(cur);
+ draftNote=null;
+ return true;
+}
 function flushPendingEdit(updateList=true){
  if(tm){clearTimeout(tm);tm=null}
  if(!cur||storageRecoveryBlocked){pendingBefore=null;return false}
+ const wasDraft=cur===draftNote;
  cur.html=san(pg.innerHTML);
- if(pendingBefore){
+ if(wasDraft){
+  pendingBefore=null;
+  if(!commitDraftIfReady())return true;
+ }else if(pendingBefore){
   const changed=pendingBefore.html!==cur.html||pendingBefore.title!==cur.title||pendingBefore.type!==cur.type||pendingBefore.font!==cur.font||pendingBefore.size!==cur.size||pendingBefore.paper!==(cur.paper||'plain');
   if(changed){
    cur.history=cur.history||[];
@@ -2096,8 +2118,14 @@ function flushPendingEdit(updateList=true){
 }
 function touch(){
  if(!cur||storageRecoveryBlocked)return;
- capturePendingBefore();
- cur.html=san(pg.innerHTML);cur.ts=Date.now();
+ if(cur===draftNote){
+  cur.html=san(pg.innerHTML);cur.ts=Date.now();
+  if(!commitDraftIfReady()){info();return}
+  pendingBefore=null;
+ }else{
+  capturePendingBefore();
+  cur.html=san(pg.innerHTML);cur.ts=Date.now();
+ }
  const d=iso(new Date());if(!S.days.includes(d))S.days.push(d);
  info();if(tm)clearTimeout(tm);
  tm=setTimeout(()=>flushPendingEdit(true),650);
@@ -2860,7 +2888,7 @@ async function createBook(){
  if(cur)flushPendingEdit(false);
  const scope=$('bookScope').value,title=$('bookTitle').value.trim()||'مختارات من مفكرة أنوار';
  let notes;
- if(scope==='current')notes=cur?[cur]:[];
+ if(scope==='current')notes=cur&&cur!==draftNote?[cur]:[];
  else notes=S.notes.filter(n=>scope==='all'||(scope==='poem'?n.type==='poem':n.type==='text'||n.type==='idea')).sort((a,b)=>a.ts-b.ts);
  if(!notes.length){toast(scope==='current'?'افتح عملاً أو اختر كل الأعمال لإنشاء الكتاب.':'لا توجد أعمال ضمن هذا الاختيار.');return}
  const format=$('bookFormat').value,button=$('createBook');
@@ -3032,7 +3060,7 @@ document.addEventListener('click',e=>{
  else if(id==='downloadQR')downloadQRPoster();
  else if(id==='downloadIcon')downloadAppIcon();
  else if(id==='new'||id==='new2')newNote();
- else if(id==='bk'){$('app').classList.remove('ed','focus')}
+ else if(id==='bk'){openNote(null);$('app').classList.remove('focus')}
  else if(id==='th'){S.theme=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';save();theme()}
  else if(id==='prn')doPrint();
  else if(id==='pdf')doPdf();
