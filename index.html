@@ -1603,7 +1603,8 @@ dialog[open]>.float-head{display:none!important}
  <button id="rb" title="إذاعة القرآن الكريم" aria-label="تشغيل إذاعة القرآن">▶</button>
  <button id="th" type="button" aria-label="تبديل الوضع الليلي والنهاري" title="تبديل الوضع الليلي والنهاري"><svg class="toolbar-icon theme-toggle-icon" viewBox="0 0 24 24" aria-hidden="true"><circle class="theme-sun" cx="12" cy="12" r="4"/><path class="theme-sun" d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/><path class="theme-moon" d="M20.3 15.4A8.5 8.5 0 0 1 8.6 3.7 8.5 8.5 0 1 0 20.3 15.4Z"/></svg></button>
  <button id="paletteBtn" type="button" aria-label="تغيير ألوان المفكرة" title="تغيير ألوان المفكرة"><svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2a8.8 8.8 0 1 0 0 17.6h1.3a1.9 1.9 0 0 0 1.3-3.3 1.8 1.8 0 0 1 1.3-3h1.3a3.7 3.7 0 0 0 3.7-3.7c0-4.2-4-7.6-8.9-7.6Z"/><circle cx="7.8" cy="11" r="1"/><circle cx="10" cy="7.4" r="1"/><circle cx="14.3" cy="7.4" r="1"/><circle cx="17.2" cy="10.2" r="1"/></svg></button>
- <button id="bkp" type="button" aria-label="نسخة احتياطية" title="نسخة احتياطية"><svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h12l3.5 3.5v13.5H3.5V3.5H5Z"/><path d="M7 3.5v6h9v-6M8 20.5v-7h8v7"/></svg></button>
+ <button id="bkp" type="button" aria-label="نسخة احتياطية مشفرة" title="نسخة احتياطية مشفرة"><svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h12l3.5 3.5v13.5H3.5V3.5H5Z"/><path d="M7 3.5v6h9v-6M8 20.5v-7h8v7"/></svg></button>
+  <button id="vaultLockBtn" type="button" aria-label="قفل المفكرة" title="قفل المفكرة"><svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="10" width="15" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg></button>
  
 </div>
 
@@ -1817,9 +1818,11 @@ dialog[open]>.float-head{display:none!important}
  </section>
 </div>
 <dialog id="dg">
- <p><b>نسخة احتياطية</b><br><small>انسخ النص واحفظه، أو الصق نسخة سابقة ثم اضغط استعادة.</small></p>
- <textarea id="bt"></textarea>
- <div style="display:flex;gap:6px;margin-top:8px"><button class="b" id="cp">📋 نسخ</button><button class="b" id="rs">♻️ استعادة</button><button class="b" id="cl">إغلاق</button></div>
+ <p><b>نسخة احتياطية مشفرة</b><br><small>المحتوى أدناه مشفر. احتفظ بالملف وكلمة مرور الخزنة في مكانين آمنين.</small></p>
+ <textarea id="bt" aria-label="بيانات النسخة الاحتياطية المشفرة" spellcheck="false"></textarea>
+ <label class="vault-backup-password" for="backupPassword">كلمة مرور هذه النسخة عند الاستعادة</label>
+ <input id="backupPassword" type="password" autocomplete="current-password" placeholder="أدخل كلمة مرور النسخة المشفرة">
+ <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><button class="b" id="cp">📋 نسخ مشفر</button><button class="b" id="downloadBackup">⬇ تنزيل مشفر</button><button class="b" id="rs">♻️ استعادة</button><button class="b" id="cl">إغلاق</button></div>
 </dialog>
 <dialog id="historyDialog"><h3 style="margin-top:0">سجل إصدارات العمل</h3><p style="color:var(--mu);font-size:12px">تُحفظ لقطات سابقة تلقائيًا عند تعديل العمل. نحتفظ بآخر 15 إصدارًا.</p><div id="historyItems"></div><div class="dialog-actions" style="margin-top:12px"><button type="button" id="closeHistory">إغلاق</button></div></dialog>
 <dialog id="ownerDialog">
@@ -1917,7 +1920,24 @@ dialog[open]>.float-head{display:none!important}
  </section>
  <section id="archiveItems" class="archive-items" aria-live="polite"></section>
 </dialog>
+<div id="vaultGate" hidden>
+ <section class="vault-card" role="dialog" aria-modal="true" aria-labelledby="vaultTitle">
+  <div class="vault-mark" aria-hidden="true">⌑</div>
+  <h1 id="vaultTitle">خزنة مفكرة أنوار</h1>
+  <p id="vaultDescription">أنشئ عبارة مرور لحماية قصائدك ونصوصك على هذا الجهاز.</p>
+  <form id="vaultForm">
+   <label for="vaultPassword">عبارة المرور</label>
+   <input id="vaultPassword" type="password" required minlength="12" autocomplete="new-password" placeholder="12 محرفًا على الأقل">
+   <label id="vaultConfirmRow" for="vaultPasswordConfirm">تأكيد عبارة المرور</label>
+   <input id="vaultPasswordConfirm" type="password" required minlength="12" autocomplete="new-password" placeholder="أعد كتابة عبارة المرور">
+   <button id="vaultSubmit" type="submit">تشفير المفكرة وفتحها</button>
+  </form>
+  <p id="vaultError" role="alert" aria-live="polite"></p>
+  <small class="vault-footnote">التشفير يتم على جهازك. لا تُرسل كلمة المرور إلى خادم، ولا يمكن استعادة النصوص دونها. احتفظ بنسخة احتياطية مشفرة.</small>
+ </section>
+</div>
 <div id="toast"></div>
+<script src="./vault-crypto.js?v=20261117-1"></script>
 <script>
 requestAnimationFrame(()=>setTimeout(()=>{
 
@@ -5123,6 +5143,29 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
 #rib #bookToolPanel .book-tool-icon::before,
 #rib #bookToolPanel .book-tool-icon::after{content:none!important;display:none!important}
 #rib #bookToolPanel #addBookFile{width:auto;height:auto;min-height:34px;border:1px solid var(--bd);border-radius:8px;background:var(--sf);color:var(--mu);font:700 10px Cairo,Tahoma,sans-serif;box-shadow:none}
+</style>
+
+
+<style id="anwar-encrypted-vault-ui">
+#vaultGate[hidden]{display:none!important}
+#vaultGate{position:fixed;inset:0;z-index:20000;display:grid;place-items:center;padding:20px;background:rgba(8,22,42,.76);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#vaultGate .vault-card{width:min(100%,420px);max-height:calc(100dvh - 40px);overflow:auto;padding:27px 23px;border:1px solid rgba(255,255,255,.24);border-radius:18px;background:#fff;color:#192b43;box-shadow:0 22px 70px rgba(0,0,0,.28);text-align:right}
+#vaultGate .vault-mark{width:54px;height:54px;margin:0 auto 12px;display:grid;place-items:center;border-radius:16px;background:#eaf1fa;color:#24548d;font-size:31px}
+#vaultGate h1{margin:0 0 9px;text-align:center;font-family:'Aref Ruqaa',Amiri,serif;font-size:27px;font-weight:700}
+#vaultGate #vaultDescription{margin:0 0 18px;color:#52647b;text-align:center;font-size:13px;line-height:1.9}
+#vaultGate form{display:grid;gap:8px}
+#vaultGate label,.vault-backup-password{font-size:12px;font-weight:800;color:#314761}
+#vaultGate input,#dg #backupPassword{width:100%;min-height:45px;padding:10px 12px;border:1px solid #ccd6e3;border-radius:9px;background:#f8fafc;color:#152943;outline:none;text-align:left;direction:ltr}
+#vaultGate input:focus,#dg #backupPassword:focus{border-color:#376da9;box-shadow:0 0 0 3px rgba(55,109,169,.14)}
+#vaultGate #vaultSubmit{min-height:46px;margin-top:7px;border:0;border-radius:9px;background:#174477;color:#fff;font-weight:800}
+#vaultGate #vaultSubmit:disabled{opacity:.55;cursor:wait}
+#vaultGate #vaultError{min-height:20px;margin:10px 0 0;color:#a12e28;font-size:12px;line-height:1.7}
+#vaultGate .vault-footnote{display:block;margin-top:11px;color:#6b7888;font-size:10px;line-height:1.9;text-align:center}
+#vaultConfirmRow[hidden],#vaultPasswordConfirm[hidden]{display:none!important}
+#dg .vault-backup-password{display:block;margin:10px 0 5px}
+#dg #backupPassword{min-height:39px;direction:ltr;text-align:left}
+#vaultLockBtn{min-width:30px}
+@media(max-width:520px){#vaultGate{padding:13px}#vaultGate .vault-card{padding:22px 18px;border-radius:15px}}
 </style>
 
 </body>
