@@ -2092,6 +2092,7 @@ function commitDraftIfReady(){
  const body=plain(cur.html).replace(/\u200b/g,'').trim();
  if(!body)return false;
  if(!S.notes.some(note=>note.id===cur.id))S.notes.push(cur);
+ const today=iso(new Date());if(!S.days.includes(today))S.days.push(today);
  draftNote=null;
  return true;
 }
@@ -2119,13 +2120,17 @@ function flushPendingEdit(updateList=true){
 function touch(){
  if(!cur||storageRecoveryBlocked)return;
  if(cur===draftNote){
-  cur.html=san(pg.innerHTML);cur.ts=Date.now();
-  if(!commitDraftIfReady()){info();return}
-  pendingBefore=null;
- }else{
-  capturePendingBefore();
-  cur.html=san(pg.innerHTML);cur.ts=Date.now();
+  cur.html=san(pg.innerHTML);cur.ts=Date.now();pendingBefore=null;
+  if(!plain(cur.html).replace(/\u200b/g,'').trim()){
+   if(tm){clearTimeout(tm);tm=null}
+   info();return;
+  }
+  info();if(tm)clearTimeout(tm);
+  tm=setTimeout(()=>flushPendingEdit(true),650);
+  return;
  }
+ capturePendingBefore();
+ cur.html=san(pg.innerHTML);cur.ts=Date.now();
  const d=iso(new Date());if(!S.days.includes(d))S.days.push(d);
  info();if(tm)clearTimeout(tm);
  tm=setTimeout(()=>flushPendingEdit(true),650);
