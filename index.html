@@ -2064,11 +2064,16 @@ function showVaultGate(mode,message){
 }
 function continueVaultAfterRecovery(){
  if(vaultUnlocked)return;
- let stored=null;
- try{stored=localStorage.getItem(VAULT_STORAGE_KEY)}catch(error){return}
- if(stored!==null){
+ let stored=null,backup=null;
+ try{
+  stored=localStorage.getItem(VAULT_STORAGE_KEY);
+  if(stored===null)backup=localStorage.getItem(VAULT_BACKUP_KEY);
+ }catch(error){return}
+ if(stored!==null||backup!==null){
   S=emptyStorageState();
-  showVaultGate('unlock','أدخل عبارة المرور لفك تشفير أعمالك المحفوظة.');
+  showVaultGate('unlock',stored!==null
+   ?'أدخل عبارة المرور لفك تشفير أعمالك المحفوظة.'
+   :'تعذّر العثور على السجل الأساسي، لكن توجد نسخة احتياطية مشفرة. أدخل عبارة المرور لاستعادتها.');
  }else{
   showVaultGate('setup','تمت معالجة الاسترداد. أنشئ عبارة مرور لتشفير المفكرة قبل متابعة الكتابة.');
  }
@@ -2420,10 +2425,17 @@ function load(){
 }
 function retryStorageAccess(){
  if(!storageRecoveryBlocked)return false;
- let existingVault=null;
- try{existingVault=localStorage.getItem(VAULT_STORAGE_KEY)}catch(error){toast('لا يزال المتصفح يمنع الوصول إلى الخزنة؛ لم تتغير أي بيانات.',5000);return false}
- if(existingVault!==null){
-  S=emptyStorageState();clearStorageRecovery();showVaultGate('unlock','أدخل عبارة المرور لفك تشفير أعمالك المحفوظة.');theme();chips();openNote(null);
+ let existingVault=null,existingBackup=null;
+ try{
+  existingVault=localStorage.getItem(VAULT_STORAGE_KEY);
+  if(existingVault===null)existingBackup=localStorage.getItem(VAULT_BACKUP_KEY);
+ }catch(error){toast('لا يزال المتصفح يمنع الوصول إلى الخزنة؛ لم تتغير أي بيانات.',5000);return false}
+ if(existingVault!==null||existingBackup!==null){
+  S=emptyStorageState();clearStorageRecovery();
+  showVaultGate('unlock',existingVault!==null
+   ?'أدخل عبارة المرور لفك تشفير أعمالك المحفوظة.'
+   :'تعذّر العثور على السجل الأساسي، لكن توجد نسخة احتياطية مشفرة. أدخل عبارة المرور لاستعادتها.');
+  theme();chips();openNote(null);
   return true;
  }
  let raw;
