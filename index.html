@@ -1434,7 +1434,7 @@ dialog[open]>.float-head{display:none!important}
 #rib .book-tool-title small{font-size:9px;color:var(--mu);line-height:1.3}
 #rib .book-tool-chevron{font-size:17px;color:var(--mu);transition:transform .18s ease}
 #rib .book-tool-card.expanded .book-tool-chevron{transform:rotate(180deg)}
-#rib .book-tool-head #addBookFile{display:grid;place-items:center;flex:none;width:34px;height:34px;border:1px solid #c9a96a;border-radius:9px;background:linear-gradient(140deg,#fff8e8,#ead39a);color:#173b58;font:400 23px/1 Arial,sans-serif}
+#rib .book-import-link{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:7px;min-height:34px;padding:6px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--sf);color:var(--mu);font:inherit;font-size:10px;font-weight:700}#rib .book-import-link:active{background:var(--ac2)}
 #rib .book-tool-content[hidden]{display:none!important}
 #rib .book-tool-content:not([hidden]){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:8px;border-top:1px solid var(--bd)}
 #rib .book-tool-field{display:grid;gap:3px;min-width:0;margin:0;font-size:10px;font-weight:700;color:var(--mu)}
@@ -1686,7 +1686,6 @@ dialog[open]>.float-head{display:none!important}
    <span class="book-tool-title"><strong>إنشاء كتاب</strong><small>Word · PDF · TXT · HTML</small></span>
    <span class="book-tool-chevron" aria-hidden="true">⌄</span>
   </button>
-  <button type="button" id="addBookFile" aria-label="إضافة مستند من الهاتف" title="اختيار مستند من الهاتف">＋</button>
  </header>
  <div class="book-tool-content" id="bookToolContent" hidden>
   <label class="book-tool-field" for="bookTitle">عنوان الكتاب<input id="bookTitle" value="مختارات من مفكرة أنوار" maxlength="100"></label>
@@ -1698,6 +1697,7 @@ dialog[open]>.float-head{display:none!important}
     <option value="text">النصوص والأفكار</option>
    </select>
   </label>
+  <button type="button" id="addBookFile" class="book-import-link" aria-label="إضافة مستند من الهاتف">📎 إضافة مستند من الهاتف</button>
   <label class="book-tool-field" for="bookFormat">صيغة الحفظ
    <select id="bookFormat">
     <option value="pdf">PDF · للقراءة والطباعة</option>
@@ -1706,7 +1706,7 @@ dialog[open]>.float-head{display:none!important}
     <option value="html">HTML · صفحة ويب</option>
    </select>
   </label>
-  <p id="bookFileStatus" class="anwar-book-note" aria-live="polite">＋ اختر مستنداً من هاتفك. تُدرج ملفات TXT وHTML وCSV في الصفحة؛ أما PDF وملفات Office والصور فتُفتح أو تُشارك دون تغيير أصلها.</p>
+  <p id="bookFileStatus" class="anwar-book-note" aria-live="polite">يمكنك إضافة مستند من هاتفك. تُدرج ملفات TXT وHTML وCSV في الصفحة؛ أما PDF وملفات Office والصور فتُفتح أو تُشارك دون تغيير أصلها.</p>
   <input type="file" id="bookFilePicker" hidden accept=".txt,.md,.csv,.html,.htm,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.ods,.odp,.rtf,.png,.jpg,.jpeg,.webp,.gif">
   <div class="book-tool-actions"><button type="button" id="createBook">حفظ الكتاب</button></div>
  </div>
@@ -5083,15 +5083,6 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
  .app.ed #rib .book-tool-title strong{font-size:15px;line-height:1.5}
  .app.ed #rib .book-tool-title small{font-size:9px;line-height:1.5;white-space:normal}
  .app.ed #rib .book-tool-chevron{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);font-size:15px}
- .app.ed #rib .book-tool-head #addBookFile{
-  position:absolute;
-  top:3px;
-  inset-inline-start:3px;
-  z-index:2;
-  width:29px;
-  height:29px;
-  font-size:20px;
- }
  /* عند فتح البطاقة تتمدد على الصفين لتبقى حقول الكتاب مريحة */
  .app.ed #rib .book-tool-card.expanded{
   grid-column:1/-1!important;
@@ -5117,7 +5108,6 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
  .app.ed #rib .book-tool-card.expanded .book-tool-icon{width:29px;height:29px;font-size:17px;border-radius:8px}
  .app.ed #rib .book-tool-card.expanded .book-tool-title{flex:1;width:auto;text-align:right;justify-items:start}
  .app.ed #rib .book-tool-card.expanded .book-tool-chevron{position:static;transform:none}
- .app.ed #rib .book-tool-card.expanded .book-tool-head #addBookFile{position:static;width:34px;height:34px;font-size:23px}
  .app.ed #rib .book-tool-card.expanded .book-tool-content:not([hidden]){grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(prefers-reduced-motion:reduce){
