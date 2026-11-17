@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import re
 import subprocess
+import struct
 import sys
 import tempfile
 from html.parser import HTMLParser
@@ -79,6 +80,17 @@ def check_js_syntax(source: str, label: str) -> None:
         fail(f"{label}: JavaScript syntax check failed: {result.stderr.strip()}")
 
 
+def png_dimensions(path: Path) -> tuple[int, int] | None:
+    try:
+        with path.open("rb") as image_file:
+            header = image_file.read(24)
+        if len(header) < 24 or header[:8] != b"\\x89PNG\\r\\n\\x1a\\n" or header[12:16] != b"IHDR":
+            return None
+        return struct.unpack(">II", header[16:24])
+    except OSError:
+        return None
+
+
 def main() -> int:
     for path in (INDEX, MANIFEST, SERVICE_WORKER):
         if not path.is_file():
@@ -133,16 +145,36 @@ def main() -> int:
         if source:
             check_local_url(source, "manifest icon")
 
+    icons = manifest.get("icons", [])
     sizes = {
         size
-        for icon in manifest.get("icons", [])
+        for icon in icons
         for size in str(icon.get("sizes", "")).split()
     }
-    if not {"192x192", "512x512"}.issubset(sizes) and "any" not in sizes:
-        warnings.append(
-            "PWA manifest has no 192x192/512x512 or scalable SVG icon; "
-            "do not treat Chromium installability as complete."
+    missing_icon_sizes = {"192x192", "512x512"} - sizes
+    if missing_icon_sizes:
+        fail(
+            "PWA manifest is missing required Chromium icon sizes: "
+            + ", ".join(sorted(missing_icon_sizes))
         )
+
+    for icon in icons:
+        source = icon.get("src", "")
+        if icon.get("type") != "image/png" or not source:
+            continue
+        image_path = (ROOT / urlsplit(source).path.lstrip("/")).resolve()
+        declared_png_sizes = [
+            tuple(map(int, match.groups()))
+            for size in str(icon.get("sizes", "")).split()
+            if (match := re.fullmatch(r"(\\d+)x(\\d+)", size))
+        ]
+        actual_dimensions = png_dimensions(image_path) if image_path.is_file() else None
+        for expected_dimensions in declared_png_sizes:
+            if actual_dimensions != expected_dimensions:
+                fail(
+                    f"Manifest icon dimensions do not match {source}: "
+                    f"declared {expected_dimensions}, actual {actual_dimensions}"
+                )
 
     sw_text = SERVICE_WORKER.read_text(encoding="utf-8")
     check_js_syntax(sw_text, "service-worker.js")
