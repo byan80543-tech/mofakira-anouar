@@ -2630,7 +2630,6 @@ function openBookDialog(){
  const panel=$('bookToolPanel');
  if(panel){
   panel.scrollIntoView({behavior:'smooth',block:'nearest'});
-  requestAnimationFrame(()=>{$('bookTitle').focus({preventScroll:true})});
  }
 }
 async function createBook(){
