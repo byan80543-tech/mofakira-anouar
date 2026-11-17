@@ -28,8 +28,9 @@ assert.notEqual(backup.iv,created.envelope.iv,'each encrypted backup gets a fres
 assert.equal(await vault.decryptWithKey(created.key,backup),plaintext,'backup decrypts with the vault key');
 assert.equal((await vault.decryptEnvelope(password,backup)).plaintext,plaintext,'backup decrypts with its password');
 
-const altered={...created.envelope,ciphertext:created.envelope.ciphertext.slice(0,-4)+'AAAA'};
-await assert.rejects(()=>vault.decryptEnvelope(password,altered),'tampered ciphertext is rejected');
-assert.throws(()=>vault.validateEnvelope({...created.envelope,iterations:1000}),'weakened KDF settings are rejected');
+const originalCiphertext=created.envelope.ciphertext;
+const altered={...created.envelope,ciphertext:(originalCiphertext[0]==='A'?'B':'A')+originalCiphertext.slice(1)};
+await assert.rejects(()=>vault.decryptEnvelope(password,altered),/تالف|غير صالحة/,'tampered ciphertext is rejected');
+assert.throws(()=>vault.validateEnvelope({...created.envelope,iterations:1000}),/غير مدعومة/,'weakened KDF settings are rejected');
 await assert.rejects(()=>vault.createVault('short',plaintext),/12 محرفًا/,'short passwords are rejected');
 console.log('All encrypted-vault cryptography tests passed.');
