@@ -9,7 +9,7 @@
 <meta name="copyright" content="© 2026 Anouar Oumlili. جميع الحقوق محفوظة.">
 <meta name="description" content="مفكرة أنوار — تطبيق أدبي لتدوين القصائد والنصوص والأفكار، من تطوير صاحب المشروع Anouar Oumlili (أنوار أومليلي)، من الحسيمة، المغرب.">
 <meta name="application-name" content="مفكرة أنوار">
-<link rel="manifest" href="manifest.webmanifest?v=20261116-4">
+<link rel="manifest" href="manifest.webmanifest?v=20261117-1">
 <link rel="icon" type="image/png" href="file_00000000670481f4ad879246afe6bae2.png?v=20261116-5" sizes="1536x1536">
 <link rel="apple-touch-icon" href="file_00000000670481f4ad879246afe6bae2.png?v=20261116-5">
 
@@ -1234,6 +1234,33 @@ dialog[open]>.float-head{display:none!important}
 #libraryPage .library-mark{font-size:22px!important}
 #anwarFloatingTasbih .anwar-float-symbol{font-size:23px}
 
+
+/* قرص سبحة أنوار العائم */
+.anwar-floating-tasbih{position:fixed;z-index:1800;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));width:66px;height:66px;display:grid;place-items:center;padding:0;border:1px solid #e8cf91;border-radius:50%;background:radial-gradient(circle at 32% 22%,#fff8e7 0%,#ead29a 46%,#ba8e4c 100%);box-shadow:0 7px 22px #0d233847,0 0 0 4px #d7bd7c30,inset 0 2px 4px #fff9;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;transition:box-shadow .2s,transform .2s}
+.anwar-floating-tasbih:active{cursor:grabbing;transform:scale(.96)}.anwar-floating-tasbih:focus-visible{outline:3px solid #173d59;outline-offset:4px}
+.anwar-float-halo{position:absolute;inset:3px;border:1px solid #ffffffb8;border-radius:50%;pointer-events:none}.anwar-float-art{position:relative;z-index:1;width:47px;height:47px;filter:drop-shadow(0 2px 2px #32141a40);pointer-events:none}
+.anwar-tasbih-overlay{position:fixed;inset:0;z-index:5000;display:grid;place-items:center;padding:calc(18px + env(safe-area-inset-top,0px)) 14px calc(18px + env(safe-area-inset-bottom,0px));overflow:auto;overscroll-behavior:contain;background:radial-gradient(ellipse at 50% 0%,#c9a96a2b,transparent 42%),#04101fd9;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.anwar-tasbih-overlay[hidden]{display:none!important}.anwar-tasbih-dialog{width:min(590px,100%);max-height:calc(100dvh - 36px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow:auto;overscroll-behavior:contain;border:1px solid #d8bd7c;border-radius:22px;background:linear-gradient(155deg,#fffdf7,#f4ead3 58%,#e9dcc0);color:#233c52;box-shadow:0 20px 60px #0006,inset 0 1px #fff}
+.anwar-tasbih-header{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;background:linear-gradient(115deg,#09264d,#174d76);color:#fff;border-bottom:1px solid #c9a96a}
+.anwar-tasbih-brand{display:flex;align-items:center;gap:10px;min-width:0}.anwar-tasbih-brand-mark{width:38px;height:38px;display:grid;place-items:center;border:1px solid #e7ce91;border-radius:50%;color:#f5daa0;font-size:18px}
+.anwar-tasbih-brand div{display:grid;gap:1px}.anwar-tasbih-brand strong{font:700 20px 'Aref Ruqaa',Amiri,serif;color:#ffedc2}.anwar-tasbih-brand small{font:10px Cairo,Tahoma,sans-serif;color:#dce7f0}
+.anwar-tasbih-close{width:37px;height:37px;flex:none;border:1px solid #ffffff66;border-radius:10px;background:#ffffff18;color:white;font-size:17px}
+.anwar-tasbih-content{display:grid;justify-items:center;gap:11px;padding:clamp(17px,4vw,27px)}.anwar-tasbih-intro{margin:0;color:#94703a;font:700 13px Cairo,Tahoma,sans-serif}
+.anwar-tasbih-phrase{min-height:2.2em;text-align:center;color:#233c52;font:700 clamp(19px,4.4vw,25px)/1.8 Amiri,serif}
+.anwar-tasbih-label{margin-top:1px;color:#806744;font:700 11px Cairo,Tahoma,sans-serif}.anwar-tasbih-select{width:min(100%,430px);min-height:45px;padding:8px 12px;border:1px solid #c9ad78;border-radius:12px;background:#fffaf0;color:#24445d;font:600 13px/1.7 Cairo,Tahoma,sans-serif;text-align:center}
+.anwar-tasbih-select:focus-visible{outline:3px solid #d8b96e;outline-offset:2px}.anwar-tasbih-counter{display:grid;justify-items:center;gap:0;margin-top:4px}
+.anwar-tasbih-counter strong{color:#8e5a36;font:700 clamp(55px,13vw,78px)/1.15 Cairo,Tahoma,sans-serif;font-variant-numeric:tabular-nums}.anwar-tasbih-counter span{color:#8a7654;font:11px Cairo,Tahoma,sans-serif}
+.anwar-tasbih-actions{display:flex;align-items:center;justify-content:center;gap:16px;margin:8px 0 4px}.anwar-tasbih-actions button{border:1px solid #c9ad78;cursor:pointer;touch-action:manipulation}
+.anwar-tasbih-small{width:44px;height:44px;border-radius:50%;background:#fff8e8;color:#6d512e;font-size:22px}
+.anwar-tasbih-tap{width:88px;height:88px;border:5px double #d7bd7b!important;border-radius:50%;background:radial-gradient(circle at 30% 22%,#f6dfad,#bc9253 80%)!important;color:#263b35;font:700 18px Cairo,Tahoma,sans-serif;box-shadow:0 6px 16px #60442135,inset 0 2px 4px #fff8}
+.anwar-tasbih-tap:active{transform:scale(.96)}.anwar-tasbih-voice{display:grid;justify-items:center;gap:7px;margin-top:2px}
+.anwar-tasbih-voice button{min-height:39px;padding:8px 16px;border:1px solid #c9ad78;border-radius:22px;background:#fff8e8;color:#4c5360;font:600 12px Cairo,Tahoma,sans-serif}
+.anwar-tasbih-voice button[aria-pressed="true"]{background:#dceee7;color:#23543f;border-color:#7d9d80}.anwar-tasbih-voice button:disabled{opacity:.55}
+.anwar-tasbih-voice small{max-width:100%;color:#8a7654;font:10px/1.8 Cairo,Tahoma,sans-serif;text-align:center}.anwar-tasbih-footer{padding:10px 14px;border-top:1px solid #dfd0ac;color:#8a7654;font:10px Cairo,Tahoma,sans-serif;text-align:center}
+html.anwar-tasbih-open,body.anwar-tasbih-open{overflow:hidden!important}
+@media(max-width:600px){.anwar-floating-tasbih{width:60px;height:60px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px))}.anwar-float-art{width:44px;height:44px}.anwar-tasbih-overlay{padding:0}.anwar-tasbih-dialog{width:100%;height:100%;max-height:100%;border:0;border-radius:0;padding-bottom:env(safe-area-inset-bottom,0px)}.anwar-tasbih-header{padding-top:calc(12px + env(safe-area-inset-top,0px))}.anwar-tasbih-content{gap:9px;padding:clamp(16px,4vh,24px) 16px}}
+@media(prefers-reduced-motion:reduce){.anwar-floating-tasbih{transition:none!important}}
+
 </style>
 </head>
 <body>
@@ -1291,8 +1318,7 @@ dialog[open]>.float-head{display:none!important}
   <span>إذاعة القرآن ودروس الشيخ عبد الرزاق البدر</span>
   <span class="lesson-launch-caret" aria-hidden="true">⌄</span>
  </button>
- <button type="button" id="libraryToggle" aria-label="فتح مكتبة أنوار" title="مكتبة أنوار">▤</button>
-</div>
+ </div>
 <div class="rib" id="rib">
  <div class="g"><div><button class="b" id="prn" title="طباعة">🖨️</button><button class="b" id="pdf" title="تنزيل PDF">📄</button><button class="b" id="new2" title="جديد">➕</button></div><small>الملف</small></div>
  <div class="g"><div><button class="b" id="fb" title="نوع الخط" style="min-width:110px">الخط ▾</button><select id="sz" title="حجم الخط"><option>14</option><option>16</option><option>18</option><option selected>20</option><option>24</option><option>28</option><option>32</option><option>40</option><option>56</option></select></div><small>الخط</small></div>
@@ -1301,7 +1327,7 @@ dialog[open]>.float-head{display:none!important}
  <div class="g"><div><button class="b" id="vs">📜 بيت</button><button class="b" id="sp">🔊 إلقاء</button><button class="b" id="fo">🎯 تركيز</button><button class="b" id="ip">💡 إلهام</button><button class="b" id="pn">☆ تثبيت</button><button class="b" id="cy">📋</button><button class="b" id="hist">🕘 الإصدارات</button><button class="b dn" id="dl">🗑️</button></div><small>أدوات أنوار</small></div>
  <div class="g"><div><button class="b" id="ownerBtn" aria-label="الملكية والأذكار" title="الملكية والأذكار">✒ الملكية والأذكار</button></div><small>هوية أنوار</small></div>
 </div>
-<section id="storageRecoveryNotice" hidden role="alert" aria-live="assertive"><div><strong>توقّف الحفظ حمايةً لبياناتك</strong><span>تعذّر فتح بيانات المفكرة السابقة. يمكنك تنزيل البيانات الخام أو بدء مفكرة نظيفة. لن تتأثر مكتبة أنوار أو الإذاعة.</span></div><div class="storage-recovery-actions"><button type="button" id="exportRecovery">تنزيل الملف الخام</button><button type="button" id="startFresh" hidden>بدء مفكرة جديدة</button></div></section>
+<section id="storageRecoveryNotice" hidden role="alert" aria-live="assertive"><div><strong>توقّف الحفظ حمايةً لبياناتك</strong><span>تعذّر فتح بيانات المفكرة السابقة. يمكنك تنزيل البيانات الخام أو بدء مفكرة نظيفة. لن تتأثر الإذاعة أو بقية أدوات المفكرة.</span></div><div class="storage-recovery-actions"><button type="button" id="exportRecovery">تنزيل الملف الخام</button><button type="button" id="startFresh" hidden>بدء مفكرة جديدة</button></div></section>
 <main>
  <section id="list">
   <input id="q" type="search" placeholder="ابحث…">
@@ -1434,73 +1460,42 @@ dialog[open]>.float-head{display:none!important}
  <div class="owner-actions"><button type="button" id="closeOwner">إغلاق</button></div>
 </dialog>
 
-<section id="libraryPage" hidden aria-hidden="true" aria-label="المكتبة" role="dialog" aria-modal="true">
- <div class="library-shell">
-  <header class="library-top" aria-label="مكتبة أنوار">
-   <div class="library-brand"><span class="library-mark" aria-hidden="true"><img class="anwar-tulip-img" src="assets/tulip-cutout.svg" alt=""></span><div class="library-brand-copy"><strong>سبحة أنوار</strong><small>رفيق الذكر أينما تنقلت</small></div></div>
-   <div class="library-top-actions">
-     <button type="button" id="libraryTheme" aria-label="تغيير لون المكتبة" title="تغيير لون المكتبة"><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18h1.2a2 2 0 0 0 1.5-3.3 1.8 1.8 0 0 1 1.4-3h1.1A4.8 4.8 0 0 0 22 9.9C22 6.1 17.5 3 12 3Z"/><path d="M7.5 10h.01M10 6.8h.01M15 7.2h.01M17.5 10.5h.01"/></svg></button>
-    <button type="button" id="libraryClose" aria-label="إغلاق المكتبة">✕</button>
-   </div>
+
+<div id="tasbihPanel" class="anwar-tasbih-overlay" hidden aria-hidden="true">
+ <section class="anwar-tasbih-dialog" role="dialog" aria-modal="true" aria-labelledby="tasbihTitle" tabindex="-1">
+  <header class="anwar-tasbih-header">
+   <div class="anwar-tasbih-brand"><span class="anwar-tasbih-brand-mark" aria-hidden="true">✦</span><div><strong id="tasbihTitle">سبحة أنوار</strong><small>مساحة هادئة للذكر</small></div></div>
+   <button type="button" id="tasbihClose" class="anwar-tasbih-close" aria-label="إغلاق السبحة">✕</button>
   </header>
-  <div hidden aria-hidden="true">
-   <span id="libraryHeroTitle">سبحة أنوار</span>
-   <span id="libraryHeroText"></span>
+  <div class="anwar-tasbih-content">
+   <p class="anwar-tasbih-intro">اذكر الله بقلب حاضر</p>
+   <div class="anwar-tasbih-phrase" id="tasbihPhrase">أستغفر الله العظيم وأتوب إليه</div>
+   <label class="anwar-tasbih-label" for="tasbihDhikr">اختر الذكر</label>
+   <select id="tasbihDhikr" class="anwar-tasbih-select">
+    <optgroup label="التسبيح والتحميد"><option>سبحان الله</option><option>الحمد لله</option><option>الله أكبر</option><option>لا إله إلا الله</option><option>سبحان الله وبحمده</option><option>سبحان الله العظيم</option><option>سبحان الله والحمد لله ولا إله إلا الله والله أكبر</option><option>لا حول ولا قوة إلا بالله</option></optgroup>
+    <optgroup label="الاستغفار والتوبة"><option>أستغفر الله</option><option selected>أستغفر الله العظيم وأتوب إليه</option><option>أستغفر الله العظيم الذي لا إله إلا هو الحي القيوم وأتوب إليه</option><option>رب اغفر لي وتب علي إنك أنت التواب الرحيم</option><option>اللهم إنك عفو تحب العفو فاعف عني</option></optgroup>
+    <optgroup label="أذكار وأدعية جامعة"><option>اللهم صل وسلم على نبينا محمد</option><option>اللهم أعني على ذكرك وشكرك وحسن عبادتك</option><option>لا إله إلا أنت سبحانك إني كنت من الظالمين</option><option>حسبي الله لا إله إلا هو عليه توكلت وهو رب العرش العظيم</option><option>رضيت بالله ربا وبالإسلام دينا وبمحمد نبيا</option><option>يا حي يا قيوم برحمتك أستغيث</option><option>ربنا آتنا في الدنيا حسنة وفي الآخرة حسنة وقنا عذاب النار</option><option>اللهم اكفني بحلالك عن حرامك وأغنني بفضلك عمن سواك</option></optgroup>
+   </select>
+   <div class="anwar-tasbih-counter" aria-live="polite"><strong id="tasbihCount">0</strong><span>عدد التسبيحات</span></div>
+   <div class="anwar-tasbih-actions"><button type="button" id="tasbihMinus" class="anwar-tasbih-small" aria-label="إنقاص العدد">−</button><button type="button" id="tasbihTap" class="anwar-tasbih-tap" aria-label="سجل تسبيحة واحدة">سبّح</button><button type="button" id="tasbihReset" class="anwar-tasbih-small" aria-label="تصفير العداد">↺</button></div>
+   <div class="anwar-tasbih-voice"><button type="button" id="tasbihVoice" aria-pressed="false">🎙️ العدّ بالصوت</button><small id="tasbihVoiceStatus" role="status">يمكنك استخدام العداد اليدوي أو تفعيل العدّ الصوتي اختياريا</small></div>
   </div>
-  <section id="libraryHome">
-   <div id="libraryBooks" class="library-books" aria-label="محتوى المكتبة"></div>
-  </section>
-  <section id="tasbihView" class="library-panel tasbih-view" hidden aria-label="السبحة الإلكترونية">
-   <header class="tasbih-screen-head">
-    <button type="button" id="tasbihFloatEnable" aria-label="تصغير السبحة إلى زر عائم">↘ عائمة</button>
-    <strong>سبحة أنوار</strong>
-    <span class="tasbih-head-tulip" aria-hidden="true"><img class="anwar-tulip-img" src="assets/tulip-cutout.svg" alt=""></span>
-   </header>
-   <section id="anwarTasbih" class="anwar-tasbih" aria-label="عداد التسبيح">
-    <div class="tasbih-heading"><span class="tasbih-mark" aria-hidden="true"><img class="anwar-tulip-img" src="assets/tulip-cutout.svg" alt=""></span><div><strong>اذكر الله بقلب حاضر</strong><small>سبحة أنوار الرقمية</small></div></div>
-    <div class="tasbih-body">
-     <div class="tasbih-bead-strand" aria-hidden="true">
-      <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-     </div>
-     <div class="tasbih-content">
-      <div class="tasbih-phrase" id="tasbihPhrase">أستغفر الله العظيم وأتوب إليه</div>
-      <label class="tasbih-dhikr-label" for="tasbihDhikr">اختر الذكر</label>
-      <select id="tasbihDhikr" class="tasbih-dhikr-select">
-       <optgroup label="الاستغفار والتوبة">
-        <option>أستغفر الله العظيم وأتوب إليه</option><option>أستغفر الله</option><option>رب اغفر لي وتب علي إنك أنت التواب الرحيم</option><option>اللهم إنك عفو تحب العفو فاعف عني</option>
-       </optgroup>
-       <optgroup label="التسبيح والتحميد">
-        <option>سبحان الله</option><option>الحمد لله</option><option>الله أكبر</option><option>لا إله إلا الله</option><option>سبحان الله وبحمده</option><option>سبحان الله العظيم</option><option>سبحان الله والحمد لله ولا إله إلا الله والله أكبر</option>
-       </optgroup>
-       <optgroup label="أذكار جامعة">
-        <option>لا حول ولا قوة إلا بالله</option><option>حسبي الله ونعم الوكيل</option><option>اللهم صل وسلم على نبينا محمد</option><option>اللهم أعني على ذكرك وشكرك وحسن عبادتك</option><option>ربنا آتنا في الدنيا حسنة وفي الآخرة حسنة وقنا عذاب النار</option><option>يا حي يا قيوم برحمتك أستغيث</option><option>رضيت بالله ربا وبالإسلام دينا وبمحمد نبيا</option>
-       </optgroup>
-      </select>
-      <div class="tasbih-count" id="tasbihCount" aria-live="polite">0</div>
-      <div class="tasbih-label">عدد التسبيحات</div>
-      <div class="tasbih-actions">
-       <button type="button" id="tasbihMinus" aria-label="إنقاص العدد">−</button>
-       <button type="button" id="tasbihTap" class="tasbih-tap" aria-label="سجل تسبيحة واحدة">سبّح</button>
-       <button type="button" id="tasbihReset" aria-label="تصفير العداد">↺</button>
-      </div>
-      <div class="tasbih-voice-row"><button type="button" id="tasbihVoice" aria-pressed="false">🎙️ العدّ بالصوت</button><small id="tasbihVoiceStatus">قل «أستغفر الله» ليُسجّل العدد تلقائياً</small></div>
-     </div>
-    </div>
-   </section>
-  </section>
- </div>
-</section>
-
-
-<div id="anwarFloatingTasbih" class="anwar-floating-tasbih" hidden aria-label="السبحة العائمة">
- <div class="anwar-float-glow" aria-hidden="true"></div>
- <span class="anwar-float-symbol" aria-hidden="true"><img class="anwar-tulip-img" src="assets/tulip-cutout.svg" alt=""></span>
- <strong id="anwarFloatCount" dir="ltr">0</strong>
- <button type="button" id="anwarFloatTap" aria-label="إضافة استغفار">+</button>
- <button type="button" id="anwarFloatVoice" aria-label="تشغيل أو إيقاف العد الصوتي">🎙</button>
- <button type="button" id="anwarFloatOpen" aria-label="فتح السبحة">⌃</button>
- <button type="button" id="anwarFloatHide" aria-label="إخفاء السبحة العائمة">×</button>
+  <footer class="anwar-tasbih-footer">يُحفظ العدد والذكر المختار على هذا الجهاز</footer>
+ </section>
 </div>
+<button type="button" id="anwarFloatingTasbih" class="anwar-floating-tasbih" aria-label="فتح سبحة أنوار العائمة" title="افتح السبحة · اسحب القرص لتغيير مكانه">
+ <span class="anwar-float-halo" aria-hidden="true"></span>
+ <svg class="anwar-float-art" viewBox="0 0 64 64" aria-hidden="true">
+  <defs>
+   <radialGradient id="anwarAgateBead" cx="27%" cy="22%" r="78%"><stop offset="0" stop-color="#efb1a0"/><stop offset=".28" stop-color="#b75a50"/><stop offset=".67" stop-color="#742b35"/><stop offset="1" stop-color="#351b2d"/></radialGradient>
+   <linearGradient id="anwarGoldCord" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff0bd"/><stop offset=".5" stop-color="#b98a42"/><stop offset="1" stop-color="#f7dfa0"/></linearGradient>
+  </defs>
+  <circle cx="32" cy="31" r="22.5" fill="none" stroke="url(#anwarGoldCord)" stroke-width="2.2"/>
+  <g fill="url(#anwarAgateBead)" stroke="#55232d" stroke-width="1"><circle cx="32" cy="8.5" r="5.1"/><circle cx="43.5" cy="11.8" r="5.1"/><circle cx="51.8" cy="20.3" r="5.1"/><circle cx="55" cy="31.5" r="5.1"/><circle cx="51.5" cy="43" r="5.1"/><circle cx="43" cy="51.4" r="5.1"/><circle cx="32" cy="54" r="5.1"/><circle cx="20.5" cy="51" r="5.1"/><circle cx="12" cy="42.8" r="5.1"/><circle cx="9" cy="31.5" r="5.1"/><circle cx="12.2" cy="20.2" r="5.1"/><circle cx="20.6" cy="11.8" r="5.1"/></g>
+  <circle cx="32" cy="31.5" r="7.4" fill="url(#anwarAgateBead)" stroke="url(#anwarGoldCord)" stroke-width="2"/><circle cx="32" cy="31.5" r="2" fill="#f7dfa0"/>
+ </svg>
+</button>
+
 <div id="toast"></div>
 <script>
 const TYPES={poem:'قصيدة',text:'نص',idea:'فكرة'},IC={poem:'🪶',text:'📜',idea:'💡'};
@@ -3547,504 +3542,45 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
 // Sync the closed/open tulip only from playback UI state.
 (()=>{const selector='#rb,#rpp,.reciter-play,.country-reader-play,#lessonPlay,#rd .lesson-item-radio,.reciter-version';const sync=()=>document.querySelectorAll(selector).forEach(el=>{if(!el.classList.contains('reciter-version'))el.dataset.playing=/[⏸Ⅱ]/.test(el.textContent)?'true':'false'});sync();new MutationObserver(sync).observe(document.body,{subtree:true,childList:true,characterData:true});})();
 </script>
+
 <script>
-(()=> {
- const page=document.getElementById('libraryPage');
- const openButton=document.getElementById('libraryToggle');
- const app=document.getElementById('app');
- if(!page||!openButton)return;
- const $=id=>document.getElementById(id);
- const categories=[];
- const readerView=document.createElement('section');
- readerView.id='libraryReaderView';
- readerView.className='library-pdf-reader';
- readerView.hidden=true;
- readerView.setAttribute('aria-label','قارئ المصحف الشريف');
- readerView.innerHTML='<header class="pdf-reader-toolbar"><button type="button" id="readerBack" aria-label="إغلاق المصحف">×</button><div class="pdf-reader-heading"><strong id="readerTitle">المصحف الشريف</strong><small id="readerMeta">مصحف المدينة النبوية · الرسم العثماني</small></div><button type="button" id="readerTasbih" aria-label="فتح السبحة الإلكترونية">السبحة</button></header><nav class="pdf-reader-controls" aria-label="أدوات القراءة"><button type="button" id="readerPrev" aria-label="الصفحة السابقة">‹</button><label class="pdf-reader-pagebox"><input id="readerPage" type="number" min="1" value="1" inputmode="numeric" aria-label="رقم الصفحة"><span>/ <b id="readerPages">—</b></span></label><button type="button" id="readerNext" aria-label="الصفحة التالية">›</button><i class="pdf-reader-control-sep"></i><button type="button" id="readerZoomOut" aria-label="تصغير">−</button><span id="readerZoomLabel" class="pdf-reader-zoom-label">100%</span><button type="button" id="readerZoomIn" aria-label="تكبير">＋</button><button type="button" id="readerBookmark" aria-label="إضافة علامة مرجعية" aria-pressed="false">☆</button><button type="button" id="readerBookmarks" aria-label="عرض العلامات المرجعية">▤</button><button type="button" id="readerContents" aria-label="فهرس السور" hidden>☷</button><button type="button" id="readerTheme" aria-label="تغيير وضع القراءة">☾</button></nav><div id="readerBookmarkPanel" class="pdf-reader-popover" hidden></div><div id="readerContentsPanel" class="pdf-reader-popover" hidden></div><main id="readerStage" class="pdf-reader-stage"><div id="readerLoading" class="pdf-reader-loading" role="status">جارٍ تجهيز صفحة المصحف الشريف…</div><div id="readerPdfSheet" class="pdf-reader-sheet" hidden><canvas id="readerCanvas" aria-label="صفحة من المصحف الشريف"></canvas></div><section id="readerFallback" class="pdf-reader-fallback" hidden><div class="pdf-reader-fallback-mark">PDF</div><strong id="readerFallbackTitle">تعذّر العرض المباشر</strong><p id="readerFallbackText">قد يمنع مصدر الملف عرضه داخل قارئ المفكرة. يمكنك تجربة القارئ المضمن البديل دون تنزيل الملف إلى الهاتف.</p><button type="button" id="readerGoogleFallback">جرّب القارئ المضمن البديل</button><iframe id="readerFrame" title="القارئ البديل لملف PDF" loading="lazy" allow="fullscreen" hidden></iframe></section></main><footer class="pdf-reader-footer"><span id="readerStatus" role="status">جاهز للقراءة</span><button type="button" id="readerRetry" aria-label="إعادة تحميل صفحة المصحف">إعادة المحاولة ↻</button></footer>';
- const libraryShell=page.querySelector('.library-shell')||page;
- libraryShell.append(readerView);
- // اجعل نافذة المكتبة ابنا مباشرا لـ body حتى لا يحبسها app.inert أو أي حاوية ذات تحويل.
- document.body.appendChild(page);
- let activeReader=null,activePdfDocument=null,activePdfLoadingTask=null;
- let activePdfPage=1,readerZoom=1,readerTone='day',readerRenderTask=null,readerRenderToken=0,readerOpenRequest=0;
- let readerOutline=[],readerBookmarks=[];
- const readerProgressKey='anwar_pdf_progress_v1';
- const readerBookmarksKey='anwar_pdf_bookmarks_v1';
- function readLibraryObject(key,fallback){
-  try{const value=JSON.parse(localStorage.getItem(key)||'null');return value&&typeof value==='object'?value:fallback}catch(e){return fallback}
- }
- function writeLibraryObject(key,value){
-  try{localStorage.setItem(key,JSON.stringify(value));return true}catch(e){return false}
- }
- function setReaderStatus(message){$('readerStatus').textContent=message}
- function setReaderLoading(message){
-  $('readerLoading').hidden=false;
-  $('readerLoading').textContent=message;
-  $('readerPdfSheet').hidden=true;
-  $('readerFallback').hidden=true;
- }
- function readerErrorMessage(error){
-  const name=String(error&&error.name||'');
-  const message=String(error&&error.message||'');
-  const response=message.match(/Unexpected server response\s*\((\d{3})\)/i);
-  if(name==='InvalidPDFException')return 'الملف الذي أعاده المصدر ليس نسخة PDF صالحة أو أن بياناته تالفة.';
-  if(name==='MissingPDFException')return 'لم يعثر المصدر على ملف المصحف؛ قد يكون الرابط قد تغير أو حُذف.';
-  if(name==='PasswordException')return 'هذه النسخة محمية بكلمة مرور ولا يمكن فتحها في القارئ الحالي.';
-  if(response)return 'رفض مصدر المصحف الطلب وأعاد حالة HTTP '+response[1]+'.';
-  if(/failed to fetch|networkerror|network request failed|cors/i.test(message))return 'تعذر الوصول إلى مصدر المصحف من المتصفح؛ قد يكون اتصال المصدر متوقفًا أو يمنع القراءة المضمنة.';
-  if(/worker|import|module/i.test(message))return 'تعذر تحميل محرك قراءة PDF. تحقق من الاتصال ثم أعد المحاولة.';
-  return 'تعذر على القارئ قراءة هذه النسخة. قد يكون الملف غير متاح أو تالفًا أو لا يسمح مصدره بالوصول المباشر.';
- }
- function showReaderFallback(error){
-  $('readerLoading').hidden=true;
-  $('readerPdfSheet').hidden=true;
-  $('readerFallback').hidden=false;
-  $('readerFallbackTitle').textContent='تعذّر فتح النسخة داخل القارئ';
-  $('readerFallbackText').textContent=readerErrorMessage(error)+' يمكنك تجربة القارئ المضمن البديل؛ ولن يبدأ تنزيل الملف تلقائيا.';
-  $('readerFrame').hidden=true;
-  $('readerFrame').src='about:blank';
-  $('readerGoogleFallback').hidden=false;
-  setReaderStatus('تعذر فتح النسخة · عارض بديل متاح');
-  console.warn('Anwar PDF viewer fallback:',error);
- }
- function ensurePdfEngine(){
-  if(window.AnwarPdfEngine)return Promise.resolve(window.AnwarPdfEngine);
-  if(typeof window.loadAnwarPdfEngine!=='function')return Promise.reject(new Error('محرك القراءة غير متاح'));
-  return window.loadAnwarPdfEngine();
- }
- function savedPageFor(book){const state=readLibraryObject(readerProgressKey,{});const page=Number(state[book.id]);return Number.isInteger(page)&&page>0?page:1}
- function saveReaderProgress(){
-  if(!activeReader)return;
-  const state=readLibraryObject(readerProgressKey,{});
-  state[activeReader.id]=activePdfPage;
-  writeLibraryObject(readerProgressKey,state);
- }
- function getBookmarks(){
-  const state=readLibraryObject(readerBookmarksKey,{});
-  const pages=Array.isArray(state[activeReader?.id])?state[activeReader.id]:[];
-  return [...new Set(pages.map(Number).filter(n=>Number.isInteger(n)&&n>0))].sort((a,b)=>a-b);
- }
- function drawBookmarkPanel(){
-  const panel=$('readerBookmarkPanel');panel.replaceChildren();
-  readerBookmarks=getBookmarks();
-  if(!readerBookmarks.length){
-   const empty=document.createElement('span');empty.className='pdf-reader-empty-bookmarks';empty.textContent='لا توجد علامات مرجعية لهذا المصحف بعد';panel.append(empty);return;
-  }
-  readerBookmarks.forEach(pageNumber=>{
-   const button=document.createElement('button');button.type='button';button.textContent='الصفحة '+pageNumber;
-   button.addEventListener('click',()=>{panel.hidden=true;goToReaderPage(pageNumber)});panel.append(button);
-  });
- }
- function saveBookmark(){
-  if(!activeReader||!activePdfDocument)return;
-  const store=readLibraryObject(readerBookmarksKey,{});
-  const pages=Array.isArray(store[activeReader.id])?store[activeReader.id]:[];
-  const exists=pages.includes(activePdfPage);
-  store[activeReader.id]=exists?pages.filter(n=>n!==activePdfPage):[...pages,activePdfPage].sort((a,b)=>a-b);
-  writeLibraryObject(readerBookmarksKey,store);
-  readerBookmarks=getBookmarks();
-  $('readerBookmark').setAttribute('aria-pressed',String(!exists));
-  $('readerBookmark').textContent=exists?'☆':'★';
-  drawBookmarkPanel();
-  setReaderStatus(exists?'أزيلت العلامة المرجعية':'حُفظت الصفحة في العلامات المرجعية');
- }
- async function renderReaderPage(){
-  if(!activePdfDocument)return;
-  const token=++readerRenderToken;
-  if(readerRenderTask){try{readerRenderTask.cancel()}catch(e){}readerRenderTask=null}
-  setReaderLoading('جارٍ تجهيز الصفحة '+activePdfPage+'…');
-  try{
-   const page=await activePdfDocument.getPage(activePdfPage);
-   if(token!==readerRenderToken)return;
-   const stage=$('readerStage');
-   const base=page.getViewport({scale:1});
-   const available=Math.max(220,stage.clientWidth-28);
-   const fitScale=Math.min(1.75,available/base.width);
-   const scale=Math.max(.35,Math.min(4.0,fitScale*readerZoom));
-   const viewport=page.getViewport({scale});
-   const outputScale=Math.max(1,Math.min(1.25,window.devicePixelRatio||1));
-   const canvas=$('readerCanvas'),context=canvas.getContext('2d',{alpha:false});
-   canvas.width=Math.ceil(viewport.width*outputScale);
-   canvas.height=Math.ceil(viewport.height*outputScale);
-   canvas.style.width=Math.ceil(viewport.width)+'px';
-   canvas.style.height=Math.ceil(viewport.height)+'px';
-   const transform=outputScale===1?null:[outputScale,0,0,outputScale,0,0];
-   readerRenderTask=page.render({canvasContext:context,viewport,transform,background:'rgb(255,255,255)'});
-   await readerRenderTask.promise;
-   if(token!==readerRenderToken)return;
-   readerRenderTask=null;
-   $('readerLoading').hidden=true;
-   $('readerFallback').hidden=true;
-   $('readerPdfSheet').hidden=false;
-   $('readerPage').value=String(activePdfPage);
-   $('readerPages').textContent=String(activePdfDocument.numPages);
-   $('readerPage').max=String(activePdfDocument.numPages);
-   $('readerPrev').disabled=activePdfPage<=1;
-   $('readerNext').disabled=activePdfPage>=activePdfDocument.numPages;
-   $('readerZoomLabel').textContent=Math.round(readerZoom*100)+'%';
-   $('readerBookmark').setAttribute('aria-pressed',String(readerBookmarks.includes(activePdfPage)));
-   $('readerBookmark').textContent=readerBookmarks.includes(activePdfPage)?'★':'☆';
-   $('readerCanvas').dataset.tone=readerTone;
-   $('readerStage').scrollTop=0;$('readerStage').scrollLeft=0;
-   setReaderStatus('الصفحة '+activePdfPage+' من '+activePdfDocument.numPages);
-   saveReaderProgress();
-  }catch(error){
-   if(error?.name==='RenderingCancelledException')return;
-   if(token!==readerRenderToken)return;
-   throw error;
-  }
- }
- async function goToReaderPage(pageNumber){
-  if(!activePdfDocument)return;
-  const target=Math.max(1,Math.min(activePdfDocument.numPages,Math.round(Number(pageNumber)||1)));
-  activePdfPage=target;
-  try{await renderReaderPage()}catch(error){showReaderFallback(error)}
- }
- async function loadReaderOutline(){
-  readerOutline=[];
-  try{readerOutline=await activePdfDocument.getOutline()||[]}catch(e){}
-  const button=$('readerContents');
-  button.hidden=!readerOutline.length;
-  const panel=$('readerContentsPanel');panel.replaceChildren();
-  const appendItems=(items,depth=0)=>{
-   items.forEach(item=>{
-    const row=document.createElement('button');row.type='button';row.className='pdf-reader-outline-item';row.style.paddingInlineStart=(10+depth*14)+'px';row.textContent=item.title||'قسم';
-    row.addEventListener('click',async()=>{
-     try{
-      let destination=item.dest;
-      if(typeof destination==='string')destination=await activePdfDocument.getDestination(destination);
-      if(Array.isArray(destination)&&destination[0]){
-       const pageIndex=await activePdfDocument.getPageIndex(destination[0]);
-       panel.hidden=true;goToReaderPage(pageIndex+1);
-      }
-     }catch(e){setReaderStatus('تعذر الانتقال إلى هذا الموضع')}
-    });
-    panel.append(row);if(item.items?.length)appendItems(item.items,depth+1);
-   });
-  };
-  appendItems(readerOutline);
- }
- async function openReader(book){
-  if(!book||!book.pdfUrl)return;
-  const request=++readerOpenRequest;
-  activeReader=book;
-  if(activePdfLoadingTask){try{await activePdfLoadingTask.destroy()}catch(e){}activePdfLoadingTask=null}
-  if(request!==readerOpenRequest)return;
-  if(activePdfDocument){try{await activePdfDocument.destroy()}catch(e){}activePdfDocument=null}
-  if(request!==readerOpenRequest)return;
-  readerReturnView=activeLibraryView;
-  ['libraryHome','tasbihView'].forEach(id=>$(id).hidden=true);
-  readerView.hidden=false;
-  readerView.dataset.readerBook=book.id;
-  $('readerTitle').textContent='المصحف الشريف';
-  $('readerMeta').textContent='مصحف المدينة النبوية · الرسم العثماني · رواية حفص';
-  $('readerFrame').src='about:blank';$('readerFrame').hidden=true;
-  $('readerBookmarkPanel').hidden=true;$('readerContentsPanel').hidden=true;
-  $('readerGoogleFallback').hidden=false;
-  readerZoom=1;readerTone='day';activePdfPage=savedPageFor(book);
-  setReaderTone();
-  setReaderLoading('جارٍ فتح صفحة المصحف الشريف…');
-  setReaderStatus('اتصال بمصدر المصحف');
-  $('readerBack').focus();
-  try{
-   const engine=await ensurePdfEngine();
-   if(activeReader!==book||request!==readerOpenRequest)return;
-   activePdfLoadingTask=engine.getDocument({url:book.pdfUrl,rangeChunkSize:65536,disableRange:false,disableStream:true,disableAutoFetch:true});
-   activePdfLoadingTask.onProgress=progress=>{
-    if(activeReader===book&&progress?.total){
-     const percent=Math.round(progress.loaded/progress.total*100);
-     setReaderStatus('تحميل صفحة المصحف · '+percent+'%');
-    }
-   };
-   activePdfDocument=await activePdfLoadingTask.promise;
-   if(activeReader!==book||request!==readerOpenRequest)return;
-   activePdfLoadingTask=null;
-   activePdfPage=Math.min(activePdfPage,activePdfDocument.numPages||1);
-   $('readerPages').textContent=String(activePdfDocument.numPages);
-   readerBookmarks=getBookmarks();
-   await renderReaderPage();
-   loadReaderOutline().catch(()=>{});
-  }catch(error){
-   if(activeReader!==book||request!==readerOpenRequest)return;
-   if(activePdfLoadingTask){try{await activePdfLoadingTask.destroy()}catch(e){}activePdfLoadingTask=null}
-   if(activePdfDocument){try{await activePdfDocument.destroy()}catch(e){}activePdfDocument=null}
-   showReaderFallback(error);
-  }
- }
- function closeReader(){
-  if(readerView.hidden)return;
-  readerOpenRequest++;
-  if(readerRenderTask){try{readerRenderTask.cancel()}catch(e){}readerRenderTask=null}
-  if(activePdfLoadingTask){try{activePdfLoadingTask.destroy()}catch(e){}activePdfLoadingTask=null}
-  if(activePdfDocument){try{activePdfDocument.destroy()}catch(e){}activePdfDocument=null}
-  readerView.hidden=true;
-  $('readerBookmarkPanel').hidden=true;$('readerContentsPanel').hidden=true;
-  show(readerReturnView||'libraryHome');
- }
- function setReaderTone(){
-  const canvas=$('readerCanvas');
-  $('readerStage').dataset.tone=readerTone;
-  if(readerTone==='night'){canvas.style.filter='invert(.88) hue-rotate(180deg)';$('readerTheme').textContent='◐';$('readerTheme').setAttribute('aria-label','تفعيل الوضع النهاري')}
-  else if(readerTone==='sepia'){canvas.style.filter='sepia(.58) brightness(.92)';$('readerTheme').textContent='☼';$('readerTheme').setAttribute('aria-label','تفعيل الوضع النهاري')}
-  else{canvas.style.filter='none';$('readerTheme').textContent='☾';$('readerTheme').setAttribute('aria-label','تفعيل الوضع الليلي')}
- }
- $('readerBack').addEventListener('click',close);
- $('readerTasbih').addEventListener('click',()=>{readerView.hidden=true;show('tasbihView');$('tasbihBack').focus()});
- $('readerPrev').addEventListener('click',()=>goToReaderPage(activePdfPage-1));
- $('readerNext').addEventListener('click',()=>goToReaderPage(activePdfPage+1));
- $('readerPage').addEventListener('change',e=>goToReaderPage(e.target.value));
- $('readerPage').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();goToReaderPage(e.currentTarget.value);e.currentTarget.blur()}});
- $('readerZoomOut').addEventListener('click',()=>{readerZoom=Math.max(.65,readerZoom-.15);goToReaderPage(activePdfPage)});
- $('readerZoomIn').addEventListener('click',()=>{readerZoom=Math.min(2.5,readerZoom+.15);goToReaderPage(activePdfPage)});
- $('readerBookmark').addEventListener('click',saveBookmark);
- $('readerBookmarks').addEventListener('click',()=>{drawBookmarkPanel();$('readerBookmarkPanel').hidden=!$('readerBookmarkPanel').hidden;$('readerContentsPanel').hidden=true});
- $('readerContents').addEventListener('click',()=>{$('readerContentsPanel').hidden=!$('readerContentsPanel').hidden;$('readerBookmarkPanel').hidden=true});
- $('readerTheme').addEventListener('click',()=>{readerTone=readerTone==='day'?'night':readerTone==='night'?'sepia':'day';setReaderTone()});
- $('readerRetry').addEventListener('click',()=>{if(activeReader)openReader(activeReader)});
- $('readerGoogleFallback').addEventListener('click',()=>{
-  if(!activeReader)return;
-  $('readerFrame').hidden=false;
-  $('readerFrame').src='https://docs.google.com/gview?embedded=1&url='+encodeURIComponent(activeReader.pdfUrl);
-  $('readerGoogleFallback').hidden=true;
-  $('readerFallbackText').textContent='جارٍ فتح الملف في عارض ويب بديل داخل المفكرة. قد يستغرق العرض وقتا بحسب حجم النسخة وسرعة الاتصال.';
-  setReaderStatus('تحميل صفحة المصحف في العارض البديل');
- });
- let swipeStart=null;
- $('readerStage').addEventListener('touchstart',e=>{if(e.touches.length===1)swipeStart={x:e.touches[0].clientX,y:e.touches[0].clientY}},{passive:true});
- $('readerStage').addEventListener('touchend',e=>{
-  if(!swipeStart||e.changedTouches.length!==1)return;
-  const dx=e.changedTouches[0].clientX-swipeStart.x,dy=e.changedTouches[0].clientY-swipeStart.y;
-  swipeStart=null;
-  if(Math.abs(dx)>80&&Math.abs(dy)<70){if(dx<0)goToReaderPage(activePdfPage+1);else goToReaderPage(activePdfPage-1)}
- },{passive:true});
- window.addEventListener('resize',()=>{
-  if(!readerView.hidden&&activePdfDocument)goToReaderPage(activePdfPage);
- });
- const libraryThemeKey='anwar_library_theme_v1';
- const libraryThemes=['white','cream','pearl','blue'];
- const libraryThemeNames={white:'أبيض وذهبي',cream:'عاجي وذهبي',pearl:'لؤلؤي وذهبي',blue:'أزرق هادئ وذهبي'};
- let libraryThemeIndex=0;
- try{const savedTheme=localStorage.getItem(libraryThemeKey);const savedIndex=libraryThemes.indexOf(savedTheme);if(savedIndex>=0)libraryThemeIndex=savedIndex}catch(e){}
- function applyLibraryTheme(){
-  const theme=libraryThemes[libraryThemeIndex]||'white';
-  page.dataset.libraryTheme=theme;
-  const palettes={
-   white:{bg:'#fffefa',card:'#ffffff',text:'#3b3123',muted:'#947b52',line:'#eadbb9',gold:'#b58b45',soft:'#fff8e9',shadow:'0 4px 13px rgba(111,82,34,.08)'},
-   cream:{bg:'#faf6ed',card:'#fffdf8',text:'#3d3326',muted:'#8e754e',line:'#e6d5b0',gold:'#ad8240',soft:'#f8efdc',shadow:'0 4px 13px rgba(111,82,34,.07)'},
-   pearl:{bg:'#f7f8f7',card:'#ffffff',text:'#343b39',muted:'#827d6b',line:'#e5dfcd',gold:'#b29257',soft:'#fbf7ed',shadow:'0 4px 13px rgba(67,73,62,.07)'},
-   blue:{bg:'#071d38',card:'#102f50',text:'#f5e7c8',muted:'#cbd7e2',line:'#c9a96a',gold:'#efd18e',soft:'#f8f3e8',shadow:'0 4px 13px rgba(0,0,0,.18)'}
-  };
-  const p=palettes[theme]||palettes.white;
-  for(const [key,value] of Object.entries({bg:p.bg,card:p.card,text:p.text,muted:p.muted,line:p.line,gold:p.gold,'gold-soft':p.soft,shadow:p.shadow}))page.style.setProperty('--lib-'+key,value);
-  const button=$('libraryTheme');
-  if(button){button.title='لون المكتبة: '+libraryThemeNames[theme]+' · اضغط للتغيير';button.setAttribute('aria-label','تغيير لون المكتبة. اللون الحالي '+libraryThemeNames[theme]);button.dataset.currentTheme=theme;}
- }
- applyLibraryTheme();
- let activeLibraryView='libraryHome',readerReturnView='libraryHome',previousOverflow='',previousFocus=null;
- const resources=()=>categories.flatMap(c=>c.resources.map(r=>({...r,categoryId:c.id,categoryName:c.name})));
- const resource=id=>resources().find(r=>r.id===id);
- function setNotice(message){$('libraryHeroText').textContent=message}
- function show(view){
-  activeLibraryView=view;
-  ['libraryHome','tasbihView'].forEach(id=>$(id).hidden=id!==view);
- }
- function open(){
-  if(!page.hidden)return;
-  previousFocus=document.activeElement;previousOverflow=document.body.style.overflow;
-  const radio=$('rd');if(radio?.classList.contains('o')){radio.classList.remove('o');document.body.classList.remove('radio-open');$('rg')?.setAttribute('aria-expanded','false')}
-  $('rib')?.classList.remove('open');$('toolsToggle')?.setAttribute('aria-expanded','false');
-  app.setAttribute('aria-hidden','true');app.inert=true;
-  page.hidden=false;page.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
-  show('tasbihView');
-  $('tasbihCount').textContent=tasbihValue.toLocaleString('ar');
- }
- function close(){
-  if(page.hidden)return;
-  stopTasbihVoice('توقف العد الصوتي عند مغادرة المكتبة.');
-  readerOpenRequest++;
-  if(!readerView.hidden){readerView.hidden=true}
-  if(readerRenderTask){try{readerRenderTask.cancel()}catch(e){}readerRenderTask=null}
-  if(activePdfLoadingTask){try{activePdfLoadingTask.destroy()}catch(e){}activePdfLoadingTask=null}
-  if(activePdfDocument){try{activePdfDocument.destroy()}catch(e){}activePdfDocument=null}
-  readerView.hidden=true;$('readerFrame').src='about:blank';
-  page.hidden=true;page.setAttribute('aria-hidden','true');app.removeAttribute('aria-hidden');app.inert=false;
-  document.body.style.overflow=previousOverflow;
-  (previousFocus&&previousFocus.focus?previousFocus:openButton).focus();
- }
- // عداد السبحة: الحفظ محلي على الجهاز، والعد الصوتي اختياري بإذن المستخدم.
- const tasbihCount=$('tasbihCount'),tasbihTap=$('tasbihTap'),tasbihMinus=$('tasbihMinus'),tasbihReset=$('tasbihReset'),tasbihVoice=$('tasbihVoice'),tasbihVoiceStatus=$('tasbihVoiceStatus');
- const tasbihKey='anwar_tasbih_count_v1';
- let tasbihValue=0,voiceRecognition=null,voiceActive=false;
- try{tasbihValue=Math.max(0,parseInt(localStorage.getItem(tasbihKey)||'0',10)||0)}catch(e){}
- function stopTasbihVoice(message){
-  if(voiceRecognition&&voiceActive){
-   voiceActive=false;
-   try{voiceRecognition.stop()}catch(e){}
-   tasbihVoice.setAttribute('aria-pressed','false');
-   tasbihVoice.textContent='🎙️ العدّ بالصوت';
-   if(floatVoice)floatVoice.setAttribute('aria-pressed','false');
-   if(message)tasbihVoiceStatus.textContent=message;
-  }
- }
- const floatWidget=$('anwarFloatingTasbih'),floatCount=$('anwarFloatCount'),floatTap=$('anwarFloatTap'),floatVoice=$('anwarFloatVoice'),floatOpen=$('anwarFloatOpen'),floatHide=$('anwarFloatHide');
- const floatEnabledKey='anwar_floating_tasbih_enabled_v1';
- function paintTasbih(){
-  const formatted=tasbihValue.toLocaleString('ar');
-  tasbihCount.textContent=formatted;
-  if(floatCount)floatCount.textContent=formatted;
-  try{localStorage.setItem(tasbihKey,String(tasbihValue))}catch(e){}
- }
- function clampFloatingPosition(){
-  if(!floatWidget||floatWidget.hidden)return;
-  const rect=floatWidget.getBoundingClientRect();
-  const x=Math.max(4,Math.min(window.innerWidth-rect.width-4,rect.left));
-  const y=Math.max(4,Math.min(window.innerHeight-rect.height-4,rect.top));
-  floatWidget.style.left=x+'px';
-  floatWidget.style.top=y+'px';
-  floatWidget.style.right='auto';
-  floatWidget.style.bottom='auto';
-  try{localStorage.setItem('anwar_float_position_v1',JSON.stringify({x,y}))}catch(e){}
- }
- function setFloatingVisible(enabled){
-  if(!floatWidget)return;
-  if(floatWidget.parentElement!==document.body)document.body.appendChild(floatWidget);
-  floatWidget.hidden=!enabled;
-  floatWidget.setAttribute('aria-hidden',enabled?'false':'true');
-  if(enabled){
-   floatWidget.style.display='flex';
-   requestAnimationFrame(clampFloatingPosition);
-  }else{
-   floatWidget.style.removeProperty('display');
-  }
-  try{localStorage.setItem(floatEnabledKey,enabled?'1':'0')}catch(e){}
- }
- function addTasbih(n=1){
-  tasbihValue=Math.max(0,tasbihValue+n);paintTasbih();
-  const card=$('anwarTasbih');
-  if(card){card.classList.remove('tasbih-pulse');void card.offsetWidth;card.classList.add('tasbih-pulse');}
- }
- paintTasbih();
- const dhikrSelect=$('tasbihDhikr'),dhikrPhrase=$('tasbihPhrase'),dhikrKey='anwar_tasbih_dhikr_v1';
- try{const savedDhikr=localStorage.getItem(dhikrKey);if(savedDhikr&&[...dhikrSelect.options].some(o=>o.value===savedDhikr))dhikrSelect.value=savedDhikr;}catch(e){}
- dhikrPhrase.textContent=dhikrSelect.value;
- dhikrSelect.addEventListener('change',()=>{
-  dhikrPhrase.textContent=dhikrSelect.value;
-  tasbihValue=0;paintTasbih();
-  try{localStorage.setItem(dhikrKey,dhikrSelect.value)}catch(e){}
-  tasbihVoiceStatus.textContent='تم اختيار الذكر الجديد. يمكنك بدء العد.';
- });
- tasbihTap.addEventListener('click',()=>addTasbih(1));
- tasbihMinus.addEventListener('click',()=>addTasbih(-1));
- tasbihReset.addEventListener('click',()=>{tasbihValue=0;paintTasbih();});
+(()=>{
+ const $=id=>document.getElementById(id),app=$('app'),panel=$('tasbihPanel'),disc=$('anwarFloatingTasbih');
+ const closeButton=$('tasbihClose'),countNode=$('tasbihCount'),phraseNode=$('tasbihPhrase'),select=$('tasbihDhikr');
+ const tap=$('tasbihTap'),minus=$('tasbihMinus'),reset=$('tasbihReset'),voiceButton=$('tasbihVoice'),voiceStatus=$('tasbihVoiceStatus');
+ if(!app||!panel||!disc||!select)return;
+ const countKey='anwar_tasbih_count_v1',dhikrKey='anwar_tasbih_dhikr_v1',positionKey='anwar_tasbih_disc_position_v1';
+ let count=0,previousOverflow='',recognition=null,voiceActive=false;
+ try{count=Math.max(0,parseInt(localStorage.getItem(countKey)||'0',10)||0)}catch(e){}
+ try{const saved=localStorage.getItem(dhikrKey);if(saved&&[...select.options].some(o=>o.value===saved))select.value=saved}catch(e){}
+ function paint(){countNode.textContent=count.toLocaleString('ar');try{localStorage.setItem(countKey,String(count))}catch(e){}}
+ function add(n=1){count=Math.max(0,count+n);paint();const el=panel.querySelector('.anwar-tasbih-counter');if(el)el.animate([{transform:'scale(1)'},{transform:'scale(1.045)'},{transform:'scale(1)'}],{duration:240,easing:'ease-out'})}
+ phraseNode.textContent=select.value;paint();
+ function stopVoice(message){if(recognition&&voiceActive){voiceActive=false;try{recognition.stop()}catch(e){}voiceButton.setAttribute('aria-pressed','false');voiceButton.textContent='🎙️ العدّ بالصوت'}if(message)voiceStatus.textContent=message}
+ function closePanel(){if(panel.hidden)return;stopVoice('توقف الاستماع.');panel.hidden=true;panel.setAttribute('aria-hidden','true');document.documentElement.classList.remove('anwar-tasbih-open');document.body.classList.remove('anwar-tasbih-open');app.inert=false;app.removeAttribute('aria-hidden');document.body.style.overflow=previousOverflow;disc.hidden=false;disc.focus()}
+ function openPanel(){if(!panel.hidden)return;previousOverflow=document.body.style.overflow;const radio=$('rd');if(radio?.classList.contains('o')){radio.classList.remove('o');document.body.classList.remove('radio-open');$('rg')?.setAttribute('aria-expanded','false')} $('rib')?.classList.remove('open');$('toolsToggle')?.setAttribute('aria-expanded','false');$('palettePanel')?.classList.remove('open');app.inert=true;app.setAttribute('aria-hidden','true');panel.hidden=false;panel.setAttribute('aria-hidden','false');document.documentElement.classList.add('anwar-tasbih-open');document.body.classList.add('anwar-tasbih-open');document.body.style.overflow='hidden';disc.hidden=true;closeButton.focus()}
+ select.addEventListener('change',()=>{phraseNode.textContent=select.value;count=0;paint();try{localStorage.setItem(dhikrKey,select.value)}catch(e){}voiceStatus.textContent='تم اختيار الذكر الجديد، والعداد جاهز.'});
+ tap.addEventListener('click',()=>add(1));minus.addEventListener('click',()=>add(-1));reset.addEventListener('click',()=>{count=0;paint()});closeButton.addEventListener('click',closePanel);panel.addEventListener('click',e=>{if(e.target===panel)closePanel()});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden){e.preventDefault();e.stopImmediatePropagation();closePanel()}},true);
  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!SpeechRecognition){tasbihVoice.disabled=true;floatVoice.disabled=true;floatVoice.title='العد الصوتي غير مدعوم في هذا المتصفح';tasbihVoiceStatus.textContent='العد الصوتي غير مدعوم في هذا المتصفح؛ يمكنك استخدام العداد اليدوي.';}
- else{
-  voiceRecognition=new SpeechRecognition();voiceRecognition.lang='ar-SA';voiceRecognition.continuous=true;voiceRecognition.interimResults=false;
-  voiceRecognition.onresult=event=>{
-   for(let i=event.resultIndex;i<event.results.length;i++){
-    if(!event.results[i].isFinal)continue;
-    const said=event.results[i][0].transcript||'';
-    const matches=said.match(/(?:أستغفر|استغفر)\s+الله/g);
-    if(matches&&matches.length){addTasbih(matches.length);tasbihVoiceStatus.textContent='سُجّل '+matches.length+' استغفار · '+said.trim();}
-   }
-  };
-  voiceRecognition.onerror=event=>{tasbihVoiceStatus.textContent=event.error==='not-allowed'?'لم يُسمح بالميكروفون. فعّل الإذن من إعدادات المتصفح.':'تعذر التعرف الصوتي؛ جرّب مرة أخرى أو استخدم العداد اليدوي.';};
-  voiceRecognition.onend=()=>{voiceActive=false;tasbihVoice.setAttribute('aria-pressed','false');tasbihVoice.textContent='🎙️ العدّ بالصوت';floatVoice.setAttribute('aria-pressed','false');};
-  const toggleVoice=()=>{
-   if(voiceActive){voiceRecognition.stop();voiceActive=false;tasbihVoiceStatus.textContent='توقف العد الصوتي.';return;}
-   try{voiceRecognition.start();voiceActive=true;tasbihVoice.setAttribute('aria-pressed','true');tasbihVoice.textContent='إيقاف الاستماع';tasbihVoiceStatus.textContent='أستمع الآن… قل «أستغفر الله» بوضوح.';}
-   catch(e){tasbihVoiceStatus.textContent='تعذر تشغيل الميكروفون. انتظر لحظة ثم حاول مجددا.';}
-  };
-  tasbihVoice.addEventListener('click',toggleVoice);
-  floatVoice.addEventListener('click',()=>tasbihVoice.click());
+ if(!SpeechRecognition){voiceButton.disabled=true;voiceStatus.textContent='العدّ الصوتي غير متاح في هذا المتصفح؛ استخدم العداد اليدوي.'}
+ else{recognition=new SpeechRecognition();recognition.lang='ar-SA';recognition.continuous=true;recognition.interimResults=false;
+  recognition.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++){if(!e.results[i].isFinal)continue;const said=e.results[i][0].transcript||'',matches=said.match(/(?:أستغفر|استغفر)\s+الله/g);if(matches?.length){add(matches.length);voiceStatus.textContent='سُجّل '+matches.length+' استغفار.'}}};
+  recognition.onerror=e=>{voiceStatus.textContent=e.error==='not-allowed'?'لم يُسمح بالميكروفون. فعّل الإذن من إعدادات المتصفح.':'تعذر التعرف الصوتي؛ يمكنك متابعة العد يدويا.'};
+  recognition.onend=()=>{voiceActive=false;voiceButton.setAttribute('aria-pressed','false');voiceButton.textContent='🎙️ العدّ بالصوت'};
+  voiceButton.addEventListener('click',()=>{if(voiceActive){stopVoice('توقف الاستماع.');return}try{recognition.start();voiceActive=true;voiceButton.setAttribute('aria-pressed','true');voiceButton.textContent='إيقاف الاستماع';voiceStatus.textContent='أستمع الآن… قل «أستغفر الله» بوضوح.'}catch(e){voiceStatus.textContent='تعذر تشغيل الميكروفون. حاول مجددا.'}});
  }
- floatTap.addEventListener('click',()=>addTasbih(1));
- let floatDrag=null;
- const floatSymbol=$('anwarFloatingTasbih').querySelector('.anwar-float-symbol');
- floatSymbol.style.touchAction='none';
- floatSymbol.title='اسحب السبحة لتغيير مكانها';
- floatSymbol.addEventListener('pointerdown',e=>{
-  const rect=floatWidget.getBoundingClientRect();
-  floatDrag={id:e.pointerId,dx:e.clientX-rect.left,dy:e.clientY-rect.top,moved:false};
-  floatSymbol.setPointerCapture(e.pointerId);
- });
- floatSymbol.addEventListener('pointermove',e=>{
-  if(!floatDrag||floatDrag.id!==e.pointerId)return;
-  const dx=e.clientX-(floatWidget.getBoundingClientRect().left+floatDrag.dx);
-  const dy=e.clientY-(floatWidget.getBoundingClientRect().top+floatDrag.dy);
-  if(Math.abs(dx)+Math.abs(dy)>3)floatDrag.moved=true;
-  if(floatDrag.moved){
-   const x=Math.max(4,Math.min(window.innerWidth-floatWidget.offsetWidth-4,e.clientX-floatDrag.dx));
-   const y=Math.max(4,Math.min(window.innerHeight-floatWidget.offsetHeight-4,e.clientY-floatDrag.dy));
-   floatWidget.style.left=x+'px';floatWidget.style.top=y+'px';floatWidget.style.right='auto';floatWidget.style.bottom='auto';
-   try{localStorage.setItem('anwar_float_position_v1',JSON.stringify({x,y}))}catch(e){}
-  }
- });
- const finishFloatDrag=e=>{if(floatDrag&&floatDrag.id===e.pointerId){floatDrag=null}};
- floatSymbol.addEventListener('pointerup',finishFloatDrag);
- floatSymbol.addEventListener('pointercancel',finishFloatDrag);
- try{
-  const pos=JSON.parse(localStorage.getItem('anwar_float_position_v1')||'null');
-  if(pos&&Number.isFinite(pos.x)&&Number.isFinite(pos.y)){
-   // لا نقيس عرض العنصر وهو مخفي؛ القياس المؤجل يتم بعد إظهاره حتى لا ينتقل خارج الشاشة.
-   floatWidget.style.left=pos.x+'px';
-   floatWidget.style.top=pos.y+'px';
-   floatWidget.style.right='auto';
-   floatWidget.style.bottom='auto';
-  }
- }catch(e){}
- window.addEventListener('resize',()=>{if(!floatWidget.hidden)requestAnimationFrame(clampFloatingPosition)});
-
- floatOpen.addEventListener('click',()=>{open();});
- floatHide.addEventListener('click',()=>setFloatingVisible(false));
- $('tasbihFloatEnable').addEventListener('click',()=>{
-  close();
-  // أظهر الشريط بعد إغلاق النافذة، ثم اضبط موضعه بعد اكتمال القياس.
-  setFloatingVisible(true);
- });
- try{setFloatingVisible(localStorage.getItem(floatEnabledKey)==='1')}catch(e){setFloatingVisible(false)}
- openButton.addEventListener('click',open);
- $('libraryClose').addEventListener('click',close);
- page.addEventListener('click',e=>{
-  const themeButton=e.target.closest('#libraryTheme');
-  if(themeButton){
-   e.preventDefault();e.stopPropagation();
-   libraryThemeIndex=(libraryThemeIndex+1)%libraryThemes.length;
-   applyLibraryTheme();
-   try{localStorage.setItem(libraryThemeKey,libraryThemes[libraryThemeIndex])}catch(e){}
-   return;
-  }
-  const tasbihButton=e.target.closest('[data-open-tasbih]');
-  if(tasbihButton){show('tasbihView');$('tasbihBack').focus();return}
-  const readButton=e.target.closest('[data-read-book]');
-  if(readButton){const book=resource(readButton.dataset.readBook);if(book)openReader(book);return}
- });
-
- document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'&&!page.hidden){
-   e.preventDefault();e.stopImmediatePropagation();
-   close();
-  }
- },true);
+ let drag=null,suppressClick=false;
+ function bounded(x,y){return{x:Math.max(4,Math.min(window.innerWidth-disc.offsetWidth-4,x)),y:Math.max(4,Math.min(window.innerHeight-disc.offsetHeight-4,y))}}
+ function moveTo(x,y){const p=bounded(x,y);disc.style.left=p.x+'px';disc.style.top=p.y+'px';disc.style.right='auto';disc.style.bottom='auto';try{localStorage.setItem(positionKey,JSON.stringify(p))}catch(e){}}
+ try{const p=JSON.parse(localStorage.getItem(positionKey)||'null');if(p&&Number.isFinite(p.x)&&Number.isFinite(p.y)){const q=bounded(p.x,p.y);disc.style.left=q.x+'px';disc.style.top=q.y+'px';disc.style.right='auto';disc.style.bottom='auto'}}catch(e){}
+ disc.addEventListener('pointerdown',e=>{if(e.button!==undefined&&e.button!==0)return;const r=disc.getBoundingClientRect();drag={id:e.pointerId,dx:e.clientX-r.left,dy:e.clientY-r.top,sx:e.clientX,sy:e.clientY,moved:false};try{disc.setPointerCapture(e.pointerId)}catch(_){}});
+ disc.addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;if(Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)>6)drag.moved=true;if(drag.moved)moveTo(e.clientX-drag.dx,e.clientY-drag.dy)});
+ function endDrag(e){if(!drag||drag.id!==e.pointerId)return;if(drag.moved)suppressClick=true;drag=null}
+ disc.addEventListener('pointerup',endDrag);disc.addEventListener('pointercancel',endDrag);
+ disc.addEventListener('click',e=>{if(suppressClick){suppressClick=false;e.preventDefault();e.stopImmediatePropagation();return}openPanel()});
+ window.addEventListener('resize',()=>{if(disc.style.left&&disc.style.top){const r=disc.getBoundingClientRect();moveTo(r.left,r.top)}});
 })();
-</script>
-
-<script>
-window.loadAnwarPdfEngine=()=>{
- if(window.AnwarPdfEngine)return Promise.resolve(window.AnwarPdfEngine);
- if(window.AnwarPdfEnginePromise)return window.AnwarPdfEnginePromise;
- window.AnwarPdfEnginePromise=(async()=>{
-  const pdfjs=await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/6.5.438/pdf.min.mjs');
-  pdfjs.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/6.5.438/pdf.worker.min.mjs';
-  window.AnwarPdfEngine={getDocument(options){return pdfjs.getDocument(options)}};
-  return window.AnwarPdfEngine;
- })().catch(error=>{
-  window.AnwarPdfEnginePromise=null;
-  window.AnwarPdfEngineError=error&&error.message?error.message:'تعذر تحميل محرك PDF.js';
-  throw error;
- });
- return window.AnwarPdfEnginePromise;
-};
 </script>
 </body>
 </html>
