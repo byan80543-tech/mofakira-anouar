@@ -1262,11 +1262,24 @@ dialog[open]>.float-head{display:none!important}
 .anwar-tasbih-small{width:38px;height:38px;border-radius:50%;background:var(--sf);color:var(--tx);font-size:20px}
 .anwar-tasbih-tap{width:66px;height:66px;border:4px double #c59e5c!important;border-radius:50%;background:radial-gradient(circle at 30% 22%,#efc9a9,#9d4b43 72%,#572b35)!important;color:#fff7e7;font:700 15px Cairo,Tahoma,sans-serif;box-shadow:0 4px 10px rgba(60,33,30,.19),inset 0 1px 3px #fff6}
 .anwar-tasbih-tap:active{transform:scale(.96)}
-.anwar-tasbih-voice{display:grid;justify-items:center;gap:5px;margin-top:1px}
-.anwar-tasbih-voice button{min-height:34px;padding:6px 13px;border:1px solid var(--bd);border-radius:20px;background:var(--sf);color:var(--tx);font:11px Cairo,Tahoma,sans-serif}
+.anwar-tasbih-voice{width:min(100%,460px);display:grid;gap:9px;margin-top:3px;padding:10px 11px;border:1px solid var(--bd);border-radius:12px;background:var(--bg);text-align:right}
+.anwar-tasbih-voice-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.anwar-tasbih-voice-copy{display:flex;align-items:center;gap:9px;min-width:0}
+.anwar-tasbih-voice-label{display:grid;gap:2px;min-width:0}
+.anwar-tasbih-voice-label strong{color:var(--tx);font:700 12px Cairo,Tahoma,sans-serif}
+.anwar-tasbih-voice-label small{color:var(--mu);font:10px/1.65 Cairo,Tahoma,sans-serif}
+.anwar-tasbih-voice-dot{width:10px;height:10px;flex:none;border-radius:50%;background:#a9a9a9;box-shadow:0 0 0 4px #9992}
+.anwar-tasbih-voice[data-state="starting"] .anwar-tasbih-voice-dot,.anwar-tasbih-voice[data-state="listening"] .anwar-tasbih-voice-dot{background:#32966a;box-shadow:0 0 0 4px #32966a25;animation:anwarVoicePulse 1.45s ease-in-out infinite}
+.anwar-tasbih-voice[data-state="error"] .anwar-tasbih-voice-dot{background:#b65d52;box-shadow:0 0 0 4px #b65d5225}
+.anwar-tasbih-voice button{display:flex;align-items:center;justify-content:center;gap:6px;min-height:35px;flex:none;padding:6px 11px;border:1px solid var(--bd);border-radius:20px;background:var(--sf);color:var(--tx);font:600 10px Cairo,Tahoma,sans-serif;white-space:nowrap;cursor:pointer}
 .anwar-tasbih-voice button[aria-pressed="true"]{background:#dceee7;color:#23543f;border-color:#7d9d80}
-.anwar-tasbih-voice button:disabled{opacity:.55}
-.anwar-tasbih-voice small{max-width:100%;color:var(--mu);font:10px/1.7 Cairo,Tahoma,sans-serif;text-align:center}
+.anwar-tasbih-voice button:disabled{opacity:.55;cursor:not-allowed}
+.anwar-tasbih-transcript{display:grid;gap:3px;padding:8px 9px;border:1px solid var(--bd);border-radius:9px;background:var(--sf)}
+.anwar-tasbih-transcript span{color:var(--mu);font:9px Cairo,Tahoma,sans-serif}
+.anwar-tasbih-transcript strong{min-height:1.6em;color:var(--tx);font:600 12px/1.7 Amiri,serif;overflow-wrap:anywhere}
+.anwar-tasbih-voice-hint{color:var(--mu);font:9px/1.6 Cairo,Tahoma,sans-serif}
+@keyframes anwarVoicePulse{50%{box-shadow:0 0 0 7px #32966a12;opacity:.72}}
+@media(max-width:460px){.anwar-tasbih-voice{padding:9px;gap:8px}.anwar-tasbih-voice button{padding:6px 9px;font-size:9px}.anwar-tasbih-voice-label small{font-size:9px}}
 .anwar-tasbih-footer{padding-top:7px;border-top:1px solid var(--bd);color:var(--mu);font:9px Cairo,Tahoma,sans-serif;text-align:center}
 @media(max-width:460px){.adhkar-tabs{gap:5px}.adhkar-tabs button{padding:7px 4px;font-size:11px}.adhkar-tasbih-toggle svg{width:19px;height:19px}#tasbihPanel{padding:10px;gap:8px}.anwar-tasbih-content{gap:7px}}
 /* شريط الإذاعة: قصير وهادئ بلون الجدار مع زهرة التوليب الأصلية */
@@ -1484,7 +1497,23 @@ dialog[open]>.float-head{display:none!important}
     </select>
     <div class="anwar-tasbih-counter" aria-live="polite"><strong id="tasbihCount">0</strong><span>عدد التسبيحات</span></div>
     <div class="anwar-tasbih-actions"><button type="button" id="tasbihMinus" class="anwar-tasbih-small" aria-label="إنقاص العدد">−</button><button type="button" id="tasbihTap" class="anwar-tasbih-tap" aria-label="سجل تسبيحة واحدة">سبّح</button><button type="button" id="tasbihReset" class="anwar-tasbih-small" aria-label="تصفير العداد">↺</button></div>
-    <div class="anwar-tasbih-voice"><button type="button" id="tasbihVoice" aria-pressed="false">🎙️ العدّ بالصوت</button><small id="tasbihVoiceStatus" role="status">يمكنك استخدام العداد اليدوي أو تفعيل العدّ الصوتي اختياريا</small></div>
+    <section class="anwar-tasbih-voice" id="tasbihVoicePanel" data-state="idle" aria-label="التسجيل الصوتي للسبحة">
+     <div class="anwar-tasbih-voice-head">
+      <div class="anwar-tasbih-voice-copy">
+       <span class="anwar-tasbih-voice-dot" aria-hidden="true"></span>
+       <div class="anwar-tasbih-voice-label">
+        <strong id="tasbihVoiceState">جاهز للتسجيل</strong>
+        <small id="tasbihVoiceStatus" role="status" aria-live="polite">اختر الذكر، ثم ابدأ التسجيل وقل عبارته كاملة.</small>
+       </div>
+      </div>
+      <button type="button" id="tasbihVoice" aria-pressed="false"><span aria-hidden="true">🎙️</span><span id="tasbihVoiceButtonLabel">ابدأ التسجيل</span></button>
+     </div>
+     <div class="anwar-tasbih-transcript">
+      <span>آخر عبارة التقطها الميكروفون</span>
+      <strong id="tasbihVoiceTranscript" aria-live="polite">لم يبدأ التسجيل بعد</strong>
+     </div>
+     <small class="anwar-tasbih-voice-hint">لا يُضاف العدد إلا عند مطابقة الذكر المختار. اقرأ العبارة المعروضة كاملة.</small>
+    </section>
    </div>
    <footer class="anwar-tasbih-footer">يُحفظ العدد والذكر المختار على هذا الجهاز</footer>
   </section>
@@ -3560,35 +3589,149 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  const toggleButton=$('adhkarTasbihToggle'),closeButton=$('tasbihClose');
  const ownerDialog=$('ownerDialog'),countNode=$('tasbihCount'),phraseNode=$('tasbihPhrase');
  const select=$('tasbihDhikr'),tap=$('tasbihTap'),minus=$('tasbihMinus'),reset=$('tasbihReset');
- const voiceButton=$('tasbihVoice'),voiceStatus=$('tasbihVoiceStatus');
- if(!panel||!toggleButton||!closeButton||!ownerDialog||!select)return;
+ const voicePanel=$('tasbihVoicePanel'),voiceButton=$('tasbihVoice');
+ const voiceState=$('tasbihVoiceState'),voiceButtonLabel=$('tasbihVoiceButtonLabel');
+ const voiceStatus=$('tasbihVoiceStatus'),voiceTranscript=$('tasbihVoiceTranscript');
+ if(!panel||!toggleButton||!closeButton||!ownerDialog||!select||!voicePanel||!voiceButton)return;
  const countKey='anwar_tasbih_count_v1',dhikrKey='anwar_tasbih_dhikr_v1';
  let count=0,recognition=null,voiceActive=false;
+ let processedFinalIndexes=new Set();
  try{count=Math.max(0,parseInt(localStorage.getItem(countKey)||'0',10)||0)}catch(e){}
  try{const saved=localStorage.getItem(dhikrKey);if(saved&&[...select.options].some(o=>o.value===saved))select.value=saved}catch(e){}
- function paint(){countNode.textContent=count.toLocaleString('ar');try{localStorage.setItem(countKey,String(count))}catch(e){}}
- function add(n=1){count=Math.max(0,count+n);paint();const el=panel.querySelector('.anwar-tasbih-counter');if(el)el.animate([{transform:'scale(1)'},{transform:'scale(1.045)'},{transform:'scale(1)'}],{duration:220,easing:'ease-out'})}
+ function paint(){
+  countNode.textContent=count.toLocaleString('ar');
+  try{localStorage.setItem(countKey,String(count))}catch(e){}
+ }
+ function add(n=1){
+  count=Math.max(0,count+n);paint();
+  const el=panel.querySelector('.anwar-tasbih-counter');
+  if(el&&typeof el.animate==='function')el.animate([{transform:'scale(1)'},{transform:'scale(1.045)'},{transform:'scale(1)'}],{duration:220,easing:'ease-out'});
+ }
+ function setVoiceState(state,message){
+  voicePanel.dataset.state=state;
+  voiceState.textContent=state==='starting'?'جارٍ تشغيل الميكروفون':state==='listening'?'الميكروفون نشط':state==='error'?'تعذر التسجيل':'جاهز للتسجيل';
+  voiceStatus.textContent=message||'';
+  const active=state==='starting'||state==='listening';
+  voiceButton.setAttribute('aria-pressed',active?'true':'false');
+  voiceButtonLabel.textContent=active?'إيقاف التسجيل':state==='error'?'إعادة المحاولة':'ابدأ التسجيل';
+ }
+ function normalizeSpeech(value){
+  return String(value||'').toLocaleLowerCase('ar')
+   .normalize('NFD')
+   .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g,'')
+   .replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/ـ/g,'')
+   .replace(/[^\u0600-\u06FFa-z0-9\s]/gi,' ')
+   .replace(/\s+/g,' ').trim();
+ }
+ function countPhraseMatches(transcript,phrase){
+  const heard=normalizeSpeech(transcript).split(' ').filter(Boolean);
+  const target=normalizeSpeech(phrase).split(' ').filter(Boolean);
+  if(!target.length||heard.length<target.length)return 0;
+  let matches=0;
+  for(let i=0;i<=heard.length-target.length;i++){
+   let same=true;
+   for(let j=0;j<target.length;j++){if(heard[i+j]!==target[j]){same=false;break}}
+   if(same){matches++;i+=target.length-1}
+  }
+  return matches;
+ }
  phraseNode.textContent=select.value;paint();
- function stopVoice(message){if(recognition&&voiceActive){voiceActive=false;try{recognition.stop()}catch(e){}voiceButton.setAttribute('aria-pressed','false');voiceButton.textContent='🎙️ العدّ بالصوت'}if(message)voiceStatus.textContent=message}
- function closePanel(restoreFocus=true){if(panel.hidden)return;stopVoice('توقف الاستماع.');panel.hidden=true;toggleButton.setAttribute('aria-expanded','false');if(restoreFocus&&ownerDialog.open)toggleButton.focus()}
- function openPanel(){if(!panel.hidden){closePanel();return}if(!ownerDialog.open)ownerDialog.showModal();if($('adhkarPanel').hidden)$('adhkarTab').click();panel.hidden=false;toggleButton.setAttribute('aria-expanded','true');requestAnimationFrame(()=>panel.scrollIntoView({behavior:'smooth',block:'nearest'}));closeButton.focus()}
+ function stopVoice(message){
+  const wasActive=voiceActive;voiceActive=false;
+  if(wasActive&&recognition){try{recognition.stop()}catch(e){}}
+  setVoiceState('idle',message||'تم إيقاف التسجيل.');
+ }
+ function closePanel(restoreFocus=true){
+  if(panel.hidden)return;
+  stopVoice('توقف الاستماع عند إغلاق السبحة.');
+  panel.hidden=true;toggleButton.setAttribute('aria-expanded','false');
+  if(restoreFocus&&ownerDialog.open)toggleButton.focus();
+ }
+ function openPanel(){
+  if(!panel.hidden){closePanel();return}
+  if(!ownerDialog.open)ownerDialog.showModal();
+  if($('adhkarPanel').hidden)$('adhkarTab').click();
+  panel.hidden=false;toggleButton.setAttribute('aria-expanded','true');
+  requestAnimationFrame(()=>panel.scrollIntoView({behavior:'smooth',block:'nearest'}));
+  closeButton.focus();
+ }
  toggleButton.addEventListener('click',openPanel);
  closeButton.addEventListener('click',()=>closePanel());
  $('ownerTab').addEventListener('click',()=>closePanel(false));
  $('shareTab').addEventListener('click',()=>closePanel(false));
  ownerDialog.addEventListener('close',()=>closePanel(false));
- select.addEventListener('change',()=>{phraseNode.textContent=select.value;count=0;paint();try{localStorage.setItem(dhikrKey,select.value)}catch(e){}voiceStatus.textContent='تم اختيار الذكر الجديد، والعداد جاهز.'});
- tap.addEventListener('click',()=>add(1));minus.addEventListener('click',()=>add(-1));reset.addEventListener('click',()=>{count=0;paint()});
- document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden){e.preventDefault();e.stopImmediatePropagation();closePanel()}},true);
+ select.addEventListener('change',()=>{
+  phraseNode.textContent=select.value;count=0;paint();
+  try{localStorage.setItem(dhikrKey,select.value)}catch(e){}
+  voiceTranscript.textContent='بانتظار نطق الذكر المختار.';
+  setVoiceState(voiceActive?'listening':'idle','تم اختيار الذكر الجديد. سيُحسب عند نطقه كاملاً.');
+ });
+ tap.addEventListener('click',()=>add(1));
+ minus.addEventListener('click',()=>add(-1));
+ reset.addEventListener('click',()=>{count=0;paint()});
+ document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&!panel.hidden){e.preventDefault();e.stopImmediatePropagation();closePanel()}
+ },true);
  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!SpeechRecognition){voiceButton.disabled=true;voiceStatus.textContent='العدّ الصوتي غير متاح في هذا المتصفح؛ استخدم العداد اليدوي.'}
- else{recognition=new SpeechRecognition();recognition.lang='ar-SA';recognition.continuous=true;recognition.interimResults=false;
-  recognition.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++){if(!e.results[i].isFinal)continue;const said=e.results[i][0].transcript||'',matches=said.match(/(?:أستغفر|استغفر)\s+الله/g);if(matches&&matches.length){add(matches.length);voiceStatus.textContent='سُجّل '+matches.length+' استغفار.'}}};
-  recognition.onerror=e=>{voiceStatus.textContent=e.error==='not-allowed'?'لم يُسمح بالميكروفون. فعّل الإذن من إعدادات المتصفح.':'تعذر التعرف الصوتي؛ يمكنك متابعة العد يدويا.'};
-  recognition.onend=()=>{voiceActive=false;voiceButton.setAttribute('aria-pressed','false');voiceButton.textContent='🎙️ العدّ بالصوت'};
-  voiceButton.addEventListener('click',()=>{if(voiceActive){stopVoice('توقف الاستماع.');return}try{recognition.start();voiceActive=true;voiceButton.setAttribute('aria-pressed','true');voiceButton.textContent='إيقاف الاستماع';voiceStatus.textContent='أستمع الآن… قل «أستغفر الله» بوضوح.'}catch(e){voiceStatus.textContent='تعذر تشغيل الميكروفون. حاول مجددا.'}});
+ if(!SpeechRecognition){
+  voiceButton.disabled=true;voiceButtonLabel.textContent='غير مدعوم';
+  setVoiceState('error','التعرف الصوتي غير متاح في هذا المتصفح. جرّب Chrome مع السماح باستخدام الميكروفون.');
+ }else{
+  recognition=new SpeechRecognition();
+  recognition.lang='ar-SA';recognition.continuous=true;recognition.interimResults=true;recognition.maxAlternatives=1;
+  recognition.onstart=()=>{
+   voiceActive=true;setVoiceState('listening','أستمع الآن. انطق الذكر المحدد كاملاً وبوضوح.');
+   if(voiceTranscript.textContent==='لم يبدأ التسجيل بعد')voiceTranscript.textContent='بانتظار العبارة…';
+  };
+  recognition.onresult=e=>{
+   for(let i=e.resultIndex;i<e.results.length;i++){
+    const result=e.results[i],said=result&&result[0]&&result[0].transcript?result[0].transcript.trim():'';
+    if(!said)continue;
+    voiceTranscript.textContent=said;
+    if(!result.isFinal||processedFinalIndexes.has(i))continue;
+    processedFinalIndexes.add(i);
+    const matches=countPhraseMatches(said,select.value);
+    if(matches>0){
+     add(matches);
+     setVoiceState('listening','تم التعرف على الذكر المختار وإضافة '+matches.toLocaleString('ar')+' إلى العداد.');
+    }else{
+     setVoiceState('listening','لم تطابق العبارة الذكر المحدد. كرر النص كاملاً: '+select.value);
+    }
+   }
+  };
+  recognition.onerror=e=>{
+   voiceActive=false;
+   const messages={
+    'not-allowed':'لم يُسمح بالميكروفون. افتح إعدادات الموقع واسمح باستخدامه.',
+    'service-not-allowed':'خدمة التعرف الصوتي محجوبة من المتصفح أو الجهاز.',
+    'audio-capture':'لم يتم العثور على ميكروفون صالح.',
+    'no-speech':'لم ألتقط كلاماً واضحاً. اضغط إعادة المحاولة وتحدث بوضوح.',
+    'network':'تعذر الاتصال بخدمة التعرف الصوتي. تحقق من اتصال الإنترنت.',
+    'aborted':'أُوقف التسجيل.'
+   };
+   setVoiceState('error',messages[e.error]||'حدث خطأ في التعرف الصوتي. حاول التسجيل مرة أخرى.');
+  };
+  recognition.onend=()=>{
+   if(voiceActive){
+    voiceActive=false;
+    setVoiceState('idle','انتهى الاستماع. ابدأ التسجيل مجدداً للمتابعة.');
+   }
+  };
+  voiceButton.addEventListener('click',()=>{
+   if(voiceActive){stopVoice('تم إيقاف التسجيل.');return}
+   try{
+    processedFinalIndexes=new Set();
+    voiceTranscript.textContent='بانتظار العبارة…';
+    setVoiceState('starting','جارٍ تفعيل الميكروفون…');
+    voiceActive=true;
+    recognition.start();
+   }catch(e){
+    voiceActive=false;
+    setVoiceState('error','تعذر بدء التسجيل. انتظر لحظة ثم حاول مرة أخرى.');
+   }
+  });
  }
-})();
+})();;
 </script>
 </body>
 </html>
