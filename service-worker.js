@@ -33,7 +33,7 @@ self.addEventListener('fetch',event=>{
  const request=event.request;if(request.method!=='GET')return;
  const url=new URL(request.url);
  if(url.origin!==self.location.origin||!url.pathname.startsWith(APP_BASE.pathname))return;
- if(request.mode==='navigate'){event.respondWith(networkFirst(request));return}
+ if(request.mode==='navigate'){event.respondWith(networkFirst(request,event));return}
  // External streaming/audio/API hosts remain network-only.
  event.respondWith(cacheFirst(request));
 });
