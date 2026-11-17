@@ -17,7 +17,7 @@ ok(!html.includes('file_00000000670481f4ad879246afe6bae2.png'),'the oversized so
 ok(!manifest.icons.some(i=>String(i.src).includes('file_00000000670481f4ad879246afe6bae2.png')),'manifest excludes the oversized source icon');
 ok(html.includes('async function ensurePdfLibraries()'),'PDF libraries load only when PDF export is requested');
 ok(html.includes('async function makeQR()'),'QR library loads only when QR generation is requested');
-ok(!/<script\\b[^>]*\\bsrc\\s*=\\s*["'][^"']*(?:html2canvas|qrcodejs|jspdf)/i.test(html),'heavy PDF and QR libraries are not loaded by static script tags');
+ok(!/<script\b[^>]*\bsrc\s*=\s*["'][^"']*(?:html2canvas|qrcodejs|jspdf)/i.test(html),'heavy PDF and QR libraries are not loaded by static script tags');
 ok(!html.includes('Object.hasOwn('),'storage normalization avoids unsupported Object.hasOwn calls');
 const iconSizes=new Set((manifest.icons??[]).flatMap(icon=>String(icon.sizes??'').split(/\s+/)));
 ok(iconSizes.has('192x192'),'manifest declares a 192x192 PWA icon');
