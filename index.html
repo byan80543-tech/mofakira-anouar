@@ -2066,7 +2066,7 @@ function renderArchive(){
  $('archiveCount').textContent=filtered.length+' من '+all.length+' عمل';
  $('archiveDialog').querySelectorAll('[data-archive-filter]').forEach(b=>b.classList.toggle('active',b.dataset.archiveFilter===archiveFilter));
  $('archiveItems').innerHTML=filtered.length?filtered.map(n=>{
-  const preview=plainNote(n).trim().replace(/\\s+/g,' ').slice(0,220)||'لا يوجد نص للمعاينة';
+  const preview=plainNote(n).trim().replace(/\s+/g,' ').slice(0,220)||'لا يوجد نص للمعاينة';
   return '<button type="button" class="archive-card" data-archive-id="'+esc(n.id)+'"><span class="archive-card-top"><strong class="archive-card-title">'+(n.pin?'⭐ ':'')+esc(n.title||'بلا عنوان')+'</strong><span class="archive-card-type">'+esc(TYPES[n.type]||'عمل')+'</span></span><span class="archive-card-preview">'+esc(preview)+'</span><span class="archive-card-meta"><span>آخر تعديل: '+esc(fmt(n.ts))+'</span><span>فتح العمل ←</span></span></button>';
  }).join(''):'<div class="archive-empty"><div><div style="font-size:34px;margin-bottom:8px">▤</div><strong>'+(query?'لا توجد نتائج مطابقة':'لا توجد أعمال محفوظة في هذا القسم بعد')+'</strong><div>ستظهر هنا أعمالك المحفوظة تلقائياً، دون إنشاء نسخ مكررة.</div></div></div>';
 }
