@@ -1328,6 +1328,30 @@ dialog[open]>.float-head{display:none!important}
 }
 /* وضع التركيز يخفي اللوحة حتى على الهواتف */
 .app.ed.focus #rib{display:none!important}
+
+/* إنشاء الكتاب داخل لوحة الأدوات، مكان مجموعة الهوية السابقة */
+#rib .book-tool-card{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;flex:1 1 100%;width:100%;min-width:0;padding:10px;border-color:#c9a96a;background:var(--bg);align-items:end}
+#rib .book-tool-head{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:8px;border-bottom:1px solid var(--bd)}
+#rib .book-tool-head>div{display:grid;gap:2px;min-width:0}
+#rib .book-tool-head strong{font:700 19px 'Aref Ruqaa',Amiri,serif;color:var(--ac)}
+#rib .book-tool-head small{font-size:10px;color:var(--mu);line-height:1.5}
+#rib .book-tool-head #addBookFile{display:grid;place-items:center;flex:none;width:38px;height:38px;border:1px solid #c9a96a;border-radius:11px;background:linear-gradient(140deg,#fff8e8,#ead39a);color:#173b58;font:400 26px/1 Arial,sans-serif}
+#rib .book-tool-field{display:grid;gap:4px;min-width:0;margin:0;font-size:11px;font-weight:700;color:var(--mu)}
+#rib .book-tool-field input,#rib .book-tool-field select{width:100%;min-width:0;min-height:37px;margin:0;padding:7px 8px;border:1px solid var(--bd);border-radius:8px;background:var(--sf);color:var(--tx);font:inherit;font-weight:400}
+#rib #bookFileStatus{grid-column:1/-1;margin:0;padding:7px 9px;border-radius:8px;background:var(--ac2);color:var(--mu);font-size:10px;line-height:1.6}
+#rib .book-tool-actions{grid-column:1/-1;display:flex;gap:7px;justify-content:flex-end}
+#rib .book-tool-actions button{min-height:36px;padding:6px 13px;border:1px solid var(--bd);border-radius:8px;background:var(--sf);color:var(--tx)}
+#rib .book-tool-actions #createBook{border-color:var(--ac);background:var(--ac);color:#fff;font-weight:700}
+#rib #ownerBtn{display:inline-grid;place-items:center;width:34px!important;height:34px!important;min-height:34px!important;padding:4px!important;border:1px solid var(--bd)!important;border-radius:8px!important;background:var(--sf)!important;color:var(--tx)!important;font-size:16px!important;line-height:1!important}
+#rib #ownerBtn:hover,#rib #ownerBtn:focus-visible{background:var(--ac2)!important;border-color:var(--ac)!important}
+.app.book-open #rib{display:flex!important}
+@media(max-width:800px){
+ .app.book-open #rib{display:grid!important}
+ #rib .book-tool-card{grid-column:1/-1;grid-template-columns:repeat(2,minmax(0,1fr))}
+ #rib .book-tool-head{grid-column:1/-1}
+ #rib #bookFileStatus,#rib .book-tool-actions{grid-column:1/-1}
+ #rib .book-tool-field{font-size:11px}
+}
 </style>
 </head>
 <body>
@@ -1402,12 +1426,37 @@ dialog[open]>.float-head{display:none!important}
 <div class="st"><span id="info"></span><span>تكبير <input type="range" id="zm" min="60" max="150" value="100"></span></div>
 
 <div class="rib" id="rib">
- <div class="g"><div><button class="b" id="prn" title="طباعة">🖨️</button><button class="b" id="pdf" title="تنزيل PDF">📄</button><button class="b word-export" id="word" title="تنزيل Word (DOCX)" aria-label="تنزيل Word">W</button><button class="b" id="newBookTool" title="إنشاء كتاب Word">📖</button><button class="b" id="new2" title="جديد">➕</button></div><small>الملف</small></div>
+ <div class="g"><div><button class="b" id="prn" title="طباعة">🖨️</button><button class="b" id="pdf" title="تنزيل PDF">📄</button><button class="b word-export" id="word" title="تنزيل Word (DOCX)" aria-label="تنزيل Word">W</button><button class="b" id="ownerBtn" aria-label="الملكية والأذكار" title="الملكية والأذكار">✒</button><button class="b" id="new2" title="جديد">➕</button></div><small>الملف</small></div>
  <div class="g"><div><button class="b" id="fb" title="نوع الخط" style="min-width:110px">الخط ▾</button><select id="sz" title="حجم الخط"><option>14</option><option>16</option><option>18</option><option selected>20</option><option>24</option><option>28</option><option>32</option><option>40</option><option>56</option></select></div><small>الخط</small></div>
  <div class="g"><div><button class="b" data-c="bold"><b>B</b></button><button class="b" data-c="italic"><i>I</i></button><button class="b" data-c="underline"><u>U</u></button><input type="color" id="fc" value="#222222" title="لون الخط"><input type="color" id="hc" value="#fff2a8" title="تمييز"></div><small>التنسيق</small></div>
  <div class="g"><div><button class="b" data-c="justifyRight">▶≡</button><button class="b" data-c="justifyCenter">≡</button><button class="b" data-c="justifyLeft">≡◀</button><button class="b" data-c="justifyFull">☰</button><button class="b" data-c="insertUnorderedList">•≡</button><button class="b" data-c="insertOrderedList">1≡</button></div><small>الفقرة</small></div>
  <div class="g"><div><button class="b" id="vs">📜 بيت</button><button class="b" id="sp">🔊 إلقاء</button><button class="b" id="fo">🎯 تركيز</button><button class="b" id="ip">💡 إلهام</button><button class="b" id="pn">☆ تثبيت</button><button class="b" id="cy">📋</button><button class="b" id="hist">🕘 الإصدارات</button><button class="b dn" id="dl">🗑️</button></div><small>أدوات أنوار</small></div>
- <div class="g"><div><button class="b" id="ownerBtn" aria-label="الملكية والأذكار" title="الملكية والأذكار">✒ الملكية والأذكار</button></div><small>هوية أنوار</small></div>
+ <div class="g book-tool-card" id="bookToolPanel">
+ <header class="book-tool-head">
+  <div><strong>إنشاء كتاب</strong><small>اجمع أعمالك في ملف واحد واحفظه بالصيغة المناسبة</small></div>
+  <button type="button" id="addBookFile" aria-label="إضافة مستند من الهاتف" title="اختيار مستند من الهاتف">＋</button>
+ </header>
+ <label class="book-tool-field" for="bookTitle">عنوان الكتاب<input id="bookTitle" value="مختارات من مفكرة أنوار" maxlength="100"></label>
+ <label class="book-tool-field" for="bookScope">محتوى الكتاب
+  <select id="bookScope">
+   <option value="current">العمل المفتوح حالياً</option>
+   <option value="poem">القصائد فقط</option>
+   <option value="all" selected>كل الأعمال: قصائد ونصوص وأفكار</option>
+   <option value="text">النصوص والأفكار</option>
+  </select>
+ </label>
+ <label class="book-tool-field" for="bookFormat">صيغة الحفظ
+  <select id="bookFormat">
+   <option value="pdf">PDF · للقراءة والطباعة</option>
+   <option value="docx" selected>Word · مستند قابل للتحرير</option>
+   <option value="txt">TXT · نص بسيط</option>
+   <option value="html">HTML · صفحة ويب</option>
+  </select>
+ </label>
+ <p id="bookFileStatus" class="anwar-book-note" aria-live="polite">＋ اختر مستنداً من هاتفك. تُدرج ملفات TXT وHTML وCSV في الصفحة؛ أما PDF وملفات Office والصور فتُفتح أو تُشارك دون تغيير أصلها.</p>
+ <input type="file" id="bookFilePicker" hidden accept=".txt,.md,.csv,.html,.htm,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.ods,.odp,.rtf,.png,.jpg,.jpeg,.webp,.gif">
+ <div class="book-tool-actions"><button type="button" id="cancelBook">إخفاء</button><button type="button" id="createBook">حفظ الكتاب</button></div>
+</div>
 </div></div>
 <div id="fm"><input id="fq" placeholder="ابحث عن خط…"><div id="fl"></div></div>
 <div id="pa"></div>
@@ -1483,30 +1532,6 @@ dialog[open]>.float-head{display:none!important}
  <p><b>نسخة احتياطية</b><br><small>انسخ النص واحفظه، أو الصق نسخة سابقة ثم اضغط استعادة.</small></p>
  <textarea id="bt"></textarea>
  <div style="display:flex;gap:6px;margin-top:8px"><button class="b" id="cp">📋 نسخ</button><button class="b" id="rs">♻️ استعادة</button><button class="b" id="cl">إغلاق</button></div>
-</dialog>
-<dialog id="bookDialog">
- <header class="anwar-book-head">
-  <div><strong>إنشاء كتاب Word</strong><small>اجمع أعمالك في مستند Word قابل للتحرير</small></div>
-  <button type="button" id="addBookFile" aria-label="إضافة مستند من الهاتف" title="اختيار مستند من الهاتف">＋</button>
- </header>
- <label for="bookTitle">عنوان الكتاب</label><input id="bookTitle" value="مختارات من مفكرة أنوار" maxlength="100">
- <label for="bookScope">محتوى الكتاب</label>
- <select id="bookScope">
-  <option value="current">العمل المفتوح حالياً</option>
-  <option value="poem">القصائد فقط</option>
-  <option value="all" selected>كل الأعمال: قصائد ونصوص وأفكار</option>
-  <option value="text">النصوص والأفكار</option>
- </select>
- <label for="bookFormat">صيغة الحفظ</label>
- <select id="bookFormat">
-  <option value="pdf">PDF · للقراءة والطباعة</option>
-  <option value="docx" selected>Word · مستند قابل للتحرير</option>
-  <option value="txt">TXT · نص بسيط</option>
-  <option value="html">HTML · صفحة ويب</option>
- </select>
- <p id="bookFileStatus" class="anwar-book-note" aria-live="polite">＋ اختر مستنداً من هاتفك. تُدرج ملفات TXT وHTML وCSV في الصفحة؛ أما PDF وملفات Office والصور فتُفتح أو تُشارك دون تغيير أصلها.</p>
- <input type="file" id="bookFilePicker" hidden accept=".txt,.md,.csv,.html,.htm,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.ods,.odp,.rtf,.png,.jpg,.jpeg,.webp,.gif">
- <div class="dialog-actions"><button type="button" id="cancelBook">إغلاق</button><button type="button" id="createBook">حفظ الكتاب</button></div>
 </dialog>
 <dialog id="historyDialog"><h3 style="margin-top:0">سجل إصدارات العمل</h3><p style="color:var(--mu);font-size:12px">تُحفظ لقطات سابقة تلقائيًا عند تعديل العمل. نحتفظ بآخر 15 إصدارًا.</p><div id="historyItems"></div><div class="dialog-actions" style="margin-top:12px"><button type="button" id="closeHistory">إغلاق</button></div></dialog>
 <dialog id="ownerDialog">
@@ -2600,7 +2625,13 @@ function openHistory(){if(!cur){toast('افتح عملًا أولًا');return}c
 function restoreHistory(i){if(!cur)return;const h=cur.history||[],v=h[i];if(!v)return;if(!confirm('استعادة هذا الإصدار؟ سيُحفظ الإصدار الحالي في السجل قبل الاستعادة.'))return;h.push({title:cur.title,type:cur.type,html:cur.html,ts:cur.ts,font:cur.font,size:cur.size});cur.history=h.slice(-15);Object.assign(cur,{title:v.title,type:v.type,html:v.html,ts:Date.now(),font:v.font,size:v.size});pg.innerHTML=san(cur.html);$('t').value=cur.title;$('ty').value=cur.type;save();openNote(cur);$('historyDialog').close();toast('تمت استعادة الإصدار')}
 function openBookDialog(){
  if(cur)flushPendingEdit(false);
- $('bookDialog').showModal();
+ const app=$('app');
+ app.classList.add('book-open');
+ const panel=$('bookToolPanel');
+ if(panel){
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+  requestAnimationFrame(()=>{$('bookTitle').focus({preventScroll:true})});
+ }
 }
 async function createBook(){
  if(cur)flushPendingEdit(false);
@@ -2613,7 +2644,7 @@ async function createBook(){
  button.disabled=true;button.textContent='جارٍ التجهيز…';
  try{
   const ok=await exportRecords(notes,title,format);
-  if(ok)$('bookDialog').close();
+  if(ok){$('app').classList.remove('book-open');toast('تم تجهيز الكتاب بنجاح ✓',3000)}
  }catch(error){console.warn('تعذّر إنشاء الكتاب',error);toast('تعذّر إنشاء الكتاب. بقيت أعمالك محفوظة.',5000)}
  finally{button.disabled=false;button.textContent='حفظ الكتاب'}
 }
@@ -2754,8 +2785,7 @@ document.addEventListener('click',e=>{
  if(t.dataset.c){cmd(t.dataset.c);return}
  const id=t.id;
  if(id==='newBook')openBookDialog();
- else if(id==='newBookTool')openBookDialog();
- else if(id==='cancelBook')$('bookDialog').close();
+ else if(id==='cancelBook'){$('app').classList.remove('book-open')}
  else if(id==='createBook')createBook();
  else if(id==='addBookFile')$('bookFilePicker').click();
  else if(id==='hist')openHistory();
@@ -3847,7 +3877,6 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  };
  const dialogs=[
   ['dg','النسخة الاحتياطية'],
-  ['bookDialog','إنشاء كتاب'],
   ['historyDialog','سجل إصدارات العمل'],
   ['ownerDialog','الملكية والأذكار']
  ];
