@@ -1962,10 +1962,10 @@ function applyFont(f){
  else{document.execCommand('fontName',false,f);touch()}
  $('fm').classList.remove('o');
 }
-const ANWAR_FONT_STYLESHEETS=["https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Amiri+Quran&family=Aref+Ruqaa&family=Aref+Ruqaa+Ink&family=Scheherazade+New&family=Lateef&family=Harmattan&family=Noto+Naskh+Arabic&family=Markazi+Text&family=Mirza&family=Katibeh&family=Gulzar&display=swap","https://fonts.googleapis.com/css2?family=Cairo&family=Tajawal&family=Almarai&family=Alexandria&family=Changa&family=Mada&family=Readex+Pro&family=IBM+Plex+Sans+Arabic&family=Noto+Sans+Arabic&family=Noto+Kufi+Arabic&family=Vazirmatn&family=Rubik&family=Baloo+Bhaijaan+2&family=Lemonada&display=swap","https://fonts.googleapis.com/css2?family=Reem+Kufi&family=Reem+Kufi+Fun&family=Reem+Kufi+Ink&family=El+Messiri&family=Kufam&family=Lalezar&family=Rakkas&family=Jomhuria&family=Marhey&family=Vibes&family=Blaka&family=Qahiri&family=Playpen+Sans+Arabic&family=Noto+Nastaliq+Urdu&display=swap"];
+const ANWAR_FONT_STYLESHEETS=["https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Aref+Ruqaa:wght@400;700&family=Cairo:wght@400;700&display=swap","https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Amiri+Quran&family=Aref+Ruqaa&family=Aref+Ruqaa+Ink&family=Scheherazade+New&family=Lateef&family=Harmattan&family=Noto+Naskh+Arabic&family=Markazi+Text&family=Mirza&family=Katibeh&family=Gulzar&display=swap","https://fonts.googleapis.com/css2?family=Cairo&family=Tajawal&family=Almarai&family=Alexandria&family=Changa&family=Mada&family=Readex+Pro&family=IBM+Plex+Sans+Arabic&family=Noto+Sans+Arabic&family=Noto+Kufi+Arabic&family=Vazirmatn&family=Rubik&family=Baloo+Bhaijaan+2&family=Lemonada&display=swap","https://fonts.googleapis.com/css2?family=Reem+Kufi&family=Reem+Kufi+Fun&family=Reem+Kufi+Ink&family=El+Messiri&family=Kufam&family=Lalezar&family=Rakkas&family=Jomhuria&family=Marhey&family=Vibes&family=Blaka&family=Qahiri&family=Playpen+Sans+Arabic&family=Noto+Nastaliq+Urdu&display=swap"];
 const loadedFontStylesheets=new Set();
 function loadFontStylesheets(includeExtended=false){
- const urls=includeExtended?ANWAR_FONT_STYLESHEETS:ANWAR_FONT_STYLESHEETS.slice(0,2);
+ const urls=includeExtended?ANWAR_FONT_STYLESHEETS:ANWAR_FONT_STYLESHEETS.slice(0,1);
  return Promise.all(urls.map(href=>{
   if(loadedFontStylesheets.has(href))return Promise.resolve();
   return new Promise((resolve,reject)=>{
