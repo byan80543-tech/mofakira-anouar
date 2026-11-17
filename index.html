@@ -1312,6 +1312,60 @@ dialog[open]>.float-head{display:none!important}
 #bookDialog #createBook{border-color:var(--ac);background:var(--ac);color:#fff;font-weight:700}
 @media(max-width:800px){#bookDialog .anwar-book-head{margin-top:3px}#bookDialog #addBookFile{width:46px;height:46px}}
 
+
+/* قوالب صفحة الكتابة */
+#pg.paper-plain{background-image:none}
+#pg.paper-ruled{
+ background-image:repeating-linear-gradient(to bottom,transparent 0,transparent calc(2.05em - 1px),rgba(104,137,170,.22) calc(2.05em - 1px),rgba(104,137,170,.22) 2.05em);
+ background-size:100% 2.05em;background-position:0 0;background-origin:content-box
+}
+#pg.paper-framed{
+ border:5px double #c9b78f!important;
+ padding:48px 56px!important;
+ box-shadow:0 8px 26px rgba(20,35,55,.12),inset 0 0 0 5px rgba(201,183,143,.10)!important
+}
+#pg.paper-poetry .v{
+ display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+ gap:9px;align-items:stretch;text-align:center;margin:7px 0
+}
+#pg.paper-poetry .v span{
+ display:flex;align-items:center;justify-content:center;
+ min-width:0;min-height:2.35em;box-sizing:border-box;
+ padding:3px 9px;border:1px solid #c8b58c;border-radius:6px;
+ background:rgba(255,255,255,.22);white-space:pre-wrap;overflow-wrap:anywhere
+}
+#pg.paper-poetry .v span:empty::before{content:"الشطر";color:#b7aa91;font-size:.72em}
+.paper-style-panel{
+ position:fixed;z-index:38;display:grid;grid-template-columns:1fr 1fr;gap:7px;
+ width:min(330px,calc(100vw - 20px));padding:10px;
+ border:1px solid var(--bd);border-radius:13px;background:var(--sf);
+ color:var(--tx);box-shadow:0 12px 32px rgba(0,0,0,.20)
+}
+.paper-style-panel[hidden]{display:none!important}
+.paper-style-title{grid-column:1/-1;font-weight:800;font-size:12px;color:var(--ac);padding:1px 3px 5px}
+.paper-style-option{
+ display:flex;align-items:center;gap:8px;min-width:0;padding:7px;
+ border:1px solid var(--bd);border-radius:9px;background:var(--bg);color:var(--tx);
+ text-align:right
+}
+.paper-style-option[aria-pressed="true"]{border-color:var(--ac);box-shadow:inset 0 0 0 1px var(--ac);background:var(--ac2)}
+.paper-style-option>span:last-child{display:grid;gap:2px;min-width:0}
+.paper-style-option b{font-size:11px}
+.paper-style-option small{font-size:9px;color:var(--mu)}
+.paper-preview{
+ display:block;position:relative;flex:none;width:34px;height:43px;
+ border:1px solid #d9d2c4;border-radius:4px;background:#fff;
+ box-shadow:0 1px 3px #0001
+}
+.preview-ruled{background:repeating-linear-gradient(to bottom,#fff 0,#fff 7px,#bed0df 8px)}
+.preview-framed:after{content:"";position:absolute;inset:4px;border:1px double #c9b78f}
+.preview-poetry{display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:7px 3px;box-sizing:border-box}
+.preview-poetry i{border:1px solid #c9b78f;border-radius:2px}
+@media(max-width:800px){
+ #pg.paper-framed{padding:38px 27px!important}
+ .paper-style-panel{width:min(310px,calc(100vw - 20px));gap:6px}
+ .paper-style-option{padding:6px}
+}
 /* لوحة أدوات أنوار الدائمة أسفل ورقة الكتابة */
 #rib{display:none!important;position:relative!important;inset:auto!important;order:6;flex:none;flex-wrap:wrap;gap:7px;align-items:stretch;max-height:30vh;overflow-x:hidden;overflow-y:auto;padding:8px 9px calc(8px + env(safe-area-inset-bottom,0px));background:var(--sf);border-top:1px solid var(--bd);overscroll-behavior:contain}
 .app.ed #rib{display:flex!important}
@@ -1440,7 +1494,14 @@ dialog[open]>.float-head{display:none!important}
 
 <div class="rib" id="rib">
  <div class="g"><div><button class="b" id="prn" title="طباعة">🖨️</button><button class="b" id="pdf" title="تنزيل PDF">📄</button><button class="b word-export" id="word" title="تنزيل Word (DOCX)" aria-label="تنزيل Word">W</button><button class="b" id="ownerBtn" aria-label="الملكية والأذكار" title="الملكية والأذكار">✒</button><button class="b" id="new2" title="جديد">➕</button></div><small>الملف</small></div>
- <div class="g"><div><button class="b" id="fb" title="نوع الخط" style="min-width:110px">الخط ▾</button><select id="sz" title="حجم الخط"><option>14</option><option>16</option><option>18</option><option selected>20</option><option>24</option><option>28</option><option>32</option><option>40</option><option>56</option></select></div><small>الخط</small></div>
+ <div class="g"><div><button class="b" id="fb" title="نوع الخط" style="min-width:110px">الخط ▾</button><button class="b" id="paperStyleBtn" title="تغيير شكل الورقة" aria-expanded="false">▤ الورقة</button><select id="sz" title="حجم الخط"><option>14</option><option>16</option><option>18</option><option selected>20</option><option>24</option><option>28</option><option>32</option><option>40</option><option>56</option></select></div><small>الخط</small></div>
+ <div id="paperStylePanel" class="paper-style-panel" hidden role="group" aria-label="اختيار شكل الورقة">
+ <div class="paper-style-title">شكل صفحة الكتابة</div>
+ <button type="button" class="paper-style-option" data-paper="plain" aria-pressed="false"><span class="paper-preview preview-plain"></span><span><b>بيضاء</b><small>كتابة حرة</small></span></button>
+ <button type="button" class="paper-style-option" data-paper="ruled" aria-pressed="false"><span class="paper-preview preview-ruled"></span><span><b>مخططة</b><small>سطور هادئة</small></span></button>
+ <button type="button" class="paper-style-option" data-paper="poetry" aria-pressed="false"><span class="paper-preview preview-poetry"><i></i><i></i></span><span><b>الشعر العمودي</b><small>صدر وعجز بإطارين</small></span></button>
+ <button type="button" class="paper-style-option" data-paper="framed" aria-pressed="false"><span class="paper-preview preview-framed"></span><span><b>مؤطرة</b><small>إطار أدبي رقيق</small></span></button>
+</div>
  <div class="g"><div><button class="b" data-c="bold"><b>B</b></button><button class="b" data-c="italic"><i>I</i></button><button class="b" data-c="underline"><u>U</u></button><input type="color" id="fc" value="#222222" title="لون الخط"><input type="color" id="hc" value="#fff2a8" title="تمييز"></div><small>التنسيق</small></div>
  <div class="g"><div><button class="b" data-c="justifyRight">▶≡</button><button class="b" data-c="justifyCenter">≡</button><button class="b" data-c="justifyLeft">≡◀</button><button class="b" data-c="justifyFull">☰</button><button class="b" data-c="insertUnorderedList">•≡</button><button class="b" data-c="insertOrderedList">1≡</button></div><small>الفقرة</small></div>
  <div class="g"><div><button class="b" id="vs">📜 بيت</button><button class="b" id="sp">🔊 إلقاء</button><button class="b" id="fo">🎯 تركيز</button><button class="b" id="ip">💡 إلهام</button><button class="b" id="pn">☆ تثبيت</button><button class="b" id="cy">📋</button><button class="b" id="hist">🕘 الإصدارات</button><button class="b dn" id="dl">🗑️</button></div><small>أدوات أنوار</small></div>
@@ -1672,10 +1733,10 @@ function cleanNote(n){
    try{
     if(!v||typeof v!=='object'||Array.isArray(v))return null;
     const hs=Number(v.size),ht=Number(v.ts);
-    return {title:String(v.title||'').slice(0,300),type:hasOwn(TYPES,v.type)?v.type:'text',html:san(v.html||''),ts:Number.isFinite(ht)&&Math.abs(ht)<=8640000000000000?ht:Date.now(),font:safeFontName(v.font),size:Number.isFinite(hs)?Math.max(14,Math.min(56,hs)):20};
+    return {title:String(v.title||'').slice(0,300),type:hasOwn(TYPES,v.type)?v.type:'text',html:san(v.html||''),ts:Number.isFinite(ht)&&Math.abs(ht)<=8640000000000000?ht:Date.now(),font:safeFontName(v.font),size:Number.isFinite(hs)?Math.max(14,Math.min(56,hs)):20,paper:['plain','ruled','poetry','framed'].includes(v.paper)?v.paper:'plain'};
    }catch(error){console.warn('تم تجاوز إصدار سابق غير صالح',error);return null}
   }).filter(Boolean):[];
-  return {id:String(n.id??Date.now().toString(36)).slice(0,80),title:String(n.title??'').slice(0,300),type,html:san(raw),pin:n.pin===true,ts:safeTime,font:safeFontName(n.font),size:Number.isFinite(size)?Math.max(14,Math.min(56,size)):20,history};
+  return {id:String(n.id??Date.now().toString(36)).slice(0,80),title:String(n.title??'').slice(0,300),type,html:san(raw),pin:n.pin===true,ts:safeTime,font:safeFontName(n.font),size:Number.isFinite(size)?Math.max(14,Math.min(56,size)):20,paper:['plain','ruled','poetry','framed'].includes(n.paper)?n.paper:'plain',history};
  }catch(error){
   console.warn('تم تجاوز سجل غير صالح في مفكرة أنوار',error);
   return null;
@@ -1893,11 +1954,50 @@ function openNote(n){
  if(cur&&cur!==n)flushPendingEdit(false);
  cur=n;const on=!!n;
  pg.style.display=on?'':'none';$('em').style.display=on?'none':'';
- if(on){pg.innerHTML=san(n.html);pg.style.fontFamily=n.font?`'${n.font}',Amiri,serif`:'';pg.style.fontSize=(n.size||20)+'px';$('t').value=n.title;$('ty').value=n.type;$('pn').textContent=n.pin?'⭐ تثبيت':'☆ تثبيت';$('sz').value=n.size||20;$('app').classList.add('ed')}
- else $('app').classList.remove('ed');
+ if(on){pg.innerHTML=san(n.html);pg.style.fontFamily=n.font?`'${n.font}',Amiri,serif`:'';pg.style.fontSize=(n.size||20)+'px';applyPaperClass(n.paper);$('t').value=n.title;$('ty').value=n.type;$('pn').textContent=n.pin?'⭐ تثبيت':'☆ تثبيت';$('sz').value=n.size||20;$('app').classList.add('ed')}
+ else {$('app').classList.remove('ed');$('paperStylePanel').hidden=true;$('paperStyleBtn').setAttribute('aria-expanded','false')}
  renderList();info();
 }
-function newNote(){if(storageRecoveryBlocked){toast('أنزل ملف الاسترداد أولاً، ثم استعد نسخة سليمة قبل إنشاء أعمال جديدة.',6000);return}const n={id:createNoteId(),title:'',type:'poem',html:'',pin:false,ts:Date.now(),font:'Amiri',size:20};S.notes.push(n);if(!save()){S.notes.pop();return}openNote(n);pg.focus()}
+function newNote(){if(storageRecoveryBlocked){toast('أنزل ملف الاسترداد أولاً، ثم استعد نسخة سليمة قبل إنشاء أعمال جديدة.',6000);return}const n={id:createNoteId(),title:'',type:'poem',html:'',pin:false,ts:Date.now(),font:'Amiri',size:20,paper:'plain'};S.notes.push(n);if(!save()){S.notes.pop();return}openNote(n);pg.focus()}
+function applyPaperClass(style){
+ const allowed=['plain','ruled','poetry','framed'];
+ const paper=allowed.includes(style)?style:'plain';
+ pg.classList.remove('paper-plain','paper-ruled','paper-poetry','paper-framed');
+ pg.classList.add('paper-'+paper);
+ const panel=$('paperStylePanel');
+ if(panel)panel.querySelectorAll('[data-paper]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.paper===paper)));
+}
+function setPaperStyle(style){
+ if(!cur||storageRecoveryBlocked){toast('افتح عملاً أولاً لاختيار شكل الورقة.');return}
+ if(!['plain','ruled','poetry','framed'].includes(style))return;
+ if(cur.paper===style){$('paperStylePanel').hidden=true;$('paperStyleBtn').setAttribute('aria-expanded','false');return}
+ capturePendingBefore();
+ cur.paper=style;cur.ts=Date.now();applyPaperClass(style);
+ const ok=flushPendingEdit(false);
+ $('paperStylePanel').hidden=true;$('paperStyleBtn').setAttribute('aria-expanded','false');
+ if(ok)toast(({plain:'تم اختيار الورقة البيضاء',ruled:'تم اختيار الورقة المخططة',poetry:'تم اختيار صفحة الشعر العمودي',framed:'تم اختيار الورقة المؤطرة'})[style],2200);
+}
+function focusVerseCell(cell){
+ if(!cell)return;
+ const range=document.createRange(),selection=window.getSelection();
+ range.selectNodeContents(cell);range.collapse(false);
+ selection.removeAllRanges();selection.addRange(range);saved=range.cloneRange();pg.focus();
+}
+function insertPoetryVerse(afterRow=null){
+ if(!cur)return;
+ if(cur.paper!=='poetry'){capturePendingBefore();cur.paper='poetry';applyPaperClass('poetry')}
+ const row=document.createElement('div');row.className='v';
+ for(let i=0;i<2;i++){const cell=document.createElement('span');cell.appendChild(document.createTextNode('\u200b'));row.appendChild(cell)}
+ if(afterRow&&pg.contains(afterRow))afterRow.after(row);
+ else{
+  restore();
+  const selection=window.getSelection();
+  if(selection&&selection.rangeCount&&pg.contains(selection.anchorNode)){
+   const range=selection.getRangeAt(0);range.deleteContents();range.insertNode(row);
+  }else pg.appendChild(row);
+ }
+ focusVerseCell(row.children[0]);touch();
+}
 function lines(){const L=[];pg.querySelectorAll(':scope>*').forEach(e=>{const t=e.classList.contains('v')?(e.children[1]||e).textContent:e.textContent;if(t.replace(/[\u200b\s]/g,''))L.push(t)});if(!L.length&&pg.textContent.trim())L.push(pg.textContent);return L}
 function info(){
  if(!cur){$('info').textContent='';return}
@@ -1919,14 +2019,14 @@ function info(){
 let pendingBefore=null;
 function capturePendingBefore(){
  if(!cur||pendingBefore!==null)return;
- pendingBefore={title:cur.title,type:cur.type,html:cur.html,ts:cur.ts,font:cur.font,size:cur.size};
+ pendingBefore={title:cur.title,type:cur.type,html:cur.html,ts:cur.ts,font:cur.font,size:cur.size,paper:cur.paper||'plain'};
 }
 function flushPendingEdit(updateList=true){
  if(tm){clearTimeout(tm);tm=null}
  if(!cur||storageRecoveryBlocked){pendingBefore=null;return false}
  cur.html=san(pg.innerHTML);
  if(pendingBefore){
-  const changed=pendingBefore.html!==cur.html||pendingBefore.title!==cur.title||pendingBefore.type!==cur.type||pendingBefore.font!==cur.font||pendingBefore.size!==cur.size;
+  const changed=pendingBefore.html!==cur.html||pendingBefore.title!==cur.title||pendingBefore.type!==cur.type||pendingBefore.font!==cur.font||pendingBefore.size!==cur.size||pendingBefore.paper!==(cur.paper||'plain');
   if(changed){
    cur.history=cur.history||[];
    cur.history.push(pendingBefore);
@@ -2686,7 +2786,7 @@ async function doWord(){
 }
 
 function openHistory(){if(!cur){toast('افتح عملًا أولًا');return}clearTimeout(tm);if(pendingBefore){cur.history=cur.history||[];if(pendingBefore.html!==cur.html)cur.history.push(pendingBefore);cur.history=cur.history.slice(-15);pendingBefore=null}const h=(cur.history||[]).slice().reverse();$('historyItems').innerHTML=h.length?h.map((v,i)=>`<button type="button" class="history-item" data-ver="${h.length-1-i}"><span>${esc(v.title||'بلا عنوان')} · ${TYPES[v.type]||'عمل'}</span><small>${fmt(v.ts)}</small></button>`).join(''):'<p class="empty">لا توجد إصدارات سابقة لهذا العمل بعد.</p>';$('historyDialog').showModal()}
-function restoreHistory(i){if(!cur)return;const h=cur.history||[],v=h[i];if(!v)return;if(!confirm('استعادة هذا الإصدار؟ سيُحفظ الإصدار الحالي في السجل قبل الاستعادة.'))return;h.push({title:cur.title,type:cur.type,html:cur.html,ts:cur.ts,font:cur.font,size:cur.size});cur.history=h.slice(-15);Object.assign(cur,{title:v.title,type:v.type,html:v.html,ts:Date.now(),font:v.font,size:v.size});pg.innerHTML=san(cur.html);$('t').value=cur.title;$('ty').value=cur.type;save();openNote(cur);$('historyDialog').close();toast('تمت استعادة الإصدار')}
+function restoreHistory(i){if(!cur)return;const h=cur.history||[],v=h[i];if(!v)return;if(!confirm('استعادة هذا الإصدار؟ سيُحفظ الإصدار الحالي في السجل قبل الاستعادة.'))return;h.push({title:cur.title,type:cur.type,html:cur.html,ts:cur.ts,font:cur.font,size:cur.size,paper:cur.paper||'plain'});cur.history=h.slice(-15);Object.assign(cur,{title:v.title,type:v.type,html:v.html,ts:Date.now(),font:v.font,size:v.size});pg.innerHTML=san(cur.html);$('t').value=cur.title;$('ty').value=cur.type;save();openNote(cur);$('historyDialog').close();toast('تمت استعادة الإصدار')}
 function setBookToolExpanded(open,scroll=false){
  const app=$('app'),panel=$('bookToolPanel'),content=$('bookToolContent'),toggle=$('bookToolToggle');
  if(!app||!panel||!content||!toggle)return;
@@ -2856,12 +2956,15 @@ $('rib').addEventListener('mousedown',e=>{if(e.target.closest('button'))e.preven
 document.addEventListener('click',e=>{
  const t=e.target.closest('button,.card,#fl div');
  if(!e.target.closest('#fm')&&t?.id!=='fb')$('fm').classList.remove('o');
+ if(!e.target.closest('#paperStylePanel')&&t?.id!=='paperStyleBtn'){$('paperStylePanel').hidden=true;$('paperStyleBtn').setAttribute('aria-expanded','false')}
  if(!t)return;
  if(t.dataset.f){applyFont(t.dataset.f);return}
  if(t.classList.contains('chip')){flt=t.dataset.k;chips();renderList();return}
  if(t.classList.contains('card')){openNote(S.notes.find(n=>n.id===t.dataset.id));return}
  if(t.dataset.c){cmd(t.dataset.c);return}
  const id=t.id;
+ if(t.dataset.paper){setPaperStyle(t.dataset.paper);return}
+ if(id==='paperStyleBtn'){const panel=$('paperStylePanel'),open=panel.hidden,rect=t.getBoundingClientRect();panel.hidden=!open;t.setAttribute('aria-expanded',String(open));if(open){panel.style.top=Math.min(innerHeight-panel.offsetHeight-10,Math.max(8,rect.bottom+5))+'px';panel.style.left=Math.max(10,Math.min(rect.left,innerWidth-panel.offsetWidth-10))+'px'}return}
  if(id==='bookToolToggle')setBookToolExpanded($('bookToolContent').hidden,true);
  else if(id==='newBook')openBookDialog();
  else if(id==='createBook')createBook();
@@ -2880,7 +2983,7 @@ document.addEventListener('click',e=>{
  else if(id==='word')doWord();
  else if(id==='sp')speak();
  else if(id==='fb'){const r=t.getBoundingClientRect(),m=$('fm');m.style.top=r.bottom+4+'px';m.style.left=Math.max(6,Math.min(r.left,innerWidth-266))+'px';fontList('');$('fq').value='';m.classList.toggle('o');loadFontStylesheets(true).catch(error=>{console.warn(error);toast('بعض الخطوط تحتاج إلى اتصال بالإنترنت',3500)})}
- else if(id==='vs'&&cur){restore();document.execCommand('insertHTML',false,'<div class="v"><span>&#8203;</span><span>&#8203;</span></div><div><br></div>');touch()}
+ else if(id==='vs'&&cur)insertPoetryVerse();
  else if(id==='fo'){$('app').classList.add('focus');toast('اضغط Esc للخروج من التركيز')}
  else if(id==='ip'){toast('💡 '+PROMPTS[Math.floor(Math.random()*PROMPTS.length)],5000)}
  else if(id==='pn'&&cur){cur.pin=!cur.pin;save();$('pn').textContent=cur.pin?'⭐ تثبيت':'☆ تثبيت';renderList()}
@@ -2922,6 +3025,22 @@ const ADHKAR={
  ]
 };
 function renderAdhkar(period){const morning=period==='morning';$('morningTab').classList.toggle('active',morning);$('eveningTab').classList.toggle('active',!morning);$('adhkarContent').innerHTML=ADHKAR[period].map(x=>`<article class="dhikr"><strong>${x[0]}</strong><div>${x[1]}</div><small>${x[2]}</small></article>`).join('')}
+pg.addEventListener('keydown',e=>{
+ const cell=e.target.closest('#pg .v span');
+ if(!cell||!pg.contains(cell))return;
+ const row=cell.closest('.v'),cells=[...row.children],index=cells.indexOf(cell);
+ if(e.key==='Tab'){
+  e.preventDefault();
+  if(index===0)focusVerseCell(cells[1]);
+  else{
+   const next=row.nextElementSibling?.classList.contains('v')?row.nextElementSibling:null;
+   if(next)focusVerseCell(next.children[0]);else insertPoetryVerse(row);
+  }
+ }else if(e.key==='Enter'&&!e.shiftKey){
+  e.preventDefault();
+  if(index===0)focusVerseCell(cells[1]);else insertPoetryVerse(row);
+ }
+});
 pg.addEventListener('input',touch);
 pg.addEventListener('paste',e=>{e.preventDefault();document.execCommand('insertText',false,e.clipboardData.getData('text/plain'))});
 pg.addEventListener('dragover',e=>e.preventDefault());
