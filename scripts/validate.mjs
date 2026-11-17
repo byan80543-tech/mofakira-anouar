@@ -20,7 +20,7 @@ const declared=(manifest.icons??[]).find(i=>i.src.split('?')[0]===originalIcon &
 ok(!!declared,'manifest declares the original 1536x1536 PNG icon');
 ok(fs.existsSync(path.join(root,originalIcon)),'original high-resolution icon file exists');
 
-const ids=[...html.matchAll(/\bid\s*=\s*["']([^"']+)["']/gi)].map(m=>m[1]);
+const ids=[...html.matchAll(/(?:^|\s)id\s*=\s*["']([^"']+)["']/gim)].map(m=>m[1]);
 const duplicateIds=ids.filter((id,i)=>ids.indexOf(id)!==i);
 ok(duplicateIds.length===0,'HTML IDs are unique');
 
