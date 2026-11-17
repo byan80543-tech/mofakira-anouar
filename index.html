@@ -2055,6 +2055,9 @@ button:focus:not(:focus-visible){outline:none}
 @media(min-width:900px){
  #libraryPage #libraryBooks{grid-template-columns:repeat(2,minmax(0,1fr))!important;max-width:720px!important}
 }
+
+#libraryPage #libraryHome[hidden]{display:none!important}
+#libraryPage .tasbih-view[hidden]{display:none!important}
 </style></head><body>${$('pa').innerHTML}\x3Cscript>onload=function(){setTimeout(function(){print()},900)}<\/script>
 
 
@@ -3753,9 +3756,6 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
  }
  openButton.addEventListener('click',open);
  $('libraryClose').addEventListener('click',close);
- $('librarySaved').addEventListener('click',showSaved);
-
- $('librarySearch').addEventListener('input',e=>search(e.target.value));
  page.addEventListener('click',e=>{
   const themeButton=e.target.closest('#libraryTheme');
   if(themeButton){
