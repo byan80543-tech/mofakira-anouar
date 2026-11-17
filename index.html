@@ -1678,7 +1678,7 @@ function load(){
    console.warn('تعذّرت قراءة النسخة الاحتياطية',backupError);
    return;
   }
-  if(backupRaw){
+  if(backupRaw!==null){
    try{
     S=readStoredState(backupRaw);
     try{localStorage.setItem('anwar_v1',JSON.stringify(S))}catch(repairError){console.warn('تعذّر إنشاء السجل الأساسي من النسخة الاحتياطية',repairError)}
@@ -1699,9 +1699,19 @@ function retryStorageAccess(){
  try{raw=localStorage.getItem('anwar_v1')}
  catch(error){toast('لا يزال المتصفح يمنع الوصول إلى التخزين؛ لم تُغيّر أي بيانات.',5000);return false}
  if(raw===null){
-  clearStorageRecovery();load();
-  if(!storageRecoveryBlocked){openNote(null);theme();chips();renderList();toast('عاد الوصول إلى التخزين بنجاح.',4000);return true}
-  return false;
+  let backupRaw;
+  try{backupRaw=localStorage.getItem('anwar_v1_backup_v2')}
+  catch(error){toast('عاد الوصول إلى السجل الأساسي، لكن تعذّر فحص النسخة الاحتياطية؛ لم تُغيّر أي بيانات.',5000);return false}
+  if(backupRaw!==null){
+   try{S=readStoredState(backupRaw)}
+   catch(error){
+    storageRecoveryRaw=backupRaw;storageRecoveryMode='corrupt';storageRecoveryBlocked=true;storageRecoveryExported=false;storageRecoveryBackupAvailable=false;
+    updateStorageRecoveryNotice();toast('النسخة الاحتياطية غير صالحة؛ نزّل قيمتها الخام قبل بدء مفكرة جديدة.',5000);return false;
+   }
+  }else S=emptyStorageState();
+  clearStorageRecovery();openNote(null);theme();chips();renderList();
+  toast('عاد الوصول إلى التخزين. عُرضت النسخة الاحتياطية دون إعادة كتابة السجل الأساسي.',4500);
+  return true;
  }
  try{
   S=readStoredState(raw);
