@@ -1160,6 +1160,13 @@ dialog[open]>.float-head{display:none!important}
  #libraryReaderView .pdf-reader-stage{padding:7px 4px 12px}
  #libraryReaderView .pdf-reader-footer{min-height:31px;padding-inline:6px}
 }
+
+/* تجربة المصحف: ورق عاجي ولمسات ذهبية مستوحاة من هدوء تطبيق مُصلي */
+#libraryReaderView[data-reader-book="mushaf-madinah"] .pdf-reader-stage{background:#e8ddc5!important}
+#libraryReaderView[data-reader-book="mushaf-madinah"] .pdf-reader-sheet{background:#fff9e9!important;border:1px solid #c9ad75!important;border-radius:7px!important;box-shadow:0 9px 28px #59452230!important;padding:7px!important}
+#libraryReaderView[data-reader-book="mushaf-madinah"] .pdf-reader-controls{background:#f3ead7!important;border-color:#d8c69f!important}
+#libraryReaderView[data-reader-book="mushaf-madinah"] .pdf-reader-controls button{background:#fff8e9!important;color:#765b2d!important;border-color:#d0b77f!important}
+#libraryReaderView[data-reader-book="mushaf-madinah"] .pdf-reader-footer{background:#f3ead7!important;color:#6d5732!important;border-color:#d8c69f!important}
 </style>
 </head>
 <body>
@@ -3378,6 +3385,7 @@ if(!matchMedia('(max-width:800px)').matches&&S.notes.length)openNote(S.notes.sli
   readerReturnView=activeLibraryView;
   ['libraryHome','librarySearchView','librarySavedView'].forEach(id=>$(id).hidden=true);
   readerView.hidden=false;
+  readerView.dataset.readerBook=book.id;
   $('readerTitle').textContent=book.title;
   $('readerMeta').textContent=[book.author,book.pages?book.pages+' صفحة':'',book.size||'',book.source].filter(Boolean).join(' · ')+' · قراءة داخل المفكرة';
   $('readerFrame').src='about:blank';$('readerFrame').hidden=true;
