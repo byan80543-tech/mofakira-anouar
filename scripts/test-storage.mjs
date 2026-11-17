@@ -12,7 +12,9 @@ const extracted=[
   between('function showStorageRecoveryNotice(','function exportStorageRecovery()'),
   between('function exportStorageRecovery(){','function save(){'),
   between('function save(){','function toast('),
-  between('let pendingBefore=null;','function saveSel(){')
+  between('function plain(h){','const notePlainTextCache='),
+  between('let pendingBefore=null;','function saveSel(){'),
+  between('function openNote(n){','function applyPaperClass(style){')
 ].join('\n');
 
 function makeHarness(initial={}){
@@ -45,12 +47,21 @@ function makeHarness(initial={}){
   class FakeBlob{constructor(parts,options={}){this.parts=parts;this.type=options.type||''}}
   const fakeURL={createObjectURL(blob){download.blob=blob;return 'blob:anwar-recovery'},revokeObjectURL(url){download.revoked=url}};
   const fakeDocument={
-    createElement(tag){const anchor={tagName:tag,clicked:false,removed:false,click(){this.clicked=true},remove(){this.removed=true}};download.anchor=anchor;return anchor},
+    createElement(tag){
+      if(tag==='div'){
+        const node={textContent:'',get innerText(){return this.textContent}};
+        Object.defineProperty(node,'innerHTML',{set(value){this.textContent=String(value??'').replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ')}});
+        return node;
+      }
+      const anchor={tagName:tag,clicked:false,removed:false,click(){this.clicked=true},remove(){this.removed=true}};
+      download.anchor=anchor;return anchor;
+    },
     body:{append(anchor){download.appended=anchor}}
   };
   const sandbox={
     console:{warn(){},error(){}},
-    Date,Math,JSON,Set,Number,String,Array,Object,Error,Blob:FakeBlob,URL:fakeURL,document:fakeDocument,setTimeout(){}, 
+    Date,Math,JSON,Set,Number,String,Array,Object,Error,Blob:FakeBlob,URL:fakeURL,document:fakeDocument,
+    setTimeout(){return 1},
     TYPES:{poem:'قصيدة',text:'نص',idea:'فكرة'},
     FONTS:['Amiri','Tajawal'],
     hasOwn:(o,k)=>Object.prototype.hasOwnProperty.call(o,k),
@@ -59,14 +70,18 @@ function makeHarness(initial={}){
     safeFontName:v=>typeof v==='string'&&['Amiri','Tajawal'].includes(v)?v:'Amiri',
     localStorage:storage,
     S:{notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[]},
-    cur:null,tm:null,pendingBefore:null,pg:{innerHTML:''},clearTimeout(){},
+    cur:null,draftNote:null,tm:null,pendingBefore:null,
+    pg:{innerHTML:'',style:{},focus(){},classList:{add(){},remove(){}}},
+    clearTimeout(){},iso:d=>d.toISOString().slice(0,10),info(){},
+    createNoteId:(()=>{let id=0;return()=>String(++id)})(),
+    applyPaperClass(){},
     storageRecoveryBlocked:false,storageRecoveryRaw:null,storageRecoveryExported:false,storageRecoveryMode:'none',storageRecoveryBackupAvailable:false,
-    $:id=>elements[id]||(elements[id]={hidden:false,disabled:false}),
+    $:id=>elements[id]||(elements[id]={hidden:false,disabled:false,value:'',textContent:'',style:{},classList:{add(){},remove(){}},setAttribute(){}}),
     toast:m=>messages.push(String(m)),
     confirm:()=>true,
-    openNote(){},theme(){},chips(){},renderList(){}
+    theme(){},chips(){},renderList(){}
   };
-  vm.runInNewContext(extracted+"\nthis.api={load,save,startFreshNotebook,retryStorageAccess,restoreStorageBackup,exportStorageRecovery,snapshot:()=>({S,storageRecoveryBlocked,storageRecoveryRaw,storageRecoveryExported,storageRecoveryMode,storageRecoveryBackupAvailable}),\n      activateEdit:(note,previous,html)=>{cur=note;pendingBefore=previous;pg.innerHTML=html},\n      flushPendingEdit};",sandbox,{timeout:3000});
+  vm.runInNewContext(extracted+"\nthis.api={load,save,startFreshNotebook,retryStorageAccess,restoreStorageBackup,exportStorageRecovery,snapshot:()=>({S,storageRecoveryBlocked,storageRecoveryRaw,storageRecoveryExported,storageRecoveryMode,storageRecoveryBackupAvailable}),\n      activateEdit:(note,previous,html)=>{cur=note;pendingBefore=previous;pg.innerHTML=html},\n      draftState:()=>({cur,draftNote,notes:S.notes}),touch,newNote,openNote,flushPendingEdit};",sandbox,{timeout:3000});
   return {api:sandbox.api,storage,elements,messages,sandbox,download};
 }
 const assert=(condition,message)=>{
@@ -180,5 +195,29 @@ assert(h.api.flushPendingEdit(false)===true,'pending edit flush reports a succes
 const flushed=JSON.parse(h.storage.getItem('anwar_v1')).notes[0];
 assert(flushed.html==='<div>آخر كتابة</div>'&&flushed.title==='بعد التعديل','latest editor content and title are saved before navigation');
 assert(flushed.history.length===1&&flushed.history[0].html==='<div>النص القديم</div>','flush preserves the previous version in note history');
+
+// A fresh note remains an in-memory draft until the writer enters actual text.
+h=makeHarness();
+h.api.newNote();
+assert(h.api.draftState().notes.length===0&&h.storage.writeCount===0&&h.api.draftState().draft===h.api.draftState().cur,'new note opens as an unpersisted draft');
+assert(h.api.flushPendingEdit(false)===true&&h.api.draftState().notes.length===0&&h.storage.writeCount===0,'leaving an untouched draft does not create or save an empty note');
+h.api.openNote(null);
+assert(h.api.draftState().cur===null&&h.api.draftState().draft===null&&h.api.draftState().notes.length===0,'closing an untouched draft discards it from the active editor');
+
+h=makeHarness();
+h.api.newNote();
+h.api.draftState().cur.title='عنوان فقط';
+assert(h.api.flushPendingEdit(false)===true&&h.api.draftState().notes.length===0&&h.storage.writeCount===0,'a title without body text is not stored as a blank work');
+h.api.openNote(null);
+assert(h.api.draftState().notes.length===0,'a title-only draft disappears when closed');
+
+h=makeHarness();
+h.api.newNote();
+h.api.sandbox.pg.innerHTML='<div>بدأت القصيدة هنا</div>';
+h.api.touch();
+assert(h.api.draftState().notes.length===1&&h.api.draftState().draft===null,'first actual body text commits the draft exactly once');
+assert(h.api.flushPendingEdit(false)===true,'first written draft flushes successfully');
+const firstSaved=JSON.parse(h.storage.getItem('anwar_v1')).notes[0];
+assert(firstSaved.html==='<div>بدأت القصيدة هنا</div>'&&firstSaved.history.length===0,'first save preserves the text without creating a false empty history version');
 
 console.log('\nAll storage regression tests passed.');
