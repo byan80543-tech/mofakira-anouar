@@ -2221,12 +2221,15 @@ async function submitVaultForm(event){
  $('vaultPassword').disabled=true;
  $('vaultPasswordConfirm').disabled=true;
  showError('يجري تجهيز التشفير والتحقق من سلامة البيانات…');
+ let setupPrimaryText=null,setupPrimaryWritten=false;
  try{
   if(vaultGateMode==='setup'){
    const plaintext=JSON.stringify(S);
    const created=await AnwarVaultCrypto.createVault(password,plaintext);
    const serialized=JSON.stringify(created.envelope);
+   setupPrimaryText=serialized;
    localStorage.setItem(VAULT_STORAGE_KEY,serialized);
+   setupPrimaryWritten=true;
    const readBack=JSON.parse(localStorage.getItem(VAULT_STORAGE_KEY)||'null');
    const verified=await AnwarVaultCrypto.decryptWithKey(created.key,readBack);
    const verifiedState=readStoredState(verified);
@@ -2283,6 +2286,11 @@ async function submitVaultForm(event){
   if(recoveredFromBackup)toast('تعذّر فتح السجل الأساسي، فاستعدنا النسخة الاحتياطية المشفرة.',6000);
   else toast('فُتحت الخزنة بنجاح.',2500);
  }catch(error){
+  if(vaultGateMode==='setup'&&setupPrimaryWritten&&!vaultUnlocked){
+   try{
+    if(localStorage.getItem(VAULT_STORAGE_KEY)===setupPrimaryText)localStorage.removeItem(VAULT_STORAGE_KEY);
+   }catch(cleanupError){console.warn('تعذّر إزالة غلاف التشفير غير المتحقق منه؛ بقيت بيانات المفكرة القديمة دون حذف.',cleanupError)}
+  }
   console.warn('تعذّر إعداد خزنة مفكرة أنوار أو فتحها',error);
   showError(error&&error.message?error.message:'تعذّر إتمام العملية. لم نحذف البيانات القديمة.');
   submit.disabled=false;
