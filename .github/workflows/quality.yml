@@ -59,6 +59,8 @@ jobs:
         run: node scripts/test-csp.mjs
       - name: Test click-burst protection and cooldown
         run: node scripts/test-click-guard.mjs
+      - name: Test API gateway allowlist, cache and IP rate limiting
+        run: node scripts/test-api-gateway.mjs
       - name: Test notebook storage and recovery paths
         run: node scripts/test-storage.mjs
       - name: Test encrypted vault cryptography and backup integrity
