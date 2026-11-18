@@ -114,7 +114,7 @@ ok(html.includes("if(!vaultKey||!vaultTemplate){") && html.includes("showVaultGa
 ok(html.includes('function persistPlainSnapshot(plaintext)') && html.includes("localStorage.setItem(VAULT_MODE_KEY,'plain')") && html.includes("localStorage.setItem(VAULT_MODE_KEY,'encrypted')"),'free and encrypted modes are explicitly persisted after verified storage writes');
 ok(html.includes('flushPrivatePreferenceSave();') && html.includes("if(typeof flushPendingEdit==='function')flushPendingEdit(false);") && html.includes('await vaultSaveQueue;') && html.includes("showVaultGate('setup'"),'manual encryption setup flushes pending edits and waits for the save queue before closing free mode');
 ok(/async function cancelVaultSetup\(\)[\s\S]*?await persistPlainSnapshot\(JSON\.stringify\(S\)\)/.test(html),'continuing without encryption verifies and persists the plaintext snapshot before reopening');
-ok(fs.readFileSync(path.join(root,'service-worker.js'),'utf8').includes("const CACHE_NAME='anwar-shell-2026-11-18-v57';"),'service worker shell version advances with the vault behavior update');
+ok(fs.readFileSync(path.join(root,'service-worker.js'),'utf8').includes("const CACHE_NAME='anwar-shell-2026-11-18-v58';"),'service worker shell version advances after the response security headers update');
 ok(html.includes('id="vaultCancelSetupBtn"') && html.includes('id="vaultDisableEncryptionBtn"'),'the gate offers continue-free and disable-encryption actions');
 ok(html.includes('AnwarPrivatePreferences.normalize(d.preferences)') && html.includes('preferences:globalThis.AnwarPrivatePreferences.normalize({})'),'radio, reader and tasbih preferences are part of the encrypted vault state');
 ok(html.includes('function importLegacyPrivatePreferences(base)') && html.includes('function clearLegacyPrivatePreferences()'),'legacy plaintext preferences have explicit migration and cleanup paths');
@@ -157,6 +157,17 @@ ok(html.includes("function scheduleRadioWarmup()") && html.includes("scheduleRad
 ok(html.includes("setTimeout(renderList,90)") && html.includes("setTimeout(renderArchive,120)"),'note and archive searches are lightly debounced to reduce repeated rendering');
 ok(html.includes("content-visibility:auto;contain-intrinsic-size:auto 76px"),'off-screen note cards skip unnecessary painting');
 ok(html.includes("backdrop-filter:none;-webkit-backdrop-filter:none"),'vault startup overlay avoids an expensive full-screen blur');
+
+
+const deployWorkflow=fs.readFileSync(path.join(root,'.github/workflows/deploy-cloudflare-pages.yml'),'utf8');
+const securityHeaders=fs.readFileSync(path.join(root,'_headers'),'utf8');
+ok(deployWorkflow.includes('cp _headers dist/_headers'),'Cloudflare Pages receives _headers at the deployment output root');
+ok(deployWorkflow.includes('test -s dist/_headers') && deployWorkflow.includes("grep -q \"frame-ancestors 'none'\" dist/_headers"),'deployment fails closed if the root security header file is missing or incomplete');
+ok(!deployWorkflow.includes('cp _headers dist/mofakira-anouar/_headers'),'security headers are not misplaced inside the nested PWA directory');
+ok(securityHeaders.includes("frame-ancestors 'none'") && securityHeaders.includes('X-Frame-Options: DENY'),'HTTP headers prevent cross-origin framing');
+ok(securityHeaders.includes('X-Content-Type-Options: nosniff') && securityHeaders.includes('Referrer-Policy: strict-origin-when-cross-origin'),'HTTP headers set MIME-sniffing and referrer protections');
+ok(securityHeaders.includes('Permissions-Policy: camera=(), geolocation=(), microphone=(self)'),'HTTP Permissions-Policy disables unused camera and location access');
+ok(securityHeaders.includes("script-src 'self' https://cdnjs.cloudflare.com") && securityHeaders.includes("'sha256-2hfKs02QbjOqbW6nnlUKK5v0Kmtok9HTIOsEYOV9f0A='") && securityHeaders.includes('upgrade-insecure-requests'),'HTTP CSP mirrors the approved script hashes and secure resource policy');
 
 if(failures.length){
   console.error('\nValidation failed:');
