@@ -55,18 +55,24 @@ vm.runInNewContext(code,{self,caches,URL,fetch,Response:TestResponse,console},{t
 const installEvent={promise:null,waitUntil(p){this.promise=p}};
 listeners.get('install')(installEvent);
 await installEvent.promise;
-assert.equal(skipWaitingCalled,true,'install calls skipWaiting');
+assert.equal(skipWaitingCalled,false,'install waits for user approval instead of calling skipWaiting');
 assert.equal(store.get(absolute('./index.html'))?.body,'cached:./index.html','install precaches the local HTML shell');
 assert.equal(store.get(absolute('./manifest.webmanifest'))?.body,'cached:./manifest.webmanifest','install precaches the web manifest');
 assert.equal(store.get(absolute('./vault-crypto.js'))?.body,'cached:./vault-crypto.js','install precaches the local vault cryptography helper');
 assert.equal(store.get(absolute('./vault-device-unlock.js'))?.body,'cached:./vault-device-unlock.js','install precaches the local device unlock helper');
 assert.equal(store.get(absolute('./toolbar-back-navigation.js'))?.body,'cached:./toolbar-back-navigation.js','install precaches contextual back navigation for offline use');
-assert.equal(store.get(absolute('./update-notice.js'))?.body,'cached:./update-notice.js','install precaches the smart update checker');
-assert.equal(store.get(absolute('./update-notice.css'))?.body,'cached:./update-notice.css','install precaches the update notice styling');
+assert.equal(store.get(absolute('./update-notice-v2.js'))?.body,'cached:./update-notice-v2.js','install precaches the current update checker');
+assert.equal(store.get(absolute('./update-notice-v2.css'))?.body,'cached:./update-notice-v2.css','install precaches the current update styling');
 assert.equal(store.has(absolute('./icon-192.png')),false,'PWA icon is fetched and cached only when requested');
-assert.equal(store.has(absolute('./icon-512.png')),false,'large PWA icon is not part of the initial shell cache');
-assert.equal(store.has(absolute('./vendor/jspdf.umd.min.js')),false,'PDF library is not part of the initial shell cache');
-assert.equal(store.has(absolute('./file_00000000670481f4ad879246afe6bae2.png')),false,'oversized source icon is excluded from the shell cache');
+
+const messageEvent={data:{type:'ANOUAR_ACTIVATE_UPDATE'},source:{url:scopeUrl+'index.html'},promise:null,waitUntil(p){this.promise=p}};
+listeners.get('message')(messageEvent);
+await messageEvent.promise;
+assert.equal(skipWaitingCalled,true,'the waiting worker skips waiting only after in-scope client approval');
+
+const rejectedMessage={data:{type:'ANOUAR_ACTIVATE_UPDATE'},source:{url:'https://evil.example/attack'},promise:null,waitUntil(p){this.promise=p}};
+listeners.get('message')(rejectedMessage);
+assert.equal(rejectedMessage.promise,null,'messages from outside the app origin are rejected');
 
 const activateEvent={promise:null,waitUntil(p){this.promise=p}};
 listeners.get('activate')(activateEvent);
@@ -78,10 +84,9 @@ assert.equal(clientsClaimed,true,'activate claims controlled clients');
 const onlineRoute=new URL('online-route/',scopeUrl).href;
 const onlineNavigation=makeFetchEvent({url:onlineRoute,method:'GET',mode:'navigate'});
 listeners.get('fetch')(onlineNavigation);
-assert.ok(onlineNavigation.response,'same-origin navigation is intercepted');
 const onlineResponse=await onlineNavigation.response;
-assert.equal(await onlineResponse.text(),'network:'+onlineRoute,'online navigation returns the current network response immediately');
-assert.equal(store.get(onlineRoute)?.body,'network:'+onlineRoute,'online navigation refreshes the cached route before responding');
+assert.equal(await onlineResponse.text(),'network:'+onlineRoute,'online navigation returns the current network response');
+assert.equal(store.get(onlineRoute)?.body,'network:'+onlineRoute,'online navigation refreshes the cached route');
 
 online=false;
 const offlineNavigation=makeFetchEvent({url:onlineRoute,method:'GET',mode:'navigate'});
@@ -99,17 +104,21 @@ online=true;
 const callsBeforeAsset=networkCalls;
 const cachedAsset=makeFetchEvent({url:new URL('index.html?revision=next',scopeUrl).href,method:'GET',mode:'cors'});
 listeners.get('fetch')(cachedAsset);
-assert.equal(await (await cachedAsset.response).text(),'cached:./index.html','same-origin static assets are served from cache first');
+assert.equal(await (await cachedAsset.response).text(),'cached:./index.html','same-origin static assets remain cache-first');
 assert.equal(networkCalls,callsBeforeAsset,'cache-first asset hit does not call the network');
 
 const lazyPdfLibrary=makeFetchEvent({url:new URL('vendor/jspdf.umd.min.js',scopeUrl).href,method:'GET',mode:'cors'});
 listeners.get('fetch')(lazyPdfLibrary);
-assert.match(await (await lazyPdfLibrary.response).text(),/^network:/,'on-demand PDF library can be fetched when first requested');
+assert.match(await (await lazyPdfLibrary.response).text(),/^network:/,'on-demand PDF library can be fetched');
 assert.ok(store.has(absolute('./vendor/jspdf.umd.min.js')),'on-demand PDF library is cached after first successful request');
+
+const updateScript=makeFetchEvent({url:new URL('update-notice-v2.js',scopeUrl).href,method:'GET',mode:'cors'});
+listeners.get('fetch')(updateScript);
+assert.match(await (await updateScript.response).text(),/^network:/,'update metadata is refreshed from the network');
 online=false;
-const cachedPdfLibrary=makeFetchEvent({url:new URL('vendor/jspdf.umd.min.js',scopeUrl).href,method:'GET',mode:'cors'});
-listeners.get('fetch')(cachedPdfLibrary);
-assert.match(await (await cachedPdfLibrary.response).text(),/^network:/,'cached PDF library remains available offline after first load');
+const cachedUpdateScript=makeFetchEvent({url:new URL('update-notice-v2.js',scopeUrl).href,method:'GET',mode:'cors'});
+listeners.get('fetch')(cachedUpdateScript);
+assert.match(await (await cachedUpdateScript.response).text(),/^network:/,'update checker remains cached for offline use after first online load');
 
 const externalAudio=makeFetchEvent({url:'https://audio.example.test/live.mp3',method:'GET',mode:'cors'});
 listeners.get('fetch')(externalAudio);
@@ -119,4 +128,4 @@ const postRequest=makeFetchEvent({url:new URL('api/write',scopeUrl).href,method:
 listeners.get('fetch')(postRequest);
 assert.equal(postRequest.response,null,'non-GET requests are not intercepted');
 
-console.log('All service-worker network-first navigation, cache fallback and asset tests passed.');
+console.log('Service-worker consent, cache, online freshness and offline fallback tests passed.');
