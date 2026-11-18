@@ -3690,49 +3690,12 @@ button:focus:not(:focus-visible){outline:none}
 </style>
 
 
-<style id="anwar-toolbar-spacing-and-palette-dialog-v1">
+<style id="anwar-toolbar-spacing-and-palette-cycle-v2">
 /* فراغ صغير ومتوازن بين عناصر الشريط بعد نقل النسخة المشفرة */
 .tb{gap:4px!important}
 @media(max-width:800px){.tb{gap:4px!important}}
-/* نافذة ألوان مستقلة في وسط الشاشة على الحاسوب */
-@media(min-width:801px){
- #palettePanel.open{
-  top:50%!important;
-  right:auto!important;
-  inset-inline-end:auto!important;
-  left:50%!important;
-  width:min(460px,calc(100vw - 28px))!important;
-  max-height:min(84dvh,760px)!important;
-  overflow-x:hidden!important;
-  overflow-y:auto!important;
-  padding:18px!important;
-  border:1px solid var(--bd)!important;
-  border-radius:17px!important;
-  box-shadow:0 20px 60px rgba(0,0,0,.28)!important;
-  transform:translate(-50%,-50%)!important;
-  isolation:isolate;
-  z-index:3600!important;
- }
- #palettePanel.open::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  z-index:-1;
-  background:rgba(8,20,35,.62);
-  backdrop-filter:blur(3px);
-  -webkit-backdrop-filter:blur(3px);
- }
- #palettePanel.open>.mobile-layer-header{
-  display:flex!important;
-  position:sticky;
-  top:-18px;
-  z-index:20;
-  margin:-18px 0 8px;
-  padding:12px 0 9px;
-  background:var(--sf);
- }
-}
-#paletteBtn[aria-expanded="true"]{border-color:#f4dfad!important;box-shadow:0 0 0 2px rgba(244,223,173,.2)!important}
+/* الألوان تتغير مباشرة من الأيقونة؛ لا تظهر لوحة اختيار */
+#palettePanel{display:none!important}
 </style>
 
 </body></html>`;
@@ -5504,38 +5467,24 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
 })();
 
 (function(){
- const panel=$('palettePanel'),button=$('paletteBtn');if(!panel||!button)return;
- const choices=[...panel.querySelectorAll('[data-palette-choice]')];
- function refresh(){
-  choices.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.paletteChoice===(S.palette||'blue'))));
-  panel.querySelectorAll('[data-wall]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.wall===(S.wallColor||'mist'))));
-  panel.querySelectorAll('[data-paper]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.paper===(S.paperColor||'white'))));
+ const button=$('paletteBtn');if(!button)return;
+ const palettes=[
+  ['blue','أزرق هادئ'],['green','أخضر مريح'],['purple','بنفسجي'],
+  ['rose','وردي ناعم'],['amber','عنبر دافئ'],['slate','رمادي أنيق']
+ ];
+ function syncLabel(){
+  const current=palettes.find(item=>item[0]===(S.palette||'blue'))||palettes[0];
+  button.setAttribute('aria-label','تغيير لون الواجهة؛ اللون الحالي '+current[1]);
+  button.title='اللون الحالي: '+current[1]+'؛ انقر للتغيير';
  }
- function setPaletteOpen(open,returnFocus=false){
-  panel.classList.toggle('open',open);
-  button.setAttribute('aria-expanded',String(open));
-  panel.setAttribute('aria-hidden',String(!open));
-  if(open){refresh();const first=panel.querySelector('button:not([disabled])');if(first)first.focus({preventScroll:true});}
-  else if(returnFocus)button.focus({preventScroll:true});
- }
- button.addEventListener('click',e=>{e.stopPropagation();setPaletteOpen(!panel.classList.contains('open'))});
- panel.addEventListener('click',e=>{
-  if(e.target.closest('.mobile-layer-header button'))setPaletteOpen(false,true);
+ button.addEventListener('click',()=>{
+  const index=palettes.findIndex(item=>item[0]===(S.palette||'blue'));
+  S.palette=palettes[(index+1+palettes.length)%palettes.length][0];
+  save();theme();syncLabel();
+  toast('تم تغيير لون الواجهة وحفظه');
  });
-
- panel.addEventListener('click',e=>{
-  const b=e.target.closest('button');if(!b)return;
-  if(b.dataset.paletteChoice){S.palette=b.dataset.paletteChoice;}
-  else if(b.dataset.wall){S.wallColor=b.dataset.wall;}
-  else if(b.dataset.paper){S.paperColor=b.dataset.paper;}
-  else if(b.id==='unifiedColor'){S.paperColor=({mist:'gray',slate:'gray'}[S.wallColor]||S.wallColor||'cream');}
-  else return;
-  save();theme();refresh();toast('تم تطبيق الألوان وحفظها على هذا الجهاز');
- });
- document.addEventListener('click',e=>{if(panel.classList.contains('open')&&!e.target.closest('#palettePanel,#paletteBtn'))setPaletteOpen(false)});
- document.addEventListener('keydown',e=>{if(e.key==='Escape'&&panel.classList.contains('open'))setPaletteOpen(false,true)});refresh();
- button.setAttribute('aria-controls','palettePanel');button.setAttribute('aria-expanded','false');panel.setAttribute('aria-hidden','true');
-})();
+ syncLabel();
+})();;
 $('vaultForm').addEventListener('submit',submitVaultForm);
 $('vaultDeviceUnlock').addEventListener('click',unlockVaultWithDevice);
 $('vaultPasswordFallbackToggle').addEventListener('click',()=>{
