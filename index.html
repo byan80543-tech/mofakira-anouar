@@ -1728,6 +1728,15 @@ dialog[open]>.float-head{display:none!important}
 .app.ed .tb #vaultLockBtn{display:none!important}
 /* زر × يبقى ظاهراً للعودة من صفحة التحرير */
 .app.ed .tb #bk{display:grid!important}
+/* إلغاء حقل العنوان المرئي؛ أول سطر في الورقة يصبح اسم العمل تلقائياً */
+.app.ed .tb #t{
+  display:none!important;flex:0 0 0!important;width:0!important;min-width:0!important;
+  max-width:0!important;margin:0!important;padding:0!important;border:0!important
+}
+/* استغلال المساحة التي كان يشغلها حقل العنوان لموازنة الشريط حول اسم المفكرة */
+.app.ed .tb .brand{
+  flex:1 1 auto!important;min-width:0!important;justify-content:center!important;
+}
 
 @media(prefers-reduced-motion:reduce){.tb #bk{transition:none!important}}
 </style>
@@ -3102,7 +3111,11 @@ function flushPendingEdit(updateList=true){
  if(tm){clearTimeout(tm);tm=null}
  if(!cur||storageRecoveryBlocked){pendingBefore=null;return false}
  const wasDraft=cur===draftNote;
+ const nextTitle=titleFromEditor();
+ if(!wasDraft&&nextTitle!==cur.title&&pendingBefore===null)capturePendingBefore();
  cur.html=san(pg.innerHTML);
+ cur.title=nextTitle;
+ $('t').value=cur.title;
  if(wasDraft){
   pendingBefore=null;
   if(!commitDraftIfReady())return true;
@@ -3119,10 +3132,21 @@ function flushPendingEdit(updateList=true){
  if(ok&&updateList)renderList();
  return ok;
 }
+function titleFromEditor(){
+ const firstBlock=Array.from(pg.children).find(block=>(block.innerText||block.textContent||'').replace(/\u200b/g,'').trim());
+ let raw='';
+ if(firstBlock&&firstBlock.classList.contains('v')){
+  raw=Array.from(firstBlock.children).slice(0,2).map(cell=>(cell.innerText||cell.textContent||'').trim()).filter(Boolean).join(' — ');
+ }else{
+  const source=firstBlock?(firstBlock.innerText||firstBlock.textContent||''):(pg.innerText||pg.textContent||'');
+  raw=source.split(/\r?\n/).map(line=>line.replace(/\u200b/g,'').trim()).find(Boolean)||'';
+ }
+ return raw.replace(/\s+/g,' ').trim().slice(0,80);
+}
 function touch(){
  if(!cur||storageRecoveryBlocked)return;
  if(cur===draftNote){
-  cur.html=san(pg.innerHTML);cur.ts=Date.now();pendingBefore=null;
+  cur.html=san(pg.innerHTML);cur.title=titleFromEditor();$('t').value=cur.title;cur.ts=Date.now();pendingBefore=null;
   if(!plain(cur.html).replace(/\u200b/g,'').trim()){
    if(tm){clearTimeout(tm);tm=null}
    info();return;
@@ -3132,7 +3156,7 @@ function touch(){
   return;
  }
  capturePendingBefore();
- cur.html=san(pg.innerHTML);cur.ts=Date.now();
+ cur.html=san(pg.innerHTML);cur.title=titleFromEditor();$('t').value=cur.title;cur.ts=Date.now();
  const d=iso(new Date());if(!S.days.includes(d))S.days.push(d);
  info();if(tm)clearTimeout(tm);
  tm=setTimeout(()=>flushPendingEdit(true),650);
