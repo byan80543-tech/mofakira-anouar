@@ -78,6 +78,8 @@ function makeHarness(initial={}){
     applyPaperClass(){},
     storageRecoveryBlocked:false,storageRecoveryRaw:null,storageRecoveryExported:false,storageRecoveryMode:'none',storageRecoveryBackupAvailable:false,
     VAULT_STORAGE_KEY:'anwar_vault_v1',VAULT_BACKUP_KEY:'anwar_vault_backup_v1',
+    VAULT_MODE_KEY:'anwar_vault_mode_v1',
+    continueVaultAfterRecovery(){if(sandbox.api)sandbox.api.load()},
     vaultKey:{testKey:true},vaultTemplate:{format:'mock-vault'},vaultUnlocked:true,
     vaultSaveQueue:Promise.resolve(),vaultLastWriteError:null,vaultBackupWarningShown:false,
     AnwarVaultCrypto:{
