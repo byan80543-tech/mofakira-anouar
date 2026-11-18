@@ -1511,12 +1511,12 @@ dialog[open]>.float-head{display:none!important}
 </style>
 
 <style id="toolbar-icon-polish-v1">
-/* توحيد شريط الأدوات العلوي: أزرار متساوية ورموز متوازنة */
+/* أيقونات الشريط العلوي: قياس ومحاذاة واستجابة موحدة */
 .tb .archive-launch,
 .tb #rb,
 .tb #th,
 .tb #paletteBtn,
-.tb #bkp{
+.tb #vaultLockBtn{
   display:grid!important;
   place-items:center!important;
   flex:0 0 38px!important;
@@ -1540,7 +1540,7 @@ dialog[open]>.float-head{display:none!important}
 .tb #rb:hover,
 .tb #th:hover,
 .tb #paletteBtn:hover,
-.tb #bkp:hover{
+.tb #vaultLockBtn:hover{
   border-color:#f0d79e!important;
   background:linear-gradient(145deg,rgba(255,255,255,.30),rgba(255,255,255,.16))!important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 3px 8px rgba(0,15,35,.18)!important;
@@ -1549,12 +1549,12 @@ dialog[open]>.float-head{display:none!important}
 .tb #rb:active,
 .tb #th:active,
 .tb #paletteBtn:active,
-.tb #bkp:active{transform:scale(.96)}
+.tb #vaultLockBtn:active{transform:scale(.96)}
 .tb .archive-launch:focus-visible,
 .tb #rb:focus-visible,
 .tb #th:focus-visible,
 .tb #paletteBtn:focus-visible,
-.tb #bkp:focus-visible{outline:2px solid #f4dfad!important;outline-offset:2px!important}
+.tb #vaultLockBtn:focus-visible{outline:2px solid #f4dfad!important;outline-offset:2px!important}
 .tb .archive-launch svg,
 .tb .toolbar-icon{
   display:block!important;
@@ -1580,7 +1580,7 @@ dialog[open]>.float-head{display:none!important}
 :root[data-theme="dark"] .tb #th .theme-sun{display:none}
 :root[data-theme="dark"] .tb #th .theme-moon{display:block}
 @media(prefers-reduced-motion:reduce){
-  .tb .archive-launch,.tb #rb,.tb #th,.tb #paletteBtn,.tb #bkp{transition:none!important}
+  .tb .archive-launch,.tb #rb,.tb #th,.tb #paletteBtn,.tb #vaultLockBtn{transition:none!important}
 }
 </style>
 
@@ -1593,6 +1593,47 @@ dialog[open]>.float-head{display:none!important}
 .reader-advance-bar select{flex:1;min-width:0;max-width:260px;min-height:40px;padding:7px 10px;border:1px solid #d9c18d;border-radius:9px;background:#fffdf8;color:#183a57;font:inherit;font-size:12px}
 @media(max-width:420px){.reader-advance-bar{align-items:stretch;flex-direction:column;gap:6px}.reader-advance-bar select{max-width:none;width:100%}}
 </style>
+<style id="anwar-encrypted-backup-tool-style-v1">
+/* النسخة الاحتياطية داخل أدوات أنوار، بعيدًا عن شريط العنوان */
+#rib .bkp-tool{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:6px!important;
+  min-width:112px;
+  padding:5px 10px!important;
+  border:1px solid #c8d5e4!important;
+  border-radius:8px!important;
+  background:linear-gradient(135deg,var(--sf),var(--ac2))!important;
+  color:var(--ac)!important;
+  font-size:11px!important;
+  font-weight:800!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 1px 3px rgba(14,42,72,.07);
+  white-space:nowrap;
+}
+#rib .bkp-tool svg{
+  display:block;
+  flex:none;
+  width:18px;
+  height:18px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.7;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+#rib .bkp-tool:hover,#rib .bkp-tool:focus-visible{
+  border-color:var(--ac)!important;
+  background:var(--ac2)!important;
+}
+#rib .bkp-tool:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+#rib .bkp-tool:active{transform:scale(.98)}
+@media(max-width:800px){
+  #rib .bkp-tool{min-width:0;flex:1 1 100%;font-size:11px!important}
+}
+@media(prefers-reduced-motion:reduce){#rib .bkp-tool{transition:none!important}}
+</style>
+
 <style id="anwar-mobile-toolbar-fix">
 @media(max-width:800px){
  .tb{box-sizing:border-box;gap:3px;padding:5px 6px;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
@@ -1608,11 +1649,11 @@ dialog[open]>.float-head{display:none!important}
 </style>
 
 <style id="vault-lock-toolbar-position-v1">
-/* إبقاء زر الخزنة ضمن الجزء المرئي من الشريط على الهواتف */
+/* زر القفل في أول الشريط مع نفس مقاس أزرار الهاتف */
 @media(max-width:800px){
  .tb{direction:rtl;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
  .tb::-webkit-scrollbar{display:none}
- .tb>#vaultLockBtn{order:-1;flex:0 0 34px!important;width:34px!important;min-width:34px!important;height:36px!important;margin-inline-start:2px!important}
+ .tb>#vaultLockBtn{order:-1;flex:0 0 32px!important;width:32px!important;min-width:32px!important;height:34px!important;margin-inline-start:2px!important}
 }
 </style>
 
@@ -1672,8 +1713,7 @@ dialog[open]>.float-head{display:none!important}
  <button type="button" id="rb" title="تشغيل أو إيقاف إذاعة القرآن" aria-label="تشغيل إذاعة القرآن" aria-pressed="false">▶</button>
  <button id="th" type="button" aria-label="تبديل الوضع الليلي والنهاري" title="تبديل الوضع الليلي والنهاري"><svg class="toolbar-icon theme-toggle-icon" viewBox="0 0 24 24" aria-hidden="true"><circle class="theme-sun" cx="12" cy="12" r="4"/><path class="theme-sun" d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/><path class="theme-moon" d="M20.3 15.4A8.5 8.5 0 0 1 8.6 3.7 8.5 8.5 0 1 0 20.3 15.4Z"/></svg></button>
  <button id="paletteBtn" type="button" aria-label="تغيير ألوان المفكرة" title="تغيير ألوان المفكرة"><svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2a8.8 8.8 0 1 0 0 17.6h1.3a1.9 1.9 0 0 0 1.3-3.3 1.8 1.8 0 0 1 1.3-3h1.3a3.7 3.7 0 0 0 3.7-3.7c0-4.2-4-7.6-8.9-7.6Z"/><circle cx="7.8" cy="11" r="1"/><circle cx="10" cy="7.4" r="1"/><circle cx="14.3" cy="7.4" r="1"/><circle cx="17.2" cy="10.2" r="1"/></svg></button>
- <button id="bkp" type="button" aria-label="نسخة احتياطية مشفرة" title="نسخة احتياطية مشفرة" aria-haspopup="dialog" aria-controls="dg"><svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h12l3.5 3.5v13.5H3.5V3.5H5Z"/><path d="M7 3.5v6h9v-6M8 20.5v-7h8v7"/></svg></button>
-  <button id="vaultLockBtn" type="button" aria-label="قفل الخزنة المشفرة" title="قفل الخزنة؛ اضغط لاحقًا لفتحها بقفل الهاتف أو كلمة المرور الأساسية"><svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="10" width="15" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg></button>
+   <button id="vaultLockBtn" type="button" aria-label="قفل المفكرة المشفرة" title="قفل المفكرة الآن؛ ستحتاج إلى قفل الهاتف أو كلمة المرور الأساسية لفتحها مجددًا"><svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="10" width="15" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg></button>
  
 </div>
 
@@ -1746,7 +1786,7 @@ dialog[open]>.float-head{display:none!important}
 </div>
  <div class="g"><div><button class="b" data-c="bold" title="خط عريض" aria-label="تطبيق الخط العريض"><b>B</b></button><button class="b" data-c="italic" title="خط مائل" aria-label="تطبيق الخط المائل"><i>I</i></button><button class="b" data-c="underline" title="تسطير" aria-label="تسطير النص"><u>U</u></button><input type="color" id="fc" value="#222222" title="لون الخط"><input type="color" id="hc" value="#fff2a8" title="تمييز"></div><small>التنسيق</small></div>
  <div class="g"><div><button class="b" data-c="justifyRight" title="محاذاة إلى اليمين" aria-label="محاذاة الفقرة إلى اليمين">▶≡</button><button class="b" data-c="justifyCenter" title="توسيط" aria-label="توسيط الفقرة">≡</button><button class="b" data-c="justifyLeft" title="محاذاة إلى اليسار" aria-label="محاذاة الفقرة إلى اليسار">≡◀</button><button class="b" data-c="justifyFull" title="ضبط جانبي الفقرة" aria-label="ضبط الفقرة من الجانبين">☰</button><button class="b" data-c="insertUnorderedList" title="قائمة نقطية" aria-label="إدراج قائمة نقطية">•≡</button><button class="b" data-c="insertOrderedList" title="قائمة مرقمة" aria-label="إدراج قائمة مرقمة">1≡</button></div><small>الفقرة</small></div>
- <div class="g"><div><button class="b" id="vs" title="إدراج بيت شعري من شطرين" aria-label="إدراج بيت شعري">📜 بيت</button><button class="b" id="sp" title="قراءة النص بصوت مسموع" aria-label="إلقاء النص صوتيًا">🔊 إلقاء</button><button class="b" id="fo" title="إخفاء الأدوات للتركيز على الكتابة" aria-label="تشغيل وضع التركيز">🎯 تركيز</button><button class="b" id="ip" title="عرض فكرة تساعد على الكتابة" aria-label="عرض فكرة للكتابة">💡 إلهام</button><button class="b" id="pn" title="تثبيت العمل أو إلغاء تثبيته" aria-label="تثبيت العمل أو إلغاء تثبيته">☆ تثبيت</button><button class="b" id="cy" title="نسخ نص العمل" aria-label="نسخ نص العمل إلى الحافظة">📋</button><button class="b" id="hist" title="فتح سجل الإصدارات السابقة" aria-label="سجل إصدارات العمل">🕘 الإصدارات</button><button class="b dn" id="dl" title="حذف العمل" aria-label="حذف العمل الحالي">🗑️</button></div><small>أدوات أنوار</small></div>
+ <div class="g"><div><button class="b" id="vs" title="إدراج بيت شعري من شطرين" aria-label="إدراج بيت شعري">📜 بيت</button><button class="b" id="sp" title="قراءة النص بصوت مسموع" aria-label="إلقاء النص صوتيًا">🔊 إلقاء</button><button class="b" id="fo" title="إخفاء الأدوات للتركيز على الكتابة" aria-label="تشغيل وضع التركيز">🎯 تركيز</button><button class="b" id="ip" title="عرض فكرة تساعد على الكتابة" aria-label="عرض فكرة للكتابة">💡 إلهام</button><button class="b" id="pn" title="تثبيت العمل أو إلغاء تثبيته" aria-label="تثبيت العمل أو إلغاء تثبيته">☆ تثبيت</button><button class="b" id="cy" title="نسخ نص العمل" aria-label="نسخ نص العمل إلى الحافظة">📋</button><button class="b bkp-tool" id="bkp" type="button" title="إنشاء نسخة احتياطية مشفرة أو استعادتها" aria-label="فتح النسخة الاحتياطية المشفرة" aria-haspopup="dialog" aria-controls="dg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h12l3.5 3.5v13.5H3.5V3.5H5Z"/><path d="M7 3.5v6h9v-6M8 20.5v-7h8v7"/></svg><span>نسخة مشفرة</span></button><button class="b" id="hist" title="فتح سجل الإصدارات السابقة" aria-label="سجل إصدارات العمل">🕘 الإصدارات</button><button class="b dn" id="dl" title="حذف العمل" aria-label="حذف العمل الحالي">🗑️</button></div><small>أدوات أنوار</small></div>
  <div class="g book-tool-card" id="bookToolPanel">
  <header class="book-tool-head">
   <button type="button" class="book-tool-toggle" id="bookToolToggle" aria-expanded="false" aria-controls="bookToolContent">
