@@ -85,7 +85,7 @@
   if(!supported())throw new Error('الفتح بقفل الهاتف يحتاج HTTPS ومتصفحًا يدعم اعتماد الجهاز.');
   if(typeof password!=='string'||Array.from(password).length<12||password.length>2048)throw new Error('كلمة المرور الأساسية غير صالحة.');
   const rpId=root.location.hostname;
-  const challenge=randomBytes(32),userId=randomBytes(16);
+  const challenge=randomBytes(32),userId=randomBytes(16),salt=randomBytes(32);
   const credential=await root.navigator.credentials.create({
    publicKey:{
     challenge,
@@ -99,17 +99,16 @@
     },
     timeout:60000,
     attestation:'none',
-    extensions:{prf:{}}
+    extensions:{prf:{eval:{first:salt}}}
    }
   });
   if(!credential)throw new Error('أُلغيت إضافة قفل الهاتف.');
-  const prfStatus=credential.getClientExtensionResults?.().prf;
-  if(!prfStatus||prfStatus.enabled!==true)throw new Error('هذا القفل أو المتصفح لا يدعم ميزة PRF اللازمة لحماية مفتاح المفكرة. بقيت كلمة المرور الأساسية كما هي.');
+  const prfResult=credential.getClientExtensionResults?.().prf;
+  if(!prfResult||prfResult.enabled!==true||!prfResult.results?.first)throw new Error('هذا القفل أو المتصفح لا يدعم ميزة PRF اللازمة لحماية مفتاح المفكرة. بقيت كلمة المرور الأساسية كما هي.');
   const credentialId=toBase64Url(new Uint8Array(credential.rawId));
   const credentialIdBytes=new Uint8Array(credential.rawId);
   if(!credentialIdBytes.length)throw new Error('لم يُرجع الهاتف معرّف اعتماد صالحًا.');
-  const salt=randomBytes(32);
-  const prfOutput=await requestPrf(credentialIdBytes,salt);
+  const prfOutput=prfResult.results.first;
   const wrappingKey=await deriveWrappingKey(prfOutput,salt);
   const iv=randomBytes(12);
   const encrypted=await root.crypto.subtle.encrypt(
