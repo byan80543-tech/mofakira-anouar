@@ -112,6 +112,7 @@ assert.ok(failed.data.has('anwar_tasbih_count_v1'),'legacy tasbih count is retai
 assert.ok(failed.data.has('anwar_tasbih_dhikr_v1'),'legacy tasbih choice is retained after failed verification');
 assert.equal(failed.data.has('anwar_vault_v1'),false,'unverified encrypted primary envelope is rolled back');
 assert.equal(failed.data.has('anwar_vault_backup_v1'),false,'no secondary backup is written before primary verification');
+assert.equal(failed.data.has('anwar_vault_mode_v1'),false,'failed encrypted setup rolls back the mode marker and remains recoverable as plaintext');
 assert.match(failed.elements.vaultError.textContent,/simulated read-back verification failure/,'the failure is surfaced to the user');
 
 console.log('All initial vault migration and rollback tests passed.');
