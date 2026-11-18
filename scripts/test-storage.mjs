@@ -165,6 +165,7 @@ h.storage.failGetKey='anwar_v1';
 h.api.load();
 assert(h.api.snapshot().storageRecoveryBlocked&&h.api.snapshot().storageRecoveryMode==='unavailable','blocked localStorage access is distinct from corrupt JSON');
 h.storage.failGetKey=null;
+h.sandbox.vaultUnlocked=false;
 assert(h.api.retryStorageAccess()===true&&!h.api.snapshot().storageRecoveryBlocked,'retry succeeds when browser storage access returns');
 
 h=makeHarness({'anwar_v1_backup_v2':state(note('retry-backup'))});
@@ -172,6 +173,7 @@ h.storage.failGetKey='anwar_v1';
 h.api.load();
 const writesBeforeRetry=h.storage.writeCount;
 h.storage.failGetKey=null;
+h.sandbox.vaultUnlocked=false;
 assert(h.api.retryStorageAccess()===true&&h.api.snapshot().S.notes[0]?.id==='retry-backup','retry loads a valid backup when the primary key is absent');
 assert(h.storage.getItem('anwar_v1')===null&&h.storage.writeCount===writesBeforeRetry,'retry remains read-only and does not rewrite the missing primary record');
 
