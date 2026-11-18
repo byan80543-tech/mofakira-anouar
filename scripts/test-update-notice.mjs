@@ -231,7 +231,7 @@ await failedButton.click();
 assert.equal(failedVisit.registration.waiting.messages.length, 0, 'save failure prevents worker activation');
 assert.equal(failedButton.disabled, false, 'failed save re-enables the update action');
 
-const inlineScripts = [...html.matchAll(/<script\\b([^>]*)>([\\s\\S]*?)<\\/script\\s*>/gi)].filter(match => !/\\bsrc\\s*=/.test(match[1]));
+const inlineScripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)].filter(match => !/\bsrc\s*=/.test(match[1]));
 const appScript = inlineScripts.find(match => match[2].includes('function save(){') && match[2].includes('window.AnouarUpdateBridge'));
 assert.ok(appScript, 'the main application script exposes its encrypted-save bridge');
 const bridgeStart = appScript[2].indexOf('window.AnouarUpdateBridge');
