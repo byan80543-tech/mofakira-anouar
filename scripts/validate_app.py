@@ -187,6 +187,8 @@ def main() -> int:
 
     if "navigator.serviceWorker.register('./service-worker.js'" not in html:
         fail("Service worker registration is missing from index.html")
+    if 'toolbar-back-navigation.js' not in sw_text:
+        fail('Service worker shell does not precache the contextual back-navigation helper')
 
     if errors:
         print("QUALITY CHECK FAILED", file=sys.stderr)

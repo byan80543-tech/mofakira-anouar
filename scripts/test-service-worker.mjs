@@ -64,6 +64,7 @@ assert.equal(store.get(absolute('./index.html'))?.body,'cached:./index.html','in
 assert.equal(store.get(absolute('./manifest.webmanifest'))?.body,'cached:./manifest.webmanifest','install precaches the web manifest');
 assert.equal(store.get(absolute('./vault-crypto.js'))?.body,'cached:./vault-crypto.js','install precaches the local vault cryptography helper');
 assert.equal(store.get(absolute('./vault-device-unlock.js'))?.body,'cached:./vault-device-unlock.js','install precaches the local device unlock helper');
+assert.equal(store.get(absolute('./toolbar-back-navigation.js'))?.body,'cached:./toolbar-back-navigation.js','install precaches contextual back navigation for offline use');
 assert.equal(store.has(absolute('./icon-192.png')),false,'PWA icon is fetched and cached only when requested');
 assert.equal(store.has(absolute('./icon-512.png')),false,'large PWA icon is not part of the initial shell cache');
 assert.equal(store.has(absolute('./vendor/jspdf.umd.min.js')),false,'PDF library is not part of the initial shell cache');
