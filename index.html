@@ -2103,11 +2103,12 @@ function showVaultGate(mode,message){
  passwordInput.autocomplete=mode==='unlock'?'current-password':'new-password';
  passwordInput.placeholder=mode==='unlock'?'عبارة المرور التي اخترتها':'12 محرفًا على الأقل';
  submit.textContent=mode==='unlock'?'فتح الخزنة':'تشفير المفكرة وفتحها';
- const deviceConfigured=mode==='unlock'&&!!(globalThis.AnwarDeviceUnlock&&AnwarDeviceUnlock.isConfigured());
+ const deviceApi=globalThis.AnwarDeviceUnlock;
+ const deviceConfigured=mode==='unlock'&&!!(deviceApi&&deviceApi.isConfigured());
  deviceUnlock.hidden=!deviceConfigured;
  fallbackToggle.hidden=!deviceConfigured;
  passwordFields.hidden=deviceConfigured;
- deviceManage.hidden=mode!=='unlock';
+ deviceManage.hidden=mode!=='unlock'||!deviceApi;
  deviceManage.textContent=deviceConfigured?'إدارة فتح الهاتف':'إعداد فتح الهاتف';
  $('vaultError').textContent='';
  submit.disabled=false;
