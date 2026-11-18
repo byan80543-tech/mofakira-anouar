@@ -1,5 +1,5 @@
 const SITE_URL = "https://mofakira-anouar.pages.dev/";
-const PREVIEW_IMAGE = "https://images.pexels.com/photos/33215776/pexels-photo-33215776/free-photo-of-elegant-still-life-of-tulips-and-open-book.jpeg?auto=compress&cs=tinysrgb&w=1200";
+const PREVIEW_IMAGE = "https://mofakira-anouar.pages.dev/file_0000000027d082129d4c7e071d715655.png";
 const TITLE = "مفكرة أنوار الذكية";
 const DESCRIPTION = "مفكرة أدبية ذكية لكتابة القصائد والنصوص والأفكار وحفظها، مع أدوات للقراءة والمحتوى الصوتي والأذكار.";
 
