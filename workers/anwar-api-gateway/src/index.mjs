@@ -4,11 +4,13 @@ const ALLOWED_COUNTRY_CODES = new Set([
 ]);
 
 const RATE_POLICIES = Object.freeze({
-  total: { limit: 600, windowMs: 60_000 },
-  client: { limit: 120, windowMs: 60_000 },
-  catalog: { limit: 30, windowMs: 60_000 },
-  "country-list": { limit: 12, windowMs: 60_000 },
-  "country-profile": { limit: 24, windowMs: 60_000 }
+  // 50/min caps accepted traffic at 72,000 requests/day, below the 100,000/day
+  // Free-tier request allowance, leaving room for normal retries and preflights.
+  total: { limit: 50, windowMs: 60_000 },
+  client: { limit: 30, windowMs: 60_000 },
+  catalog: { limit: 20, windowMs: 60_000 },
+  "country-list": { limit: 8, windowMs: 60_000 },
+  "country-profile": { limit: 12, windowMs: 60_000 }
 });
 
 const CACHE_TTLS = Object.freeze({
@@ -265,13 +267,12 @@ export class IpRateLimiter {
     this.env = env;
     ctx.blockConcurrencyWhile(() => {
       ctx.storage.sql.exec(`
-        CREATE TABLE IF NOT EXISTS rate_hits (
-          client_key TEXT NOT NULL,
-          bucket TEXT NOT NULL,
-          created_at INTEGER NOT NULL
+        CREATE TABLE IF NOT EXISTS rate_state (
+          id INTEGER PRIMARY KEY CHECK (id = 1),
+          data TEXT NOT NULL
         );
-        CREATE INDEX IF NOT EXISTS idx_rate_hits_client_bucket_time
-          ON rate_hits(client_key, bucket, created_at);
+        INSERT OR IGNORE INTO rate_state(id, data)
+          VALUES(1, '{"global":[],"clients":{}}');
       `);
     });
   }
@@ -297,31 +298,57 @@ export class IpRateLimiter {
     }
 
     const now = Date.now();
-    const checks = buckets.map(bucket => ({
-      key: bucket === "total" ? "*" : clientKey,
-      bucket,
-      policy: RATE_POLICIES[bucket]
-    }));
+    const cutoff = now - 60_000;
 
-    // Check all scopes before inserting any hits. No await occurs during the
-    // SQLite read/check/write sequence, so the global object serializes updates.
+    // SQL operations are synchronous. No await occurs between SELECT and UPDATE,
+    // so the read/check/write sequence is atomic within this single-threaded object.
+    const rows = this.ctx.storage.sql.exec(
+      "SELECT data FROM rate_state WHERE id = 1"
+    ).toArray();
+    let state;
+    try {
+      state = JSON.parse(rows[0]?.data || '{"global":[],"clients":{}}');
+    } catch {
+      throw new Error("Rate-limit state is corrupted");
+    }
+
+    state.global = Array.isArray(state.global)
+      ? state.global.filter(timestamp => Number.isFinite(timestamp) && timestamp > cutoff)
+      : [];
+    if (!state.clients || typeof state.clients !== "object" || Array.isArray(state.clients)) {
+      state.clients = {};
+    }
+
+    // The global ceiling bounds active client entries to at most 50 per minute.
+    for (const [key, value] of Object.entries(state.clients)) {
+      if (!value || typeof value !== "object" || Array.isArray(value)) {
+        delete state.clients[key];
+        continue;
+      }
+      for (const bucket of ["client", "catalog", "country-list", "country-profile"]) {
+        value[bucket] = Array.isArray(value[bucket])
+          ? value[bucket].filter(timestamp => Number.isFinite(timestamp) && timestamp > cutoff)
+          : [];
+      }
+      if (!value.client.length) delete state.clients[key];
+    }
+
+    const client = state.clients[clientKey] || {
+      client: [],
+      catalog: [],
+      "country-list": [],
+      "country-profile": []
+    };
+    const routeBucket = buckets[2];
+    const checks = [
+      { bucket: "total", timestamps: state.global, policy: RATE_POLICIES.total },
+      { bucket: "client", timestamps: client.client, policy: RATE_POLICIES.client },
+      { bucket: routeBucket, timestamps: client[routeBucket], policy: RATE_POLICIES[routeBucket] }
+    ];
+
     for (const check of checks) {
-      const cutoff = now - check.policy.windowMs;
-      this.ctx.storage.sql.exec(
-        "DELETE FROM rate_hits WHERE client_key = ? AND bucket = ? AND created_at <= ?",
-        check.key,
-        check.bucket,
-        cutoff
-      );
-      const rows = this.ctx.storage.sql.exec(
-        "SELECT COUNT(*) AS total, MIN(created_at) AS oldest FROM rate_hits WHERE client_key = ? AND bucket = ?",
-        check.key,
-        check.bucket
-      ).toArray();
-      const total = Number(rows[0]?.total || 0);
-      const oldest = Number(rows[0]?.oldest || now);
-
-      if (total >= check.policy.limit) {
+      if (check.timestamps.length >= check.policy.limit) {
+        const oldest = check.timestamps[0] || now;
         const retryAfter = Math.max(1, Math.ceil((oldest + check.policy.windowMs - now) / 1000));
         return json({
           allowed: false,
@@ -331,34 +358,19 @@ export class IpRateLimiter {
       }
     }
 
-    for (const check of checks) {
-      this.ctx.storage.sql.exec(
-        "INSERT INTO rate_hits(client_key, bucket, created_at) VALUES(?, ?, ?)",
-        check.key,
-        check.bucket,
-        now
-      );
-    }
-
-    if (typeof this.ctx.storage.getAlarm === "function" &&
-        typeof this.ctx.storage.setAlarm === "function") {
-      const alarm = await this.ctx.storage.getAlarm();
-      if (alarm === null) await this.ctx.storage.setAlarm(now + 60_000);
-    }
-    return json({ allowed: true });
-  }
-
-  async alarm() {
+    state.global.push(now);
+    client.client.push(now);
+    client[routeBucket].push(now);
+    state.clients[clientKey] = client;
     this.ctx.storage.sql.exec(
-      "DELETE FROM rate_hits WHERE created_at <= ?",
-      Date.now() - 60_000
+      "UPDATE rate_state SET data = ? WHERE id = 1",
+      JSON.stringify(state)
     );
-    const rows = this.ctx.storage.sql.exec(
-      "SELECT COUNT(*) AS total FROM rate_hits"
-    ).toArray();
-    if (Number(rows[0]?.total || 0) > 0 && typeof this.ctx.storage.setAlarm === "function") {
-      await this.ctx.storage.setAlarm(Date.now() + 60_000);
-    }
+
+    return json({
+      allowed: true,
+      remaining: Math.max(0, RATE_POLICIES.total.limit - state.global.length)
+    });
   }
 }
 
