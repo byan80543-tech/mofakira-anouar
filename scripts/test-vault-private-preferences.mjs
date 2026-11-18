@@ -44,7 +44,7 @@ assert.equal(state.tasbih.dhikr.length,200,'dhikr labels are length-limited');
 
 state=api.normalize({radio:{surah:114},readerAdvance:'s',tasbih:{count:1000000001,dhikr:''}});
 assert.equal(state.radio.surah,114);
-assert.equal(state.tasbih.count,0,'unreasonably large counters are rejected');
+assert.equal(state.tasbih.count,1000000000,'counter values are capped at the documented safe maximum');
 assert.equal(state.tasbih.dhikr,'أستغفر الله العظيم وأتوب إليه','empty dhikr labels use a safe default');
 
 const helperStart=html.indexOf('function importLegacyPrivatePreferences(base){');
