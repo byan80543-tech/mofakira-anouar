@@ -66,17 +66,24 @@
  }
  async function requestPrf(credentialId,salt){
   const challenge=randomBytes(32);
-  const assertion=await root.navigator.credentials.get({
-   publicKey:{
-    challenge,
-    rpId:root.location.hostname,
-    allowCredentials:[{type:'public-key',id:credentialId}],
-    userVerification:'required',
-    timeout:60000,
-    extensions:{prf:{eval:{first:salt}}}
-   }
-  });
-  if(!assertion)throw new Error('أُلغيت مصادقة الهاتف.');
+  let assertion;
+  try{
+   assertion=await root.navigator.credentials.get({
+    publicKey:{
+     challenge,
+     rpId:root.location.hostname,
+     allowCredentials:[{type:'public-key',id:credentialId}],
+     userVerification:'required',
+     timeout:60000,
+     extensions:{prf:{eval:{first:salt}}}
+    }
+   });
+  }catch(error){
+   if(error&&['NotAllowedError','AbortError'].includes(error.name))throw new Error('أُلغي التحقق بقفل الهاتف أو انتهت مهلته. جرّب مجددًا أو استخدم كلمة المرور الأساسية.');
+   if(error&&error.name==='NotSupportedError')throw new Error('لا يدعم هذا المتصفح طريقة فتح الهاتف المطلوبة. استخدم كلمة المرور الأساسية.');
+   throw new Error('تعذّر إكمال تحقق الهاتف. يمكنك فتح الخزنة بكلمة المرور الأساسية.');
+  }
+  if(!assertion)throw new Error('لم تكتمل مصادقة الهاتف. استخدم كلمة المرور الأساسية.');
   const output=assertion.getClientExtensionResults?.().prf?.results?.first;
   if(!output)throw new Error('لم يدعم قفل الهاتف اشتقاق مفتاح الحماية. استخدم كلمة المرور الأساسية.');
   return output;
@@ -86,23 +93,30 @@
   if(typeof password!=='string'||Array.from(password).length<12||password.length>2048)throw new Error('كلمة المرور الأساسية غير صالحة.');
   const rpId=root.location.hostname;
   const challenge=randomBytes(32),userId=randomBytes(16),salt=randomBytes(32);
-  const credential=await root.navigator.credentials.create({
-   publicKey:{
-    challenge,
-    rp:{id:rpId,name:'مفكرة أنوار'},
-    user:{id:userId,name:'mofakira-anouar-local',displayName:'مفكرة أنوار على هذا الجهاز'},
-    pubKeyCredParams:[{type:'public-key',alg:-7}],
-    authenticatorSelection:{
-     authenticatorAttachment:'platform',
-     residentKey:'required',
-     userVerification:'required'
-    },
-    timeout:60000,
-    attestation:'none',
-    extensions:{prf:{eval:{first:salt}}}
-   }
-  });
-  if(!credential)throw new Error('أُلغيت إضافة قفل الهاتف.');
+  let credential;
+  try{
+   credential=await root.navigator.credentials.create({
+    publicKey:{
+     challenge,
+     rp:{id:rpId,name:'مفكرة أنوار'},
+     user:{id:userId,name:'mofakira-anouar-local',displayName:'مفكرة أنوار على هذا الجهاز'},
+     pubKeyCredParams:[{type:'public-key',alg:-7}],
+     authenticatorSelection:{
+      authenticatorAttachment:'platform',
+      residentKey:'required',
+      userVerification:'required'
+     },
+     timeout:60000,
+     attestation:'none',
+     extensions:{prf:{eval:{first:salt}}}
+    }
+   });
+  }catch(error){
+   if(error&&['NotAllowedError','AbortError'].includes(error.name))throw new Error('أُلغي إعداد قفل الهاتف. لم تتغير كلمة المرور أو بيانات الخزنة.');
+   if(error&&error.name==='NotSupportedError')throw new Error('لا يدعم هذا الهاتف أو المتصفح اعتمادًا آمنًا متوافقًا. ستبقى كلمة المرور الأساسية متاحة.');
+   throw new Error('تعذّر إعداد اعتماد الهاتف. لم تتغير بيانات الخزنة.');
+  }
+  if(!credential)throw new Error('لم يكتمل إعداد قفل الهاتف.');
   const prfResult=credential.getClientExtensionResults?.().prf;
   if(!prfResult||prfResult.enabled!==true||!prfResult.results?.first)throw new Error('هذا القفل أو المتصفح لا يدعم ميزة PRF اللازمة لحماية مفتاح المفكرة. بقيت كلمة المرور الأساسية كما هي.');
   const credentialId=toBase64Url(new Uint8Array(credential.rawId));
