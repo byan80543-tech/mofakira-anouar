@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com 'sha256-EdwKAQGmvk/bisBibpMXY85wdRQn+pw2fbPou4fe9jA=' 'sha256-4giI+ESUJtIatupQ0GRa19vnQYslezSh4XuPQ1lOMX8=' 'sha256-wYI6hHRUO1S/JI5u1R/fnK9fHzj/6IglQ1+CY82F1Co=' 'sha256-QYwkkTcnQ+I/GO9GzNxZiLL3+C66HISY56P+LRrjBz0='    ; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.allorigins.win https://corsproxy.io; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com 'sha256-rsbo5QMSXq/H5qzEue4FF5jGpxPIg+I4nbK6bOe0hHI=' 'sha256-4giI+ESUJtIatupQ0GRa19vnQYslezSh4XuPQ1lOMX8=' 'sha256-wYI6hHRUO1S/JI5u1R/fnK9fHzj/6IglQ1+CY82F1Co=' 'sha256-QYwkkTcnQ+I/GO9GzNxZiLL3+C66HISY56P+LRrjBz0='        ; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.allorigins.win https://corsproxy.io; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>مفكرة أنوار | Anouar Oumlili</title>
@@ -3113,7 +3113,12 @@ function flushPendingEdit(updateList=true){
  const wasDraft=cur===draftNote;
  const nextHtml=san(pg.innerHTML);
  const nextTitle=titleFromEditor();
- if(!wasDraft&&pendingBefore===null&&(nextHtml!==cur.html||nextTitle!==cur.title))capturePendingBefore();
+ if(!wasDraft&&pendingBefore===null){
+  // A navigation-only flush must not rewrite an untouched note or rename a
+  // legacy title merely because the editor can derive a title from its body.
+  if(nextHtml===cur.html)return true;
+  capturePendingBefore();
+ }
  cur.html=nextHtml;
  cur.title=nextTitle;
  $('t').value=cur.title;
