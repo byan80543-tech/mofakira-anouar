@@ -6,6 +6,7 @@ import { webcrypto } from 'node:crypto';
 const root=new URL('..',import.meta.url);
 const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const cryptoSource=fs.readFileSync(new URL('../vault-crypto.js',import.meta.url),'utf8');
+const preferenceSource=extract('/* Encrypted private settings shared by the notebook modules. */','requestAnimationFrame(()=>setTimeout(()=>{');
 const extract=(start,end)=>{
   const a=html.indexOf(start),b=html.indexOf(end,a);
   assert.ok(a>=0&&b>a,'source block exists: '+start);
@@ -21,7 +22,11 @@ function makeHarness({failVerification=false}={}){
   };
   const data=new Map([
     ['anwar_v1',JSON.stringify(initialState)],
-    ['anwar_v1_backup_v2',JSON.stringify(initialState)]
+    ['anwar_v1_backup_v2',JSON.stringify(initialState)],
+    ['anwar_rd',JSON.stringify({r:'قارئ قديم',n:55,m:'c'})],
+    ['anwar_reader_advance','s'],
+    ['anwar_tasbih_count_v1','144'],
+    ['anwar_tasbih_dhikr_v1','الحمد لله']
   ]);
   const operations=[];
   const elements={
@@ -54,6 +59,7 @@ function makeHarness({failVerification=false}={}){
     toast(message){calls.toasts.push(String(message))},
     console:{warn(){}}
   };
+  vm.runInNewContext(preferenceSource,sandbox,{timeout:3000});
   vm.runInNewContext(cryptoSource,sandbox,{timeout:3000});
   if(failVerification){
     const real=sandbox.AnwarVaultCrypto;
@@ -81,6 +87,11 @@ assert.equal(await sandbox.AnwarVaultCrypto.decryptWithKey(sandbox.vaultKey,prim
 assert.equal(await sandbox.AnwarVaultCrypto.decryptWithKey(sandbox.vaultKey,backup),JSON.stringify(initialState),'secondary envelope decrypts to the original notes');
 assert.equal(data.has('anwar_v1'),false,'legacy plaintext primary is removed only after verification');
 assert.equal(data.has('anwar_v1_backup_v2'),false,'legacy plaintext backup is removed only after verification');
+assert.equal(data.has('anwar_rd'),false,'legacy radio preference is removed after encrypted verification');
+assert.equal(data.has('anwar_reader_advance'),false,'legacy reader preference is removed after encrypted verification');
+assert.equal(data.has('anwar_tasbih_count_v1'),false,'legacy tasbih count is removed after encrypted verification');
+assert.equal(data.has('anwar_tasbih_dhikr_v1'),false,'legacy tasbih choice is removed after encrypted verification');
+assert.deepEqual(JSON.parse(await sandbox.AnwarVaultCrypto.decryptWithKey(sandbox.vaultKey,primary)).preferences,{radio:{reciter:'قارئ قديم',surah:55},readerAdvance:'s',tasbih:{count:144,dhikr:'الحمد لله'}},'legacy settings are included in the encrypted snapshot');
 assert.equal(elements.vaultPassword.value,'','password field is cleared after success');
 assert.equal(elements.vaultPasswordConfirm.value,'','password confirmation field is cleared after success');
 assert.ok(operations.indexOf('remove:anwar_v1')>operations.indexOf('get:anwar_vault_backup_v1'),'legacy cleanup occurs after encrypted backup verification');
@@ -91,6 +102,10 @@ assert.equal(failed.calls.finished,false,'failed read-back verification never op
 assert.equal(failed.sandbox.vaultUnlocked,false,'failed verification never marks the vault unlocked');
 assert.ok(failed.data.has('anwar_v1'),'legacy plaintext primary is retained after failed verification');
 assert.ok(failed.data.has('anwar_v1_backup_v2'),'legacy plaintext backup is retained after failed verification');
+assert.ok(failed.data.has('anwar_rd'),'legacy radio preference is retained after failed verification');
+assert.ok(failed.data.has('anwar_reader_advance'),'legacy reader preference is retained after failed verification');
+assert.ok(failed.data.has('anwar_tasbih_count_v1'),'legacy tasbih count is retained after failed verification');
+assert.ok(failed.data.has('anwar_tasbih_dhikr_v1'),'legacy tasbih choice is retained after failed verification');
 assert.equal(failed.data.has('anwar_vault_v1'),false,'unverified encrypted primary envelope is rolled back');
 assert.equal(failed.data.has('anwar_vault_backup_v1'),false,'no secondary backup is written before primary verification');
 assert.match(failed.elements.vaultError.textContent,/simulated read-back verification failure/,'the failure is surfaced to the user');
