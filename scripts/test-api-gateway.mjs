@@ -56,6 +56,7 @@ const context = {
 const baseEnv = () => ({
   ALLOWED_ORIGIN: "https://byan80543-tech.github.io",
   IP_HASH_SECRET: "test-secret-only-for-unit-tests-32-characters-minimum",
+  EDGE_LIMITER: { async limit() { return { success: true }; } },
   IP_LIMITER: makeLimiter()
 });
 const request = (path, options = {}) => new Request("https://gateway.example.workers.dev" + path, {
@@ -85,6 +86,18 @@ try {
     context
   );
   assert.equal(response.status, 403);
+  assert.equal(calls, 0);
+
+  // The edge binding must reject bursts before a Durable Object call or upstream request.
+  const edgeBlockedEnv = {
+    ...baseEnv(),
+    EDGE_LIMITER: { async limit() { return { success: false }; } },
+    IP_LIMITER: makeLimiter()
+  };
+  response = await worker.fetch(request("/v1/reciters"), edgeBlockedEnv, context);
+  assert.equal(response.status, 429);
+  assert.equal(response.headers.get("Retry-After"), "60");
+  assert.equal(edgeBlockedEnv.IP_LIMITER.calls.length, 0);
   assert.equal(calls, 0);
 
   // One global Durable Object call checks all scopes in a single request.
