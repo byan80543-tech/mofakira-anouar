@@ -115,6 +115,6 @@ assert.equal(externalAudio.response,null,'external audio is left network-only');
 
 const postRequest=makeFetchEvent({url:new URL('api/write',scopeUrl).href,method:'POST',mode:'cors'});
 listeners.get('fetch')(postRequest);
-assert.equal(postRequest.response,undefined,'non-GET requests are not intercepted');
+assert.equal(postRequest.response,null,'non-GET requests are not intercepted');
 
 console.log('All service-worker network-first navigation, cache fallback and asset tests passed.');
