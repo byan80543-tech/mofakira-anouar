@@ -6147,5 +6147,38 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
   .app.ed > .tb{gap:10px!important}
 }
 </style>
+
+<style id="anwar-toolbar-touch-stability-v1">
+/* ثبات أزرار الشريط على شاشات اللمس: لا نحرّك عناصر Flex عند الضغط */
+.tb .archive-launch,
+.tb #rb,
+.tb #th,
+.tb #paletteBtn,
+.tb #vaultLockBtn{
+  transform:none!important;
+  transition:background .15s ease,border-color .15s ease,box-shadow .15s ease,color .15s ease!important;
+  touch-action:manipulation;
+}
+.tb .archive-launch:active,
+.tb #rb:active,
+.tb #th:active,
+.tb #paletteBtn:active,
+.tb #vaultLockBtn:active{
+  transform:none!important;
+  box-shadow:inset 0 2px 5px rgba(0,15,35,.22),0 1px 2px rgba(0,15,35,.10)!important;
+}
+/* متصفحات الهاتف قد تحتفظ بحالة hover بعد اللمس؛ اجعلها محايدة */
+@media(hover:none),(pointer:coarse){
+  .tb .archive-launch:hover,
+  .tb #rb:hover,
+  .tb #th:hover,
+  .tb #paletteBtn:hover,
+  .tb #vaultLockBtn:hover{
+    border-color:rgba(231,202,143,.72)!important;
+    background:linear-gradient(145deg,rgba(255,255,255,.22),rgba(255,255,255,.10))!important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 2px 5px rgba(0,15,35,.13)!important;
+  }
+}
+</style>
 </body>
 </html>
