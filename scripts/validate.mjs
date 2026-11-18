@@ -49,6 +49,10 @@ ok(!html.includes('Object.hasOwn('),'storage normalization avoids unsupported Ob
 ok(html.includes('src="./vault-crypto.js?v=20261117-1"'),'the local vault crypto helper is loaded by the notebook');
 ok(html.includes('id="vaultGate"') && html.includes('id="vaultLockBtn"'),'password gate and manual vault lock controls are present');
 ok(html.includes('const VAULT_IDLE_LOCK_MS=5*60*1000;') && html.includes('document.addEventListener(eventName,recordVaultActivity,true)'),'vault automatically locks after five minutes of inactivity and tracks user interaction');
+ok(html.includes('AnwarPrivatePreferences.normalize(d.preferences)') && html.includes('preferences:globalThis.AnwarPrivatePreferences.normalize({})'),'radio, reader and tasbih preferences are part of the encrypted vault state');
+ok(html.includes('function importLegacyPrivatePreferences(base)') && html.includes('function clearLegacyPrivatePreferences()'),'legacy plaintext preferences have explicit migration and cleanup paths');
+ok(!html.includes("localStorage.setItem('anwar_reader_advance'") && !html.includes("localStorage.setItem(countKey") && !html.includes("localStorage.setItem(dhikrKey"),'active reader and tasbih controls do not write plaintext preferences');
+ok(html.includes("AnwarPrivatePreferences.set('readerAdvance'") && html.includes("AnwarPrivatePreferences.set('radio'") && html.includes("privatePreferences.set('tasbih'"),'radio, reader and tasbih changes are routed into encrypted preference state');
 ok(/if\(savedVault!==null\|\|savedBackup!==null\)/.test(html),'startup can unlock from an encrypted backup when the primary vault is missing');
 ok(/function save\(\)\s*\{[\s\S]*?persistVaultSnapshot\(snapshot\)/.test(html) && /async function persistVaultSnapshot\(plaintext\)\s*\{[\s\S]*?AnwarVaultCrypto\.encryptWithKey/.test(html),'notebook saves queue snapshots through encrypted vault persistence');
 ok(vaultCrypto.includes("CIPHER='AES-256-GCM'") && vaultCrypto.includes("ITERATIONS=600000"),'vault helper pins AES-GCM and the approved PBKDF2 work factor');
