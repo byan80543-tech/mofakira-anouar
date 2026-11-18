@@ -398,10 +398,7 @@ export default {
     try {
       if (!env.EDGE_LIMITER) throw new Error("Edge rate limiter binding missing");
       edgeDecision = await env.EDGE_LIMITER.limit({ key: "anwar-api-gateway" });
-    } catch (error) {
-      if (env.TEST_DIAGNOSTICS === "true") {
-        return errorResponse("EDGE_LIMITER_TEST: " + String(error?.stack || error?.message || error), 503, origin);
-      }
+    } catch {
       return errorResponse("بوابة تحديد المعدل الطرفية غير متاحة مؤقتًا.", 503, origin);
     }
     if (!edgeDecision.success) {
@@ -416,11 +413,8 @@ export default {
     let decision;
     try {
       decision = await applyRateLimits(request, env, route.bucket);
-    } catch (error) {
+    } catch {
       // Fail closed: never bypass rate limiting if the limiter is unavailable.
-      if (env.TEST_DIAGNOSTICS === "true") {
-        return errorResponse("IP_LIMITER_TEST: " + String(error?.stack || error?.message || error), 503, origin);
-      }
       return errorResponse("بوابة الحماية غير متاحة مؤقتًا. حاول لاحقًا.", 503, origin);
     }
     if (decision.blocked) {
