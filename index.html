@@ -1604,6 +1604,15 @@ dialog[open]>.float-head{display:none!important}
  .tb .logo{font-size:16px;letter-spacing:-.25px}
  #vaultLockBtn{flex:0 0 32px;width:32px;min-width:32px;height:34px;visibility:visible}
 }
+
+<style id="vault-lock-toolbar-position-v1">
+/* إبقاء زر الخزنة ضمن الجزء المرئي من الشريط على الهواتف */
+@media(max-width:800px){
+ .tb{direction:rtl;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+ .tb::-webkit-scrollbar{display:none}
+ .tb>#vaultLockBtn{order:-1;flex:0 0 34px!important;width:34px!important;min-width:34px!important;height:36px!important;margin-inline-start:2px!important}
+}
+</style>
 </style>
 </head>
 <body>
