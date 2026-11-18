@@ -1,8 +1,10 @@
-/* Cache only local app shell; remote audio, APIs and fonts are never cached. */
+/* Cache only local app shell; remote audio, APIs and fonts are never cached.
+ * Release rule: bump CACHE_NAME on every published app update so open tabs can detect it.
+ */
 'use strict';
-const CACHE_NAME='anwar-shell-2026-11-18-v50';
+const CACHE_NAME='anwar-shell-2026-11-18-v51';
 const APP_BASE=new URL('./',self.registration.scope);
-const SHELL_ASSETS=['./','./index.html','./manifest.webmanifest','./vault-crypto.js','./vault-device-unlock.js','./toolbar-back-navigation.js','./assets/royal-rose-closed.svg','./assets/royal-rose-open.svg','./assets/tulip-cutout.svg'];
+const SHELL_ASSETS=['./','./index.html','./manifest.webmanifest','./vault-crypto.js','./vault-device-unlock.js','./toolbar-back-navigation.js','./update-notice.js','./update-notice.css','./assets/royal-rose-closed.svg','./assets/royal-rose-open.svg','./assets/tulip-cutout.svg'];
 self.addEventListener('install',event=>{event.waitUntil((async()=>{const cache=await caches.open(CACHE_NAME);await cache.addAll(SHELL_ASSETS);await self.skipWaiting()})())});
 self.addEventListener('activate',event=>{event.waitUntil((async()=>{const keys=await caches.keys();await Promise.all(keys.filter(key=>key.startsWith('anwar-shell-')&&key!==CACHE_NAME).map(key=>caches.delete(key)));await self.clients.claim()})())});
 async function networkFirst(request){

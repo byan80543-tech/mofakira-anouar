@@ -75,3 +75,5 @@ jobs:
         run: python3 scripts/validate_app.py
       - name: Test service-worker lifecycle, caching and offline fallback
         run: node scripts/test-service-worker.mjs
+      - name: Test smart update notification lifecycle
+        run: node scripts/test-update-notice.mjs
