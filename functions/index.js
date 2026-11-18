@@ -1,5 +1,5 @@
 const SITE_URL = "https://mofakira-anouar.pages.dev/";
-const PREVIEW_IMAGE = "https://mofakira-anouar.pages.dev/file_0000000027d082129d4c7e071d715655.png";
+const PREVIEW_IMAGE = "https://mofakira-anouar.pages.dev/icon-512.png";
 const TITLE = "مفكرة أنوار الذكية";
 const DESCRIPTION = "مفكرة أدبية ذكية لكتابة القصائد والنصوص والأفكار وحفظها، مع أدوات للقراءة والمحتوى الصوتي والأذكار.";
 
@@ -13,7 +13,9 @@ const SOCIAL_META = `
 <meta property="og:image" content="${PREVIEW_IMAGE}">
 <meta property="og:image:secure_url" content="${PREVIEW_IMAGE}">
 <meta property="og:image:type" content="image/png">
-<meta property="og:image:alt" content="زهور توليب وردية مع الهوية العربية لمفكرة أنوار">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta property="og:image:alt" content="شعار مفكرة أنوار الذكية بالعربية، كتاب وقلم">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${TITLE}">
 <meta name="twitter:description" content="${DESCRIPTION}">
