@@ -33,7 +33,8 @@ function makeLimiter({ denyBucket = null } = {}) {
     get(id) {
       calls.push(id.name);
       return {
-        async fetch(request) {
+        async fetch(input, init) {
+          const request = input instanceof Request ? input : new Request(input, init);
           const payload = await request.json();
           bucketsSeen.push(payload.buckets);
           if (payload.buckets.includes(denyBucket)) {
@@ -58,7 +59,6 @@ const context = {
 };
 const baseEnv = () => ({
   ALLOWED_ORIGIN: "https://byan80543-tech.github.io",
-  TEST_DIAGNOSTICS: "true",
   IP_HASH_SECRET: "test-secret-only-for-unit-tests-32-characters-minimum",
   EDGE_LIMITER: { async limit() { return { success: true }; } },
   IP_LIMITER: makeLimiter()
@@ -107,7 +107,6 @@ try {
   // One global Durable Object call checks all scopes in a single request.
   const env = baseEnv();
   response = await worker.fetch(request("/v1/reciters"), env, context);
-  if (response.status !== 200) console.error("gateway first request rejected:", await response.clone().text(), "crypto.subtle:", !!globalThis.crypto?.subtle);
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("Access-Control-Allow-Origin"), "https://byan80543-tech.github.io");
   assert.equal(response.headers.get("X-Anwar-Gateway-Cache"), "MISS");
