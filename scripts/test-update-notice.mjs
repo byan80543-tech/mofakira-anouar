@@ -235,7 +235,7 @@ const inlineScripts = [...html.matchAll(/<script\\b([^>]*)>([\\s\\S]*?)<\\/scrip
 const appScript = inlineScripts.find(match => match[2].includes('function save(){') && match[2].includes('window.AnouarUpdateBridge'));
 assert.ok(appScript, 'the main application script exposes its encrypted-save bridge');
 const bridgeStart = appScript[2].indexOf('window.AnouarUpdateBridge');
-const bridgeEnd = appScript[2].indexOf('\\n});', bridgeStart);
+const bridgeEnd = appScript[2].indexOf('\n});', bridgeStart);
 const bridgeSource = appScript[2].slice(bridgeStart, bridgeEnd);
 const initClose = appScript[2].indexOf('},0));', bridgeStart);
 assert.ok(initClose > bridgeStart, 'the update bridge remains inside the notebook initialization scope');
