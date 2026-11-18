@@ -2644,10 +2644,26 @@ function beginVaultDisableEncryption(){
  $('vaultError').textContent='لن يحدث أي تغيير قبل نجاح التحقق من كلمة المرور والحفظ المحلي.';
  $('vaultDisableEncryptionBtn').hidden=true;
 }
-function cancelVaultSetup(){
+async function cancelVaultSetup(){
  if(vaultGateMode!=='setup'||vaultKey)return;
- vaultUnlocked=true;vaultReady=true;$('vaultPassword').value='';$('vaultPasswordConfirm').value='';
- finishVaultOpen();toast('استمر وضع الاستخدام الحر. لم يُفعّل التشفير.',3500);
+ const button=$('vaultCancelSetupBtn');
+ if(button)button.disabled=true;
+ try{
+  vaultUnlocked=true;
+  flushPrivatePreferenceSave();
+  if(tm){clearTimeout(tm);tm=null}
+  if(typeof flushPendingEdit==='function')flushPendingEdit(false);
+  await vaultSaveQueue;
+  if(vaultLastWriteError)throw new Error('لم يكتمل آخر حفظ. أعد المحاولة قبل متابعة الاستخدام الحر.');
+  await persistPlainSnapshot(JSON.stringify(S));
+  $('vaultPassword').value='';$('vaultPasswordConfirm').value='';
+  if(button)button.disabled=false;
+  finishVaultOpen();toast('استمر وضع الاستخدام الحر. حُفظت البيانات دون تفعيل التشفير.',4000);
+ }catch(error){
+  vaultUnlocked=false;
+  if(button)button.disabled=false;
+  $('vaultError').textContent=error&&error.message?error.message:'تعذّر التحقق من حفظ البيانات. لم نغلق نافذة الحماية.';
+ }
 }
 async function unlockVaultWithDevice(){
  const button=$('vaultDeviceUnlock');
@@ -2750,8 +2766,17 @@ function disableVaultDeviceUnlock(){
 async function lockVault(){
  if(!vaultUnlocked)return;
  if(!vaultKey||!vaultTemplate){
-  clearVaultIdleTimer();vaultUnlocked=false;vaultReady=false;
-  showVaultGate('setup','فعّل القفل الاختياري بإنشاء عبارة مرور قوية. ستُشفّر أعمالك الحالية وتُتحقق النسخة قبل إزالة أي نسخة نصية قديمة.');
+  try{
+   flushPrivatePreferenceSave();
+   if(tm){clearTimeout(tm);tm=null}
+   if(typeof flushPendingEdit==='function')flushPendingEdit(false);
+   await vaultSaveQueue;
+   if(vaultLastWriteError)throw new Error('لم يكتمل آخر حفظ. أبقينا المفكرة مفتوحة لحماية تعديلاتك.');
+   clearVaultIdleTimer();vaultUnlocked=false;vaultReady=false;
+   showVaultGate('setup','فعّل القفل الاختياري بإنشاء عبارة مرور قوية. حفظنا تعديلاتك أولًا، وستُشفّر أعمالك وتُتحقق النسخة قبل إزالة أي نسخة نصية قديمة.');
+  }catch(error){
+   toast(error&&error.message?error.message:'تعذّر حفظ المفكرة قبل إعداد القفل. بقيت مفتوحة دون تغيير.',6000);
+  }
   return;
  }
  clearVaultIdleTimer();
