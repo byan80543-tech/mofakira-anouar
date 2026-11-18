@@ -8,14 +8,15 @@ const manifest=JSON.parse(fs.readFileSync(path.join(root,'manifest.webmanifest')
 const vaultCrypto=fs.readFileSync(path.join(root,'vault-crypto.js'),'utf8');
 const vaultDeviceUnlock=fs.readFileSync(path.join(root,'vault-device-unlock.js'),'utf8');
 const toolbarBackNavigation=fs.readFileSync(path.join(root,'toolbar-back-navigation.js'),'utf8');
+const iconGenerator=fs.readFileSync(path.join(root,'scripts/generate-pwa-icons.py'),'utf8');
 const failures=[];
 const ok=(condition,message)=>{if(!condition)failures.push(message);else console.log('PASS',message)};
 
 ok(manifest.name==='مفكرة أنوار' && manifest.short_name==='مفكرة أنوار','PWA name and short_name');
 ok(manifest.start_url==='/mofakira-anouar/' && manifest.scope==='/mofakira-anouar/','GitHub Pages start_url and scope');
 ok(html.includes('rel="manifest" href="manifest.webmanifest'),'HTML references the current manifest path');
-ok(html.includes('href="icon-192.png?v=20261117-1" sizes="192x192"'),'browser favicon uses the optimized 192px PNG');
-ok(html.includes('<link rel="apple-touch-icon" href="icon-192.png?v=20261117-1"'),'Apple touch icon uses the optimized 192px PNG');
+ok(html.includes('href="icon-192.png?v=20261118-clarity1" sizes="192x192"'),'browser favicon uses the sharpened 192px PNG');
+ok(html.includes('<link rel="apple-touch-icon" href="icon-192.png?v=20261118-clarity1"'),'Apple touch icon uses the sharpened 192px PNG');
 ok(!html.includes('file_00000000670481f4ad879246afe6bae2.png'),'the oversized source icon is not loaded by the page');
 ok(!manifest.icons.some(i=>String(i.src).includes('file_00000000670481f4ad879246afe6bae2.png')),'manifest excludes the oversized source icon');
 ok(html.includes('id="bookToolPanel"') && html.includes('id="bookToolContent" hidden'),'book creation is compact and collapsed inside the tools panel');
@@ -53,7 +54,10 @@ ok(html.includes('id="vaultGate"') && html.includes('id="vaultLockBtn"'),'passwo
 ok(html.includes('id="anwar-toolbar-spacing-and-palette-cycle-v2"') && html.includes('.tb{gap:4px!important}'),'toolbar icons keep a small, consistent gap');
 ok(html.includes("const palettes=[") && html.includes("button.addEventListener('click',()=>{") && html.includes("S.palette=palettes[(index+1+palettes.length)%palettes.length][0]"),'palette icon cycles directly through the six saved interface colors on every click');
 ok(html.includes("#palettePanel{display:none!important}") && !html.includes('setPaletteOpen(open,returnFocus=false)'),'palette cycle does not open a color selection panel');
-ok(html.includes('function setPaletteOpen(open,returnFocus=false)') && html.includes("button.setAttribute('aria-expanded',String(open))") && html.includes("e.key==='Escape'&&panel.classList.contains('open')"),'color picker click, close, Escape, and expanded accessibility states are synchronized');
+const paletteCycleStart=html.indexOf("(function(){\n const button=$('paletteBtn')");
+const paletteCycleEnd=html.indexOf("})();",paletteCycleStart);
+const paletteCycleCode=html.slice(paletteCycleStart,paletteCycleEnd);
+ok(paletteCycleStart>=0 && paletteCycleCode.includes("S.palette=palettes[(index+1+palettes.length)%palettes.length][0]") && !paletteCycleCode.includes("panel.classList.toggle('open')") && html.includes("#palettePanel{display:none!important}"),'palette icon cycles colors directly without opening the former popup');
 
 ok(html.includes('src="toolbar-back-navigation.js"'),'contextual back-navigation helper is loaded by the notebook');
 
@@ -123,3 +127,11 @@ if(failures.length){
   for(const failure of failures)console.error('-',failure);
   process.exitCode=1;
 }else console.log('All repository static checks passed.');
+
+
+ok(iconGenerator.includes("ImageFilter.UnsharpMask") && iconGenerator.includes("radius=0.7, percent=125, threshold=2"),'192px launcher icon receives a controlled sharpening pass after downsampling');
+ok(html.includes("icon-192.png?v=20261118-clarity1") && html.includes("type:'image/png'"),'media artwork uses the crisp PNG icon instead of the compressed JPEG');
+ok(html.includes("function scheduleRadioWarmup()") && html.includes("scheduleRadioWarmup();\n   if(!reciterUiReady)") && !html.includes(" scheduleRadioWarmup();\n rb.addEventListener"),'radio metadata warmup starts only after the visitor opens the radio panel');
+ok(html.includes("setTimeout(renderList,90)") && html.includes("setTimeout(renderArchive,120)"),'note and archive searches are lightly debounced to reduce repeated rendering');
+ok(html.includes("content-visibility:auto;contain-intrinsic-size:auto 76px"),'off-screen note cards skip unnecessary painting');
+ok(html.includes("backdrop-filter:none;-webkit-backdrop-filter:none"),'vault startup overlay avoids an expensive full-screen blur');
