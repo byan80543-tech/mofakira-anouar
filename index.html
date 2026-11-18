@@ -1614,13 +1614,35 @@ dialog[open]>.float-head{display:none!important}
 }
 </style>
 </style>
+
+<style id="anwar-header-title-visibility-v1">
+/* إبقاء اسم المفكرة كاملاً بعد إزالة علامة الريشة من شريط الهاتف */
+.tb .brand{
+  flex:0 0 auto!important;
+  min-width:max-content!important;
+  gap:0!important;
+  margin-inline:0!important;
+}
+.tb .brand-mark{display:none!important}
+.tb .logo{
+  display:inline-block!important;
+  max-width:none!important;
+  overflow:visible!important;
+  white-space:nowrap!important;
+}
+@media(max-width:800px){
+  .tb .brand{flex:0 0 auto!important;min-width:max-content!important;gap:0!important}
+  .tb .logo{font-size:17px!important;letter-spacing:0!important}
+}
+</style>
+
 </head>
 <body>
 <div class="app" id="app">
 <button type="button" id="exitFocus" class="focus-exit" aria-label="الخروج من وضع التركيز" title="الخروج من وضع التركيز">×</button>
 <div class="tb">
  <button class="back" id="bk" aria-label="رجوع">→</button>
- <span class="brand"><svg class="brand-mark" viewBox="0 0 512 512" aria-hidden="true"><path d="M70 420 Q235 320 424 60 Q405 260 70 420Z" fill="#e7c16d" stroke="#fff0bd" stroke-width="9"/><path d="M72 420 Q248 250 424 60 M155 340 L145 255 M220 276 L220 185 M292 202 L310 130 M360 132 L390 92" fill="none" stroke="#76501e" stroke-width="10" stroke-linecap="round"/></svg><span class="logo">مفكرة أنوار</span></span>
+ <span class="brand"><span class="logo">مفكرة أنوار</span></span>
  <input id="t" placeholder="عنوان العمل">
  <button type="button" id="archiveBtn" class="archive-launch" aria-label="أرشيف أنوار" title="أرشيف أنوار"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4.5h18v4H3zM5 8.5v11h14v-11M9 12h6M9 15h6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
  <button id="rb" title="إذاعة القرآن الكريم" aria-label="تشغيل إذاعة القرآن">▶</button>
