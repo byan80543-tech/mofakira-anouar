@@ -1593,6 +1593,18 @@ dialog[open]>.float-head{display:none!important}
 .reader-advance-bar select{flex:1;min-width:0;max-width:260px;min-height:40px;padding:7px 10px;border:1px solid #d9c18d;border-radius:9px;background:#fffdf8;color:#183a57;font:inherit;font-size:12px}
 @media(max-width:420px){.reader-advance-bar{align-items:stretch;flex-direction:column;gap:6px}.reader-advance-bar select{max-width:none;width:100%}}
 </style>
+<style id="anwar-mobile-toolbar-fix">
+@media(max-width:800px){
+ .tb{box-sizing:border-box;gap:3px;padding:5px 6px;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+ .tb::-webkit-scrollbar{display:none}
+ .tb>button{box-sizing:border-box;flex:0 0 32px;width:32px;min-width:32px;height:34px;padding:4px;display:grid;place-items:center}
+ .tb>button .toolbar-icon{width:19px;height:19px}
+ .tb .brand{flex:0 1 auto;min-width:0;gap:4px}
+ .tb .brand-mark{width:22px;height:22px}
+ .tb .logo{font-size:16px;letter-spacing:-.25px}
+ #vaultLockBtn{flex:0 0 32px;width:32px;min-width:32px;height:34px;visibility:visible}
+}
+</style>
 </head>
 <body>
 <div class="app" id="app">
@@ -1606,7 +1618,7 @@ dialog[open]>.float-head{display:none!important}
  <button id="th" type="button" aria-label="تبديل الوضع الليلي والنهاري" title="تبديل الوضع الليلي والنهاري"><svg class="toolbar-icon theme-toggle-icon" viewBox="0 0 24 24" aria-hidden="true"><circle class="theme-sun" cx="12" cy="12" r="4"/><path class="theme-sun" d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/><path class="theme-moon" d="M20.3 15.4A8.5 8.5 0 0 1 8.6 3.7 8.5 8.5 0 1 0 20.3 15.4Z"/></svg></button>
  <button id="paletteBtn" type="button" aria-label="تغيير ألوان المفكرة" title="تغيير ألوان المفكرة"><svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2a8.8 8.8 0 1 0 0 17.6h1.3a1.9 1.9 0 0 0 1.3-3.3 1.8 1.8 0 0 1 1.3-3h1.3a3.7 3.7 0 0 0 3.7-3.7c0-4.2-4-7.6-8.9-7.6Z"/><circle cx="7.8" cy="11" r="1"/><circle cx="10" cy="7.4" r="1"/><circle cx="14.3" cy="7.4" r="1"/><circle cx="17.2" cy="10.2" r="1"/></svg></button>
  <button id="bkp" type="button" aria-label="نسخة احتياطية مشفرة" title="نسخة احتياطية مشفرة"><svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h12l3.5 3.5v13.5H3.5V3.5H5Z"/><path d="M7 3.5v6h9v-6M8 20.5v-7h8v7"/></svg></button>
-  <button id="vaultLockBtn" type="button" aria-label="قفل المفكرة" title="قفل المفكرة"><svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="10" width="15" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg></button>
+  <button id="vaultLockBtn" type="button" aria-label="قفل الخزنة المشفرة" title="قفل الخزنة؛ اضغط لاحقًا لفتحها بقفل الهاتف أو كلمة المرور الأساسية"><svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="10" width="15" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg></button>
  
 </div>
 
@@ -2551,7 +2563,7 @@ async function lockVault(){
   $('archiveItems').innerHTML='';
   renderList();
   vaultReady=false;
-  showVaultGate('unlock','أدخل عبارة المرور لفتح خزنة مفكرة أنوار. يستمر الصوت الجاري ما لم توقفه.');
+  showVaultGate('unlock',globalThis.AnwarDeviceUnlock&&AnwarDeviceUnlock.isConfigured()?'الخزنة مقفلة. اضغط «فتح بقفل الهاتف» للتحقق بقفل جهازك، أو اختر كلمة المرور الأساسية عند الحاجة.':'الخزنة مقفلة. افتحها بكلمة المرور الأساسية، أو أعد إعداد الفتح بقفل الهاتف من خيار «إعداد فتح الهاتف».');
   toast('قُفلت المفكرة. بقيت البيانات محفوظة بالتشفير.',3500);
  }catch(error){
   toast(error.message||'تعذّر قفل المفكرة قبل إتمام الحفظ.',6000);
