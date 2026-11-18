@@ -3624,8 +3624,7 @@ button:focus:not(:focus-visible){outline:none}
 @media(max-width:520px){#vaultDeviceSetupDialog{padding:17px;border-radius:13px}}
 </style>
 
-<script src="toolbar-back-navigation.js" defer></script>
-</body></html>`;
+</html>`;
  try{await dl.save({filename:((cur.title||'أنوار').replace(/[\\/:*?"<>|]/g,'-').slice(0,60))+'.html',data:new Blob([h],{type:'text/html'})});toast('افتح الملف المنزَّل وستظهر نافذة الطباعة تلقائيًا',5000)}catch(e){}
 }
 async function doPrint(){
@@ -5926,5 +5925,6 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
 @media(max-width:520px){#vaultGate{padding:13px}#vaultGate .vault-card{padding:22px 18px;border-radius:15px}}
 </style>
 
+<script src="toolbar-back-navigation.js" defer></script>
 </body>
 </html>
