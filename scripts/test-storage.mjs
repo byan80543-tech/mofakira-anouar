@@ -81,6 +81,7 @@ function makeHarness(initial={}){
     VAULT_MODE_KEY:'anwar_vault_mode_v1',
     continueVaultAfterRecovery(){if(sandbox.api)sandbox.api.load()},
     vaultKey:{testKey:true},vaultTemplate:{format:'mock-vault'},vaultUnlocked:true,
+    vaultGateMode:'plain',
     vaultSaveQueue:Promise.resolve(),vaultLastWriteError:null,vaultBackupWarningShown:false,
     AnwarVaultCrypto:{
       async encryptWithKey(key,template,plaintext){return {format:'mock-vault',payload:String(plaintext).split('').reverse().join(''),salt:'test-salt'}},
