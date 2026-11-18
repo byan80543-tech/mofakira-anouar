@@ -2,8 +2,9 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com 'sha256-rsbo5QMSXq/H5qzEue4FF5jGpxPIg+I4nbK6bOe0hHI=' 'sha256-4giI+ESUJtIatupQ0GRa19vnQYslezSh4XuPQ1lOMX8=' 'sha256-wYI6hHRUO1S/JI5u1R/fnK9fHzj/6IglQ1+CY82F1Co=' 'sha256-QYwkkTcnQ+I/GO9GzNxZiLL3+C66HISY56P+LRrjBz0='        ; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.allorigins.win https://corsproxy.io; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com 'sha256-rZL76x658whwPBX0XZWP9L4MoP/My6BALTehUXEWtRY=' 'sha256-4giI+ESUJtIatupQ0GRa19vnQYslezSh4XuPQ1lOMX8=' 'sha256-wYI6hHRUO1S/JI5u1R/fnK9fHzj/6IglQ1+CY82F1Co=' 'sha256-QYwkkTcnQ+I/GO9GzNxZiLL3+C66HISY56P+LRrjBz0='        ; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
+<script src="api-gateway-config.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>مفكرة أنوار | Anouar Oumlili</title>
 <meta name="author" content="Anouar Oumlili">
@@ -4486,12 +4487,43 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
   if(more){more.hidden=L.length<=shown.length;more.textContent='عرض المزيد من القرّاء · '+new Intl.NumberFormat('ar').format(Math.max(0,L.length-shown.length))+' متبقٍ';}
   ui();
  }
+ function anwarApiGatewayBase(){
+  const raw=String(globalThis.ANWAR_API_GATEWAY_BASE||'').trim();
+  if(!raw)return '';
+  try{
+   const base=new URL(raw);
+   if(base.protocol!=='https:'||!base.hostname.endsWith('.workers.dev')||base.username||base.password)return '';
+   return base.origin;
+  }catch(_e){return ''}
+ }
+ function anwarApiGatewayUrl(source){
+  const base=anwarApiGatewayBase();if(!base)return source;
+  try{
+   const url=new URL(source);
+   if(url.origin!=='https://www.mp3quran.net'||url.searchParams.size!==1||url.searchParams.get('language')!=='ar')return source;
+   if(url.pathname==='/api/v3/reciters')return base+'/v1/reciters';
+   if(url.pathname==='/api/v3/radios')return base+'/v1/radios';
+  }catch(_e){}
+  return source;
+ }
+ const anwarApiFailureUntil=new Map();
  async function J(u){
+  const target=anwarApiGatewayUrl(u),now=Date.now(),retryAt=anwarApiFailureUntil.get(target)||0;
+  if(retryAt>now)throw new Error('أُجّل طلب البيانات قليلًا لتخفيف الضغط؛ أعد المحاولة بعد انتهاء المهلة.');
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),6500);
   try{
-   const response=await fetch(u,{signal:controller.signal,cache:'force-cache',credentials:'omit'});
-   if(!response.ok)throw new Error('HTTP '+response.status);
+   const response=await fetch(target,{signal:controller.signal,cache:'force-cache',credentials:'omit',referrerPolicy:'no-referrer'});
+   if(!response.ok){
+    const retry=Math.max(1,Math.min(60,Number(response.headers.get('Retry-After'))||15));
+    anwarApiFailureUntil.set(target,Date.now()+retry*1000);
+    throw new Error('HTTP '+response.status);
+   }
    return await response.json();
+  }catch(error){
+   if(!anwarApiFailureUntil.has(target)||anwarApiFailureUntil.get(target)<=Date.now()){
+    anwarApiFailureUntil.set(target,Date.now()+10000);
+   }
+   throw error;
   }finally{clearTimeout(timer)}
  }
  let reciterApiPromise=null,radioApiPromise=null;
@@ -4664,32 +4696,79 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
    countryProfileController=null;countryProfileSlug='';
   }
  }
+ const countryFetchFailureUntil=new Map();
  async function fetchCountryHtml(url,externalSignal){
   if(externalSignal&&externalSignal.aborted)throw new Error('أُلغي الطلب السابق');
-  const encoded=encodeURIComponent(url);
-  const proxies=[
-   'https://api.allorigins.win/raw?url='+encoded,
-   'https://corsproxy.io/?url='+encoded
-  ];
-  const controllers=[];
-  const abortJobs=()=>controllers.forEach(controller=>{try{controller.abort()}catch(_e){}});
-  if(externalSignal)externalSignal.addEventListener('abort',abortJobs,{once:true});
-  const jobs=proxies.map(async proxy=>{
-   const controller=new AbortController();controllers.push(controller);
-   const timer=setTimeout(()=>controller.abort(),5000);
-   try{
-    const response=await fetch(proxy,{signal:controller.signal,cache:'force-cache',credentials:'omit',referrerPolicy:'no-referrer'});
-    if(!response.ok)throw new Error('HTTP '+response.status);
+  const retryAt=countryFetchFailureUntil.get(url)||0;
+  if(retryAt>Date.now())throw new Error('تم تأجيل إعادة طلب هذه الصفحة لتخفيف الضغط؛ حاول بعد قليل.');
+  try{
+   const gateway=anwarApiGatewayBase();
+   if(gateway){
+    const source=new URL(url),base=new URL(COUNTRY_BASE);
+    let route='';
+    if(source.origin===base.origin&&source.pathname.replace(/\/$/,'')===base.pathname.replace(/\/$/,'')&&
+       [...source.searchParams.keys()].every(key=>key==='nationality'||key==='currentPage')){
+     const code=source.searchParams.get('nationality')||'';
+     const pageText=source.searchParams.get('currentPage')||'1';
+     const allowedCodes=new Set(Object.values(countryDirectory).map(item=>item.code));
+     const page=Number(pageText);
+     if(source.searchParams.getAll('nationality').length!==1||source.searchParams.getAll('currentPage').length>1||
+        !allowedCodes.has(code)||!/^\d{1,3}$/.test(pageText)||!Number.isInteger(page)||page<1||page>100){
+      throw new Error('معاملات صفحة البلد غير صالحة.');
+     }
+     route='/v1/country/list?nationality='+encodeURIComponent(code)+'&page='+page;
+    }else if(source.origin===base.origin&&source.searchParams.size===0){
+     const match=source.pathname.match(/^\/ar\/reciters\/([a-z0-9-]{1,100})\/?$/i);
+     if(match)route='/v1/country/profile?slug='+encodeURIComponent(match[1]);
+    }
+    if(!route)throw new Error('المصدر أو مسار القارئ غير مدرج في بوابة أنوار.');
+    const response=await fetch(gateway+route,{
+     signal:externalSignal,cache:'force-cache',credentials:'omit',referrerPolicy:'no-referrer'
+    });
+    if(!response.ok){
+     const retry=Math.max(1,Math.min(60,Number(response.headers.get('Retry-After'))||15));
+     const error=new Error(response.status===429?'تجاوزت طلبات الشبكة الحد المسموح؛ انتظر ثم أعد المحاولة.':'تعذّر جلب الصفحة عبر بوابة أنوار.');
+     error.retryAfterMs=retry*1000;throw error;
+    }
     const body=await response.text();
     if(body.length<300||body.length>3000000||(!body.includes('/ar/reciters')&&!body.includes('media.way2quran.com')))throw new Error('استجابة غير صالحة');
     return body;
-   }finally{clearTimeout(timer)}
-  });
-  try{return await Promise.any(jobs)}
-  catch(_error){throw new Error('تعذر جلب بيانات المصدر خلال المهلة القصيرة')}
-  finally{
-   if(externalSignal)externalSignal.removeEventListener('abort',abortJobs);
-   controllers.forEach(controller=>{try{controller.abort()}catch(_e){}});
+   }
+
+   const encoded=encodeURIComponent(url);
+   const proxies=[
+    'https://api.allorigins.win/raw?url='+encoded,
+    'https://corsproxy.io/?url='+encoded
+   ];
+   const controllers=[];
+   const abortJobs=()=>controllers.forEach(controller=>{try{controller.abort()}catch(_e){}});
+   if(externalSignal)externalSignal.addEventListener('abort',abortJobs,{once:true});
+   try{
+    let lastError=null;
+    for(const proxy of proxies){
+     if(externalSignal&&externalSignal.aborted)throw new Error('أُلغي الطلب السابق');
+     const controller=new AbortController();controllers.push(controller);
+     const timer=setTimeout(()=>controller.abort(),5000);
+     try{
+      const response=await fetch(proxy,{signal:controller.signal,cache:'force-cache',credentials:'omit',referrerPolicy:'no-referrer'});
+      if(!response.ok)throw new Error('HTTP '+response.status);
+      const body=await response.text();
+      if(body.length<300||body.length>3000000||(!body.includes('/ar/reciters')&&!body.includes('media.way2quran.com')))throw new Error('استجابة غير صالحة');
+      return body;
+     }catch(error){lastError=error;if(externalSignal&&externalSignal.aborted)throw error}
+     finally{clearTimeout(timer)}
+    }
+    throw lastError||new Error('تعذر جلب بيانات المصدر');
+   }finally{
+    if(externalSignal)externalSignal.removeEventListener('abort',abortJobs);
+    controllers.forEach(controller=>{try{controller.abort()}catch(_e){}});
+   }
+  }catch(error){
+   if(!(externalSignal&&externalSignal.aborted)){
+    const delay=Math.max(10000,Math.min(60000,Number(error.retryAfterMs)||15000));
+    countryFetchFailureUntil.set(url,Date.now()+delay);
+   }
+   throw error;
   }
  }
  function dedupeCountryRows(rows){
