@@ -122,16 +122,15 @@ for(const match of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)){
   catch(error){failures.push(`inline script ${scriptCount}: ${error.message}`)}
 }
 ok(scriptCount>0,'inline JavaScript blocks discovered');
-if(failures.length){
-  console.error('\nValidation failed:');
-  for(const failure of failures)console.error('-',failure);
-  process.exitCode=1;
-}else console.log('All repository static checks passed.');
-
-
 ok(iconGenerator.includes("ImageFilter.UnsharpMask") && iconGenerator.includes("radius=0.7, percent=125, threshold=2"),'192px launcher icon receives a controlled sharpening pass after downsampling');
 ok(html.includes("icon-192.png?v=20261118-clarity1") && html.includes("type:'image/png'"),'media artwork uses the crisp PNG icon instead of the compressed JPEG');
 ok(html.includes("function scheduleRadioWarmup()") && html.includes("scheduleRadioWarmup();\n   if(!reciterUiReady)") && !html.includes(" scheduleRadioWarmup();\n rb.addEventListener"),'radio metadata warmup starts only after the visitor opens the radio panel');
 ok(html.includes("setTimeout(renderList,90)") && html.includes("setTimeout(renderArchive,120)"),'note and archive searches are lightly debounced to reduce repeated rendering');
 ok(html.includes("content-visibility:auto;contain-intrinsic-size:auto 76px"),'off-screen note cards skip unnecessary painting');
 ok(html.includes("backdrop-filter:none;-webkit-backdrop-filter:none"),'vault startup overlay avoids an expensive full-screen blur');
+
+if(failures.length){
+  console.error('\nValidation failed:');
+  for(const failure of failures)console.error('-',failure);
+  process.exitCode=1;
+}else console.log('All repository static checks passed.');
