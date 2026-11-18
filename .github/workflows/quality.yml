@@ -59,6 +59,8 @@ jobs:
         run: node scripts/test-csp.mjs
       - name: Test click-burst protection and cooldown
         run: node scripts/test-click-guard.mjs
+      - name: Validate Cloudflare Worker bundle and Wrangler bindings
+        run: npx --yes wrangler@latest deploy --dry-run --config workers/anwar-api-gateway/wrangler.toml
       - name: Test API gateway allowlist, cache and IP rate limiting
         run: node scripts/test-api-gateway.mjs
       - name: Test notebook storage and recovery paths
