@@ -32,6 +32,14 @@
 
 كلما تغير نص أي كتلة JavaScript مضمنة يجب تحديث بصمتها في CSP. يفحص `scripts/test-csp.mjs` البصمات في CI، وتتحقق `scripts/validate.mjs` من وجود الرؤوس المطلوبة وموضع نشرها.
 
+البصمات الحالية للكتل المضمنة الأربع، ويجب أن تبقى متطابقة في `index.html` و`_headers` وهذا الدليل:
+
+- `'sha256-2hfKs02QbjOqbW6nnlUKK5v0Kmtok9HTIOsEYOV9f0A='`
+- `'sha256-4giI+ESUJtIatupQ0GRa19vnQYslezSh4XuPQ1lOMX8='`
+- `'sha256-wYI6hHRUO1S/JI5u1R/fnK9fHzj/6IglQ1+CY82F1Co='`
+- `'sha256-QYwkkTcnQ+I/GO9GzNxZiLL3+C66HISY56P+LRrjBz0='`
+
+
 ## ما لم نفعّله عمداً
 
 لم نضف `Strict-Transport-Security` أو `includeSubDomains` في هذه الجولة. لا ينبغي فرض HSTS واسع النطاق قبل التأكد من جميع النطاقات الفرعية وأي نطاق مخصص مستقبلي. كما أن هذه الرؤوس لا تعني أن التطبيق اجتاز اختبار اختراق مستقلاً.
