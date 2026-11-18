@@ -265,6 +265,16 @@ export class IpRateLimiter {
   constructor(ctx, env) {
     this.ctx = ctx;
     this.env = env;
+    ctx.blockConcurrencyWhile(() => {
+      ctx.storage.sql.exec(`
+        CREATE TABLE IF NOT EXISTS rate_state (
+          id INTEGER PRIMARY KEY CHECK (id = 1),
+          data TEXT NOT NULL
+        );
+        INSERT OR IGNORE INTO rate_state(id, data)
+          VALUES(1, '{"global":[],"clients":{}}');
+      `);
+    });
   }
 
   async fetch(request) {
@@ -289,10 +299,18 @@ export class IpRateLimiter {
 
     const now = Date.now();
     const cutoff = now - 60_000;
-    const state = await this.ctx.storage.get("anwar-rate-state-v1") || {
-      global: [],
-      clients: {}
-    };
+
+    // SQL operations are synchronous. No await occurs between SELECT and UPDATE,
+    // so the read/check/write sequence is atomic within this single-threaded object.
+    const rows = this.ctx.storage.sql.exec(
+      "SELECT data FROM rate_state WHERE id = 1"
+    ).toArray();
+    let state;
+    try {
+      state = JSON.parse(rows[0]?.data || '{"global":[],"clients":{}}');
+    } catch {
+      throw new Error("Rate-limit state is corrupted");
+    }
 
     state.global = Array.isArray(state.global)
       ? state.global.filter(timestamp => Number.isFinite(timestamp) && timestamp > cutoff)
@@ -340,12 +358,14 @@ export class IpRateLimiter {
       }
     }
 
-    // A single put updates one SQLite-backed storage row for each accepted request.
     state.global.push(now);
     client.client.push(now);
     client[routeBucket].push(now);
     state.clients[clientKey] = client;
-    await this.ctx.storage.put("anwar-rate-state-v1", state);
+    this.ctx.storage.sql.exec(
+      "UPDATE rate_state SET data = ? WHERE id = 1",
+      JSON.stringify(state)
+    );
 
     return json({
       allowed: true,
