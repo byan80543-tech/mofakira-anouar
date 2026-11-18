@@ -111,7 +111,7 @@ assert.match(await (await cachedPdfLibrary.response).text(),/^network:/,'cached 
 
 const externalAudio=makeFetchEvent({url:'https://audio.example.test/live.mp3',method:'GET',mode:'cors'});
 listeners.get('fetch')(externalAudio);
-assert.equal(externalAudio.response,undefined,'external audio is left network-only');
+assert.equal(externalAudio.response,null,'external audio is left network-only');
 
 const postRequest=makeFetchEvent({url:new URL('api/write',scopeUrl).href,method:'POST',mode:'cors'});
 listeners.get('fetch')(postRequest);
