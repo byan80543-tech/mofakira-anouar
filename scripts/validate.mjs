@@ -50,8 +50,9 @@ ok(!html.includes('Object.hasOwn('),'storage normalization avoids unsupported Ob
 ok(html.includes('src="./vault-crypto.js?v=20261117-1"'),'the local vault crypto helper is loaded by the notebook');
 ok(html.includes('id="vaultGate"') && html.includes('id="vaultLockBtn"'),'password gate and manual vault lock controls are present');
 
-ok(html.includes('id="anwar-toolbar-spacing-and-palette-dialog-v1"') && html.includes('.tb{gap:4px!important}'),'toolbar icons keep a small, consistent gap');
-ok(html.includes('#palettePanel.open::before') && html.includes('translate(-50%,-50%)'),'desktop color picker opens as a centered modal with a dimmed backdrop');
+ok(html.includes('id="anwar-toolbar-spacing-and-palette-cycle-v2"') && html.includes('.tb{gap:4px!important}'),'toolbar icons keep a small, consistent gap');
+ok(html.includes("const palettes=[") && html.includes("button.addEventListener('click',()=>{") && html.includes("S.palette=palettes[(index+1+palettes.length)%palettes.length][0]"),'palette icon cycles directly through the six saved interface colors on every click');
+ok(html.includes("#palettePanel{display:none!important}") && !html.includes('setPaletteOpen(open,returnFocus=false)'),'palette cycle does not open a color selection panel');
 ok(html.includes('function setPaletteOpen(open,returnFocus=false)') && html.includes("button.setAttribute('aria-expanded',String(open))") && html.includes("e.key==='Escape'&&panel.classList.contains('open')"),'color picker click, close, Escape, and expanded accessibility states are synchronized');
 
 ok(html.includes('src="toolbar-back-navigation.js"'),'contextual back-navigation helper is loaded by the notebook');
