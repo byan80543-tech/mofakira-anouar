@@ -33,19 +33,22 @@
 
 ## النشر
 
+يتطلب إعداد ratelimits في هذا المشروع Wrangler 4.36.0 أو أحدث. استخدم npx wrangler@latest في الأوامر التالية لتجنب تشغيل إصدار قديم.
+
 الموقع الحالي على GitHub Pages، وهو استضافة ثابتة. لا يمكن نشر كود هذه البوابة على GitHub Pages نفسه؛ يجب نشرها كـCloudflare Worker مستقل.
 
 1. أنشئ/سجّل الدخول إلى حساب Cloudflare.
 2. ثبّت Node.js ثم شغّل:
-   `npx wrangler login`
+   `npx wrangler@latest login`
 3. انتقل إلى مجلد `workers/anwar-api-gateway` وأنشئ سرًا عشوائيًا محليًا من 32 بايت على الأقل. لا ترفعه إلى GitHub.
 4. أضف السر إلى Cloudflare:
-   `npx wrangler secret put IP_HASH_SECRET`
+   `npx wrangler@latest secret put IP_HASH_SECRET`
    ثم ألصق السر العشوائي عند الطلب.
 5. انشر العامل:
-   `npx wrangler deploy`
+   `npx wrangler@latest deploy`
 6. سيظهر عنوان من النمط `https://anwar-api-gateway.<account-subdomain>.workers.dev`.
 7. انسخ العنوان إلى `api-gateway-config.js` في قيمة `ANWAR_API_GATEWAY_BASE`، ثم ارفع تعديل الإعداد إلى GitHub.
+8. لأن Service Worker يخزن ملف الإعداد محليًا، ارفع إصدارًا جديدًا منه بعد تغيير العنوان (غيّر CACHE_NAME في service-worker.js من v56 إلى v57) حتى يحصل الزوار على عنوان البوابة الجديد بدل النسخة المخزنة الفارغة.
 
 القيمة الفارغة في ملف الإعداد تعني أن الواجهة تستمر مؤقتًا في الاتصال المباشر بالمصادر الحالية؛ **لن تكون بوابة الشبكة فعّالة للزوار حتى تُنشر وتُضبط قيمتها**.
 
