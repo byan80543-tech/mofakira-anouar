@@ -2349,7 +2349,6 @@ async function unlockVaultWithDevice(){
 }
 function openVaultDeviceSetupDialog(){
  const dialog=$('vaultDeviceSetupDialog');
- if(!vaultUnlocked||!vaultKey){toast('افتح الخزنة أولًا قبل تغيير وسيلة الدخول.',4000);return}
  const configured=AnwarDeviceUnlock.isConfigured();
  const supported=AnwarDeviceUnlock.supported();
  $('vaultDeviceSetupPassword').value='';
@@ -2364,27 +2363,47 @@ function openVaultDeviceSetupDialog(){
 }
 async function submitVaultDeviceSetup(event){
  event.preventDefault();
- if(!vaultUnlocked||!vaultKey){$('vaultDeviceSetupStatus').textContent='افتح الخزنة أولًا.';return}
  const button=$('vaultDeviceSetupSubmit');
  const input=$('vaultDeviceSetupPassword');
  const password=input.value;
  if(Array.from(password).length<12){$('vaultDeviceSetupStatus').textContent='أدخل كلمة المرور الأساسية كاملة.';return}
  button.disabled=true;
  $('vaultDeviceSetupStatus').textContent='يجري التحقق من كلمة المرور وتجهيز قفل الهاتف…';
+ const wasLocked=!vaultUnlocked;
  try{
-  if(tm){clearTimeout(tm);tm=null;flushPendingEdit(false)}
-  await vaultSaveQueue;
-  if(vaultLastWriteError)throw new Error('لم يكتمل آخر حفظ. أصلح الحفظ قبل تفعيل قفل الهاتف.');
-  if(!vaultTemplate)throw new Error('تعذّر العثور على إعداد الخزنة الحالي.');
-  const verified=await AnwarVaultCrypto.decryptEnvelope(password,vaultTemplate);
-  if(verified.plaintext!==JSON.stringify(S))throw new Error('تغيّرت بيانات المفكرة أثناء التحقق. أعد المحاولة بعد اكتمال الحفظ.');
+  let verified=null;
+  if(vaultUnlocked){
+   if(tm){clearTimeout(tm);tm=null;flushPendingEdit(false)}
+   await vaultSaveQueue;
+   if(vaultLastWriteError)throw new Error('لم يكتمل آخر حفظ. أصلح الحفظ قبل تفعيل قفل الهاتف.');
+   if(!vaultTemplate)throw new Error('تعذّر العثور على إعداد الخزنة الحالي.');
+   verified=await AnwarVaultCrypto.decryptEnvelope(password,vaultTemplate);
+   if(verified.plaintext!==JSON.stringify(S))throw new Error('تغيّرت بيانات المفكرة أثناء التحقق. أعد المحاولة بعد اكتمال الحفظ.');
+  }else{
+   let primary=null,backup=null;
+   try{
+    primary=localStorage.getItem(VAULT_STORAGE_KEY);
+    backup=localStorage.getItem(VAULT_BACKUP_KEY);
+   }catch(error){throw new Error('تعذّر الوصول إلى الخزنة. لم تتغير أي بيانات.')}
+   const candidates=[primary,backup].filter(Boolean);
+   let lastError=null;
+   for(const raw of candidates){
+    try{
+     verified=await AnwarVaultCrypto.decryptEnvelope(password,JSON.parse(raw));
+     readStoredState(verified.plaintext);
+     break;
+    }catch(error){lastError=error}
+   }
+   if(!verified)throw new Error(candidates.length?'لم تطابق كلمة المرور الخزنة أو نسختها الاحتياطية.':'لم يُعثر على خزنة مشفرة يمكن التحقق منها.');
+  }
   await AnwarDeviceUnlock.protectPassword(password);
   input.value='';
   $('vaultDeviceSetupStatus').textContent='تم تفعيل الفتح بقفل الهاتف. ستظل كلمة المرور الأساسية لازمة للاسترداد.';
   $('vaultDeviceSetupForm').hidden=true;
   $('vaultDeviceDisableBtn').hidden=false;
-  toast('تم تفعيل الفتح بقفل الهاتف.',3500);
   $('vaultDeviceSetupDialog').close();
+  if(wasLocked)showVaultGate('unlock','يمكنك الآن فتح الخزنة بقفل الهاتف، أو استخدام كلمة المرور الأساسية.');
+  toast('تم تفعيل الفتح بقفل الهاتف.',3500);
  }catch(error){
   input.value='';
   $('vaultDeviceSetupStatus').textContent=error&&error.message?error.message:'تعذّر التفعيل. بقيت الخزنة وكلمة المرور الأساسية دون تغيير.';
