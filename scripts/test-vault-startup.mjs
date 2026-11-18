@@ -8,7 +8,7 @@ const extract=(start,end)=>{
   assert.ok(a>=0&&b>a,'source block exists: '+start);
   return html.slice(a,b);
 };
-const bootSource=extract('async function bootVault(){','async function submitVaultForm(event){');
+const bootSource=extract('async function bootVault(){','async function submitVaultForm(event,suppliedPassword){');
 const continueSource=extract('function continueVaultAfterRecovery(){','function prepareLegacyStateForVault(){');
 const retrySource=extract('function retryStorageAccess(){','function restoreStorageBackup(){');
 
