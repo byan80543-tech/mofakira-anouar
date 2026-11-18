@@ -6270,6 +6270,10 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
 #vaultGate #vaultSubmit:disabled{opacity:.55;cursor:wait}
 #vaultGate #vaultError{min-height:20px;margin:10px 0 0;color:#a12e28;font-size:12px;line-height:1.7}
 #vaultGate .vault-footnote{display:block;margin-top:11px;color:#6b7888;font-size:10px;line-height:1.9;text-align:center}
+#vaultGate #vaultDisableEncryptionBtn,#vaultGate #vaultCancelSetupBtn{display:block;width:100%;min-height:42px;margin-top:8px;padding:9px 12px;border:1px solid #c8d4e2;border-radius:9px;background:#f4f7fb;color:#244363;font-weight:700}
+#vaultGate #vaultDisableEncryptionBtn[hidden],#vaultGate #vaultCancelSetupBtn[hidden]{display:none!important}
+#vaultGate #vaultCancelSetupBtn{border-color:#d5e4d8;background:#f1f8f2;color:#28583a}
+#vaultGate #vaultDisableEncryptionBtn:focus-visible,#vaultGate #vaultCancelSetupBtn:focus-visible{outline:3px solid rgba(55,109,169,.25);outline-offset:2px}
 #vaultConfirmRow[hidden],#vaultPasswordConfirm[hidden]{display:none!important}
 #dg .vault-backup-password{display:block;margin:10px 0 5px}
 #dg #backupPassword{min-height:39px;direction:ltr;text-align:left}
