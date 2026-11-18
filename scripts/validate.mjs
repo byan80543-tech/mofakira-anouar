@@ -109,12 +109,12 @@ ok(toolbarBackNavigation.includes("paletteButton.setAttribute('aria-expanded'") 
 
 try{new vm.Script(toolbarBackNavigation,{filename:'toolbar-back-navigation.js'});ok(true,'contextual back-navigation helper JavaScript syntax is valid')}catch(error){failures.push('toolbar-back-navigation.js: '+error.message)}
 ok(html.includes('const VAULT_IDLE_LOCK_MS=0;') && html.includes('document.addEventListener(eventName,recordVaultActivity,true)'),'free-use mode disables automatic inactivity locking while retaining the manual-lock activity hooks');
-ok(html.includes("const VAULT_MODE_KEY='anwar_vault_mode_v1'") && html.includes("if(mode==='encrypted'&&savedVault===null&&savedBackup===null)"),'vault startup respects the saved free/encrypted mode and never bypasses a missing encrypted vault');
+ok(html.includes("VAULT_MODE_KEY='anwar_vault_mode_v1'") && html.includes("if(mode==='encrypted'&&savedVault===null&&savedBackup===null)"),'vault startup respects the saved free/encrypted mode and never bypasses a missing encrypted vault');
 ok(html.includes("if(!vaultKey||!vaultTemplate){") && html.includes("showVaultGate('setup'"),'manual lock from free mode opens the optional encryption setup');
 ok(html.includes('function persistPlainSnapshot(plaintext)') && html.includes("localStorage.setItem(VAULT_MODE_KEY,'plain')") && html.includes("localStorage.setItem(VAULT_MODE_KEY,'encrypted')"),'free and encrypted modes are explicitly persisted after verified storage writes');
 ok(html.includes('flushPrivatePreferenceSave();') && html.includes("if(typeof flushPendingEdit==='function')flushPendingEdit(false);") && html.includes('await vaultSaveQueue;') && html.includes("showVaultGate('setup'"),'manual encryption setup flushes pending edits and waits for the save queue before closing free mode');
 ok(/async function cancelVaultSetup\(\)[\s\S]*?await persistPlainSnapshot\(JSON\.stringify\(S\)\)/.test(html),'continuing without encryption verifies and persists the plaintext snapshot before reopening');
-ok(html.includes("const CACHE_NAME='anwar-shell-2026-11-18-v57';"),'service worker shell version advances with the vault behavior update');
+ok(fs.readFileSync(path.join(root,'service-worker.js'),'utf8').includes("const CACHE_NAME='anwar-shell-2026-11-18-v57';"),'service worker shell version advances with the vault behavior update');
 ok(html.includes('id="vaultCancelSetupBtn"') && html.includes('id="vaultDisableEncryptionBtn"'),'the gate offers continue-free and disable-encryption actions');
 ok(html.includes('AnwarPrivatePreferences.normalize(d.preferences)') && html.includes('preferences:globalThis.AnwarPrivatePreferences.normalize({})'),'radio, reader and tasbih preferences are part of the encrypted vault state');
 ok(html.includes('function importLegacyPrivatePreferences(base)') && html.includes('function clearLegacyPrivatePreferences()'),'legacy plaintext preferences have explicit migration and cleanup paths');
