@@ -210,8 +210,17 @@ edited.title='بعد التعديل';
 assert(h.api.flushPendingEdit(false)===true,'pending edit flush reports a successful save');
 await h.api.waitForWrites();
 const flushed=JSON.parse(await h.api.decryptMock('anwar_vault_v1')).notes[0];
-assert(flushed.html==='<div>آخر كتابة</div>'&&flushed.title==='بعد التعديل','latest editor content and title are saved before navigation');
+assert(flushed.html==='<div>آخر كتابة</div>'&&flushed.title==='آخر كتابة','latest editor content and first-line auto-title are saved before navigation');
 assert(flushed.history.length===1&&flushed.history[0].html==='<div>النص القديم</div>','flush preserves the previous version in note history');
+
+h=makeHarness();
+const unchanged=note('unchanged','نص تجريبي','<div>نص تجريبي</div>');
+h.api.snapshot().S.notes.push(unchanged);
+h.api.activateEdit(unchanged,null,unchanged.html);
+assert(h.api.flushPendingEdit(false)===true,'flushing an unchanged open note is a successful no-op');
+assert(h.api.flushPendingEdit(false)===true,'a second lifecycle flush remains a no-op');
+await h.api.waitForWrites();
+assert(h.storage.writeCount===0,'unchanged pagehide/beforeunload flushes do not trigger repeated encrypted writes');
 
 // A fresh note remains an in-memory draft until the writer enters actual text.
 h=makeHarness();
