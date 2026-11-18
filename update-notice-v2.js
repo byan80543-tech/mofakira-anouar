@@ -96,22 +96,27 @@
 
         const controllerChanged = new Promise((resolve, reject) => {
           let settled = false;
+          let timeoutId = null;
           const finish = (error) => {
             if (settled) return;
             settled = true;
             serviceWorker.removeEventListener('controllerchange', onControllerChange);
-            window.clearTimeout(timeoutId);
+            if (timeoutId !== null) window.clearTimeout(timeoutId);
             if (error) reject(error);
             else resolve();
           };
           const onControllerChange = () => finish();
-          const timeoutId = window.setTimeout(() => {
+          serviceWorker.addEventListener('controllerchange', onControllerChange);
+          timeoutId = window.setTimeout(() => {
             finish(new Error('تأخر تفعيل الإصدار الجديد. لم نحذف بياناتك؛ حاول التحديث مرة أخرى.'));
           }, 20000);
-          serviceWorker.addEventListener('controllerchange', onControllerChange);
+          try {
+            targetWorker.postMessage({ type: 'ANOUAR_ACTIVATE_UPDATE' });
+          } catch (error) {
+            finish(error);
+          }
         });
 
-        targetWorker.postMessage({ type: 'ANOUAR_ACTIVATE_UPDATE' });
         await controllerChanged;
         window.location.reload();
       } catch (error) {
