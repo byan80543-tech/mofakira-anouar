@@ -3,7 +3,7 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
 const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
-const start=html.indexOf('const VAULT_IDLE_LOCK_MS=5*60*1000;');
+const start=html.indexOf('const VAULT_IDLE_LOCK_MS=0;');
 const end=html.indexOf('function showVaultGate(mode,message){',start);
 assert.ok(start>=0&&end>start,'vault inactivity lock helpers are present');
 const source=html.slice(start,end);
@@ -42,30 +42,20 @@ function makeHarness(){
 
 let h=makeHarness();
 h.api.recordVaultActivity();
-assert.equal(h.timerCount,1,'opening activity arms the inactivity timer');
-h.advance(4*60*1000);
-h.api.recordVaultActivity({isTrusted:true});
-h.advance(5*60*1000-1);
-assert.equal(h.lockCalls,0,'recent trusted activity postpones automatic lock');
-h.advance(1);
-assert.equal(h.lockCalls,1,'vault locks after five minutes without activity');
-
-h=makeHarness();
-h.api.recordVaultActivity();
-h.advance(5*60*1000-1);
-h.api.recordVaultActivity({isTrusted:false});
-h.advance(1);
-assert.equal(h.lockCalls,1,'synthetic events cannot keep the vault unlocked');
-
-h=makeHarness();
-h.api.recordVaultActivity();
-h.advance(6*60*1000);
+h.advance(30*60*1000);
 h.api.enforceVaultIdleLock();
-assert.equal(h.lockCalls,1,'returning from a throttled background tab enforces overdue auto-lock');
+assert.equal(h.lockCalls,0,'free-use mode never locks automatically after inactivity');
+assert.equal(h.timerCount,0,'free-use mode does not create background inactivity timers');
+
+h=makeHarness();
+h.api.recordVaultActivity({isTrusted:false});
+h.advance(60*60*1000);
+h.api.enforceVaultIdleLock();
+assert.equal(h.lockCalls,0,'synthetic activity and long idle periods do not trigger an automatic lock in free mode');
 
 h=makeHarness();
 h.sandbox.vaultUnlocked=false;
 h.api.recordVaultActivity();
 assert.equal(h.timerCount,0,'locked vault does not arm an inactivity timer');
 
-console.log('All encrypted-vault inactivity lock tests passed.');
+console.log('All manual-lock-only free-mode inactivity tests passed.');
