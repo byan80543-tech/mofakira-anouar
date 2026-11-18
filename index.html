@@ -1701,8 +1701,8 @@ dialog[open]>.float-head{display:none!important}
 }
 </style>
 
- <link rel="stylesheet" href="./update-notice.css">
- <script src="./update-notice.js" defer></script>
+ <link rel="stylesheet" href="./update-notice-v2.css">
+ <script src="./update-notice-v2.js" defer></script>
 </head>
 <body>
 <div class="app" id="app">
@@ -5601,6 +5601,59 @@ bootVault();
 
 
 },0));
+
+
+// Update bridge: freeze editing, flush pending changes and await encrypted persistence before reload.
+window.AnouarUpdateBridge = Object.freeze({
+  async prepareForReload() {
+    if (storageRecoveryBlocked) {
+      throw new Error('استرداد البيانات قيد المعالجة. أكمل الاسترداد قبل تحديث المفكرة.');
+    }
+    if (!vaultReady) {
+      throw new Error('افتح المفكرة وأنهِ إعداد الخزنة قبل التحديث.');
+    }
+
+    const app = $('app');
+    const editor = $('pg');
+    const titleInput = $('t');
+    const previous = {
+      appInert: app ? app.inert : false,
+      editorEditable: editor ? editor.getAttribute('contenteditable') : null,
+      titleDisabled: titleInput ? titleInput.disabled : false
+    };
+    let released = false;
+    const release = () => {
+      if (released) return;
+      released = true;
+      if (app) app.inert = previous.appInert;
+      if (editor) {
+        if (previous.editorEditable === null) editor.removeAttribute('contenteditable');
+        else editor.setAttribute('contenteditable', previous.editorEditable);
+      }
+      if (titleInput) titleInput.disabled = previous.titleDisabled;
+    };
+
+    if (app) app.inert = true;
+    if (editor) editor.setAttribute('contenteditable', 'false');
+    if (titleInput) titleInput.disabled = true;
+
+    try {
+      if (vaultUnlocked && vaultKey) {
+        flushPendingEdit(false);
+        flushPrivatePreferenceSave();
+      }
+      await vaultSaveQueue;
+      if (vaultLastWriteError) {
+        throw new Error('تعذّر التحقق من آخر حفظ مشفّر. ألغينا التحديث حمايةً لكتابتك؛ حاول الحفظ مجدداً.');
+      }
+      return release;
+    } catch (error) {
+      release();
+      throw error;
+    }
+  }
+});
+
 </script>
 
 <script>
