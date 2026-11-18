@@ -1925,19 +1925,37 @@ dialog[open]>.float-head{display:none!important}
   <div class="vault-mark" aria-hidden="true">⌑</div>
   <h1 id="vaultTitle">خزنة مفكرة أنوار</h1>
   <p id="vaultDescription">أنشئ عبارة مرور لحماية قصائدك ونصوصك على هذا الجهاز.</p>
+  <button id="vaultDeviceUnlock" class="vault-device-action" type="button" hidden>فتح بقفل الهاتف</button>
+  <button id="vaultPasswordFallbackToggle" class="vault-password-fallback" type="button" hidden>استخدام كلمة المرور الأساسية</button>
+  <button id="vaultDeviceManage" class="vault-device-manage" type="button" hidden>إعداد فتح الهاتف</button>
   <form id="vaultForm">
-   <label for="vaultPassword">عبارة المرور</label>
-   <input id="vaultPassword" type="password" required minlength="12" autocomplete="new-password" placeholder="12 محرفًا على الأقل">
-   <label id="vaultConfirmRow" for="vaultPasswordConfirm">تأكيد عبارة المرور</label>
-   <input id="vaultPasswordConfirm" type="password" required minlength="12" autocomplete="new-password" placeholder="أعد كتابة عبارة المرور">
-   <button id="vaultSubmit" type="submit">تشفير المفكرة وفتحها</button>
+   <div id="vaultPasswordFields">
+    <label for="vaultPassword">عبارة المرور</label>
+    <input id="vaultPassword" type="password" required minlength="12" autocomplete="new-password" placeholder="12 محرفًا على الأقل">
+    <label id="vaultConfirmRow" for="vaultPasswordConfirm">تأكيد عبارة المرور</label>
+    <input id="vaultPasswordConfirm" type="password" required minlength="12" autocomplete="new-password" placeholder="أعد كتابة عبارة المرور">
+    <button id="vaultSubmit" type="submit">تشفير المفكرة وفتحها</button>
+   </div>
   </form>
   <p id="vaultError" role="alert" aria-live="polite"></p>
-  <small class="vault-footnote">التشفير يتم على جهازك. لا تُرسل كلمة المرور إلى خادم، ولا يمكن استعادة النصوص دونها. احتفظ بنسخة احتياطية مشفرة.</small>
+  <small class="vault-footnote">التشفير يتم على جهازك. لا تُرسل كلمة المرور إلى خادم. احتفظ بعبارة المرور ونسخة احتياطية مشفرة للاسترداد.</small>
  </section>
 </div>
+<dialog id="vaultDeviceSetupDialog" aria-labelledby="vaultDeviceSetupTitle">
+ <h2 id="vaultDeviceSetupTitle">فتح مفكرة أنوار بقفل الهاتف</h2>
+ <p class="vault-device-explanation">سيطلب المتصفح تحقق الهاتف الآمن، مثل قفل الشاشة أو البصمة بحسب إعداد جهازك. لا يقرأ الموقع رسم القفل ولا يخزنه.</p>
+ <form id="vaultDeviceSetupForm">
+  <label for="vaultDeviceSetupPassword">أعد إدخال كلمة المرور الأساسية للتأكيد</label>
+  <input id="vaultDeviceSetupPassword" type="password" autocomplete="current-password" minlength="12" required>
+  <button id="vaultDeviceSetupSubmit" type="submit">تفعيل الفتح بقفل الهاتف</button>
+ </form>
+ <p id="vaultDeviceSetupStatus" role="status" aria-live="polite"></p>
+ <button id="vaultDeviceDisableBtn" type="button" hidden>تعطيل الفتح بقفل الهاتف</button>
+ <button id="vaultDeviceSetupClose" type="button" class="vault-device-close">إغلاق</button>
+</dialog>
 <div id="toast"></div>
 <script src="./vault-crypto.js?v=20261117-1"></script>
+<script src="./vault-device-unlock.js?v=20261118-1"></script>
 <script>
 requestAnimationFrame(()=>setTimeout(()=>{
 
@@ -2068,6 +2086,8 @@ function showVaultGate(mode,message){
  const gate=$('vaultGate'),title=$('vaultTitle'),description=$('vaultDescription');
  const confirmRow=$('vaultConfirmRow'),confirmInput=$('vaultPasswordConfirm');
  const passwordInput=$('vaultPassword'),submit=$('vaultSubmit');
+ const passwordFields=$('vaultPasswordFields'),deviceUnlock=$('vaultDeviceUnlock');
+ const fallbackToggle=$('vaultPasswordFallbackToggle'),deviceManage=$('vaultDeviceManage');
  if(!gate)return;
  gate.hidden=false;
  title.textContent=mode==='unlock'?'افتح خزنة مفكرة أنوار':'أنشئ خزنة مفكرة أنوار';
@@ -2083,10 +2103,20 @@ function showVaultGate(mode,message){
  passwordInput.autocomplete=mode==='unlock'?'current-password':'new-password';
  passwordInput.placeholder=mode==='unlock'?'عبارة المرور التي اخترتها':'12 محرفًا على الأقل';
  submit.textContent=mode==='unlock'?'فتح الخزنة':'تشفير المفكرة وفتحها';
+ const deviceApi=globalThis.AnwarDeviceUnlock;
+ const deviceConfigured=mode==='unlock'&&!!(deviceApi&&deviceApi.isConfigured());
+ deviceUnlock.hidden=!deviceConfigured;
+ fallbackToggle.hidden=!deviceConfigured;
+ passwordFields.hidden=deviceConfigured;
+ deviceManage.hidden=mode!=='unlock'||!deviceApi;
+ deviceManage.textContent=deviceConfigured?'إدارة فتح الهاتف':'إعداد فتح الهاتف';
  $('vaultError').textContent='';
  submit.disabled=false;
  passwordInput.disabled=false;
- requestAnimationFrame(()=>passwordInput.focus());
+ requestAnimationFrame(()=>{
+  if(deviceConfigured)deviceUnlock.focus();
+  else if(!passwordFields.hidden)passwordInput.focus();
+ });
 }
 function continueVaultAfterRecovery(){
  if(vaultUnlocked)return;
@@ -2207,9 +2237,9 @@ async function bootVault(){
  showVaultGate('setup');
  theme();chips();openNote(null);
 }
-async function submitVaultForm(event){
- event.preventDefault();
- const password=$('vaultPassword').value;
+async function submitVaultForm(event,suppliedPassword){
+ if(event&&typeof event.preventDefault==='function')event.preventDefault();
+ const password=typeof suppliedPassword==='string'?suppliedPassword:$('vaultPassword').value;
  const confirmation=$('vaultPasswordConfirm').value;
  const submit=$('vaultSubmit');
  const showError=message=>{$('vaultError').textContent=message};
@@ -2297,6 +2327,103 @@ async function submitVaultForm(event){
   $('vaultPassword').disabled=false;
   $('vaultPasswordConfirm').disabled=vaultGateMode!=='setup';
  }
+}
+async function unlockVaultWithDevice(){
+ const button=$('vaultDeviceUnlock');
+ if(!globalThis.AnwarDeviceUnlock||!AnwarDeviceUnlock.isConfigured()){
+  $('vaultError').textContent='لم يُعثر على إعداد صالح لفتح الهاتف. استخدم كلمة المرور الأساسية.';
+  showVaultGate('unlock','استخدم كلمة المرور الأساسية لفتح الخزنة.');
+  return;
+ }
+ button.disabled=true;
+ $('vaultError').textContent='تحقق من قفل الهاتف في نافذة النظام…';
+ let password='';
+ try{
+  password=await AnwarDeviceUnlock.unlockPassword();
+  await submitVaultForm({preventDefault(){}},password);
+ }catch(error){
+  $('vaultError').textContent=error&&error.message?error.message:'تعذّر فتح الخزنة بقفل الهاتف. استخدم كلمة المرور الأساسية.';
+ }finally{
+  password='';
+  button.disabled=false;
+ }
+}
+function openVaultDeviceSetupDialog(){
+ const dialog=$('vaultDeviceSetupDialog');
+ const configured=AnwarDeviceUnlock.isConfigured();
+ const supported=AnwarDeviceUnlock.supported();
+ $('vaultDeviceSetupPassword').value='';
+ $('vaultDeviceSetupForm').hidden=configured||!supported;
+ $('vaultDeviceDisableBtn').hidden=!configured;
+ $('vaultDeviceSetupStatus').textContent=configured
+  ?'الفتح السريع مفعّل لهذا المتصفح. يمكنك تعطيله من هنا.'
+  :supported
+   ?'عند التفعيل سيُطلب تحقق الهاتف الآمن. ستبقى كلمة المرور الأساسية وسيلة الاسترداد.'
+   :'هذا المتصفح أو الجهاز لا يدعم ميزة الاعتماد الآمن المطلوبة. يمكنك متابعة استخدام كلمة المرور الأساسية.';
+ if(dialog&&!dialog.open)dialog.showModal();
+}
+async function submitVaultDeviceSetup(event){
+ event.preventDefault();
+ const button=$('vaultDeviceSetupSubmit');
+ const input=$('vaultDeviceSetupPassword');
+ const password=input.value;
+ if(Array.from(password).length<12){$('vaultDeviceSetupStatus').textContent='أدخل كلمة المرور الأساسية كاملة.';return}
+ button.disabled=true;
+ $('vaultDeviceSetupStatus').textContent='يجري التحقق من كلمة المرور وتجهيز قفل الهاتف…';
+ const wasLocked=!vaultUnlocked;
+ try{
+  let verified=null;
+  if(vaultUnlocked){
+   if(tm){clearTimeout(tm);tm=null;flushPendingEdit(false)}
+   await vaultSaveQueue;
+   if(vaultLastWriteError)throw new Error('لم يكتمل آخر حفظ. أصلح الحفظ قبل تفعيل قفل الهاتف.');
+   if(!vaultTemplate)throw new Error('تعذّر العثور على إعداد الخزنة الحالي.');
+   verified=await AnwarVaultCrypto.decryptEnvelope(password,vaultTemplate);
+   if(verified.plaintext!==JSON.stringify(S))throw new Error('تغيّرت بيانات المفكرة أثناء التحقق. أعد المحاولة بعد اكتمال الحفظ.');
+  }else{
+   let primary=null,backup=null;
+   try{
+    primary=localStorage.getItem(VAULT_STORAGE_KEY);
+    backup=localStorage.getItem(VAULT_BACKUP_KEY);
+   }catch(error){throw new Error('تعذّر الوصول إلى الخزنة. لم تتغير أي بيانات.')}
+   const candidates=[primary,backup].filter(Boolean);
+   let lastError=null;
+   for(const raw of candidates){
+    try{
+     verified=await AnwarVaultCrypto.decryptEnvelope(password,JSON.parse(raw));
+     readStoredState(verified.plaintext);
+     break;
+    }catch(error){lastError=error}
+   }
+   if(!verified)throw new Error(candidates.length?'لم تطابق كلمة المرور الخزنة أو نسختها الاحتياطية.':'لم يُعثر على خزنة مشفرة يمكن التحقق منها.');
+  }
+  await AnwarDeviceUnlock.protectPassword(password);
+  input.value='';
+  $('vaultDeviceSetupStatus').textContent='تم تفعيل الفتح بقفل الهاتف. ستظل كلمة المرور الأساسية لازمة للاسترداد.';
+  $('vaultDeviceSetupForm').hidden=true;
+  $('vaultDeviceDisableBtn').hidden=false;
+  $('vaultDeviceSetupDialog').close();
+  if(wasLocked)showVaultGate('unlock','يمكنك الآن فتح الخزنة بقفل الهاتف، أو استخدام كلمة المرور الأساسية.');
+  toast('تم تفعيل الفتح بقفل الهاتف.',3500);
+ }catch(error){
+  input.value='';
+  $('vaultDeviceSetupStatus').textContent=error&&error.message?error.message:'تعذّر التفعيل. بقيت الخزنة وكلمة المرور الأساسية دون تغيير.';
+ }finally{
+  button.disabled=false;
+ }
+}
+function disableVaultDeviceUnlock(){
+ if(!AnwarDeviceUnlock.isConfigured()){$('vaultDeviceSetupStatus').textContent='لا يوجد فتح سريع مفعّل.';return}
+ if(!confirm('سيُعطّل فتح المفكرة بقفل الهاتف على هذا المتصفح. لن تتأثر الخزنة أو كلمة المرور الأساسية. هل تتابع؟'))return;
+ try{
+  AnwarDeviceUnlock.disable();
+  $('vaultDeviceDisableBtn').hidden=true;
+  $('vaultDeviceSetupForm').hidden=!AnwarDeviceUnlock.supported();
+  $('vaultDeviceSetupStatus').textContent='تم تعطيل الفتح السريع لهذه المفكرة. قد يبقى اعتمادها ظاهرًا في مدير كلمات المرور بالنظام، لكنه لم يعد مرتبطًا بالخزنة هنا.';
+  $('vaultDeviceSetupDialog').close();
+  if(!vaultUnlocked)showVaultGate('unlock','استخدم كلمة المرور الأساسية لفتح الخزنة.');
+  toast('تم تعطيل الفتح السريع. كلمة المرور الأساسية ما زالت تعمل.',4500);
+ }catch(error){$('vaultDeviceSetupStatus').textContent=error.message||'تعذّر تعطيل الفتح السريع.'}
 }
 async function lockVault(){
  if(!vaultUnlocked)return;
@@ -3306,6 +3433,30 @@ button:focus:not(:focus-visible){outline:none}
 .country-reader-seal .anwar-tulip-img{width:23px;height:30px}
 </style></head><body>${$('pa').innerHTML}\x3Cscript>onload=function(){setTimeout(function(){print()},900)}<\/script>
 
+
+<style id="anwar-device-unlock-ui">
+#vaultPasswordFields[hidden],#vaultDeviceUnlock[hidden],#vaultPasswordFallbackToggle[hidden],#vaultDeviceManage[hidden],#vaultDeviceDisableBtn[hidden],#vaultDeviceSetupForm[hidden]{display:none!important}
+#vaultGate .vault-device-action,#vaultGate .vault-password-fallback,#vaultGate .vault-device-manage{
+ width:100%;min-height:45px;margin:0 0 8px;padding:9px 12px;border:1px solid #b7c9df;border-radius:10px;
+ background:#edf4fc;color:#183d66;font-weight:800
+}
+#vaultGate .vault-device-action{border-color:#b58b45;background:linear-gradient(135deg,#fff5da,#ead39c);color:#453315}
+#vaultGate .vault-password-fallback{background:#fff;color:#35516e;font-size:12px}
+#vaultGate .vault-device-manage{min-height:38px;background:transparent;color:#52677f;font-size:11px}
+#vaultGate button:disabled{opacity:.55}
+#vaultDeviceSetupDialog{width:min(92vw,430px);padding:20px;border:1px solid #c9a96a;border-radius:16px;background:#fff;color:#1b3049;box-shadow:0 18px 55px #0004}
+#vaultDeviceSetupDialog::backdrop{background:#071a31b8;backdrop-filter:blur(5px)}
+#vaultDeviceSetupDialog h2{margin:0 0 9px;text-align:center;font:700 22px 'Aref Ruqaa',Amiri,serif;color:#174477}
+#vaultDeviceSetupDialog .vault-device-explanation{margin:0 0 14px;color:#5c6b7d;font-size:12px;line-height:1.9;text-align:center}
+#vaultDeviceSetupDialog label{display:block;margin:9px 0 5px;font-size:12px;font-weight:800}
+#vaultDeviceSetupDialog input{width:100%;min-height:44px;padding:9px 11px;border:1px solid #ccd6e3;border-radius:9px;background:#f8fafc;color:#152943;text-align:left;direction:ltr}
+#vaultDeviceSetupDialog form button,#vaultDeviceDisableBtn,#vaultDeviceSetupClose{width:100%;min-height:42px;margin-top:9px;padding:8px 11px;border:1px solid #b9c8d9;border-radius:9px;background:#174477;color:white;font-weight:800}
+#vaultDeviceDisableBtn{background:#fff4f1;border-color:#d5a39b;color:#923a32}
+#vaultDeviceSetupClose{background:#f3f5f8;color:#43566e}
+#vaultDeviceSetupStatus{min-height:22px;margin:10px 0 3px;color:#53677e;font-size:11px;line-height:1.8}
+#vaultDeviceSetupDialog button:disabled{opacity:.55}
+@media(max-width:520px){#vaultDeviceSetupDialog{padding:17px;border-radius:13px}}
+</style>
 
 </body></html>`;
  try{await dl.save({filename:((cur.title||'أنوار').replace(/[\\/:*?"<>|]/g,'-').slice(0,60))+'.html',data:new Blob([h],{type:'text/html'})});toast('افتح الملف المنزَّل وستظهر نافذة الطباعة تلقائيًا',5000)}catch(e){}
@@ -5077,6 +5228,18 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  document.addEventListener('keydown',e=>{if(e.key==='Escape')panel.classList.remove('open')});refresh();
 })();
 $('vaultForm').addEventListener('submit',submitVaultForm);
+$('vaultDeviceUnlock').addEventListener('click',unlockVaultWithDevice);
+$('vaultPasswordFallbackToggle').addEventListener('click',()=>{
+ $('vaultPasswordFields').hidden=false;
+ $('vaultPasswordFallbackToggle').hidden=true;
+ $('vaultPassword').value='';
+ $('vaultPassword').disabled=false;
+ $('vaultPassword').focus();
+});
+$('vaultDeviceManage').addEventListener('click',openVaultDeviceSetupDialog);
+$('vaultDeviceSetupForm').addEventListener('submit',submitVaultDeviceSetup);
+$('vaultDeviceDisableBtn').addEventListener('click',disableVaultDeviceUnlock);
+$('vaultDeviceSetupClose').addEventListener('click',()=>$('vaultDeviceSetupDialog').close());
 $('backupPassword').value='';
 bootVault();
 
