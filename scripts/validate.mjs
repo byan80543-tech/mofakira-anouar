@@ -10,6 +10,7 @@ const vaultDeviceUnlock=fs.readFileSync(path.join(root,'vault-device-unlock.js')
 const toolbarBackNavigation=fs.readFileSync(path.join(root,'toolbar-back-navigation.js'),'utf8');
 const apiGatewayConfig=fs.readFileSync(path.join(root,'api-gateway-config.js'),'utf8');
 const apiGatewayWorker=fs.readFileSync(path.join(root,'workers/anwar-api-gateway/src/index.mjs'),'utf8');
+const apiGatewayDeployWorkflow=fs.readFileSync(path.join(root,'.github/workflows/deploy-anwar-api-gateway.yml'),'utf8');
 const clickGuard=fs.readFileSync(path.join(root,'click-guard.js'),'utf8');
 const iconGenerator=fs.readFileSync(path.join(root,'scripts/generate-pwa-icons.py'),'utf8');
 const failures=[];
@@ -68,8 +69,12 @@ ok(apiGatewayConfig.includes('ANWAR_API_GATEWAY_BASE') && apiGatewayConfig.inclu
 ok(html.includes('https://*.workers.dev') && apiGatewayWorker.includes('export class IpRateLimiter'),'CSP permits the future Worker endpoint and the gateway exports its Durable Object limiter');
 ok(apiGatewayWorker.includes('CF-Connecting-IP') && apiGatewayWorker.includes('idFromName("anwar-api-gateway-global-rate-limiter")') && apiGatewayWorker.includes('Retry-After'),'API gateway applies global and per-IP limits in one Durable Object call');
 ok(apiGatewayWorker.includes('IP_HASH_SECRET') && apiGatewayWorker.includes('name: "HMAC"'),'IP rate-limit keys use a Cloudflare-only HMAC secret instead of storing raw IP addresses');
-ok(apiGatewayWorker.includes('total: { limit: 600') && apiGatewayWorker.includes('client: { limit: 120'),'gateway enforces a site-wide request ceiling plus a per-IP ceiling');
+ok(apiGatewayWorker.includes('total: { limit: 50') && apiGatewayWorker.includes('client: { limit: 30'),'gateway stays within its daily free-tier accepted-request budget and per-IP ceiling');
+ok(apiGatewayWorker.includes('storage.get("anwar-rate-state-v1")') && apiGatewayWorker.includes('storage.put("anwar-rate-state-v1", state)'),'rate limiter persists all counters through one SQLite-backed storage row per accepted request');
 ok(apiGatewayWorker.includes('env.EDGE_LIMITER.limit') && apiGatewayWorker.includes('edgeDecision.success'),'gateway applies an edge rate check before the strict global Durable Object check');
+ok(apiGatewayDeployWorkflow.includes('workflow_dispatch:') && apiGatewayDeployWorkflow.includes('cloudflare/wrangler-action@v4'),'Cloudflare Worker deployment is manual and uses the official Wrangler GitHub Action');
+ok(apiGatewayDeployWorkflow.includes('CLOUDFLARE_API_TOKEN') && apiGatewayDeployWorkflow.includes('CLOUDFLARE_ACCOUNT_ID') && apiGatewayDeployWorkflow.includes('IP_HASH_SECRET'),'deployment reads Cloudflare credentials and HMAC key only from repository secrets');
+
 ok(apiGatewayWorker.includes('ALLOWED_COUNTRY_CODES') && !apiGatewayWorker.includes('searchParams.get("url")'),'API gateway restricts country parameters and does not expose an open URL proxy');
 
 ok(html.includes('<script src="click-guard.js" defer></script>'),'click-burst guard is loaded as a same-origin deferred script');
