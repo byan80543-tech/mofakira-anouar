@@ -1,21 +1,40 @@
-/* Cache only local app shell; remote audio, APIs and fonts are never cached.
- * Release rule: bump CACHE_NAME on every published app update so open tabs can detect it.
+/* Cache only the local app shell; remote audio and APIs remain network-only.
+ * Bump CACHE_NAME for each published release.
  */
 'use strict';
-const CACHE_NAME='anwar-shell-2026-11-18-v51';
+const CACHE_NAME='anwar-shell-2026-11-18-v52';
 const APP_BASE=new URL('./',self.registration.scope);
-const SHELL_ASSETS=['./','./index.html','./manifest.webmanifest','./vault-crypto.js','./vault-device-unlock.js','./toolbar-back-navigation.js','./update-notice.js','./update-notice.css','./assets/royal-rose-closed.svg','./assets/royal-rose-open.svg','./assets/tulip-cutout.svg'];
-self.addEventListener('install',event=>{event.waitUntil((async()=>{const cache=await caches.open(CACHE_NAME);await cache.addAll(SHELL_ASSETS);await self.skipWaiting()})())});
-self.addEventListener('activate',event=>{event.waitUntil((async()=>{const keys=await caches.keys();await Promise.all(keys.filter(key=>key.startsWith('anwar-shell-')&&key!==CACHE_NAME).map(key=>caches.delete(key)));await self.clients.claim()})())});
+const SHELL_ASSETS=['./','./index.html','./manifest.webmanifest','./vault-crypto.js','./vault-device-unlock.js','./toolbar-back-navigation.js','./update-notice-v2.js','./update-notice-v2.css','./assets/royal-rose-closed.svg','./assets/royal-rose-open.svg','./assets/tulip-cutout.svg'];
+self.addEventListener('install',event=>{
+ event.waitUntil((async()=>{
+  const cache=await caches.open(CACHE_NAME);
+  await cache.addAll(SHELL_ASSETS);
+  // Deliberately do not call skipWaiting here; the visitor must approve the update.
+ })());
+});
+self.addEventListener('message',event=>{
+ if(!event.data||event.data.type!=='ANOUAR_ACTIVATE_UPDATE')return;
+ const sourceUrl=event.source&&event.source.url;
+ if(!sourceUrl)return;
+ let source;
+ try{source=new URL(sourceUrl)}catch(error){return}
+ if(source.origin!==self.location.origin||!source.pathname.startsWith(APP_BASE.pathname))return;
+ event.waitUntil(self.skipWaiting());
+});
+self.addEventListener('activate',event=>{
+ event.waitUntil((async()=>{
+  const keys=await caches.keys();
+  await Promise.all(keys.filter(key=>key.startsWith('anwar-shell-')&&key!==CACHE_NAME).map(key=>caches.delete(key)));
+  await self.clients.claim();
+ })());
+});
 async function networkFirst(request){
  const cache=await caches.open(CACHE_NAME);
  try{
-  // When online, return the current server response instead of showing stale HTML first.
   const response=await fetch(request);
   if(response&&response.ok&&response.type==='basic')await cache.put(request,response.clone());
   return response;
  }catch(error){
-  // Use the last known app shell only when the network is unavailable.
   const cached=await cache.match(request,{ignoreSearch:true})||
    await cache.match(APP_BASE.href)||
    await cache.match(new URL('index.html',APP_BASE).href);
@@ -31,10 +50,15 @@ async function cacheFirst(request){
  return response;
 }
 self.addEventListener('fetch',event=>{
- const request=event.request;if(request.method!=='GET')return;
+ const request=event.request;
+ if(request.method!=='GET')return;
  const url=new URL(request.url);
  if(url.origin!==self.location.origin||!url.pathname.startsWith(APP_BASE.pathname))return;
  if(request.mode==='navigate'){event.respondWith(networkFirst(request));return}
- // External streaming/audio/API hosts remain network-only.
+ // Keep update-checker code fresh even while the previous worker controls this page.
+ if(/\/(update-notice-v2\.js|update-notice-v2\.css)$/.test(url.pathname)){
+  event.respondWith(networkFirst(request));
+  return;
+ }
  event.respondWith(cacheFirst(request));
 });
