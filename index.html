@@ -3624,7 +3624,7 @@ button:focus:not(:focus-visible){outline:none}
 @media(max-width:520px){#vaultDeviceSetupDialog{padding:17px;border-radius:13px}}
 </style>
 
-</html>`;
+</body></html>`;
  try{await dl.save({filename:((cur.title||'أنوار').replace(/[\\/:*?"<>|]/g,'-').slice(0,60))+'.html',data:new Blob([h],{type:'text/html'})});toast('افتح الملف المنزَّل وستظهر نافذة الطباعة تلقائيًا',5000)}catch(e){}
 }
 async function doPrint(){
