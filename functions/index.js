@@ -12,10 +12,8 @@ const SOCIAL_META = `
 <meta property="og:url" content="${SITE_URL}">
 <meta property="og:image" content="${PREVIEW_IMAGE}">
 <meta property="og:image:secure_url" content="${PREVIEW_IMAGE}">
-<meta property="og:image:type" content="image/jpeg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="675">
-<meta property="og:image:alt" content="توليب وردي حقيقي بجوار كتاب مفتوح على مكتب أنيق">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:alt" content="زهور توليب وردية مع الهوية العربية لمفكرة أنوار">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${TITLE}">
 <meta name="twitter:description" content="${DESCRIPTION}">
