@@ -63,6 +63,7 @@ function makeHarness(initial={}){
     console:{warn(){},error(){}},
     Date,Math,JSON,Set,Number,String,Array,Object,Error,Blob:FakeBlob,URL:fakeURL,document:fakeDocument,
     setTimeout(){return 1},
+    matchMedia(){return {matches:true}},
     TYPES:{poem:'قصيدة',text:'نص',idea:'فكرة'},
     FONTS:['Amiri','Tajawal'],
     hasOwn:(o,k)=>Object.prototype.hasOwnProperty.call(o,k),
