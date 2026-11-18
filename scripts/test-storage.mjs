@@ -82,6 +82,7 @@ function makeHarness(initial={}){
     continueVaultAfterRecovery(){const primary=storage.getItem('anwar_v1');const backup=primary===null?storage.getItem('anwar_v1_backup_v2'):null;if(primary!==null)sandbox.S=JSON.parse(primary);else if(backup!==null)sandbox.S=JSON.parse(backup)},
     vaultKey:{testKey:true},vaultTemplate:{format:'mock-vault'},vaultUnlocked:true,
     vaultGateMode:'plain',
+    VAULT_IDLE_LOCK_MS:0,vaultIdleTimer:null,vaultLastActivityAt:0,
     vaultSaveQueue:Promise.resolve(),vaultLastWriteError:null,vaultBackupWarningShown:false,
     AnwarVaultCrypto:{
       async encryptWithKey(key,template,plaintext){return {format:'mock-vault',payload:String(plaintext).split('').reverse().join(''),salt:'test-salt'}},
