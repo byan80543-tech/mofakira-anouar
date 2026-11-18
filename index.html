@@ -6121,5 +6121,21 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
 </style>
 
 <script src="toolbar-back-navigation.js" defer></script>
+
+<style id="anwar-writing-toolbar-layout-v3">
+/* شريط الكتابة على الهاتف: تقريب اسم المفكرة من زر الرجوع وتوسيع المسافة بين الأيقونات */
+@media(max-width:800px){
+  .app.ed > .tb{gap:9px!important}
+  .app.ed > .tb .brand{
+    flex:0 0 auto!important;
+    min-width:max-content!important;
+    justify-content:flex-start!important;
+    margin-inline-end:auto!important;
+  }
+}
+@media(max-width:380px){
+  .app.ed > .tb{gap:6px!important}
+}
+</style>
 </body>
 </html>
