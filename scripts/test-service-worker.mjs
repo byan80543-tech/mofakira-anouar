@@ -89,13 +89,13 @@ assert.equal(cacheObjects.has('anwar-shell-old'),false,'activate deletes previou
 assert.equal(cacheObjects.has('unrelated-cache'),true,'activate preserves caches owned by other applications');
 assert.equal(clientsClaimed,true,'activate claims controlled clients');
 
-const firstRoute=new URL('first-online-route/',scopeUrl).href;
+const firstRoute=new URL('./',scopeUrl).href;
 const firstNavigation=makeFetchEvent({url:firstRoute,method:'GET',mode:'navigate'});
 listeners.get('fetch')(firstNavigation);
 const firstResponse=await firstNavigation.response;
-assert.match(await firstResponse.text(),/^network:/,'first navigation uses the network when no page is cached');
+assert.equal(await firstResponse.text(),'cached:./index.html','the precached app shell is shown immediately on the first controlled navigation');
 await firstNavigation.lifecycle;
-assert.ok(store.has(firstRoute),'first successful navigation is cached for later visits');
+assert.equal(store.get(firstRoute)?.body,'network:'+firstRoute+':'+fetchSequence,'the first controlled navigation refreshes the shell from the network in the background');
 
 const onlineRoute=new URL('cached-route/',scopeUrl).href;
 store.set(onlineRoute,new TestResponse('previously-cached-page'));
