@@ -1305,6 +1305,14 @@ dialog[open]>.float-head{display:none!important}
 .anwar-tasbih-label{margin-top:1px;color:var(--mu);font:700 10px Cairo,Tahoma,sans-serif}
 .anwar-tasbih-select{width:min(100%,430px);min-height:40px;padding:7px 10px;border:1px solid var(--bd);border-radius:9px;background:var(--sf);color:var(--tx);font:12px Cairo,Tahoma,sans-serif;text-align:center}
 .anwar-tasbih-select:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.anwar-custom-dhikr{width:min(100%,430px);display:grid;gap:6px;margin:2px 0 4px;text-align:right}
+.anwar-custom-dhikr>label{color:var(--mu);font:700 11px Cairo,Tahoma,sans-serif}
+.anwar-custom-dhikr-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px}
+.anwar-custom-dhikr-row input{width:100%;min-width:0;min-height:40px;padding:8px 10px;border:1px solid var(--bd);border-radius:9px;background:var(--sf);color:var(--tx);font:12px Cairo,Tahoma,sans-serif;text-align:right}
+.anwar-custom-dhikr-row input:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.anwar-custom-dhikr-row button{min-width:72px;min-height:40px;padding:7px 12px;border:1px solid var(--ac);border-radius:9px;background:var(--ac);color:#fff;font:700 11px Cairo,Tahoma,sans-serif}
+.anwar-custom-dhikr>small{color:var(--mu);font:10px/1.7 Cairo,Tahoma,sans-serif}
+@media(max-width:360px){.anwar-custom-dhikr-row{grid-template-columns:1fr}.anwar-custom-dhikr-row button{width:100%}}
 .anwar-tasbih-counter{display:grid;justify-items:center;gap:0;margin-top:2px}
 .anwar-tasbih-counter strong{color:var(--ac);font:700 clamp(38px,10vw,56px)/1.15 Cairo,Tahoma,sans-serif;font-variant-numeric:tabular-nums}
 .anwar-tasbih-counter span{color:var(--mu);font:10px Cairo,Tahoma,sans-serif}
@@ -2029,6 +2037,14 @@ dialog[open]>.float-head{display:none!important}
      <optgroup label="الاستغفار والتوبة"><option>أستغفر الله</option><option selected>أستغفر الله العظيم وأتوب إليه</option><option>أستغفر الله العظيم الذي لا إله إلا هو الحي القيوم وأتوب إليه</option><option>رب اغفر لي وتب علي إنك أنت التواب الرحيم</option><option>اللهم إنك عفو تحب العفو فاعف عني</option></optgroup>
      <optgroup label="أذكار وأدعية جامعة"><option>اللهم صل وسلم على نبينا محمد</option><option>اللهم أعني على ذكرك وشكرك وحسن عبادتك</option><option>لا إله إلا أنت سبحانك إني كنت من الظالمين</option><option>حسبي الله لا إله إلا هو عليه توكلت وهو رب العرش العظيم</option><option>رضيت بالله ربا وبالإسلام دينا وبمحمد نبيا</option><option>يا حي يا قيوم برحمتك أستغيث</option><option>ربنا آتنا في الدنيا حسنة وفي الآخرة حسنة وقنا عذاب النار</option><option>اللهم اكفني بحلالك عن حرامك وأغنني بفضلك عمن سواك</option></optgroup>
     </select>
+    <div class="anwar-custom-dhikr">
+     <label for="tasbihCustomDhikrInput">أضف ذكراً من اختيارك</label>
+     <div class="anwar-custom-dhikr-row">
+      <input id="tasbihCustomDhikrInput" type="text" maxlength="200" autocomplete="off" placeholder="اكتب الذكر الذي ترغب في إضافته">
+      <button type="button" id="tasbihAddCustomDhikr">إضافة الذكر</button>
+     </div>
+     <small id="tasbihCustomDhikrStatus" role="status" aria-live="polite">تُحفظ أذكارك المضافة على هذا الجهاز لتختارها لاحقاً.</small>
+    </div>
     <div class="anwar-tasbih-counter" aria-live="polite"><strong id="tasbihCount">0</strong><span>عدد التسبيحات</span></div>
     <div class="anwar-tasbih-actions"><button type="button" id="tasbihMinus" class="anwar-tasbih-small" aria-label="إنقاص العدد">−</button><button type="button" id="tasbihTap" class="anwar-tasbih-tap" aria-label="سجل تسبيحة واحدة">سبّح</button><button type="button" id="tasbihReset" class="anwar-tasbih-small" aria-label="تصفير العداد">↺</button></div>
     <section class="anwar-tasbih-voice" id="tasbihVoicePanel" data-state="idle" aria-label="التسجيل الصوتي للسبحة">
@@ -2143,7 +2159,8 @@ dialog[open]>.float-head{display:none!important}
    readerAdvance:source.readerAdvance==='s'?'s':'c',
    tasbih:{
     count:Number.isSafeInteger(count)?Math.max(0,Math.min(1000000000,count)):0,
-    dhikr:typeof tasbih.dhikr==='string'&&tasbih.dhikr.trim()?tasbih.dhikr.trim().slice(0,200):DEFAULT_DHIKR
+    dhikr:typeof tasbih.dhikr==='string'&&tasbih.dhikr.trim()?tasbih.dhikr.trim().slice(0,200):DEFAULT_DHIKR,
+    customDhikrs:Array.isArray(tasbih.customDhikrs)?[...new Set(tasbih.customDhikrs.filter(item=>typeof item==='string').map(item=>item.trim().replace(/\s+/g,' ').slice(0,200)).filter(Boolean))].slice(0,30):[]
    }
   };
  }
@@ -5946,23 +5963,43 @@ window.AnouarUpdateBridge = Object.freeze({
  const toggleButton=$('adhkarTasbihToggle'),closeButton=$('tasbihClose');
  const ownerDialog=$('ownerDialog'),countNode=$('tasbihCount'),phraseNode=$('tasbihPhrase');
  const select=$('tasbihDhikr'),tap=$('tasbihTap'),minus=$('tasbihMinus'),reset=$('tasbihReset');
+ const customInput=$('tasbihCustomDhikrInput'),customAdd=$('tasbihAddCustomDhikr'),customStatus=$('tasbihCustomDhikrStatus');
  const voicePanel=$('tasbihVoicePanel'),voiceButton=$('tasbihVoice');
  const voiceState=$('tasbihVoiceState'),voiceButtonLabel=$('tasbihVoiceButtonLabel');
  const voiceStatus=$('tasbihVoiceStatus'),voiceTranscript=$('tasbihVoiceTranscript');
- if(!panel||!toggleButton||!closeButton||!ownerDialog||!select||!voicePanel||!voiceButton)return;
+ if(!panel||!toggleButton||!closeButton||!ownerDialog||!select||!voicePanel||!voiceButton||!customInput||!customAdd||!customStatus)return;
  const privatePreferences=globalThis.AnwarPrivatePreferences;
  let count=0,recognition=null,voiceActive=false;
  let processedFinalIndexes=new Set();
  const initialTasbih=privatePreferences.get().tasbih;
+ let customDhikrs=initialTasbih.customDhikrs.slice();
+ function renderCustomDhikrs(){
+  const previous=select.querySelector('optgroup[data-anwar-custom-dhikrs]');
+  if(previous)previous.remove();
+  if(!customDhikrs.length)return;
+  const group=document.createElement('optgroup');
+  group.label='أذكاري المضافة';
+  group.dataset.anwarCustomDhikrs='true';
+  customDhikrs.forEach(dhikr=>{
+   const option=document.createElement('option');
+   option.value=dhikr;
+   option.textContent=dhikr;
+   group.appendChild(option);
+  });
+  select.appendChild(group);
+ }
+ renderCustomDhikrs();
  count=initialTasbih.count;
  if([...select.options].some(option=>option.value===initialTasbih.dhikr))select.value=initialTasbih.dhikr;
  function paint(persist=true){
   countNode.textContent=count.toLocaleString('ar');
-  if(persist)privatePreferences.set('tasbih',{count,dhikr:select.value});
+  if(persist)privatePreferences.set('tasbih',{count,dhikr:select.value,customDhikrs});
  }
  privatePreferences.subscribe(preferences=>{
   const saved=preferences.tasbih;
   count=saved.count;
+  customDhikrs=saved.customDhikrs.slice();
+  renderCustomDhikrs();
   if([...select.options].some(option=>option.value===saved.dhikr))select.value=saved.dhikr;
   phraseNode.textContent=select.value;
   countNode.textContent=count.toLocaleString('ar');
@@ -5971,6 +6008,41 @@ window.AnouarUpdateBridge = Object.freeze({
   count=Math.max(0,count+n);paint();
   const el=panel.querySelector('.anwar-tasbih-counter');
   if(el&&typeof el.animate==='function')el.animate([{transform:'scale(1)'},{transform:'scale(1.045)'},{transform:'scale(1)'}],{duration:220,easing:'ease-out'});
+ }
+ function addCustomDhikr(){
+  const value=String(customInput.value||'').replace(/\s+/g,' ').trim();
+  if(!value){
+   customStatus.textContent='اكتب الذكر أولاً ثم اضغط إضافة.';
+   customInput.focus();
+   return;
+  }
+  if(value.length>200){
+   customStatus.textContent='الحد الأقصى لطول الذكر هو 200 حرف.';
+   customInput.focus();
+   return;
+  }
+  const existing=[...select.options].find(option=>option.value===value);
+  if(existing){
+   select.value=value;
+   phraseNode.textContent=value;
+   count=0;paint();
+   customInput.value='';
+   customStatus.textContent='هذا الذكر موجود في القائمة، وقد تم اختياره.';
+   return;
+  }
+  if(customDhikrs.length>=30){
+   customStatus.textContent='وصلت إلى الحد الأقصى وهو 30 ذكراً مضافاً.';
+   return;
+  }
+  customDhikrs.push(value);
+  renderCustomDhikrs();
+  select.value=value;
+  phraseNode.textContent=value;
+  count=0;paint();
+  customInput.value='';
+  customStatus.textContent='تمت إضافة الذكر وحفظه على هذا الجهاز. يمكنك اختياره لاحقاً من القائمة.';
+  voiceTranscript.textContent='بانتظار نطق الذكر المختار.';
+  setVoiceState(voiceActive?'listening':'idle','تم اختيار الذكر الجديد. سيُحسب عند نطقه كاملاً.');
  }
  function setVoiceState(state,message){
   voicePanel.dataset.state=state;
@@ -6021,6 +6093,10 @@ window.AnouarUpdateBridge = Object.freeze({
   closeButton.focus();
  }
  toggleButton.addEventListener('click',openPanel);
+ customAdd.addEventListener('click',addCustomDhikr);
+ customInput.addEventListener('keydown',event=>{
+  if(event.key==='Enter'){event.preventDefault();addCustomDhikr()}
+ });
  closeButton.addEventListener('click',()=>closePanel());
  $('ownerTab').addEventListener('click',()=>closePanel(false));
  $('shareTab').addEventListener('click',()=>closePanel(false));
