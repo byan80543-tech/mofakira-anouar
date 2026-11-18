@@ -14,7 +14,7 @@ const retrySource=extract('function retryStorageAccess(){','function restoreStor
 
 function makeHarness(initial={},failReads=false){
   const values=new Map(Object.entries(initial));
-  const calls={mode:null,message:null,legacyPrepared:false,recovery:null,opened:undefined,cleared:false,toasts:[],reads:[]};
+  const calls={mode:null,message:null,legacyPrepared:false,recovery:null,opened:undefined,cleared:false,finished:false,toasts:[],reads:[]};
   const sandbox={
     localStorage:{
       getItem(key){
@@ -25,11 +25,13 @@ function makeHarness(initial={},failReads=false){
     },
     VAULT_STORAGE_KEY:'anwar_vault_v1',
     VAULT_BACKUP_KEY:'anwar_vault_backup_v1',
+    VAULT_MODE_KEY:'anwar_vault_mode_v1',
     S:{notes:[]},
     vaultUnlocked:false,
     storageRecoveryBlocked:true,
     emptyStorageState(){return {notes:[]}},
     showVaultGate(mode,message){calls.mode=mode;calls.message=message},
+    finishVaultOpen(){calls.finished=true;sandbox.vaultUnlocked=true},
     prepareLegacyStateForVault(){calls.legacyPrepared=true;return true},
     showStorageRecoveryNotice(title,message,raw){calls.recovery={title,message,raw}},
     clearStorageRecovery(){calls.cleared=true;sandbox.storageRecoveryBlocked=false},
@@ -64,8 +66,14 @@ assert.equal(h.calls.legacyPrepared,false,'existing primary vault does not run f
 
 h=makeHarness();
 await h.api.bootVault();
-assert.equal(h.calls.mode,'setup','first launch without encrypted data prepares a new vault');
-assert.equal(h.calls.legacyPrepared,true,'first launch checks legacy plaintext before setup');
+assert.equal(h.calls.finished,true,'first launch opens directly in free mode without requiring a password');
+assert.equal(h.calls.mode,null,'first launch does not display the encryption setup gate');
+assert.equal(h.calls.legacyPrepared,true,'first launch checks and preserves legacy plaintext before opening');
+
+h=makeHarness({'anwar_vault_mode_v1':'plain','anwar_vault_v1':'stale-encrypted-copy'});
+await h.api.bootVault();
+assert.equal(h.calls.finished,true,'explicit free mode opens without asking for an old encryption password');
+assert.equal(h.calls.mode,null,'free mode bypasses stale encrypted copies after a verified plaintext switch');
 
 h=makeHarness({},true);
 await h.api.bootVault();
@@ -79,14 +87,15 @@ assert.match(h.calls.message,/نسخة احتياطية مشفرة/,'post-recove
 
 h=makeHarness();
 h.api.continueVaultAfterRecovery();
-assert.equal(h.calls.mode,'setup','post-recovery continuation shows setup only when no encrypted vault exists');
+assert.equal(h.calls.finished,true,'post-recovery continuation returns to free mode when no encrypted vault exists');
 
 h=makeHarness({'anwar_vault_backup_v1':'encrypted-backup'});
 assert.equal(h.api.retryStorageAccess(),true,'retry succeeds when access to backup-only vault returns');
 assert.equal(h.calls.mode,'unlock','retry opens the unlock gate for a backup-only vault');
 assert.match(h.calls.message,/نسخة احتياطية مشفرة/,'retry explains that the encrypted backup can be restored');
 assert.equal(h.calls.cleared,true,'retry clears the storage access warning');
-assert.deepEqual(h.calls.reads,['anwar_vault_v1','anwar_vault_backup_v1'],'retry checks the encrypted backup before touching legacy plaintext keys');
+assert.ok(h.calls.reads.includes('anwar_vault_mode_v1'),'retry checks the selected vault mode before deciding how to recover');
+assert.equal(h.calls.legacyPrepared,false,'backup recovery never imports legacy plaintext before password verification');
 
 h=makeHarness({'anwar_vault_v1':'encrypted-primary'});
 assert.equal(h.api.retryStorageAccess(),true,'retry recognizes an existing primary vault');
