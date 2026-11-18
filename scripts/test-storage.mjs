@@ -214,13 +214,13 @@ assert(flushed.html==='<div>آخر كتابة</div>'&&flushed.title==='آخر ك
 assert(flushed.history.length===1&&flushed.history[0].html==='<div>النص القديم</div>','flush preserves the previous version in note history');
 
 h=makeHarness();
-const unchanged=note('unchanged','نص تجريبي','<div>نص تجريبي</div>');
+const unchanged=note('unchanged','عنوان محفوظ قديماً','<div>نص تجريبي</div>');
 h.api.snapshot().S.notes.push(unchanged);
 h.api.activateEdit(unchanged,null,unchanged.html);
 assert(h.api.flushPendingEdit(false)===true,'flushing an unchanged open note is a successful no-op');
 assert(h.api.flushPendingEdit(false)===true,'a second lifecycle flush remains a no-op');
 await h.api.waitForWrites();
-assert(h.storage.writeCount===0,'unchanged pagehide/beforeunload flushes do not trigger repeated encrypted writes');
+assert(h.storage.writeCount===0&&unchanged.title==='عنوان محفوظ قديماً','unchanged pagehide/beforeunload flushes do not re-encrypt or rename a legacy note');
 
 // A fresh note remains an in-memory draft until the writer enters actual text.
 h=makeHarness();
