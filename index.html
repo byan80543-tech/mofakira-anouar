@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com 'sha256-oFs5WDYFzRqM+XbFfjwEaMMJiFaJ+Wm1cVMfupSfZJo=' 'sha256-4giI+ESUJtIatupQ0GRa19vnQYslezSh4XuPQ1lOMX8=' 'sha256-wYI6hHRUO1S/JI5u1R/fnK9fHzj/6IglQ1+CY82F1Co=' 'sha256-QYwkkTcnQ+I/GO9GzNxZiLL3+C66HISY56P+LRrjBz0='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.allorigins.win https://corsproxy.io; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com 'sha256-rsbo5QMSXq/H5qzEue4FF5jGpxPIg+I4nbK6bOe0hHI=' 'sha256-4giI+ESUJtIatupQ0GRa19vnQYslezSh4XuPQ1lOMX8=' 'sha256-wYI6hHRUO1S/JI5u1R/fnK9fHzj/6IglQ1+CY82F1Co=' 'sha256-QYwkkTcnQ+I/GO9GzNxZiLL3+C66HISY56P+LRrjBz0='        ; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.allorigins.win https://corsproxy.io; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>مفكرة أنوار | Anouar Oumlili</title>
@@ -3111,21 +3111,29 @@ function flushPendingEdit(updateList=true){
  if(tm){clearTimeout(tm);tm=null}
  if(!cur||storageRecoveryBlocked){pendingBefore=null;return false}
  const wasDraft=cur===draftNote;
+ const nextHtml=san(pg.innerHTML);
  const nextTitle=titleFromEditor();
- if(!wasDraft&&nextTitle!==cur.title&&pendingBefore===null)capturePendingBefore();
- cur.html=san(pg.innerHTML);
+ if(!wasDraft&&pendingBefore===null){
+  // A navigation-only flush must not rewrite an untouched note or rename a
+  // legacy title merely because the editor can derive a title from its body.
+  if(nextHtml===cur.html)return true;
+  capturePendingBefore();
+ }
+ cur.html=nextHtml;
  cur.title=nextTitle;
  $('t').value=cur.title;
  if(wasDraft){
   pendingBefore=null;
   if(!commitDraftIfReady())return true;
- }else if(pendingBefore){
-  const changed=pendingBefore.html!==cur.html||pendingBefore.title!==cur.title||pendingBefore.type!==cur.type||pendingBefore.font!==cur.font||pendingBefore.size!==cur.size||pendingBefore.paper!==(cur.paper||'plain');
-  if(changed){
-   cur.history=cur.history||[];
-   cur.history.push(pendingBefore);
-   cur.history=cur.history.slice(-15);
-  }
+ }else{
+  if(!pendingBefore)return true;
+  const previous=pendingBefore;
+  const changed=previous.html!==cur.html||previous.title!==cur.title||previous.type!==cur.type||previous.font!==cur.font||previous.size!==cur.size||previous.paper!==(cur.paper||'plain');
+  pendingBefore=null;
+  if(!changed)return true;
+  cur.history=cur.history||[];
+  cur.history.push(previous);
+  cur.history=cur.history.slice(-15);
  }
  pendingBefore=null;
  const ok=save();
@@ -3133,12 +3141,13 @@ function flushPendingEdit(updateList=true){
  return ok;
 }
 function titleFromEditor(){
- const firstBlock=Array.from(pg.children).find(block=>(block.innerText||block.textContent||'').replace(/\u200b/g,'').trim());
+ const blocks=Array.from(pg.children||[]);
+ const firstBlock=blocks.find(block=>(block.innerText||block.textContent||'').replace(/\u200b/g,'').trim());
  let raw='';
  if(firstBlock&&firstBlock.classList.contains('v')){
-  raw=Array.from(firstBlock.children).slice(0,2).map(cell=>(cell.innerText||cell.textContent||'').trim()).filter(Boolean).join(' — ');
+  raw=Array.from(firstBlock.children||[]).slice(0,2).map(cell=>(cell.innerText||cell.textContent||'').trim()).filter(Boolean).join(' — ');
  }else{
-  const source=firstBlock?(firstBlock.innerText||firstBlock.textContent||''):(pg.innerText||pg.textContent||'');
+  const source=firstBlock?(firstBlock.innerText||firstBlock.textContent||''):(pg.innerText||pg.textContent||plain(pg.innerHTML||''));
   raw=source.split(/\r?\n/).map(line=>line.replace(/\u200b/g,'').trim()).find(Boolean)||'';
  }
  return raw.replace(/\s+/g,' ').trim().slice(0,80);

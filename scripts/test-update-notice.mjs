@@ -80,6 +80,7 @@ class FakeWorker {
 function createHarness({ controller = true, bridge = null } = {}) {
   const serviceWorkerListeners = new Map();
   const documentListeners = new Map();
+  const windowListeners = new Map();
   const registrationListeners = new Map();
   const body = new FakeElement('body');
   const registration = {
@@ -126,8 +127,14 @@ function createHarness({ controller = true, bridge = null } = {}) {
   const window = {
     AnouarUpdateBridge: bridge,
     location: { reload() { reloadCalls++; } },
+    requestIdleCallback(handler, options) {
+      window.idleHandler = handler;
+      window.idleOptions = options;
+      return 1;
+    },
+    addEventListener(name, handler) { windowListeners.set(name, handler); },
     setInterval(handler, delay) {
-      assert.equal(delay, 300000, 'periodic update check runs every five minutes');
+      assert.equal(delay, 900000, 'periodic update check runs every fifteen minutes');
       window.intervalHandler = handler;
       return 1;
     },
@@ -139,7 +146,7 @@ function createHarness({ controller = true, bridge = null } = {}) {
     clearTimeout() {}
   };
   vm.runInNewContext(source, {
-    navigator: { serviceWorker },
+    navigator: { serviceWorker, onLine: true },
     document,
     window,
     location: { protocol: 'https:', hostname: 'example.test' },
@@ -152,6 +159,8 @@ function createHarness({ controller = true, bridge = null } = {}) {
     serviceWorker,
     window,
     reloadCount: () => reloadCalls,
+    triggerIdleCheck() { window.idleHandler?.(); },
+    triggerOnline() { windowListeners.get('online')?.(); },
     triggerControllerChange() { serviceWorker.emit('controllerchange'); },
     triggerVisibilityChange() { documentListeners.get('visibilitychange')?.(); },
     installWorker(worker) {
@@ -169,6 +178,11 @@ function createHarness({ controller = true, bridge = null } = {}) {
 
 const firstVisit = createHarness({ controller: false });
 await new Promise(resolve => setImmediate(resolve));
+assert.equal(firstVisit.registration.updateCalls, 0, 'the startup update check waits until the browser is idle');
+assert.equal(firstVisit.window.idleOptions?.timeout, 12000, 'the idle update check has a bounded fallback');
+firstVisit.triggerIdleCheck();
+await new Promise(resolve => setImmediate(resolve));
+assert.equal(firstVisit.registration.updateCalls, 1, 'the deferred startup update check runs once after first paint');
 const firstInstall = new FakeWorker('installing');
 firstVisit.installWorker(firstInstall);
 firstVisit.finishWorkerInstall(firstInstall);
