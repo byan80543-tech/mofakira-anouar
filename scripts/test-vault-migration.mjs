@@ -13,6 +13,7 @@ const extract=(start,end)=>{
 };
 const preferenceSource=extract('/* Encrypted private settings shared by the notebook modules. */','requestAnimationFrame(()=>setTimeout(()=>{');
 const clearSource=extract('function clearLegacyPlaintext(){','async function persistVaultSnapshot(plaintext){');
+const persistenceSource=extract('function importLegacyPrivatePreferences(base){','function finishVaultOpen(){');
 const submitSource=extract('async function submitVaultForm(event,suppliedPassword){','async function lockVault(){');
 
 function makeHarness({failVerification=false}={}){
@@ -50,9 +51,11 @@ function makeHarness({failVerification=false}={}){
     vaultKey:null,
     vaultTemplate:null,
     vaultReady:false,
+    vaultDisableAfterUnlock:false,
     vaultBackupWarningShown:false,
     VAULT_STORAGE_KEY:'anwar_vault_v1',
     VAULT_BACKUP_KEY:'anwar_vault_backup_v1',
+    VAULT_MODE_KEY:'anwar_vault_mode_v1',
     $:id=>elements[id]||(elements[id]={value:'',textContent:'',disabled:false,hidden:false}),
     readStoredState(value){return JSON.parse(value)},
     finishVaultOpen(){calls.finished=true;sandbox.vaultReady=true},
@@ -68,7 +71,7 @@ function makeHarness({failVerification=false}={}){
       async decryptWithKey(){throw new Error('simulated read-back verification failure')}
     });
   }
-  vm.runInNewContext(clearSource+'\n'+submitSource+'\nthis.run=submitVaultForm;',sandbox,{timeout:3000});
+  vm.runInNewContext(clearSource+'\n'+persistenceSource+'\n'+submitSource+'\nthis.run=submitVaultForm;',sandbox,{timeout:3000});
   return {sandbox,elements,data,operations,calls,run:sandbox.run,initialState};
 }
 
@@ -77,6 +80,7 @@ await successful.run({preventDefault(){}});
 const {sandbox,elements,data,operations,calls,initialState}=successful;
 assert.equal(calls.finished,true,'verified initial migration opens the vault');
 assert.equal(sandbox.vaultUnlocked,true,'vault unlocks only after verification');
+assert.equal(data.get('anwar_vault_mode_v1'),'encrypted','the encrypted mode marker is stored only after successful verification');
 const primaryText=data.get('anwar_vault_v1');
 const backupText=data.get('anwar_vault_backup_v1');
 assert.ok(primaryText&&backupText,'primary and secondary encrypted envelopes are stored');
