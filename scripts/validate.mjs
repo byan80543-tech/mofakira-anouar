@@ -8,6 +8,8 @@ const manifest=JSON.parse(fs.readFileSync(path.join(root,'manifest.webmanifest')
 const vaultCrypto=fs.readFileSync(path.join(root,'vault-crypto.js'),'utf8');
 const vaultDeviceUnlock=fs.readFileSync(path.join(root,'vault-device-unlock.js'),'utf8');
 const toolbarBackNavigation=fs.readFileSync(path.join(root,'toolbar-back-navigation.js'),'utf8');
+const apiGatewayConfig=fs.readFileSync(path.join(root,'api-gateway-config.js'),'utf8');
+const apiGatewayWorker=fs.readFileSync(path.join(root,'workers/anwar-api-gateway/src/index.mjs'),'utf8');
 const clickGuard=fs.readFileSync(path.join(root,'click-guard.js'),'utf8');
 const iconGenerator=fs.readFileSync(path.join(root,'scripts/generate-pwa-icons.py'),'utf8');
 const failures=[];
@@ -61,6 +63,12 @@ const paletteCycleCode=html.slice(paletteCycleStart,paletteCycleEnd);
 ok(paletteCycleStart>=0 && paletteCycleCode.includes("S.palette=palettes[(index+1+palettes.length)%palettes.length][0]") && !paletteCycleCode.includes("panel.classList.toggle('open')") && html.includes("#palettePanel{display:none!important}"),'palette icon cycles colors directly without opening the former popup');
 
 ok(html.includes('src="toolbar-back-navigation.js"'),'contextual back-navigation helper is loaded by the notebook');
+ok(html.includes('<script src="api-gateway-config.js"></script>'),'optional API gateway configuration loads before app interaction');
+ok(apiGatewayConfig.includes('ANWAR_API_GATEWAY_BASE') && apiGatewayConfig.includes('= \"\";'),'API gateway endpoint defaults to disabled until its deployed URL is configured');
+ok(html.includes('https://*.workers.dev') && apiGatewayWorker.includes('export class IpRateLimiter'),'CSP permits the future Worker endpoint and the gateway exports its Durable Object limiter');
+ok(apiGatewayWorker.includes('CF-Connecting-IP') && apiGatewayWorker.includes('idFromName(clientKey)') && apiGatewayWorker.includes('Retry-After'),'API gateway applies per-IP limits and emits retry instructions');
+ok(apiGatewayWorker.includes('ALLOWED_COUNTRY_CODES') && !apiGatewayWorker.includes('searchParams.get("url")'),'API gateway restricts country parameters and does not expose an open URL proxy');
+
 ok(html.includes('<script src="click-guard.js" defer></script>'),'click-burst guard is loaded as a same-origin deferred script');
 ok(fs.readFileSync(path.join(root,'service-worker.js'),'utf8').includes("'./click-guard.js'"),'service worker precaches the click-burst guard for offline use');
 ok(clickGuard.includes("doc.addEventListener('click',handleClick,true)") && clickGuard.includes('MAX_CLICKS=10') && clickGuard.includes('WINDOW_MS=2000') && clickGuard.includes('COOLDOWN_MS=5000'),'click guard enforces the 10-click rolling-window limit and five-second cooldown');
