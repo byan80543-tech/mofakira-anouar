@@ -1,5 +1,5 @@
 const SITE_URL = "https://mofakira-anouar.pages.dev/";
-const PREVIEW_IMAGE = "https://images.pexels.com/photos/33215776/pexels-photo-33215776/free-photo-of-elegant-still-life-of-tulips-and-open-book.jpeg?auto=compress&dpr=1&h=750&w=1260";
+const PREVIEW_IMAGE = "https://images.pexels.com/photos/33215776/pexels-photo-33215776/free-photo-of-elegant-still-life-of-tulips-and-open-book.jpeg?auto=compress&cs=tinysrgb&w=1200";
 const TITLE = "مفكرة أنوار الذكية";
 const DESCRIPTION = "مفكرة أدبية ذكية لكتابة القصائد والنصوص والأفكار وحفظها، مع أدوات للقراءة والمحتوى الصوتي والأذكار.";
 
@@ -13,6 +13,8 @@ const SOCIAL_META = `
 <meta property="og:image" content="${PREVIEW_IMAGE}">
 <meta property="og:image:secure_url" content="${PREVIEW_IMAGE}">
 <meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="675">
 <meta property="og:image:alt" content="توليب وردي حقيقي بجوار كتاب مفتوح على مكتب أنيق">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${TITLE}">
@@ -25,7 +27,7 @@ export async function onRequest(context) {
   const response = await context.next();
   const contentType = response.headers.get("content-type") || "";
 
-  // Modify only the HTML document served at the homepage; leave app assets untouched.
+  // Add social metadata only to the homepage HTML; leave app assets untouched.
   if (!contentType.toLowerCase().includes("text/html")) return response;
 
   return new HTMLRewriter()
