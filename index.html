@@ -2088,6 +2088,8 @@ dialog[open]>.float-head{display:none!important}
     <button id="vaultSubmit" type="submit">تشفير المفكرة وفتحها</button>
    </div>
   </form>
+  <button id="vaultDisableEncryptionBtn" type="button" hidden>إيقاف التشفير والاستخدام دون قفل</button>
+  <button id="vaultCancelSetupBtn" type="button" hidden>متابعة الاستخدام دون قفل</button>
   <p id="vaultError" role="alert" aria-live="polite"></p>
   <small class="vault-footnote">التشفير يتم على جهازك. لا تُرسل كلمة المرور إلى خادم. احتفظ بعبارة المرور ونسخة احتياطية مشفرة للاسترداد.</small>
  </section>
@@ -2167,10 +2169,10 @@ const FONTS=['Amiri','Amiri Quran','Aref Ruqaa','Aref Ruqaa Ink','Scheherazade N
 const PROMPTS=['اكتب عن رائحة المطر على أول تراب بعد غياب طويل','قصيدة عن ضوء مصباح وحيد في آخر الليل','ماذا يقول القمر لمن ينتظر؟','صف وجهًا لا تنساه دون أن تذكر ملامحه','اكتب رسالة إلى نفسك بعد عشر سنوات','قصيدة عن وطن يسكن حقيبة سفر','ما الذي تعلّمته من الصمت؟','اكتب عن قهوة الصباح كأنها صديق قديم','بيت شعر يبدأ بكلمة «لولا»','اكتب عن بابٍ لم تجرؤ على فتحه','قصيدة عن الحنين بثلاث صور فقط'];
 let S={notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[],preferences:globalThis.AnwarPrivatePreferences.normalize({})},cur=null,draftNote=null,flt='all',tm,speaking=false,saved=null,storageRecoveryBlocked=false,storageRecoveryRaw=null,storageRecoveryExported=false,storageRecoveryMode='none',storageRecoveryBackupAvailable=false;
 const $=id=>document.getElementById(id),pg=$('pg');
-const VAULT_STORAGE_KEY='anwar_vault_v1',VAULT_BACKUP_KEY='anwar_vault_backup_v1';
-let vaultKey=null,vaultTemplate=null,vaultUnlocked=false,vaultGateMode='setup',vaultReady=false;
+const VAULT_STORAGE_KEY='anwar_vault_v1',VAULT_BACKUP_KEY='anwar_vault_backup_v1',VAULT_MODE_KEY='anwar_vault_mode_v1';
+let vaultKey=null,vaultTemplate=null,vaultUnlocked=false,vaultGateMode='setup',vaultReady=false,vaultDisableAfterUnlock=false;
 let vaultSaveQueue=Promise.resolve(),vaultLastWriteError=null,vaultBackupWarningShown=false;
-const VAULT_IDLE_LOCK_MS=5*60*1000;
+const VAULT_IDLE_LOCK_MS=0; // القفل التلقائي معطّل؛ القفل يدوي باختيار صاحب المفكرة.
 let vaultIdleTimer=null,vaultLastActivityAt=0;
 const hasOwn=(object,key)=>Object.prototype.hasOwnProperty.call(object,key);
 const esc=s=>String(s??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
@@ -2265,7 +2267,7 @@ function clearVaultIdleTimer(){
 }
 function armVaultIdleTimer(){
  clearVaultIdleTimer();
- if(!vaultUnlocked)return;
+ if(!VAULT_IDLE_LOCK_MS||!vaultUnlocked)return;
  const remaining=VAULT_IDLE_LOCK_MS-(Date.now()-vaultLastActivityAt);
  vaultIdleTimer=setTimeout(()=>{
   vaultIdleTimer=null;
@@ -2280,17 +2282,19 @@ function recordVaultActivity(event){
  armVaultIdleTimer();
 }
 function enforceVaultIdleLock(){
- if(!vaultUnlocked)return;
+ if(!VAULT_IDLE_LOCK_MS||!vaultUnlocked)return;
  if(Date.now()-vaultLastActivityAt>=VAULT_IDLE_LOCK_MS){lockVault();return}
  armVaultIdleTimer();
 }
 function showVaultGate(mode,message){
  vaultGateMode=mode;
+ if(mode!=='unlock')vaultDisableAfterUnlock=false;
  const gate=$('vaultGate'),title=$('vaultTitle'),description=$('vaultDescription');
  const confirmRow=$('vaultConfirmRow'),confirmInput=$('vaultPasswordConfirm');
  const passwordInput=$('vaultPassword'),submit=$('vaultSubmit');
  const passwordFields=$('vaultPasswordFields'),deviceUnlock=$('vaultDeviceUnlock');
  const fallbackToggle=$('vaultPasswordFallbackToggle'),deviceManage=$('vaultDeviceManage');
+ const disableEncryption=$('vaultDisableEncryptionBtn'),cancelSetup=$('vaultCancelSetupBtn');
  if(!gate)return;
  gate.hidden=false;
  title.textContent=mode==='unlock'?'افتح خزنة مفكرة أنوار':'أنشئ خزنة مفكرة أنوار';
@@ -2313,6 +2317,8 @@ function showVaultGate(mode,message){
  passwordFields.hidden=deviceConfigured;
  deviceManage.hidden=mode!=='unlock'||!deviceApi;
  deviceManage.textContent=deviceConfigured?'إدارة فتح الهاتف':'إعداد فتح الهاتف';
+ if(disableEncryption)disableEncryption.hidden=mode!=='unlock';
+ if(cancelSetup)cancelSetup.hidden=mode!=='setup';
  $('vaultError').textContent='';
  submit.disabled=false;
  passwordInput.disabled=false;
@@ -2323,19 +2329,29 @@ function showVaultGate(mode,message){
 }
 function continueVaultAfterRecovery(){
  if(vaultUnlocked)return;
- let stored=null,backup=null;
+ let mode=null,stored=null,backup=null;
  try{
-  stored=localStorage.getItem(VAULT_STORAGE_KEY);
-  if(stored===null)backup=localStorage.getItem(VAULT_BACKUP_KEY);
+  mode=localStorage.getItem(VAULT_MODE_KEY);
+  if(mode!=='plain'){
+   stored=localStorage.getItem(VAULT_STORAGE_KEY);
+   if(stored===null)backup=localStorage.getItem(VAULT_BACKUP_KEY);
+  }
  }catch(error){return}
+ if(mode==='encrypted'&&stored===null&&backup===null){
+  showStorageRecoveryNotice('تعذّر العثور على الخزنة المشفّرة','علامة التشفير موجودة لكن ملفات الخزنة غير متاحة. لم نفتح المفكرة دون تحقق، ولم نحذف أي بيانات.',null);
+  return;
+ }
  if(stored!==null||backup!==null){
   S=emptyStorageState();
   showVaultGate('unlock',stored!==null
    ?'أدخل عبارة المرور لفك تشفير أعمالك المحفوظة.'
    :'تعذّر العثور على السجل الأساسي، لكن توجد نسخة احتياطية مشفرة. أدخل عبارة المرور لاستعادتها.');
- }else{
-  showVaultGate('setup','تمت معالجة الاسترداد. أنشئ عبارة مرور لتشفير المفكرة قبل متابعة الكتابة.');
+  return;
  }
+ if(!prepareLegacyStateForVault())return;
+ try{S.preferences=importLegacyPrivatePreferences(S.preferences)}
+ catch(error){showStorageRecoveryNotice('تعذّر استعادة الإعدادات الخاصة','لم نتمكن من قراءة إعداداتك القديمة بأمان. لم نحذفها؛ أعد المحاولة بعد إتاحة تخزين الموقع.',null);return}
+ finishVaultOpen();
 }
 function prepareLegacyStateForVault(){
  let primary=null,backup=null;
@@ -2441,7 +2457,10 @@ function finishVaultOpen(){
  vaultLastWriteError=null;
  recordVaultActivity();
  $('vaultGate').hidden=true;
- $('vaultLockBtn').hidden=false;
+ const lockButton=$('vaultLockBtn');
+ lockButton.hidden=false;
+ lockButton.title=vaultKey?'قفل المفكرة الآن؛ ستحتاج إلى كلمة المرور أو قفل الهاتف لفتحها مجددًا.':'تفعيل التشفير والقفل الاختياري للمفكرة؛ تبقى المفكرة الآن في وضع الاستخدام الحر.';
+ lockButton.setAttribute('aria-label',vaultKey?'قفل المفكرة المشفّرة':'تفعيل قفل المفكرة وتشفيرها');
  theme();
  chips();
  if(!matchMedia('(max-width:800px)').matches&&S.notes.length){
@@ -2450,12 +2469,19 @@ function finishVaultOpen(){
  renderList();
 }
 async function bootVault(){
- let savedVault=null,savedBackup=null;
+ let mode=null,savedVault=null,savedBackup=null;
  try{
-  savedVault=localStorage.getItem(VAULT_STORAGE_KEY);
-  if(savedVault===null)savedBackup=localStorage.getItem(VAULT_BACKUP_KEY);
+  mode=localStorage.getItem(VAULT_MODE_KEY);
+  if(mode!=='plain'){
+   savedVault=localStorage.getItem(VAULT_STORAGE_KEY);
+   if(savedVault===null)savedBackup=localStorage.getItem(VAULT_BACKUP_KEY);
+  }
  }catch(error){
-  showStorageRecoveryNotice('المتصفح لا يتيح الوصول إلى الخزنة','تعذّر الوصول إلى مخزن التشفير. لا تحذف بيانات الموقع؛ أعد المحاولة بعد السماح بالتخزين.',null);
+  showStorageRecoveryNotice('المتصفح لا يتيح الوصول إلى الخزنة','تعذّر الوصول إلى مخزن المفكرة. لا تحذف بيانات الموقع؛ أعد المحاولة بعد السماح بالتخزين.',null);
+  theme();chips();openNote(null);return;
+ }
+ if(mode==='encrypted'&&savedVault===null&&savedBackup===null){
+  showStorageRecoveryNotice('تعذّر العثور على الخزنة المشفّرة','علامة التشفير موجودة لكن ملفات الخزنة غير متاحة. لم نفتح المفكرة دون تحقق، ولم نحذف أي بيانات.',null);
   theme();chips();openNote(null);return;
  }
  if(savedVault!==null||savedBackup!==null){
@@ -2470,8 +2496,12 @@ async function bootVault(){
   theme();chips();openNote(null);
   return;
  }
- showVaultGate('setup');
- theme();chips();openNote(null);
+ try{S.preferences=importLegacyPrivatePreferences(S.preferences)}
+ catch(error){
+  showStorageRecoveryNotice('تعذّر استعادة الإعدادات الخاصة','لم نتمكن من قراءة إعداداتك القديمة بأمان. لم نحذفها؛ أعد المحاولة بعد إتاحة تخزين الموقع.',null);
+  theme();chips();openNote(null);return;
+ }
+ finishVaultOpen();
 }
 async function submitVaultForm(event,suppliedPassword){
  if(event&&typeof event.preventDefault==='function')event.preventDefault();
@@ -2487,9 +2517,10 @@ async function submitVaultForm(event,suppliedPassword){
  $('vaultPassword').disabled=true;
  $('vaultPasswordConfirm').disabled=true;
  showError('يجري تجهيز التشفير والتحقق من سلامة البيانات…');
- let setupPrimaryText=null,setupPrimaryWritten=false;
+ let setupPrimaryText=null,setupPrimaryWritten=false,setupBackupText=null,setupBackupWritten=false,setupPreviousMode=null,setupModeLoaded=false;
  try{
   if(vaultGateMode==='setup'){
+   setupPreviousMode=localStorage.getItem(VAULT_MODE_KEY);setupModeLoaded=true;
    S.preferences=importLegacyPrivatePreferences(S.preferences);
    const plaintext=JSON.stringify(S);
    const created=await AnwarVaultCrypto.createVault(password,plaintext);
@@ -2506,7 +2537,9 @@ async function submitVaultForm(event,suppliedPassword){
    vaultUnlocked=true;
    try{
     const backup=await AnwarVaultCrypto.encryptWithKey(vaultKey,vaultTemplate,plaintext);
-    localStorage.setItem(VAULT_BACKUP_KEY,JSON.stringify(backup));
+    setupBackupText=JSON.stringify(backup);
+    localStorage.setItem(VAULT_BACKUP_KEY,setupBackupText);
+    setupBackupWritten=true;
     const backupRead=JSON.parse(localStorage.getItem(VAULT_BACKUP_KEY)||'null');
     if(await AnwarVaultCrypto.decryptWithKey(vaultKey,backupRead)!==plaintext)throw new Error('تعذّر التحقق من النسخة المشفرة الإضافية.');
     vaultBackupWarningShown=false;
@@ -2514,6 +2547,8 @@ async function submitVaultForm(event,suppliedPassword){
     console.warn('تعذّر إنشاء النسخة المشفرة الإضافية أثناء الإعداد',backupError);
     vaultBackupWarningShown=true;
    }
+   localStorage.setItem(VAULT_MODE_KEY,'encrypted');
+   if(localStorage.getItem(VAULT_MODE_KEY)!=='encrypted')throw new Error('تعذّر تثبيت وضع التشفير على هذا الجهاز. بقيت بياناتك السابقة كما هي.');
    const removed=clearLegacyPlaintext();
    const removedPreferences=clearLegacyPrivatePreferences();
    $('vaultPassword').value='';
@@ -2548,6 +2583,20 @@ async function submitVaultForm(event,suppliedPassword){
   vaultTemplate=envelope;
   S=restoredState;
   vaultUnlocked=true;
+  if(vaultDisableAfterUnlock){
+   if(!hasEncryptedPreferences)S.preferences=importLegacyPrivatePreferences(S.preferences);
+   await persistPlainSnapshot(JSON.stringify(S));
+   vaultKey=null;vaultTemplate=null;
+   let encryptedCopiesRemoved=true;
+   try{localStorage.removeItem(VAULT_STORAGE_KEY)}catch(error){encryptedCopiesRemoved=false}
+   try{localStorage.removeItem(VAULT_BACKUP_KEY)}catch(error){encryptedCopiesRemoved=false}
+   try{if(globalThis.AnwarDeviceUnlock)AnwarDeviceUnlock.disable()}catch(error){console.warn('تعذّر إزالة ربط فتح الهاتف القديم بعد إيقاف التشفير',error)}
+   vaultDisableAfterUnlock=false;
+   $('vaultPassword').value='';$('vaultPasswordConfirm').value='';
+   finishVaultOpen();
+   toast(encryptedCopiesRemoved?'أُوقف التشفير بنجاح. أصبحت المفكرة تفتح دون رمز، ويمكنك تفعيل القفل يدويًا في أي وقت.':'تم إيقاف التشفير وحُفظت المفكرة دون قفل. بقيت نسخة مشفرة قديمة غير مستخدمة في التخزين.',6500);
+   return;
+  }
   let migratedPreferences=false;
   if(!hasEncryptedPreferences){
    S.preferences=importLegacyPrivatePreferences(S.preferences);
@@ -2568,10 +2617,13 @@ async function submitVaultForm(event,suppliedPassword){
   if(recoveredFromBackup)toast('تعذّر فتح السجل الأساسي، فاستعدنا النسخة الاحتياطية المشفرة.',6000);
   else toast('فُتحت الخزنة بنجاح.',2500);
  }catch(error){
-  if(vaultGateMode==='setup'&&setupPrimaryWritten&&!vaultUnlocked){
+  if(vaultGateMode==='setup'&&setupPrimaryWritten&&!vaultReady){
+   vaultUnlocked=false;vaultKey=null;vaultTemplate=null;
    try{
     if(localStorage.getItem(VAULT_STORAGE_KEY)===setupPrimaryText)localStorage.removeItem(VAULT_STORAGE_KEY);
-   }catch(cleanupError){console.warn('تعذّر إزالة غلاف التشفير غير المتحقق منه؛ بقيت بيانات المفكرة القديمة دون حذف.',cleanupError)}
+    if(setupBackupWritten&&localStorage.getItem(VAULT_BACKUP_KEY)===setupBackupText)localStorage.removeItem(VAULT_BACKUP_KEY);
+    if(setupModeLoaded){if(setupPreviousMode===null)localStorage.removeItem(VAULT_MODE_KEY);else localStorage.setItem(VAULT_MODE_KEY,setupPreviousMode)}
+   }catch(cleanupError){console.warn('تعذّر التراجع عن إعداد التشفير غير المكتمل؛ لم تُحذف النسخة القديمة.',cleanupError)}
   }
   console.warn('تعذّر إعداد خزنة مفكرة أنوار أو فتحها',error);
   showError(error&&error.message?error.message:'تعذّر إتمام العملية. لم نحذف البيانات القديمة.');
@@ -2579,6 +2631,23 @@ async function submitVaultForm(event,suppliedPassword){
   $('vaultPassword').disabled=false;
   $('vaultPasswordConfirm').disabled=vaultGateMode!=='setup';
  }
+}
+function beginVaultDisableEncryption(){
+ if(vaultGateMode!=='unlock')return;
+ if(!confirm('سيُفك تشفير أعمالك وتُحفظ كنص عادي على هذا الجهاز. لن يطلب الموقع رمزًا عند فتح المفكرة لاحقًا، ويمكنك إعادة تفعيل التشفير من زر القفل. هل تتابع؟'))return;
+ vaultDisableAfterUnlock=true;
+ $('vaultDeviceUnlock').hidden=true;$('vaultPasswordFallbackToggle').hidden=true;$('vaultDeviceManage').hidden=true;
+ $('vaultPasswordFields').hidden=false;$('vaultPassword').value='';$('vaultPassword').disabled=false;$('vaultPassword').focus();
+ $('vaultPasswordConfirm').value='';
+ $('vaultSubmit').textContent='فتح المفكرة وإيقاف التشفير';
+ $('vaultDescription').textContent='أدخل عبارة المرور الحالية للتحقق من ملكيتك. سنحفظ نسخة محلية قابلة للقراءة ونتحقق منها قبل إزالة الخزنة المشفّرة.';
+ $('vaultError').textContent='لن يحدث أي تغيير قبل نجاح التحقق من كلمة المرور والحفظ المحلي.';
+ $('vaultDisableEncryptionBtn').hidden=true;
+}
+function cancelVaultSetup(){
+ if(vaultGateMode!=='setup'||vaultKey)return;
+ vaultUnlocked=true;vaultReady=true;$('vaultPassword').value='';$('vaultPasswordConfirm').value='';
+ finishVaultOpen();toast('استمر وضع الاستخدام الحر. لم يُفعّل التشفير.',3500);
 }
 async function unlockVaultWithDevice(){
  const button=$('vaultDeviceUnlock');
@@ -2680,6 +2749,11 @@ function disableVaultDeviceUnlock(){
 }
 async function lockVault(){
  if(!vaultUnlocked)return;
+ if(!vaultKey||!vaultTemplate){
+  clearVaultIdleTimer();vaultUnlocked=false;vaultReady=false;
+  showVaultGate('setup','فعّل القفل الاختياري بإنشاء عبارة مرور قوية. ستُشفّر أعمالك الحالية وتُتحقق النسخة قبل إزالة أي نسخة نصية قديمة.');
+  return;
+ }
  clearVaultIdleTimer();
  try{
   flushPrivatePreferenceSave();
@@ -2845,52 +2919,25 @@ function load(){
 }
 function retryStorageAccess(){
  if(!storageRecoveryBlocked)return false;
- let existingVault=null,existingBackup=null;
+ let mode=null,existingVault=null,existingBackup=null;
  try{
-  existingVault=localStorage.getItem(VAULT_STORAGE_KEY);
-  if(existingVault===null)existingBackup=localStorage.getItem(VAULT_BACKUP_KEY);
+  mode=localStorage.getItem(VAULT_MODE_KEY);
+  if(mode!=='plain'){
+   existingVault=localStorage.getItem(VAULT_STORAGE_KEY);
+   if(existingVault===null)existingBackup=localStorage.getItem(VAULT_BACKUP_KEY);
+  }
  }catch(error){toast('لا يزال المتصفح يمنع الوصول إلى الخزنة؛ لم تتغير أي بيانات.',5000);return false}
- if(existingVault!==null||existingBackup!==null){
-  S=emptyStorageState();clearStorageRecovery();
-  showVaultGate('unlock',existingVault!==null
-   ?'أدخل عبارة المرور لفك تشفير أعمالك المحفوظة.'
-   :'تعذّر العثور على السجل الأساسي، لكن توجد نسخة احتياطية مشفرة. أدخل عبارة المرور لاستعادتها.');
-  theme();chips();openNote(null);
+ if(mode==='encrypted'&&existingVault===null&&existingBackup===null){
+  toast('لا تزال ملفات الخزنة المشفّرة غير متاحة؛ لم نفتح المفكرة دون تحقق.',5000);return false;
+ }
+ clearStorageRecovery();continueVaultAfterRecovery();
+ if(storageRecoveryBlocked)return false;
+ if(vaultGateMode==='unlock'||vaultUnlocked){
+  theme();chips();openNote(null);renderList();
+  toast(vaultGateMode==='unlock'?'عاد الوصول. أدخل عبارة المرور لفتح الخزنة.':'عاد الوصول إلى المفكرة بنجاح.',4000);
   return true;
  }
- let raw;
- try{raw=localStorage.getItem('anwar_v1')}
- catch(error){toast('لا يزال المتصفح يمنع الوصول إلى التخزين؛ لم تُغيّر أي بيانات.',5000);return false}
- if(raw===null){
-  let backupRaw;
-  try{backupRaw=localStorage.getItem('anwar_v1_backup_v2')}
-  catch(error){toast('عاد الوصول إلى السجل الأساسي، لكن تعذّر فحص النسخة الاحتياطية؛ لم تُغيّر أي بيانات.',5000);return false}
-  if(backupRaw!==null){
-   try{S=readStoredState(backupRaw)}
-   catch(error){
-    storageRecoveryRaw=backupRaw;storageRecoveryMode='corrupt';storageRecoveryBlocked=true;storageRecoveryExported=false;storageRecoveryBackupAvailable=false;
-    updateStorageRecoveryNotice();toast('النسخة الاحتياطية غير صالحة؛ نزّل قيمتها الخام قبل بدء مفكرة جديدة.',5000);return false;
-   }
-  }else S=emptyStorageState();
-  clearStorageRecovery();openNote(null);theme();chips();renderList();
-  continueVaultAfterRecovery();
-  toast('عاد الوصول إلى التخزين. عُرضت النسخة الاحتياطية دون إعادة كتابة السجل الأساسي.',4500);
-  return true;
- }
- try{
-  S=readStoredState(raw);
-  clearStorageRecovery();openNote(null);theme();chips();renderList();
-  continueVaultAfterRecovery();
-  toast('عاد الوصول إلى بيانات المفكرة بنجاح.',4000);
-  return true;
- }catch(error){
-  storageRecoveryRaw=raw;storageRecoveryMode='corrupt';storageRecoveryBlocked=true;storageRecoveryExported=false;
-  storageRecoveryBackupAvailable=false;
-  try{const backupRaw=localStorage.getItem('anwar_v1_backup_v2');if(backupRaw)readStoredState(backupRaw),storageRecoveryBackupAvailable=true}catch(backupError){}
-  updateStorageRecoveryNotice();
-  toast('ما زال سجل التخزين غير قابل للتحليل؛ نزّل نسخته الخام قبل الاستعادة.',5000);
-  return false;
- }
+ return false;
 }
 function restoreStorageBackup(){
  if(!storageRecoveryBlocked||storageRecoveryMode!=='corrupt'||storageRecoveryRaw===null)return;
@@ -2925,24 +2972,53 @@ function startFreshNotebook(){
  }
 }
 function exportStorageRecovery(){if(storageRecoveryMode!=='corrupt'||storageRecoveryRaw===null){toast('لا تتوفر قيمة خام قابلة للتنزيل. أعد فحص وصول المتصفح إلى التخزين أولاً.',5000);return}try{const blob=new Blob([storageRecoveryRaw],{type:'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='anwar-storage-recovery-raw.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);storageRecoveryExported=true;toast('تم تجهيز ملف الاسترداد الخام. احتفظ به قبل الاستعادة.',5000)}catch(e){toast('تعذّر تنزيل ملف الاسترداد الخام؛ لا تحذف بيانات المتصفح.',5000)}}
+async function persistPlainSnapshot(plaintext){
+ if(!vaultUnlocked)throw new Error('المفكرة غير مفتوحة؛ لم نغيّر التخزين.');
+ const normalized=readStoredState(plaintext),serialized=JSON.stringify(normalized);
+ const oldPrimary=localStorage.getItem('anwar_v1'),oldBackup=localStorage.getItem('anwar_v1_backup_v2');
+ if(oldPrimary!==null){
+  readStoredState(oldPrimary);
+  localStorage.setItem('anwar_v1_backup_v2',oldPrimary);
+  const preserved=localStorage.getItem('anwar_v1_backup_v2');
+  if(preserved!==oldPrimary)throw new Error('تعذّر التحقق من النسخة السابقة قبل تحديث المفكرة.');
+  readStoredState(preserved);
+ }else if(oldBackup!==null)readStoredState(oldBackup);
+ localStorage.setItem('anwar_v1',serialized);
+ const primaryRead=localStorage.getItem('anwar_v1');
+ if(primaryRead===null||JSON.stringify(readStoredState(primaryRead))!==JSON.stringify(normalized))throw new Error('لم تتطابق مراجعة الحفظ المحلي مع محتوى المفكرة.');
+ localStorage.setItem(VAULT_MODE_KEY,'plain');
+ if(localStorage.getItem(VAULT_MODE_KEY)!=='plain')throw new Error('تعذّر تثبيت وضع الاستخدام الحر. بقيت الخزنة المشفّرة الأصلية كما هي.');
+ let backupWritten=false;
+ try{
+  localStorage.setItem('anwar_v1_backup_v2',serialized);
+  const backupRead=localStorage.getItem('anwar_v1_backup_v2');
+  if(backupRead===null||JSON.stringify(readStoredState(backupRead))!==JSON.stringify(normalized))throw new Error('لم تتطابق مراجعة النسخة الاحتياطية.');
+  backupWritten=true;vaultBackupWarningShown=false;
+ }catch(error){
+  console.warn('تعذّر تحديث النسخة الاحتياطية في وضع الاستخدام الحر؛ بقي السجل الأساسي متحققًا منه.',error);
+  if(!vaultBackupWarningShown){toast('حُفظت المفكرة، لكن تعذّر تحديث النسخة الاحتياطية. تجنّب مسح بيانات الموقع قبل إنشاء نسخة يدوية.',6500);vaultBackupWarningShown=true}
+ }
+ if(!clearLegacyPrivatePreferences())console.warn('بقيت بعض مفاتيح الإعدادات القديمة في التخزين المحلي.');
+ return {state:normalized,backupWritten};
+}
 function save(){
  if(storageRecoveryBlocked){toast('الحفظ متوقف حمايةً للبيانات القديمة. عالج الاسترداد أولًا.',5000);return false}
- if(!vaultUnlocked||!vaultKey){toast('الخزنة مقفلة؛ افتحها قبل تعديل المفكرة.',4500);return false}
+ if(!vaultUnlocked){toast('المفكرة مقفلة؛ افتحها قبل التعديل.',4500);return false}
  const snapshot=JSON.stringify(S);
  vaultSaveQueue=vaultSaveQueue.then(async()=>{
-  await persistVaultSnapshot(snapshot);
+  if(vaultKey&&vaultTemplate)await persistVaultSnapshot(snapshot);else await persistPlainSnapshot(snapshot);
   vaultLastWriteError=null;
  }).catch(error=>{
   vaultLastWriteError=error;
-  console.warn('تعذّر حفظ بيانات مفكرة أنوار مشفرة',error);
-  toast('تعذّر إتمام الحفظ المشفر. لا تغلق المفكرة قبل معالجة مساحة التخزين.',6500);
+  console.warn('تعذّر حفظ بيانات مفكرة أنوار',error);
+  toast('تعذّر إتمام الحفظ والتحقق منه. لا تمسح بيانات الموقع قبل معالجة المشكلة.',6500);
  });
  return true;
 }
 function toast(m,d){const t=$('toast');t.textContent=m;t.classList.add('s');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('s'),d||2000)}
 let privatePreferenceSaveTimer=null;
 globalThis.AnwarPrivatePreferences.setPersistHandler(preferences=>{
- if(!vaultUnlocked||!vaultKey)return;
+ if(!vaultUnlocked)return;
  S.preferences=globalThis.AnwarPrivatePreferences.normalize(preferences);
  if(privatePreferenceSaveTimer!==null)clearTimeout(privatePreferenceSaveTimer);
  privatePreferenceSaveTimer=setTimeout(()=>{
@@ -5635,6 +5711,8 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  syncLabel();
 })();;
 $('vaultForm').addEventListener('submit',submitVaultForm);
+$('vaultDisableEncryptionBtn').addEventListener('click',beginVaultDisableEncryption);
+$('vaultCancelSetupBtn').addEventListener('click',cancelVaultSetup);
 $('vaultDeviceUnlock').addEventListener('click',unlockVaultWithDevice);
 $('vaultPasswordFallbackToggle').addEventListener('click',()=>{
  $('vaultPasswordFields').hidden=false;
