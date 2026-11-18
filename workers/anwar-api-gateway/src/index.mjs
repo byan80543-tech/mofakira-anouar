@@ -394,6 +394,22 @@ export default {
     if (!route) return errorResponse("المسار غير موجود.", 404, origin);
     if (route.error) return errorResponse(route.error, 400, origin);
 
+    let edgeDecision;
+    try {
+      if (!env.EDGE_LIMITER) throw new Error("Edge rate limiter binding missing");
+      edgeDecision = await env.EDGE_LIMITER.limit({ key: "anwar-api-gateway" });
+    } catch {
+      return errorResponse("بوابة تحديد المعدل الطرفية غير متاحة مؤقتًا.", 503, origin);
+    }
+    if (!edgeDecision.success) {
+      return errorResponse(
+        "تم تجاوز الحد الطرفي للطلبات. انتظر قليلًا ثم أعد المحاولة.",
+        429,
+        origin,
+        { "Retry-After": "60" }
+      );
+    }
+
     let decision;
     try {
       decision = await applyRateLimits(request, env, route.bucket);
