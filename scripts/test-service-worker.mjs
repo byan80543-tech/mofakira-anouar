@@ -13,11 +13,7 @@ class TestResponse{
   async text(){return this.body}
 }
 const absolute=input=>new URL(typeof input==='string'?input:input.url,scopeUrl).href;
-const makeFetchEvent=request=>({
-  request,response:null,background:null,
-  respondWith(p){this.response=p},
-  waitUntil(p){this.background=p}
-});
+const makeFetchEvent=request=>({request,response:null,respondWith(p){this.response=p}});
 const makeCache=()=>({
   async addAll(items){for(const item of items)store.set(absolute(item),new TestResponse('cached:'+item))},
   async match(request,options={}){
@@ -77,28 +73,33 @@ assert.equal(cacheObjects.has('anwar-shell-old'),false,'activate deletes previou
 assert.equal(cacheObjects.has('unrelated-cache'),true,'activate preserves caches owned by other applications');
 assert.equal(clientsClaimed,true,'activate claims controlled clients');
 
-const onLineNavigation=makeFetchEvent({url:new URL('online-route/',scopeUrl).href,method:'GET',mode:'navigate'});
-listeners.get('fetch')(onLineNavigation);
-assert.ok(onLineNavigation.response,'same-origin navigation is intercepted');
-const onlineResponse=await onLineNavigation.response;
-assert.equal(await onlineResponse.text(),'cached:./','navigation serves the cached app shell immediately');
-await onLineNavigation.background;
-assert.equal(store.get(absolute('online-route/'))?.body,'network:'+absolute('online-route/'),'successful background refresh updates the navigation cache');
+const onlineRoute=new URL('online-route/',scopeUrl).href;
+const onlineNavigation=makeFetchEvent({url:onlineRoute,method:'GET',mode:'navigate'});
+listeners.get('fetch')(onlineNavigation);
+assert.ok(onlineNavigation.response,'same-origin navigation is intercepted');
+const onlineResponse=await onlineNavigation.response;
+assert.equal(await onlineResponse.text(),'network:'+onlineRoute,'online navigation returns the current network response immediately');
+assert.equal(store.get(onlineRoute)?.body,'network:'+onlineRoute,'online navigation refreshes the cached route before responding');
 
 online=false;
-const offlineNavigation=makeFetchEvent({url:new URL('offline-route/',scopeUrl).href,method:'GET',mode:'navigate'});
+const offlineNavigation=makeFetchEvent({url:onlineRoute,method:'GET',mode:'navigate'});
 listeners.get('fetch')(offlineNavigation);
 const offlineResponse=await offlineNavigation.response;
-assert.equal(await offlineResponse.text(),'cached:./','offline navigation falls back to the cached application shell');
-await offlineNavigation.background;
+assert.equal(await offlineResponse.text(),'network:'+onlineRoute,'offline navigation falls back to the most recently cached route');
 
+const offlineUnknownRoute=new URL('offline-route/',scopeUrl).href;
+const fallbackNavigation=makeFetchEvent({url:offlineUnknownRoute,method:'GET',mode:'navigate'});
+listeners.get('fetch')(fallbackNavigation);
+const fallbackResponse=await fallbackNavigation.response;
+assert.equal(await fallbackResponse.text(),'cached:./','an unknown offline route falls back to the cached app shell');
+
+online=true;
 const callsBeforeAsset=networkCalls;
 const cachedAsset=makeFetchEvent({url:new URL('index.html?revision=next',scopeUrl).href,method:'GET',mode:'cors'});
 listeners.get('fetch')(cachedAsset);
 assert.equal(await (await cachedAsset.response).text(),'cached:./index.html','same-origin static assets are served from cache first');
 assert.equal(networkCalls,callsBeforeAsset,'cache-first asset hit does not call the network');
 
-online=true;
 const lazyPdfLibrary=makeFetchEvent({url:new URL('vendor/jspdf.umd.min.js',scopeUrl).href,method:'GET',mode:'cors'});
 listeners.get('fetch')(lazyPdfLibrary);
 assert.match(await (await lazyPdfLibrary.response).text(),/^network:/,'on-demand PDF library can be fetched when first requested');
@@ -116,4 +117,4 @@ const postRequest=makeFetchEvent({url:new URL('api/write',scopeUrl).href,method:
 listeners.get('fetch')(postRequest);
 assert.equal(postRequest.response,null,'non-GET requests are not intercepted');
 
-console.log('All service-worker lifecycle, cache and offline fallback tests passed.');
+console.log('All service-worker network-first navigation, cache fallback and asset tests passed.');
