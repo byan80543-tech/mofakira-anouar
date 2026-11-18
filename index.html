@@ -2419,6 +2419,8 @@ function disableVaultDeviceUnlock(){
   $('vaultDeviceDisableBtn').hidden=true;
   $('vaultDeviceSetupForm').hidden=!AnwarDeviceUnlock.supported();
   $('vaultDeviceSetupStatus').textContent='تم تعطيل الفتح السريع لهذه المفكرة. قد يبقى اعتمادها ظاهرًا في مدير كلمات المرور بالنظام، لكنه لم يعد مرتبطًا بالخزنة هنا.';
+  $('vaultDeviceSetupDialog').close();
+  if(!vaultUnlocked)showVaultGate('unlock','استخدم كلمة المرور الأساسية لفتح الخزنة.');
   toast('تم تعطيل الفتح السريع. كلمة المرور الأساسية ما زالت تعمل.',4500);
  }catch(error){$('vaultDeviceSetupStatus').textContent=error.message||'تعذّر تعطيل الفتح السريع.'}
 }
