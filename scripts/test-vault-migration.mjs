@@ -12,7 +12,7 @@ const extract=(start,end)=>{
   return html.slice(a,b);
 };
 const clearSource=extract('function clearLegacyPlaintext(){','async function persistVaultSnapshot(plaintext){');
-const submitSource=extract('async function submitVaultForm(event){','async function lockVault(){');
+const submitSource=extract('async function submitVaultForm(event,suppliedPassword){','async function lockVault(){');
 
 function makeHarness({failVerification=false}={}){
   const initialState={
