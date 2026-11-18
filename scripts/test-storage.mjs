@@ -7,6 +7,7 @@ const between=(start,end)=>{
   if(a<0||b<0)throw new Error('Missing source block: '+start);
   return html.slice(a,b);
 };
+const preferenceSource=between('/* Encrypted private settings shared by the notebook modules. */','requestAnimationFrame(()=>setTimeout(()=>{');
 const extracted=[
   between('function cleanNote(n){','function createNoteId(){'),
   between('function showStorageRecoveryNotice(','function exportStorageRecovery()'),
@@ -88,7 +89,7 @@ function makeHarness(initial={}){
     confirm:()=>true,
     theme(){},chips(){},renderList(){}
   };
-  vm.runInNewContext(extracted+"\nthis.api={load,save,startFreshNotebook,retryStorageAccess,restoreStorageBackup,exportStorageRecovery,waitForWrites:()=>vaultSaveQueue,writeError:()=>vaultLastWriteError,decryptMock:key=>AnwarVaultCrypto.decryptWithKey(vaultKey,JSON.parse(localStorage.getItem(key)||'null')),snapshot:()=>({S,storageRecoveryBlocked,storageRecoveryRaw,storageRecoveryExported,storageRecoveryMode,storageRecoveryBackupAvailable}),\n      activateEdit:(note,previous,html)=>{cur=note;pendingBefore=previous;pg.innerHTML=html},\n      draftState:()=>({cur,draftNote,notes:S.notes}),touch,newNote,openNote,flushPendingEdit};",sandbox,{timeout:3000});
+  vm.runInNewContext(preferenceSource+"\\n"+extracted+"\\nthis.api={load,save,startFreshNotebook,retryStorageAccess,restoreStorageBackup,exportStorageRecovery,waitForWrites:()=>vaultSaveQueue,writeError:()=>vaultLastWriteError,decryptMock:key=>AnwarVaultCrypto.decryptWithKey(vaultKey,JSON.parse(localStorage.getItem(key)||'null')),snapshot:()=>({S,storageRecoveryBlocked,storageRecoveryRaw,storageRecoveryExported,storageRecoveryMode,storageRecoveryBackupAvailable}),\\n      activateEdit:(note,previous,html)=>{cur=note;pendingBefore=previous;pg.innerHTML=html},\\n      draftState:()=>({cur,draftNote,notes:S.notes}),touch,newNote,openNote,flushPendingEdit};",sandbox,{timeout:3000});
   return {api:sandbox.api,storage,elements,messages,sandbox,download};
 }
 const assert=(condition,message)=>{
