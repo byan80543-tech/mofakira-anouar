@@ -116,10 +116,11 @@ await offlineNavigation.lifecycle;
 assert.equal(networkCalls,callsBeforeOffline+1,'offline background refresh fails once without blocking the cached response');
 
 const offlineUnknownRoute=new URL('offline-route/',scopeUrl).href;
+const latestCachedShell=store.get(new URL('./',scopeUrl).href)?.body;
 const fallbackNavigation=makeFetchEvent({url:offlineUnknownRoute,method:'GET',mode:'navigate'});
 listeners.get('fetch')(fallbackNavigation);
 const fallbackResponse=await fallbackNavigation.response;
-assert.equal(await fallbackResponse.text(),'cached:./index.html','an unknown offline route falls back to the cached app shell');
+assert.equal(await fallbackResponse.text(),latestCachedShell,'an unknown offline route falls back to the latest cached app shell');
 await fallbackNavigation.lifecycle;
 
 online=true;
