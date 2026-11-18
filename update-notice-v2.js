@@ -16,7 +16,9 @@
   let noticeElement = null;
   let noticeShown = false;
   let checkInProgress = false;
+  let lastCheckAt = 0;
   let started = false;
+  const UPDATE_CHECK_INTERVAL_MS = 15 * 60 * 1000;
 
   function getWaitingWorker() {
     const candidate = registration && registration.waiting
@@ -166,15 +168,25 @@
     hasActiveController = true;
   });
 
-  async function checkForUpdates() {
-    if (!registration || checkInProgress || document.visibilityState === 'hidden') return;
+  async function checkForUpdates(force = false) {
+    if (!registration) return;
+    if (serviceWorker.controller) hasActiveController = true;
+
+    // A waiting worker is already downloaded; show it immediately without
+    // making another network request.
+    if (registration.waiting && hasActiveController) {
+      waitingWorker = registration.waiting;
+      showUpdateNotice(waitingWorker);
+      return;
+    }
+
+    if (checkInProgress || document.visibilityState === 'hidden' || navigator.onLine === false) return;
+    const now = Date.now();
+    if (!force && now - lastCheckAt < UPDATE_CHECK_INTERVAL_MS) return;
+
+    lastCheckAt = now;
     checkInProgress = true;
     try {
-      if (serviceWorker.controller) hasActiveController = true;
-      if (registration.waiting && hasActiveController) {
-        waitingWorker = registration.waiting;
-        showUpdateNotice(waitingWorker);
-      }
       await registration.update();
       if (registration.waiting && serviceWorker.controller) {
         hasActiveController = true;
@@ -193,17 +205,25 @@
     started = true;
     serviceWorker.ready.then(currentRegistration => {
       observeRegistration(currentRegistration);
-      return checkForUpdates();
+      const runCheck = () => checkForUpdates(true);
+      // Do not compete with first paint, editor setup or the first user action.
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(runCheck, { timeout: 12000 });
+      } else {
+        window.setTimeout(runCheck, 7000);
+      }
     }).catch(() => {
       // Service-worker registration may not be ready while offline.
     });
 
-    window.setInterval(checkForUpdates, 5 * 60 * 1000);
+    window.setInterval(checkForUpdates, UPDATE_CHECK_INTERVAL_MS);
   }
 
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') checkForUpdates();
   });
+
+  window.addEventListener('online', () => checkForUpdates(true));
 
   if (document.readyState === 'complete') start();
   else window.addEventListener('load', start, { once: true });
