@@ -1615,24 +1615,23 @@ dialog[open]>.float-head{display:none!important}
 </style>
 </style>
 
-<style id="anwar-header-title-visibility-v1">
-/* إبقاء اسم المفكرة كاملاً بعد إزالة علامة الريشة من شريط الهاتف */
-.tb .brand{
-  flex:0 0 auto!important;
-  min-width:max-content!important;
-  gap:0!important;
-  margin-inline:0!important;
+<style id="anwar-contextual-back-and-brand-v2">
+/* يظهر الرجوع فقط عندما تكون المفكرة داخل تحرير أو نافذة داخلية */
+.tb #bk{
+  display:none!important;flex:0 0 32px!important;width:32px!important;
+  min-width:32px!important;height:34px!important;padding:0!important;
+  place-items:center!important;border:1px solid rgba(231,202,143,.72)!important;
+  border-radius:9px!important;background:rgba(255,255,255,.14)!important;
+  color:#fff!important;line-height:1!important;font-size:21px!important;
 }
-.tb .brand-mark{display:none!important}
-.tb .logo{
-  display:inline-block!important;
-  max-width:none!important;
-  overflow:visible!important;
-  white-space:nowrap!important;
-}
+.anwar-back-visible .tb #bk{display:grid!important}
+.tb .brand{flex:0 0 auto!important;min-width:max-content!important;gap:3px!important;margin-inline:0!important}
+.tb .brand-mark{display:block!important;flex:0 0 20px!important;width:20px!important;height:20px!important}
+.tb .logo{display:inline-block!important;max-width:none!important;overflow:visible!important;white-space:nowrap!important;font-size:16px!important;letter-spacing:-.2px!important}
 @media(max-width:800px){
-  .tb .brand{flex:0 0 auto!important;min-width:max-content!important;gap:0!important}
-  .tb .logo{font-size:17px!important;letter-spacing:0!important}
+ .tb .brand{flex:0 0 auto!important;min-width:max-content!important;gap:3px!important}
+ .tb .brand-mark{width:19px!important;height:19px!important;flex-basis:19px!important}
+ .tb .logo{font-size:15px!important;letter-spacing:-.25px!important}
 }
 </style>
 
@@ -1642,7 +1641,7 @@ dialog[open]>.float-head{display:none!important}
 <button type="button" id="exitFocus" class="focus-exit" aria-label="الخروج من وضع التركيز" title="الخروج من وضع التركيز">×</button>
 <div class="tb">
  <button class="back" id="bk" aria-label="رجوع">→</button>
- <span class="brand"><span class="logo">مفكرة أنوار</span></span>
+ <span class="brand"><svg class="brand-mark" viewBox="0 0 512 512" aria-hidden="true"><path d="M70 420 Q235 320 424 60 Q405 260 70 420Z" fill="#e7c16d" stroke="#fff0bd" stroke-width="9"/><path d="M72 420 Q248 250 424 60 M155 340 L145 255 M220 276 L220 185 M292 202 L310 130 M360 132 L390 92" fill="none" stroke="#76501e" stroke-width="10" stroke-linecap="round"/></svg><span class="logo">مفكرة أنوار</span></span>
  <input id="t" placeholder="عنوان العمل">
  <button type="button" id="archiveBtn" class="archive-launch" aria-label="أرشيف أنوار" title="أرشيف أنوار"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4.5h18v4H3zM5 8.5v11h14v-11M9 12h6M9 15h6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
  <button id="rb" title="إذاعة القرآن الكريم" aria-label="تشغيل إذاعة القرآن">▶</button>
@@ -3625,7 +3624,7 @@ button:focus:not(:focus-visible){outline:none}
 @media(max-width:520px){#vaultDeviceSetupDialog{padding:17px;border-radius:13px}}
 </style>
 
-</body></html>`;
+</html>`;
  try{await dl.save({filename:((cur.title||'أنوار').replace(/[\\/:*?"<>|]/g,'-').slice(0,60))+'.html',data:new Blob([h],{type:'text/html'})});toast('افتح الملف المنزَّل وستظهر نافذة الطباعة تلقائيًا',5000)}catch(e){}
 }
 async function doPrint(){
@@ -5926,5 +5925,6 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
 @media(max-width:520px){#vaultGate{padding:13px}#vaultGate .vault-card{padding:22px 18px;border-radius:15px}}
 </style>
 
+<script src="toolbar-back-navigation.js" defer></script>
 </body>
 </html>
