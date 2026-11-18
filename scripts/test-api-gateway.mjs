@@ -212,6 +212,7 @@ try {
   assert.equal(last.status, 200, "the blocked client is allowed again after the sliding window expires");
 
   // The total site-wide ceiling applies even when requests come from different IPs.
+  hits.length = 0;
   for (let i = 0; i < 600; i += 1) {
     last = await limiter.fetch(limiterRequest(i.toString(16).padStart(64, "0"), "catalog"));
     if (i < 600) assert.equal(last.status, 200, "global allowance accepts request " + (i + 1));
