@@ -1,4 +1,4 @@
-/* Device-bound quick unlock for Mofakira Anouar.
+/* Platform-authenticator quick unlock for Mofakira Anouar.
  * The platform authenticator (Android screen lock / biometrics) protects a
  * PRF-derived key. The vault's existing password-based AES-GCM format is unchanged.
  * No password, PRF output, or derived key is persisted in plaintext.
@@ -11,7 +11,7 @@
  const INFO='mofakira-anouar/vault-password-unlock/v1';
  const encoder=new TextEncoder();
  const decoder=new TextDecoder('utf-8',{fatal:true});
- const MAX_CIPHERTEXT=4096;
+ const MAX_CIPHERTEXT=16384;
 
  function randomBytes(length){
   if(!root.crypto||typeof root.crypto.getRandomValues!=='function')throw new Error('مولّد الأرقام الآمنة غير متاح في هذا المتصفح.');
