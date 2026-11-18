@@ -1882,7 +1882,7 @@ dialog[open]>.float-head{display:none!important}
      <small class="anwar-tasbih-voice-hint">لا يُضاف العدد إلا عند مطابقة الذكر المختار. اقرأ العبارة المعروضة كاملة.</small>
     </section>
    </div>
-   <footer class="anwar-tasbih-footer">يُحفظ العدد والذكر المختار على هذا الجهاز</footer>
+   <footer class="anwar-tasbih-footer">يُحفظ العدد والذكر المختار مشفرين على هذا الجهاز</footer>
   </section>
   <div id="adhkarContent" class="adhkar-list"></div>
   <small style="display:block;color:var(--mu);margin-top:8px;line-height:1.8">مراجعة المصدر: الآية من القرآن الكريم، والأذكار النبوية تُعزى إلى مصادرها الحديثية. لا تُعرض هذه القائمة على أنها حصر كامل للأذكار. للتحقق من نصوص الكتب وأبوابها: <a href="https://sunna.alifta.gov.sa/Book/IndexMatnBooks" target="_blank" rel="noopener noreferrer">مكتبة الحديث التابعة للرئاسة العامة للبحوث العلمية والإفتاء</a>، وتشمل الصحيحين والسنن وموطأ مالك ومسند أحمد. كما يمكن مراجعة التخريج والحكم عبر <a href="https://dorar.net/" target="_blank" rel="noopener noreferrer">الموسوعة الحديثية بالدرر السنية</a>. وعند إضافة أذكار أخرى يُذكر الكتاب ورقم الحديث ودرجة الحديث حيث يلزم.</small>
@@ -1957,12 +1957,64 @@ dialog[open]>.float-head{display:none!important}
 <script src="./vault-crypto.js?v=20261117-1"></script>
 <script src="./vault-device-unlock.js?v=20261118-1"></script>
 <script>
+/* Encrypted private settings shared by the notebook modules. */
+(function installAnwarPrivatePreferences(root){
+ 'use strict';
+ const DEFAULT_DHIKR='أستغفر الله العظيم وأتوب إليه';
+ function normalize(value){
+  const source=value&&typeof value==='object'&&!Array.isArray(value)?value:{};
+  const radio=source.radio&&typeof source.radio==='object'&&!Array.isArray(source.radio)?source.radio:{};
+  const tasbih=source.tasbih&&typeof source.tasbih==='object'&&!Array.isArray(source.tasbih)?source.tasbih:{};
+  const count=Number(tasbih.count),surah=Number(radio.surah);
+  return {
+   radio:{
+    reciter:typeof radio.reciter==='string'?radio.reciter.trim().slice(0,120):'',
+    surah:Number.isSafeInteger(surah)&&surah>=1&&surah<=114?surah:1
+   },
+   readerAdvance:source.readerAdvance==='s'?'s':'c',
+   tasbih:{
+    count:Number.isSafeInteger(count)?Math.max(0,Math.min(1000000000,count)):0,
+    dhikr:typeof tasbih.dhikr==='string'&&tasbih.dhikr.trim()?tasbih.dhikr.trim().slice(0,200):DEFAULT_DHIKR
+   }
+  };
+ }
+ let state=normalize({});
+ const listeners=new Set();
+ let persistHandler=null;
+ const copy=()=>normalize(state);
+ function notify(){
+  const snapshot=copy();
+  for(const listener of listeners){
+   try{listener(snapshot)}
+   catch(error){console.warn('تعذّر تحديث إعداد خاص في مفكرة أنوار',error)}
+  }
+ }
+ function load(value){state=normalize(value);notify();return copy()}
+ function set(section,value){
+  if(!['radio','readerAdvance','tasbih'].includes(section))throw new Error('إعداد خاص غير معروف.');
+  const next=copy();next[section]=value;state=normalize(next);
+  const snapshot=copy();
+  if(persistHandler){
+   try{persistHandler(snapshot)}
+   catch(error){console.warn('تعذّر حفظ الإعداد الخاص في مفكرة أنوار',error)}
+  }
+  notify();return copy();
+ }
+ function subscribe(listener){
+  if(typeof listener!=='function')throw new TypeError('A preference listener must be a function.');
+  listeners.add(listener);
+  try{listener(copy())}catch(error){console.warn('تعذّر تحديث الإعداد الخاص',error)}
+  return ()=>listeners.delete(listener);
+ }
+ function setPersistHandler(handler){persistHandler=typeof handler==='function'?handler:null}
+ root.AnwarPrivatePreferences=Object.freeze({normalize,load,get:copy,set,subscribe,setPersistHandler});
+})(globalThis);
 requestAnimationFrame(()=>setTimeout(()=>{
 
 const TYPES={poem:'قصيدة',text:'نص',idea:'فكرة'},IC={poem:'🪶',text:'📜',idea:'💡'};
 const FONTS=['Amiri','Amiri Quran','Aref Ruqaa','Aref Ruqaa Ink','Scheherazade New','Lateef','Harmattan','Noto Naskh Arabic','Markazi Text','Mirza','Katibeh','Gulzar','Cairo','Tajawal','Almarai','Alexandria','Changa','Mada','Readex Pro','IBM Plex Sans Arabic','Noto Sans Arabic','Noto Kufi Arabic','Vazirmatn','Rubik','Baloo Bhaijaan 2','Lemonada','Reem Kufi','Reem Kufi Fun','Reem Kufi Ink','El Messiri','Kufam','Lalezar','Rakkas','Jomhuria','Marhey','Vibes','Blaka','Qahiri','Playpen Sans Arabic','Noto Nastaliq Urdu','Traditional Arabic','Simplified Arabic','Sakkal Majalla','Segoe UI','Tahoma','Arial','Times New Roman','Courier New'];
 const PROMPTS=['اكتب عن رائحة المطر على أول تراب بعد غياب طويل','قصيدة عن ضوء مصباح وحيد في آخر الليل','ماذا يقول القمر لمن ينتظر؟','صف وجهًا لا تنساه دون أن تذكر ملامحه','اكتب رسالة إلى نفسك بعد عشر سنوات','قصيدة عن وطن يسكن حقيبة سفر','ما الذي تعلّمته من الصمت؟','اكتب عن قهوة الصباح كأنها صديق قديم','بيت شعر يبدأ بكلمة «لولا»','اكتب عن بابٍ لم تجرؤ على فتحه','قصيدة عن الحنين بثلاث صور فقط'];
-let S={notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[]},cur=null,draftNote=null,flt='all',tm,speaking=false,saved=null,storageRecoveryBlocked=false,storageRecoveryRaw=null,storageRecoveryExported=false,storageRecoveryMode='none',storageRecoveryBackupAvailable=false;
+let S={notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[],preferences:globalThis.AnwarPrivatePreferences.normalize({})},cur=null,draftNote=null,flt='all',tm,speaking=false,saved=null,storageRecoveryBlocked=false,storageRecoveryRaw=null,storageRecoveryExported=false,storageRecoveryMode='none',storageRecoveryBackupAvailable=false;
 const $=id=>document.getElementById(id),pg=$('pg');
 const VAULT_STORAGE_KEY='anwar_vault_v1',VAULT_BACKUP_KEY='anwar_vault_backup_v1';
 let vaultKey=null,vaultTemplate=null,vaultUnlocked=false,vaultGateMode='setup',vaultReady=false;
@@ -2026,9 +2078,9 @@ function normalizeState(data){
    note.id=id;usedIds.add(id);notes.push(note);
   }catch(error){console.warn('تم تجاهل سجل تعذّر تطبيعه',error)}
  });
- return {notes,theme:d.theme==='dark'?'dark':d.theme==='light'?'light':'',palette:['blue','green','purple','rose','amber','slate'].includes(d.palette)?d.palette:'blue',wallColor:['mist','cream','sky','mint','lavender','blush','slate','night'].includes(d.wallColor)?d.wallColor:'mist',paperColor:['white','cream','sky','mint','lavender','blush','gray','night'].includes(d.paperColor)?d.paperColor:'white',days:Array.isArray(d.days)?d.days.filter(x=>typeof x==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x)).slice(-400):[]};
+ return {notes,theme:d.theme==='dark'?'dark':d.theme==='light'?'light':'',palette:['blue','green','purple','rose','amber','slate'].includes(d.palette)?d.palette:'blue',wallColor:['mist','cream','sky','mint','lavender','blush','slate','night'].includes(d.wallColor)?d.wallColor:'mist',paperColor:['white','cream','sky','mint','lavender','blush','gray','night'].includes(d.paperColor)?d.paperColor:'white',days:Array.isArray(d.days)?d.days.filter(x=>typeof x==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x)).slice(-400):[],preferences:globalThis.AnwarPrivatePreferences.normalize(d.preferences)};
 }
-function emptyStorageState(){return {notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[]}}
+function emptyStorageState(){return {notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[],preferences:globalThis.AnwarPrivatePreferences.normalize({})}}
 function createNoteId(){
  const base=Date.now().toString(36),used=new Set(S.notes.map(n=>String(n.id)));
  let id=base,suffix=2;
@@ -2174,6 +2226,37 @@ function clearLegacyPlaintext(){
   return false;
  }
 }
+function importLegacyPrivatePreferences(base){
+ const preferences=globalThis.AnwarPrivatePreferences.normalize(base);
+ try{
+  const savedRadio=localStorage.getItem('anwar_rd');
+  if(savedRadio){
+   const parsed=JSON.parse(savedRadio);
+   if(parsed&&typeof parsed==='object'&&!Array.isArray(parsed)){
+    preferences.radio={
+     reciter:typeof parsed.r==='string'?parsed.r.slice(0,120):preferences.radio.reciter,
+     surah:Number.isSafeInteger(Number(parsed.n))&&Number(parsed.n)>=1&&Number(parsed.n)<=114?Number(parsed.n):preferences.radio.surah
+    };
+   }
+  }
+  const advance=localStorage.getItem('anwar_reader_advance');
+  if(advance==='c'||advance==='s')preferences.readerAdvance=advance;
+  const count=localStorage.getItem('anwar_tasbih_count_v1');
+  if(count!==null&&/^\d{1,10}$/.test(count))preferences.tasbih.count=Math.min(1000000000,Number(count));
+  const dhikr=localStorage.getItem('anwar_tasbih_dhikr_v1');
+  if(typeof dhikr==='string'&&dhikr.trim())preferences.tasbih.dhikr=dhikr.slice(0,200);
+ }catch(error){
+  throw new Error('تعذّرت قراءة إعداداتك القديمة. لم نحذفها؛ أعد المحاولة بعد التأكد من إتاحة تخزين الموقع.');
+ }
+ return globalThis.AnwarPrivatePreferences.normalize(preferences);
+}
+function clearLegacyPrivatePreferences(){
+ let cleared=true;
+ for(const key of ['anwar_rd','anwar_reader_advance','anwar_tasbih_count_v1','anwar_tasbih_dhikr_v1']){
+  try{localStorage.removeItem(key)}catch(error){cleared=false}
+ }
+ return cleared;
+}
 async function persistVaultSnapshot(plaintext){
  if(!vaultUnlocked||!vaultKey||!vaultTemplate)throw new Error('خزنة المفكرة مقفلة.');
  const mainEnvelope=await AnwarVaultCrypto.encryptWithKey(vaultKey,vaultTemplate,plaintext);
@@ -2183,6 +2266,7 @@ async function persistVaultSnapshot(plaintext){
  const verifiedMain=await AnwarVaultCrypto.decryptWithKey(vaultKey,storedMain);
  if(verifiedMain!==plaintext)throw new Error('لم تتطابق مراجعة التخزين المشفر مع البيانات الأصلية.');
  vaultTemplate=mainEnvelope;
+ if(!clearLegacyPrivatePreferences())console.warn('بقيت بعض مفاتيح الإعدادات القديمة لأن المتصفح منع حذفها.');
  try{
   const backupEnvelope=await AnwarVaultCrypto.encryptWithKey(vaultKey,vaultTemplate,plaintext);
   localStorage.setItem(VAULT_BACKUP_KEY,JSON.stringify(backupEnvelope));
@@ -2200,6 +2284,7 @@ async function persistVaultSnapshot(plaintext){
  return mainEnvelope;
 }
 function finishVaultOpen(){
+ globalThis.AnwarPrivatePreferences.load(S.preferences);
  vaultUnlocked=true;
  vaultReady=true;
  vaultLastWriteError=null;
@@ -2254,6 +2339,7 @@ async function submitVaultForm(event,suppliedPassword){
  let setupPrimaryText=null,setupPrimaryWritten=false;
  try{
   if(vaultGateMode==='setup'){
+   S.preferences=importLegacyPrivatePreferences(S.preferences);
    const plaintext=JSON.stringify(S);
    const created=await AnwarVaultCrypto.createVault(password,plaintext);
    const serialized=JSON.stringify(created.envelope);
@@ -2278,10 +2364,11 @@ async function submitVaultForm(event,suppliedPassword){
     vaultBackupWarningShown=true;
    }
    const removed=clearLegacyPlaintext();
+   const removedPreferences=clearLegacyPrivatePreferences();
    $('vaultPassword').value='';
    $('vaultPasswordConfirm').value='';
    finishVaultOpen();
-   if(!removed)toast('شُفّرت المفكرة، لكن تعذّر حذف بعض مفاتيح التخزين القديمة. لا تمسح بيانات الموقع قبل مراجعتها.',7000);
+   if(!removed||!removedPreferences)toast('شُفّرت المفكرة، لكن تعذّر حذف بعض النسخ النصية القديمة. راجع صلاحيات تخزين الموقع قبل مسح بياناته.',7000);
    else if(vaultBackupWarningShown)toast('تم تشفير أعمالك والتحقق منها. نزّل نسخة احتياطية مشفرة إضافية الآن.',6500);
    else toast('اكتمل تشفير مفكرة أنوار والتحقق من النسخة الاحتياطية.',4500);
    return;
@@ -2303,11 +2390,25 @@ async function submitVaultForm(event,suppliedPassword){
     throw new Error('لم تُفتح الخزنة. تحقق من عبارة المرور، أو استخدم نسخة احتياطية مشفرة سليمة.');
    }
   }
+  const decodedState=JSON.parse(unlocked.plaintext);
+  const hasEncryptedPreferences=!!(decodedState&&typeof decodedState==='object'&&!Array.isArray(decodedState)&&hasOwn(decodedState,'preferences')&&decodedState.preferences&&typeof decodedState.preferences==='object'&&!Array.isArray(decodedState.preferences));
   const restoredState=readStoredState(unlocked.plaintext);
   vaultKey=unlocked.key;
   vaultTemplate=envelope;
   S=restoredState;
-  if(recoveredFromBackup){
+  vaultUnlocked=true;
+  let migratedPreferences=false;
+  if(!hasEncryptedPreferences){
+   S.preferences=importLegacyPrivatePreferences(S.preferences);
+   try{await persistVaultSnapshot(JSON.stringify(S));migratedPreferences=true}
+   catch(migrationError){
+    vaultUnlocked=false;vaultKey=null;S=emptyStorageState();
+    throw new Error('تم التحقق من كلمة المرور، لكن تعذّر حفظ إعداداتك القديمة داخل الخزنة. احتفظنا بنسخها القديمة؛ أعد المحاولة بعد إتاحة التخزين.');
+   }
+  }else if(!clearLegacyPrivatePreferences()){
+   console.warn('تعذّر حذف بعض مفاتيح الإعدادات القديمة بعد التحقق من النسخة المشفرة.');
+  }
+  if(recoveredFromBackup&&!migratedPreferences){
    localStorage.setItem(VAULT_STORAGE_KEY,JSON.stringify(envelope));
   }
   clearLegacyPlaintext();
@@ -2375,6 +2476,7 @@ async function submitVaultDeviceSetup(event){
   let verified=null;
   if(vaultUnlocked){
    if(tm){clearTimeout(tm);tm=null;flushPendingEdit(false)}
+   flushPrivatePreferenceSave();
    await vaultSaveQueue;
    if(vaultLastWriteError)throw new Error('لم يكتمل آخر حفظ. أصلح الحفظ قبل تفعيل قفل الهاتف.');
    if(!vaultTemplate)throw new Error('تعذّر العثور على إعداد الخزنة الحالي.');
@@ -2429,6 +2531,7 @@ async function lockVault(){
  if(!vaultUnlocked)return;
  clearVaultIdleTimer();
  try{
+  flushPrivatePreferenceSave();
   if(tm){clearTimeout(tm);tm=null}
   if(typeof flushPendingEdit==='function')flushPendingEdit(false);
   await vaultSaveQueue;
@@ -2436,6 +2539,7 @@ async function lockVault(){
   vaultUnlocked=false;
   vaultKey=null;
   S=emptyStorageState();
+  globalThis.AnwarPrivatePreferences.load(S.preferences);
   cur=null;draftNote=null;
   pg.innerHTML='';
   $('t').value='';
@@ -2453,6 +2557,7 @@ async function lockVault(){
  }
 }
 async function openEncryptedBackupDialog(){
+ flushPrivatePreferenceSave();
  if(!vaultUnlocked||!vaultKey){toast('افتح الخزنة أولًا لإنشاء نسخة احتياطية.',4000);return}
  try{
   await vaultSaveQueue;
@@ -2684,6 +2789,23 @@ function save(){
  return true;
 }
 function toast(m,d){const t=$('toast');t.textContent=m;t.classList.add('s');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('s'),d||2000)}
+let privatePreferenceSaveTimer=null;
+globalThis.AnwarPrivatePreferences.setPersistHandler(preferences=>{
+ if(!vaultUnlocked||!vaultKey)return;
+ S.preferences=globalThis.AnwarPrivatePreferences.normalize(preferences);
+ if(privatePreferenceSaveTimer!==null)clearTimeout(privatePreferenceSaveTimer);
+ privatePreferenceSaveTimer=setTimeout(()=>{
+  privatePreferenceSaveTimer=null;
+  if(vaultUnlocked)save();
+ },250);
+});
+function flushPrivatePreferenceSave(){
+ if(privatePreferenceSaveTimer!==null){
+  clearTimeout(privatePreferenceSaveTimer);
+  privatePreferenceSaveTimer=null;
+  if(vaultUnlocked)save();
+ }
+}
 const iso=d=>d.toISOString().slice(0,10);
 function streak(){const d=new Set(S.days);let n=0,c=new Date();if(!d.has(iso(c)))c.setDate(c.getDate()-1);while(d.has(iso(c))){n++;c.setDate(c.getDate()-1)}return n}
 const fmt=ts=>new Date(ts).toLocaleDateString('ar',{day:'numeric',month:'long',year:'numeric'});
@@ -3999,13 +4121,20 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  syncSurahPickerLabel();
  const mode=()=>document.querySelector('input[name=rm]:checked').value;
  const readerAdvanceSelect=$('readerAdvanceMode');
- let readerAdvancePreference='c',activePlaybackKind='radio';
- try{const savedAdvance=localStorage.getItem('anwar_reader_advance');if(savedAdvance==='c'||savedAdvance==='s')readerAdvancePreference=savedAdvance}catch(_e){}
+ let readerAdvancePreference=globalThis.AnwarPrivatePreferences.get().readerAdvance,activePlaybackKind='radio';
  if(readerAdvanceSelect)readerAdvanceSelect.value=readerAdvancePreference;
  function selectPlaybackMode(value){const control=document.querySelector('input[name="rm"][value="'+(value==='s'?'s':'c')+'"]');if(control)control.checked=true;}
+ globalThis.AnwarPrivatePreferences.subscribe(preferences=>{
+  readerAdvancePreference=preferences.readerAdvance==='s'?'s':'c';
+  if(readerAdvanceSelect)readerAdvanceSelect.value=readerAdvancePreference;
+  if(activePlaybackKind==='reader'){
+   selectPlaybackMode(readerAdvancePreference);
+   st.textContent=readerAdvancePreference==='c'?'سيواصل هذا القارئ تلقائيًا إلى السورة التالية.':'وضع الاختيار اليدوي: ستتوقف التلاوة عند نهاية السورة.';
+  }
+ });
  if(readerAdvanceSelect)readerAdvanceSelect.addEventListener('change',()=>{
   readerAdvancePreference=readerAdvanceSelect.value==='s'?'s':'c';
-  try{localStorage.setItem('anwar_reader_advance',readerAdvancePreference)}catch(_e){}
+  globalThis.AnwarPrivatePreferences.set('readerAdvance',readerAdvancePreference);
   // The visitor's preference applies to reciter-list playback, never to the radio broadcast.
   if(activePlaybackKind==='reader'){
    selectPlaybackMode(readerAdvancePreference);
@@ -4824,8 +4953,21 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
    au.addEventListener('pause',()=>{try{if(au.src)navigator.mediaSession.playbackState='paused'}catch(e){}});
    au.addEventListener('ended',()=>{try{navigator.mediaSession.playbackState='none'}catch(e){}});
   }
- au.addEventListener('playing',()=>{try{localStorage.setItem('anwar_rd',JSON.stringify({r:R[cr][0],n:n,m:mode()}))}catch(e){}});
- try{const p=JSON.parse(localStorage.getItem('anwar_rd')||'null');if(p){const i=R.findIndex(x=>x[0]===p.r);if(i>=0){rr.value=i;cr=i}if(p.n>0&&p.n<115){n=p.n;rsu.value=n}}selectPlaybackMode(readerAdvancePreference)}catch(e){}
+ function applyEncryptedRadioPreference(preferences){
+  const saved=preferences&&preferences.radio;
+  if(!saved)return;
+  const index=R.findIndex(item=>item&&item[0]===saved.reciter);
+  if(index>=0){rr.value=String(index);cr=index}
+  if(saved.surah>=1&&saved.surah<=114){
+   n=saved.surah;rsu.value=String(n);
+   if(surahPicker){surahPicker.value=String(n);syncSurahPickerLabel()}
+  }
+ }
+ globalThis.AnwarPrivatePreferences.subscribe(applyEncryptedRadioPreference);
+ au.addEventListener('playing',()=>{
+  globalThis.AnwarPrivatePreferences.set('radio',{reciter:R[cr]?R[cr][0]:'',surah:n});
+ });
+ selectPlaybackMode(readerAdvancePreference);
  // سخّن اتصال خادم القارئ المختار وجهّز بيانات السورة الأولى دون تشغيلها أو تحميل بقية السور.
  function warmCurrentSurah(){
   if(started||mode()==='l')return;
@@ -5371,15 +5513,23 @@ bootVault();
  const voiceState=$('tasbihVoiceState'),voiceButtonLabel=$('tasbihVoiceButtonLabel');
  const voiceStatus=$('tasbihVoiceStatus'),voiceTranscript=$('tasbihVoiceTranscript');
  if(!panel||!toggleButton||!closeButton||!ownerDialog||!select||!voicePanel||!voiceButton)return;
- const countKey='anwar_tasbih_count_v1',dhikrKey='anwar_tasbih_dhikr_v1';
+ const privatePreferences=globalThis.AnwarPrivatePreferences;
  let count=0,recognition=null,voiceActive=false;
  let processedFinalIndexes=new Set();
- try{count=Math.max(0,parseInt(localStorage.getItem(countKey)||'0',10)||0)}catch(e){}
- try{const saved=localStorage.getItem(dhikrKey);if(saved&&[...select.options].some(o=>o.value===saved))select.value=saved}catch(e){}
- function paint(){
+ const initialTasbih=privatePreferences.get().tasbih;
+ count=initialTasbih.count;
+ if([...select.options].some(option=>option.value===initialTasbih.dhikr))select.value=initialTasbih.dhikr;
+ function paint(persist=true){
   countNode.textContent=count.toLocaleString('ar');
-  try{localStorage.setItem(countKey,String(count))}catch(e){}
+  if(persist)privatePreferences.set('tasbih',{count,dhikr:select.value});
  }
+ privatePreferences.subscribe(preferences=>{
+  const saved=preferences.tasbih;
+  count=saved.count;
+  if([...select.options].some(option=>option.value===saved.dhikr))select.value=saved.dhikr;
+  phraseNode.textContent=select.value;
+  countNode.textContent=count.toLocaleString('ar');
+ });
  function add(n=1){
   count=Math.max(0,count+n);paint();
   const el=panel.querySelector('.anwar-tasbih-counter');
@@ -5413,7 +5563,7 @@ bootVault();
   }
   return matches;
  }
- phraseNode.textContent=select.value;paint();
+ phraseNode.textContent=select.value;paint(false);
  function stopVoice(message){
   const wasActive=voiceActive;voiceActive=false;
   if(wasActive&&recognition){try{recognition.stop()}catch(e){}}
@@ -5440,7 +5590,6 @@ bootVault();
  ownerDialog.addEventListener('close',()=>closePanel(false));
  select.addEventListener('change',()=>{
   phraseNode.textContent=select.value;count=0;paint();
-  try{localStorage.setItem(dhikrKey,select.value)}catch(e){}
   voiceTranscript.textContent='بانتظار نطق الذكر المختار.';
   setVoiceState(voiceActive?'listening':'idle','تم اختيار الذكر الجديد. سيُحسب عند نطقه كاملاً.');
  });

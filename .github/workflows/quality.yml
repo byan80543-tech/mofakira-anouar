@@ -65,6 +65,8 @@ jobs:
         run: node scripts/test-vault-startup.mjs
       - name: Test encrypted vault inactivity auto-lock
         run: node scripts/test-vault-idle-lock.mjs
+      - name: Test encrypted radio, reader and tasbih preferences
+        run: node scripts/test-vault-private-preferences.mjs
       - name: Test WebAuthn PRF device unlock and password wrapping
         run: node scripts/test-vault-device-unlock.mjs
       - name: Validate offline app shell and local resources
