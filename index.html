@@ -2788,6 +2788,7 @@ function save(){
  });
  return true;
 }
+function toast(m,d){const t=$('toast');t.textContent=m;t.classList.add('s');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('s'),d||2000)}
 let privatePreferenceSaveTimer=null;
 globalThis.AnwarPrivatePreferences.setPersistHandler(preferences=>{
  if(!vaultUnlocked||!vaultKey)return;
@@ -2805,7 +2806,6 @@ function flushPrivatePreferenceSave(){
   if(vaultUnlocked)save();
  }
 }
-function toast(m,d){const t=$('toast');t.textContent=m;t.classList.add('s');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('s'),d||2000)}
 const iso=d=>d.toISOString().slice(0,10);
 function streak(){const d=new Set(S.days);let n=0,c=new Date();if(!d.has(iso(c)))c.setDate(c.getDate()-1);while(d.has(iso(c))){n++;c.setDate(c.getDate()-1)}return n}
 const fmt=ts=>new Date(ts).toLocaleDateString('ar',{day:'numeric',month:'long',year:'numeric'});
