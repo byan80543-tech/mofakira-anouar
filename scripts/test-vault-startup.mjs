@@ -33,6 +33,7 @@ function makeHarness(initial={},failReads=false){
     showVaultGate(mode,message){calls.mode=mode;calls.message=message},
     finishVaultOpen(){calls.finished=true;sandbox.vaultUnlocked=true},
     prepareLegacyStateForVault(){calls.legacyPrepared=true;return true},
+    importLegacyPrivatePreferences(value){return value},
     showStorageRecoveryNotice(title,message,raw){calls.recovery={title,message,raw}},
     clearStorageRecovery(){calls.cleared=true;sandbox.storageRecoveryBlocked=false},
     toast(message){calls.toasts.push(String(message))},
