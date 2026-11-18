@@ -4,7 +4,8 @@ const ALLOWED_COUNTRY_CODES = new Set([
 ]);
 
 const RATE_POLICIES = Object.freeze({
-  global: { limit: 120, windowMs: 60_000 },
+  total: { limit: 600, windowMs: 60_000 },
+  client: { limit: 120, windowMs: 60_000 },
   catalog: { limit: 30, windowMs: 60_000 },
   "country-list": { limit: 12, windowMs: 60_000 },
   "country-profile": { limit: 24, windowMs: 60_000 }
@@ -81,7 +82,9 @@ function resolveRoute(url) {
     const country = url.searchParams.get("nationality");
     const pageText = url.searchParams.get("page") || "1";
     const page = Number(pageText);
-    if (!ALLOWED_COUNTRY_CODES.has(country) ||
+    if (url.searchParams.getAll("nationality").length !== 1 ||
+        url.searchParams.getAll("page").length > 1 ||
+        !ALLOWED_COUNTRY_CODES.has(country) ||
         !/^\d{1,3}$/.test(pageText) ||
         !Number.isInteger(page) || page < 1 || page > 100) {
       return { error: "البلد أو رقم الصفحة غير صالح." };
@@ -103,7 +106,8 @@ function resolveRoute(url) {
       return { error: "معاملات غير مسموحة." };
     }
     const slug = url.searchParams.get("slug") || "";
-    if (!/^[a-z0-9-]{1,100}$/i.test(slug)) {
+    if (url.searchParams.getAll("slug").length !== 1 ||
+        !/^[a-z0-9-]{1,100}$/i.test(slug)) {
       return { error: "معرّف صفحة القارئ غير صالح." };
     }
     return {
@@ -118,21 +122,35 @@ function resolveRoute(url) {
   return null;
 }
 
-async function sha256Hex(value) {
-  const digest = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(value)
+async function hmacClientKey(ip, secret) {
+  if (!secret || secret.length < 32) {
+    throw new Error("IP_HASH_SECRET must contain at least 32 characters");
+  }
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
   );
-  return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    new TextEncoder().encode("anwar-api-gateway-v1|" + ip)
+  );
+  return Array.from(new Uint8Array(signature), byte => byte.toString(16).padStart(2, "0")).join("");
 }
 
-async function checkLimit(namespace, clientKey, bucket) {
-  const id = namespace.idFromName(clientKey);
+async function checkLimits(namespace, clientKey, routeBucket) {
+  const id = namespace.idFromName("anwar-api-gateway-global-rate-limiter");
   const stub = namespace.get(id);
   const response = await stub.fetch("https://rate-limit.internal/check", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ bucket })
+    body: JSON.stringify({
+      clientKey,
+      buckets: ["total", "client", routeBucket]
+    })
   });
   if (!response.ok && response.status !== 429) {
     throw new Error("Rate limiter unavailable");
@@ -140,8 +158,17 @@ async function checkLimit(namespace, clientKey, bucket) {
   return response.json();
 }
 
+function isAllowedUpstreamHost(hostname) {
+  return hostname === "www.mp3quran.net" ||
+    hostname === "mp3quran.net" ||
+    hostname === "way2quran.com" ||
+    hostname.endsWith(".way2quran.com");
+}
+
 async function fetchSameOriginOnly(target) {
-  const initialOrigin = target.origin;
+  if (target.protocol !== "https:" || !isAllowedUpstreamHost(target.hostname) || target.port) {
+    throw new Error("Upstream host is not allowlisted");
+  }
   let current = target;
 
   for (let hop = 0; hop < 3; hop += 1) {
@@ -154,7 +181,7 @@ async function fetchSameOriginOnly(target) {
         redirect: "manual",
         signal: controller.signal,
         headers: {
-          Accept: current.hostname === "www.mp3quran.net"
+          Accept: current.hostname.endsWith("mp3quran.net")
             ? "application/json"
             : "text/html"
         }
@@ -167,8 +194,8 @@ async function fetchSameOriginOnly(target) {
       const location = response.headers.get("Location");
       if (!location) throw new Error("Upstream redirect without a location");
       const next = new URL(location, current);
-      if (next.origin !== initialOrigin) {
-        throw new Error("Cross-origin upstream redirect rejected");
+      if (next.protocol !== "https:" || next.port || !isAllowedUpstreamHost(next.hostname)) {
+        throw new Error("Redirect to an unapproved upstream host rejected");
       }
       current = next;
       continue;
@@ -211,25 +238,23 @@ async function readTextWithLimit(response, maxBytes) {
   return new TextDecoder("utf-8", { fatal: false }).decode(bytes);
 }
 
-async function readClientIpHash(request) {
+async function readClientIpHash(request, env) {
   const ip = request.headers.get("CF-Connecting-IP");
   if (!ip || ip.length > 80) return null;
-  return sha256Hex("anwar-api-gateway-v1|" + ip);
+  return hmacClientKey(ip, String(env.IP_HASH_SECRET || ""));
 }
 
 async function applyRateLimits(request, env, routeBucket) {
   if (!env.IP_LIMITER) throw new Error("IP limiter binding missing");
-  const clientKey = await readClientIpHash(request);
+  const clientKey = await readClientIpHash(request, env);
   if (!clientKey) throw new Error("Client IP unavailable");
 
-  for (const bucket of ["global", routeBucket]) {
-    const result = await checkLimit(env.IP_LIMITER, clientKey, bucket);
-    if (!result.allowed) {
-      return {
-        blocked: true,
-        retryAfter: Math.max(1, Number(result.retryAfter) || 1)
-      };
-    }
+  const result = await checkLimits(env.IP_LIMITER, clientKey, routeBucket);
+  if (!result.allowed) {
+    return {
+      blocked: true,
+      retryAfter: Math.max(1, Number(result.retryAfter) || 1)
+    };
   }
   return { blocked: false };
 }
@@ -241,11 +266,12 @@ export class IpRateLimiter {
     ctx.blockConcurrencyWhile(() => {
       ctx.storage.sql.exec(`
         CREATE TABLE IF NOT EXISTS rate_hits (
+          client_key TEXT NOT NULL,
           bucket TEXT NOT NULL,
           created_at INTEGER NOT NULL
         );
-        CREATE INDEX IF NOT EXISTS idx_rate_hits_bucket_time
-          ON rate_hits(bucket, created_at);
+        CREATE INDEX IF NOT EXISTS idx_rate_hits_client_bucket_time
+          ON rate_hits(client_key, bucket, created_at);
       `);
     });
   }
@@ -260,42 +286,66 @@ export class IpRateLimiter {
       return json({ error: "Invalid limiter request" }, 400);
     }
 
-    const bucket = payload && payload.bucket;
-    const policy = RATE_POLICIES[bucket];
-    if (!policy) return json({ error: "Unknown rate bucket" }, 400);
+    const clientKey = payload && payload.clientKey;
+    const buckets = payload && payload.buckets;
+    const validRouteBuckets = new Set(["catalog", "country-list", "country-profile"]);
+    if (typeof clientKey !== "string" || !/^[a-f0-9]{64}$/.test(clientKey) ||
+        !Array.isArray(buckets) || buckets.length !== 3 ||
+        buckets[0] !== "total" || buckets[1] !== "client" ||
+        !validRouteBuckets.has(buckets[2])) {
+      return json({ error: "Invalid rate-limit request" }, 400);
+    }
 
     const now = Date.now();
-    const cutoff = now - policy.windowMs;
-
-    // These synchronous SQLite operations run without an await between them.
-    // Durable Object input gates serialize the read/check/write sequence.
-    this.ctx.storage.sql.exec(
-      "DELETE FROM rate_hits WHERE bucket = ? AND created_at <= ?",
+    const checks = buckets.map(bucket => ({
+      key: bucket === "total" ? "*" : clientKey,
       bucket,
-      cutoff
-    );
-    const rows = this.ctx.storage.sql.exec(
-      "SELECT COUNT(*) AS total, MIN(created_at) AS oldest FROM rate_hits WHERE bucket = ?",
-      bucket
-    ).toArray();
-    const total = Number(rows[0]?.total || 0);
-    const oldest = Number(rows[0]?.oldest || now);
+      policy: RATE_POLICIES[bucket]
+    }));
 
-    if (total >= policy.limit) {
-      const retryAfter = Math.max(1, Math.ceil((oldest + policy.windowMs - now) / 1000));
-      return json({ allowed: false, retryAfter }, 429, { "Retry-After": String(retryAfter) });
+    // Check all scopes before inserting any hits. No await occurs during the
+    // SQLite read/check/write sequence, so the global object serializes updates.
+    for (const check of checks) {
+      const cutoff = now - check.policy.windowMs;
+      this.ctx.storage.sql.exec(
+        "DELETE FROM rate_hits WHERE client_key = ? AND bucket = ? AND created_at <= ?",
+        check.key,
+        check.bucket,
+        cutoff
+      );
+      const rows = this.ctx.storage.sql.exec(
+        "SELECT COUNT(*) AS total, MIN(created_at) AS oldest FROM rate_hits WHERE client_key = ? AND bucket = ?",
+        check.key,
+        check.bucket
+      ).toArray();
+      const total = Number(rows[0]?.total || 0);
+      const oldest = Number(rows[0]?.oldest || now);
+
+      if (total >= check.policy.limit) {
+        const retryAfter = Math.max(1, Math.ceil((oldest + check.policy.windowMs - now) / 1000));
+        return json({
+          allowed: false,
+          retryAfter,
+          bucket: check.bucket
+        }, 429, { "Retry-After": String(retryAfter) });
+      }
     }
 
-    this.ctx.storage.sql.exec(
-      "INSERT INTO rate_hits(bucket, created_at) VALUES(?, ?)",
-      bucket,
-      now
-    );
-
-    if (typeof this.ctx.storage.setAlarm === "function") {
-      await this.ctx.storage.setAlarm(now + 120_000);
+    for (const check of checks) {
+      this.ctx.storage.sql.exec(
+        "INSERT INTO rate_hits(client_key, bucket, created_at) VALUES(?, ?, ?)",
+        check.key,
+        check.bucket,
+        now
+      );
     }
-    return json({ allowed: true, remaining: Math.max(0, policy.limit - total - 1) });
+
+    if (typeof this.ctx.storage.getAlarm === "function" &&
+        typeof this.ctx.storage.setAlarm === "function") {
+      const alarm = await this.ctx.storage.getAlarm();
+      if (alarm === null) await this.ctx.storage.setAlarm(now + 60_000);
+    }
+    return json({ allowed: true });
   }
 
   async alarm() {
@@ -303,6 +353,12 @@ export class IpRateLimiter {
       "DELETE FROM rate_hits WHERE created_at <= ?",
       Date.now() - 60_000
     );
+    const rows = this.ctx.storage.sql.exec(
+      "SELECT COUNT(*) AS total FROM rate_hits"
+    ).toArray();
+    if (Number(rows[0]?.total || 0) > 0 && typeof this.ctx.storage.setAlarm === "function") {
+      await this.ctx.storage.setAlarm(Date.now() + 60_000);
+    }
   }
 }
 
