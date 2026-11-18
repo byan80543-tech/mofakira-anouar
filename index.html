@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com 'sha256-2hfKs02QbjOqbW6nnlUKK5v0Kmtok9HTIOsEYOV9f0A=' 'sha256-4giI+ESUJtIatupQ0GRa19vnQYslezSh4XuPQ1lOMX8=' 'sha256-wYI6hHRUO1S/JI5u1R/fnK9fHzj/6IglQ1+CY82F1Co=' 'sha256-QYwkkTcnQ+I/GO9GzNxZiLL3+C66HISY56P+LRrjBz0='        ; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com 'sha256-zpGC6rTLyP8ZC2+ZVM0RYkcrIftVAapu2D95oDFElh4=' 'sha256-4giI+ESUJtIatupQ0GRa19vnQYslezSh4XuPQ1lOMX8=' 'sha256-8YkHgI92MLtaZEym4Zs2fhcBnrUqCXMnywRd2wUa99U=' 'sha256-QYwkkTcnQ+I/GO9GzNxZiLL3+C66HISY56P+LRrjBz0='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script src="api-gateway-config.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -5878,7 +5878,7 @@ bootVault();
 })();
 
 
-// Update bridge: freeze editing, flush pending changes and await encrypted persistence before reload.
+// Update bridge: freeze editing, flush pending changes and verify persistence before reload.
 window.AnouarUpdateBridge = Object.freeze({
   async prepareForReload() {
     if (storageRecoveryBlocked) {
@@ -5915,13 +5915,14 @@ window.AnouarUpdateBridge = Object.freeze({
     if (titleInput) titleInput.disabled = true;
 
     try {
-      if (vaultUnlocked && vaultKey) {
+      if (vaultUnlocked) {
+        // Both encrypted and free-use modes must flush the editor before reload.
         flushPendingEdit(false);
         flushPrivatePreferenceSave();
       }
       await vaultSaveQueue;
       if (vaultLastWriteError) {
-        throw new Error('تعذّر التحقق من آخر حفظ مشفّر. ألغينا التحديث حمايةً لكتابتك؛ حاول الحفظ مجدداً.');
+        throw new Error('تعذّر التحقق من آخر حفظ. ألغينا التحديث حمايةً لبياناتك؛ حاول الحفظ مجدداً.');
       }
       return release;
     } catch (error) {
