@@ -69,6 +69,7 @@ ok(html.includes('https://*.workers.dev') && apiGatewayWorker.includes('export c
 ok(apiGatewayWorker.includes('CF-Connecting-IP') && apiGatewayWorker.includes('idFromName("anwar-api-gateway-global-rate-limiter")') && apiGatewayWorker.includes('Retry-After'),'API gateway applies global and per-IP limits in one Durable Object call');
 ok(apiGatewayWorker.includes('IP_HASH_SECRET') && apiGatewayWorker.includes('name: "HMAC"'),'IP rate-limit keys use a Cloudflare-only HMAC secret instead of storing raw IP addresses');
 ok(apiGatewayWorker.includes('total: { limit: 600') && apiGatewayWorker.includes('client: { limit: 120'),'gateway enforces a site-wide request ceiling plus a per-IP ceiling');
+ok(apiGatewayWorker.includes('env.EDGE_LIMITER.limit') && apiGatewayWorker.includes('edgeDecision.success'),'gateway applies an edge rate check before the strict global Durable Object check');
 ok(apiGatewayWorker.includes('ALLOWED_COUNTRY_CODES') && !apiGatewayWorker.includes('searchParams.get("url")'),'API gateway restricts country parameters and does not expose an open URL proxy');
 
 ok(html.includes('<script src="click-guard.js" defer></script>'),'click-burst guard is loaded as a same-origin deferred script');
