@@ -155,22 +155,33 @@ try {
   assert.equal(response.status, 503);
   assert.equal(calls, 1);
 
-  // Exercise the one-row Durable Object limiter using a fake KV storage adapter.
-  const store = new Map();
-  let gets = 0;
-  let puts = 0;
-  const fakeStorage = {
-    async get(key) {
-      gets += 1;
-      const value = store.get(key);
-      return value === undefined ? undefined : structuredClone(value);
-    },
-    async put(key, value) {
-      puts += 1;
-      store.set(key, structuredClone(value));
+  // Exercise the one-row Durable Object limiter using a fake SQLite adapter.
+  let dbState = null;
+  let selectCalls = 0;
+  let updateCalls = 0;
+  const sql = {
+    exec(statement, ...args) {
+      if (statement.includes("CREATE TABLE IF NOT EXISTS rate_state")) {
+        dbState ??= '{"global":[],"clients":{}}';
+        return { toArray: () => [] };
+      }
+      if (statement.startsWith("SELECT data FROM rate_state")) {
+        selectCalls += 1;
+        return { toArray: () => dbState === null ? [] : [{ data: dbState }] };
+      }
+      if (statement.startsWith("UPDATE rate_state SET data = ?")) {
+        updateCalls += 1;
+        dbState = args[0];
+        return { toArray: () => [] };
+      }
+      throw new Error("Unexpected limiter SQL: " + statement);
     }
   };
-  const limiter = new IpRateLimiter({ storage: fakeStorage }, {});
+  const fakeCtx = {
+    storage: { sql },
+    blockConcurrencyWhile(callback) { callback(); }
+  };
+  const limiter = new IpRateLimiter(fakeCtx, {});
   const limiterRequest = (clientKey, routeBucket = "country-list") => new Request("https://rate-limit.internal/check", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -187,26 +198,26 @@ try {
   last = await limiter.fetch(limiterRequest(clientA));
   assert.equal(last.status, 429, "ninth country-list request from one IP is blocked");
   assert.equal((await last.json()).bucket, "country-list");
-  assert.equal(puts, 8, "blocked requests do not write storage");
+  assert.equal(updateCalls, 8, "blocked requests do not write the SQLite state row");
 
   last = await limiter.fetch(limiterRequest(clientB));
   assert.equal(last.status, 200, "a second IP has an independent allowance");
 
-  const stateBefore = await fakeStorage.get("anwar-rate-state-v1");
-  assert.ok(stateBefore && Array.isArray(stateBefore.global));
-  assert.equal(puts, 9);
-  assert.ok(gets >= puts);
+  let persisted = JSON.parse(dbState);
+  assert.ok(Array.isArray(persisted.global));
+  assert.equal(updateCalls, 9, "one SQLite row update persists all counters");
+  assert.ok(selectCalls >= updateCalls);
 
   now += 60_001;
   last = await limiter.fetch(limiterRequest(clientA));
   assert.equal(last.status, 200, "the IP is allowed again after the sliding window expires");
-  const stateAfter = await fakeStorage.get("anwar-rate-state-v1");
-  assert.ok(!stateAfter.clients[clientB], "expired client entries are pruned");
-  assert.equal(puts, 10, "one write persists all updated counters");
+  persisted = JSON.parse(dbState);
+  assert.ok(!persisted.clients[clientB], "expired client entries are pruned");
+  assert.equal(updateCalls, 10, "one row update persists the new state");
 
   // The global 50/min ceiling applies across many distinct IP addresses.
-  await fakeStorage.put("anwar-rate-state-v1", { global: [], clients: {} });
-  puts = 0;
+  sql.exec("UPDATE rate_state SET data = ? WHERE id = 1", '{"global":[],"clients":{}}');
+  updateCalls = 0;
   for (let i = 0; i < 50; i += 1) {
     last = await limiter.fetch(limiterRequest(i.toString(16).padStart(64, "0"), "catalog"));
     assert.equal(last.status, 200, "global allowance accepts request " + (i + 1));
@@ -214,7 +225,7 @@ try {
   last = await limiter.fetch(limiterRequest("f".repeat(64), "catalog"));
   assert.equal(last.status, 429, "the 51st global request in the same window is blocked");
   assert.equal((await last.json()).bucket, "total");
-  assert.equal(puts, 50, "the rejected 51st request does not add a storage write");
+  assert.equal(updateCalls, 50, "the rejected 51st request does not update the SQLite row");
 
   console.log("API gateway checks passed: origin, allowlist, cache, edge and IP limits, one-row storage, and global sliding window.");
 } finally {
