@@ -1,0 +1,23 @@
+name = "anwar-api-gateway"
+main = "src/index.mjs"
+compatibility_date = "2026-11-18"
+workers_dev = true
+
+[vars]
+ALLOWED_ORIGIN = "https://byan80543-tech.github.io"
+
+[[durable_objects.bindings]]
+name = "IP_LIMITER"
+class_name = "IpRateLimiter"
+
+[exports.IpRateLimiter]
+type = "durable-object"
+storage = "sqlite"
+
+[[ratelimits]]
+name = "EDGE_LIMITER"
+namespace_id = "20261118"
+
+[ratelimits.simple]
+limit = 400
+period = 60
