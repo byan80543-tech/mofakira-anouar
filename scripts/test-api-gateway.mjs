@@ -4,10 +4,10 @@ import worker, { IpRateLimiter } from "../workers/anwar-api-gateway/src/index.mj
 
 const originalFetch = globalThis.fetch;
 const originalCrypto = globalThis.crypto;
-Object.defineProperty(globalThis, "crypto", { value: webcrypto, configurable: true, writable: true });
-const originalDateNow = Date.now;
 const oldCaches = globalThis.caches;
+Object.defineProperty(globalThis, "crypto", { value: webcrypto, configurable: true, writable: true });
 let now = 1_000_000;
+const originalDateNow = Date.now;
 Date.now = () => now;
 
 const cacheEntries = new Map();
@@ -81,7 +81,7 @@ try {
     });
   };
 
-  // Strict browser origin: a rejected request never reaches an upstream.
+  // Strict origin: a rejected request never reaches the upstream.
   let response = await worker.fetch(
     new Request("https://gateway.example.workers.dev/v1/reciters", {
       headers: { Origin: "https://attacker.example", "CF-Connecting-IP": "192.0.2.10" }
@@ -92,7 +92,7 @@ try {
   assert.equal(response.status, 403);
   assert.equal(calls, 0);
 
-  // The edge binding must reject bursts before a Durable Object call or upstream request.
+  // Edge binding rejects before the Durable Object and upstream.
   const edgeBlockedEnv = {
     ...baseEnv(),
     EDGE_LIMITER: { async limit() { return { success: false }; } },
@@ -104,7 +104,7 @@ try {
   assert.equal(edgeBlockedEnv.IP_LIMITER.calls.length, 0);
   assert.equal(calls, 0);
 
-  // One global Durable Object call checks all scopes in a single request.
+  // A valid catalog request checks all scopes in one Durable Object request.
   const env = baseEnv();
   response = await worker.fetch(request("/v1/reciters"), env, context);
   assert.equal(response.status, 200);
@@ -119,9 +119,9 @@ try {
   response = await worker.fetch(request("/v1/reciters"), env, context);
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("X-Anwar-Gateway-Cache"), "HIT");
-  assert.equal(calls, 1, "cache hit does not call MP3Quran again");
+  assert.equal(calls, 1, "cache hit does not call upstream again");
 
-  // Arbitrary URLs, unknown routes, duplicate query parameters and invalid slugs are rejected.
+  // Arbitrary URLs, unknown routes, duplicate parameters and invalid slugs are rejected.
   response = await worker.fetch(request("/proxy?url=https://evil.example"), env, context);
   assert.equal(response.status, 404);
   response = await worker.fetch(request("/v1/country/list?nationality=MA&page=1&url=https://evil.example"), env, context);
@@ -142,67 +142,35 @@ try {
   }), env, context);
   assert.equal(response.status, 405);
 
-  // A route-specific 429 blocks before any provider request.
+  // A route-specific 429 blocks before contacting a provider.
   const deniedEnv = { ...baseEnv(), IP_LIMITER: makeLimiter({ denyBucket: "country-list" }) };
   response = await worker.fetch(request("/v1/country/list?nationality=MA&page=1"), deniedEnv, context);
   assert.equal(response.status, 429);
   assert.equal(response.headers.get("Retry-After"), "17");
   assert.equal(calls, 1);
 
-  // A missing HMAC secret fails closed; it never calls the rate limiter or upstream.
+  // A missing HMAC secret fails closed.
   const noSecretEnv = { ...baseEnv(), IP_HASH_SECRET: "" };
   response = await worker.fetch(request("/v1/reciters"), noSecretEnv, context);
   assert.equal(response.status, 503);
   assert.equal(calls, 1);
 
-  // Exercise global, per-IP and route sliding windows through a fake SQLite adapter.
-  const hits = [];
-  const sql = {
-    exec(statement, ...args) {
-      if (statement.includes("CREATE TABLE") || statement.includes("CREATE INDEX")) {
-        return { toArray: () => [] };
-      }
-      if (statement.startsWith("DELETE FROM rate_hits WHERE client_key = ? AND bucket = ?")) {
-        const [client_key, bucket, cutoff] = args;
-        for (let i = hits.length - 1; i >= 0; i -= 1) {
-          if (hits[i].client_key === client_key && hits[i].bucket === bucket && hits[i].created_at <= cutoff) hits.splice(i, 1);
-        }
-        return { toArray: () => [] };
-      }
-      if (statement.startsWith("DELETE FROM rate_hits WHERE created_at <= ?")) {
-        const [cutoff] = args;
-        for (let i = hits.length - 1; i >= 0; i -= 1) {
-          if (hits[i].created_at <= cutoff) hits.splice(i, 1);
-        }
-        return { toArray: () => [] };
-      }
-      if (statement.startsWith("SELECT COUNT(*) AS total, MIN(created_at) AS oldest")) {
-        const [client_key, bucket] = args;
-        const selected = hits.filter(hit => hit.client_key === client_key && hit.bucket === bucket).sort((a,b)=>a.created_at-b.created_at);
-        return { toArray: () => [{ total: selected.length, oldest: selected[0]?.created_at ?? null }] };
-      }
-      if (statement.startsWith("SELECT COUNT(*) AS total FROM rate_hits")) {
-        return { toArray: () => [{ total: hits.length }] };
-      }
-      if (statement.startsWith("INSERT INTO rate_hits")) {
-        const [client_key, bucket, created_at] = args;
-        hits.push({ client_key, bucket, created_at });
-        return { toArray: () => [] };
-      }
-      throw new Error("Unexpected SQL in fake adapter: " + statement);
+  // Exercise the one-row Durable Object limiter using a fake KV storage adapter.
+  const store = new Map();
+  let gets = 0;
+  let puts = 0;
+  const fakeStorage = {
+    async get(key) {
+      gets += 1;
+      const value = store.get(key);
+      return value === undefined ? undefined : structuredClone(value);
+    },
+    async put(key, value) {
+      puts += 1;
+      store.set(key, structuredClone(value));
     }
   };
-  const fakeStorage = {
-    alarm: null,
-    sql,
-    async getAlarm() { return this.alarm; },
-    async setAlarm(value) { this.alarm = value; }
-  };
-  const fakeCtx = {
-    storage: fakeStorage,
-    blockConcurrencyWhile(callback) { callback(); }
-  };
-  const limiter = new IpRateLimiter(fakeCtx, {});
+  const limiter = new IpRateLimiter({ storage: fakeStorage }, {});
   const limiterRequest = (clientKey, routeBucket = "country-list") => new Request("https://rate-limit.internal/check", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -212,34 +180,43 @@ try {
   const clientA = "a".repeat(64);
   const clientB = "b".repeat(64);
   let last;
-  for (let i = 0; i < 12; i += 1) {
+  for (let i = 0; i < 8; i += 1) {
     last = await limiter.fetch(limiterRequest(clientA));
-    assert.equal(last.status, 200, "first 12 country-list requests from one IP are accepted");
-    now += 1;
+    assert.equal(last.status, 200, "first eight country-list requests from one IP are accepted");
   }
   last = await limiter.fetch(limiterRequest(clientA));
-  assert.equal(last.status, 429, "13th country-list request from the same IP is blocked");
-  assert.ok(Number(last.headers.get("Retry-After")) > 0);
+  assert.equal(last.status, 429, "ninth country-list request from one IP is blocked");
+  assert.equal((await last.json()).bucket, "country-list");
+  assert.equal(puts, 8, "blocked requests do not write storage");
 
   last = await limiter.fetch(limiterRequest(clientB));
-  assert.equal(last.status, 200, "a different IP keeps its own per-IP allowance");
+  assert.equal(last.status, 200, "a second IP has an independent allowance");
+
+  const stateBefore = await fakeStorage.get("anwar-rate-state-v1");
+  assert.ok(stateBefore && Array.isArray(stateBefore.global));
+  assert.equal(puts, 9);
+  assert.ok(gets >= puts);
 
   now += 60_001;
   last = await limiter.fetch(limiterRequest(clientA));
-  assert.equal(last.status, 200, "the blocked client is allowed again after the sliding window expires");
+  assert.equal(last.status, 200, "the IP is allowed again after the sliding window expires");
+  const stateAfter = await fakeStorage.get("anwar-rate-state-v1");
+  assert.ok(!stateAfter.clients[clientB], "expired client entries are pruned");
+  assert.equal(puts, 10, "one write persists all updated counters");
 
-  // The total site-wide ceiling applies even when requests come from different IPs.
-  hits.length = 0;
-  for (let i = 0; i < 600; i += 1) {
+  // The global 50/min ceiling applies across many distinct IP addresses.
+  await fakeStorage.put("anwar-rate-state-v1", { global: [], clients: {} });
+  puts = 0;
+  for (let i = 0; i < 50; i += 1) {
     last = await limiter.fetch(limiterRequest(i.toString(16).padStart(64, "0"), "catalog"));
-    if (i < 600) assert.equal(last.status, 200, "global allowance accepts request " + (i + 1));
+    assert.equal(last.status, 200, "global allowance accepts request " + (i + 1));
   }
   last = await limiter.fetch(limiterRequest("f".repeat(64), "catalog"));
-  assert.equal(last.status, 429, "the site-wide 601st request in the same window is blocked");
-  const body = await last.json();
-  assert.equal(body.bucket, "total");
+  assert.equal(last.status, 429, "the 51st global request in the same window is blocked");
+  assert.equal((await last.json()).bucket, "total");
+  assert.equal(puts, 50, "the rejected 51st request does not add a storage write");
 
-  console.log("API gateway checks passed: strict origin, allowlisted routes, duplicate parameter rejection, HMAC IP keys, cache, and global/per-IP sliding windows.");
+  console.log("API gateway checks passed: origin, allowlist, cache, edge and IP limits, one-row storage, and global sliding window.");
 } finally {
   globalThis.fetch = originalFetch;
   Object.defineProperty(globalThis, "crypto", { value: originalCrypto, configurable: true, writable: true });
