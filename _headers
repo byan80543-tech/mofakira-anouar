@@ -6,3 +6,8 @@
 /icon-192.png
   Content-Type: image/png
   X-Content-Type-Options: nosniff
+
+/file_0000000027d082129d4c7e071d715655.png
+  Content-Type: image/png
+  X-Content-Type-Options: nosniff
+  Cache-Control: public, max-age=31536000, immutable
