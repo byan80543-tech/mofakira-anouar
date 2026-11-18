@@ -79,7 +79,7 @@ function makeHarness(initial={}){
     storageRecoveryBlocked:false,storageRecoveryRaw:null,storageRecoveryExported:false,storageRecoveryMode:'none',storageRecoveryBackupAvailable:false,
     VAULT_STORAGE_KEY:'anwar_vault_v1',VAULT_BACKUP_KEY:'anwar_vault_backup_v1',
     VAULT_MODE_KEY:'anwar_vault_mode_v1',
-    continueVaultAfterRecovery(){if(sandbox.api)sandbox.api.load()},
+    continueVaultAfterRecovery(){const primary=storage.getItem('anwar_v1');const backup=primary===null?storage.getItem('anwar_v1_backup_v2'):null;if(primary!==null)sandbox.S=JSON.parse(primary);else if(backup!==null)sandbox.S=JSON.parse(backup)},
     vaultKey:{testKey:true},vaultTemplate:{format:'mock-vault'},vaultUnlocked:true,
     vaultGateMode:'plain',
     vaultSaveQueue:Promise.resolve(),vaultLastWriteError:null,vaultBackupWarningShown:false,
