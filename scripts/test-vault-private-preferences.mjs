@@ -6,7 +6,7 @@ const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const apiStart=html.indexOf('/* Encrypted private settings shared by the notebook modules. */');
 const apiEnd=html.indexOf('requestAnimationFrame(()=>setTimeout(()=>{',apiStart);
 assert.ok(apiStart>=0&&apiEnd>apiStart,'private preference API is present');
-const sandbox={console,requestAnimationFrame(){},setTimeout(){},clearTimeout()};sandbox.globalThis=sandbox;
+const sandbox={console,requestAnimationFrame(){},setTimeout(){},clearTimeout(){}};sandbox.globalThis=sandbox;
 vm.runInNewContext(html.slice(apiStart,apiEnd),sandbox,{timeout:3000});
 const api=sandbox.AnwarPrivatePreferences;
 assert.ok(api,'private preference API is installed');
