@@ -106,6 +106,7 @@ try {
   // One global Durable Object call checks all scopes in a single request.
   const env = baseEnv();
   response = await worker.fetch(request("/v1/reciters"), env, context);
+  if (response.status !== 200) console.error("gateway first request rejected:", await response.clone().text(), "crypto.subtle:", !!globalThis.crypto?.subtle);
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("Access-Control-Allow-Origin"), "https://byan80543-tech.github.io");
   assert.equal(response.headers.get("X-Anwar-Gateway-Cache"), "MISS");
