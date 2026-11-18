@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
+import { webcrypto } from "node:crypto";
 import worker, { IpRateLimiter } from "../workers/anwar-api-gateway/src/index.mjs";
 
 const originalFetch = globalThis.fetch;
+const originalCrypto = globalThis.crypto;
+Object.defineProperty(globalThis, "crypto", { value: webcrypto, configurable: true, writable: true });
 const originalDateNow = Date.now;
 const oldCaches = globalThis.caches;
 let now = 1_000_000;
@@ -238,6 +241,7 @@ try {
   console.log("API gateway checks passed: strict origin, allowlisted routes, duplicate parameter rejection, HMAC IP keys, cache, and global/per-IP sliding windows.");
 } finally {
   globalThis.fetch = originalFetch;
+  Object.defineProperty(globalThis, "crypto", { value: originalCrypto, configurable: true, writable: true });
   Date.now = originalDateNow;
   if (oldCaches === undefined) delete globalThis.caches;
   else globalThis.caches = oldCaches;
