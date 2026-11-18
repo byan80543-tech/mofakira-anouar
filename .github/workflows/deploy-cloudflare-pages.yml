@@ -30,13 +30,18 @@ jobs:
 
           while IFS= read -r -d '' file; do
             case "$file" in
-              .github/*|workers/*|scripts/*|*.md)
+              .github/*|workers/*|scripts/*|*.md|_headers)
                 continue
                 ;;
             esac
             mkdir -p "dist/mofakira-anouar/$(dirname "$file")"
             cp "$file" "dist/mofakira-anouar/$file"
           done < <(git ls-files -z)
+
+          # Cloudflare Pages reads _headers from the output directory root,
+          # not from the nested PWA application directory.
+          test -s _headers
+          cp _headers dist/_headers
 
           cat > dist/index.html <<'EOF'
           <!doctype html>
@@ -52,6 +57,12 @@ jobs:
           </body>
           </html>
           EOF
+
+          # Fail the build if the security header file was misplaced or emptied.
+          test -s dist/_headers
+          grep -q "Content-Security-Policy:" dist/_headers
+          grep -q "frame-ancestors 'none'" dist/_headers
+          grep -q "X-Content-Type-Options: nosniff" dist/_headers
 
       - name: Verify required secrets
         env:
