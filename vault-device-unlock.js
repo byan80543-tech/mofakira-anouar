@@ -108,7 +108,7 @@
      },
      timeout:60000,
      attestation:'none',
-     extensions:{prf:{eval:{first:salt}}}
+     extensions:{prf:{}}
     }
    });
   }catch(error){
@@ -118,11 +118,13 @@
   }
   if(!credential)throw new Error('لم يكتمل إعداد قفل الهاتف.');
   const prfResult=credential.getClientExtensionResults?.().prf;
-  if(!prfResult||prfResult.enabled!==true||!prfResult.results?.first)throw new Error('هذا القفل أو المتصفح لا يدعم ميزة PRF اللازمة لحماية مفتاح المفكرة. بقيت كلمة المرور الأساسية كما هي.');
+  if(!prfResult||prfResult.enabled!==true)throw new Error('هذا القفل أو المتصفح لا يدعم ميزة PRF اللازمة لحماية مفتاح المفكرة. بقيت كلمة المرور الأساسية كما هي.');
   const credentialId=toBase64Url(new Uint8Array(credential.rawId));
   const credentialIdBytes=new Uint8Array(credential.rawId);
   if(!credentialIdBytes.length)throw new Error('لم يُرجع الهاتف معرّف اعتماد صالحًا.');
-  const prfOutput=prfResult.results.first;
+  // Some authenticators enable PRF for the new credential but do not return an
+  // evaluation during create(). Obtain the first output from a verified assertion.
+  const prfOutput=await requestPrf(credentialIdBytes,salt);
   const wrappingKey=await deriveWrappingKey(prfOutput,salt);
   const iv=randomBytes(12);
   const encrypted=await root.crypto.subtle.encrypt(
