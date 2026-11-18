@@ -6,12 +6,12 @@ import { webcrypto } from 'node:crypto';
 const root=new URL('..',import.meta.url);
 const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const cryptoSource=fs.readFileSync(new URL('../vault-crypto.js',import.meta.url),'utf8');
-const preferenceSource=extract('/* Encrypted private settings shared by the notebook modules. */','requestAnimationFrame(()=>setTimeout(()=>{');
 const extract=(start,end)=>{
   const a=html.indexOf(start),b=html.indexOf(end,a);
   assert.ok(a>=0&&b>a,'source block exists: '+start);
   return html.slice(a,b);
 };
+const preferenceSource=extract('/* Encrypted private settings shared by the notebook modules. */','requestAnimationFrame(()=>setTimeout(()=>{');
 const clearSource=extract('function clearLegacyPlaintext(){','async function persistVaultSnapshot(plaintext){');
 const submitSource=extract('async function submitVaultForm(event,suppliedPassword){','async function lockVault(){');
 
