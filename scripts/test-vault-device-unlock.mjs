@@ -34,12 +34,11 @@ Object.defineProperty(globalThis,'navigator',{
     assert.equal(options.publicKey.rp.id,'notes.example.test');
     assert.equal(options.publicKey.authenticatorSelection.authenticatorAttachment,'platform');
     assert.equal(options.publicKey.authenticatorSelection.userVerification,'required');
-    const salt=options.publicKey.extensions.prf.eval.first;
-    assert.ok(salt instanceof Uint8Array||salt instanceof ArrayBuffer,'registration requests a fresh PRF salt');
+    assert.deepEqual(Object.keys(options.publicKey.extensions.prf),[],'registration enables PRF without requiring create-time evaluation');
     return {
      rawId:credentialId,
      getClientExtensionResults(){
-      return {prf:{enabled:prfEnabled,results:{first:copyBuffer(prfOutput)}}};
+      return {prf:{enabled:prfEnabled}};
      }
     };
    },
@@ -73,8 +72,9 @@ assert.ok(raw,'encrypted device wrapper exists');
 assert.ok(!raw.includes(password),'primary password is never stored in plaintext');
 assert.ok(!raw.includes('23,23,23'),'PRF output is never stored in plaintext');
 
+assert.equal(getCalls,1,'registration obtains PRF output from a verified assertion when create returns no output');
 assert.equal(await unlock.unlockPassword(),password,'same platform PRF decrypts the wrapped password');
-assert.equal(getCalls,1,'unlock requires a fresh authenticator assertion');
+assert.equal(getCalls,2,'each unlock requires a fresh authenticator assertion');
 
 const saved=JSON.parse(raw);
 const tampered={...saved,ciphertext:(saved.ciphertext[0]==='A'?'B':'A')+saved.ciphertext.slice(1)};
