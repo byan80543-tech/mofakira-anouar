@@ -50,6 +50,18 @@ ok(!html.includes('Object.hasOwn('),'storage normalization avoids unsupported Ob
 ok(html.includes('src="./vault-crypto.js?v=20261117-1"'),'the local vault crypto helper is loaded by the notebook');
 ok(html.includes('id="vaultGate"') && html.includes('id="vaultLockBtn"'),'password gate and manual vault lock controls are present');
 ok(html.includes('src="toolbar-back-navigation.js"'),'contextual back-navigation helper is loaded by the notebook');
+
+ok(html.includes('id="anwar-wordmark-legibility-v1"') && html.includes("font-family:'Cairo',Tahoma,sans-serif!important") && html.includes('font-weight:700!important'),'brand wordmark uses a clear bold Arabic sans-serif face');
+const mobileStyleStart=html.indexOf('<style id="anwar-mobile-toolbar-fix">');
+const contextualStyleStart=html.indexOf('<style id="anwar-contextual-back-and-brand-v2">',mobileStyleStart);
+const mobileStyleRegion=html.slice(mobileStyleStart,contextualStyleStart);
+const mobileStyleClose=mobileStyleRegion.indexOf('</style>');
+const lockStyleOpen=mobileStyleRegion.indexOf('<style id="vault-lock-toolbar-position-v1">');
+ok(mobileStyleClose>0 && lockStyleOpen>mobileStyleClose && mobileStyleRegion.slice(lockStyleOpen).includes('</style>'),'mobile toolbar style blocks are properly closed and not nested');
+ok(html.includes('id="archiveBtn"') && html.includes('aria-controls="archiveDialog"') && html.includes('id="bkp"') && html.includes('aria-controls="dg"'),'archive and encrypted-backup icons point to their actual dialogs');
+ok(['prn','pdf','vs','sp','fo','ip','pn','cy','hist','dl'].every(id=>new RegExp('id="'+id+'"[^>]*(?:aria-label|title)=').test(html)),'editor action icons have readable accessible names or titles');
+ok(toolbarBackNavigation.includes("paletteButton.setAttribute('aria-expanded'") && toolbarBackNavigation.includes("radioButton.setAttribute('aria-pressed'") && toolbarBackNavigation.includes('إيقاف إذاعة القرآن مؤقتًا'),'toolbar controls keep palette and Quran playback states accessible');
+
 try{new vm.Script(toolbarBackNavigation,{filename:'toolbar-back-navigation.js'});ok(true,'contextual back-navigation helper JavaScript syntax is valid')}catch(error){failures.push('toolbar-back-navigation.js: '+error.message)}
 ok(html.includes('const VAULT_IDLE_LOCK_MS=5*60*1000;') && html.includes('document.addEventListener(eventName,recordVaultActivity,true)'),'vault automatically locks after five minutes of inactivity and tracks user interaction');
 ok(html.includes('AnwarPrivatePreferences.normalize(d.preferences)') && html.includes('preferences:globalThis.AnwarPrivatePreferences.normalize({})'),'radio, reader and tasbih preferences are part of the encrypted vault state');

@@ -4,6 +4,9 @@
   const byId = (id) => document.getElementById(id);
   const app = byId('app');
   const gate = byId('vaultGate');
+  const palettePanel = byId('palettePanel');
+  const paletteButton = byId('paletteBtn');
+  const radioButton = byId('rb');
 
   const isOpen = (id, className) => {
     const el = byId(id);
@@ -29,17 +32,32 @@
 
   const syncBackButton = () => {
     document.documentElement.classList.toggle('anwar-back-visible', hasBackContext());
+
+    if (palettePanel && paletteButton) {
+      paletteButton.setAttribute('aria-expanded', String(palettePanel.classList.contains('open')));
+    }
+
+    if (radioButton) {
+      const playing = radioButton.dataset.playing === 'true' || /[⏸Ⅱ]/.test(radioButton.textContent);
+      radioButton.setAttribute('aria-pressed', String(playing));
+      radioButton.setAttribute('aria-label', playing ? 'إيقاف إذاعة القرآن مؤقتًا' : 'تشغيل إذاعة القرآن');
+      radioButton.title = playing ? 'إيقاف إذاعة القرآن مؤقتًا' : 'تشغيل إذاعة القرآن الكريم';
+    }
   };
 
   const observer = new MutationObserver(syncBackButton);
   const observed = document.querySelectorAll(
     '#app, dialog, #vaultGate, #palettePanel, #fm, #rd, #paperStylePanel, ' +
-    '#reciterCountryModal, #surahPickerModal, #lessonSeriesModal'
+    '#reciterCountryModal, #surahPickerModal, #lessonSeriesModal, #rb'
   );
   observed.forEach((el) => {
+    const isRadioButton = el === radioButton;
     observer.observe(el, {
       attributes: true,
-      attributeFilter: ['class', 'open', 'hidden']
+      attributeFilter: ['class', 'open', 'hidden', 'data-playing'],
+      childList: isRadioButton,
+      characterData: isRadioButton,
+      subtree: isRadioButton
     });
   });
 

@@ -1605,6 +1605,8 @@ dialog[open]>.float-head{display:none!important}
  #vaultLockBtn{flex:0 0 32px;width:32px;min-width:32px;height:34px;visibility:visible}
 }
 
+</style>
+
 <style id="vault-lock-toolbar-position-v1">
 /* إبقاء زر الخزنة ضمن الجزء المرئي من الشريط على الهواتف */
 @media(max-width:800px){
@@ -1612,7 +1614,6 @@ dialog[open]>.float-head{display:none!important}
  .tb::-webkit-scrollbar{display:none}
  .tb>#vaultLockBtn{order:-1;flex:0 0 34px!important;width:34px!important;min-width:34px!important;height:36px!important;margin-inline-start:2px!important}
 }
-</style>
 </style>
 
 <style id="anwar-contextual-back-and-brand-v2">
@@ -1635,19 +1636,43 @@ dialog[open]>.float-head{display:none!important}
 }
 </style>
 
+<style id="anwar-wordmark-legibility-v1">
+/* عنوان واضح ومقروء: خط عربي هندسي متزن بدل الخط الرقعي المزخرف */
+.tb .brand{gap:5px!important}
+.tb .brand-mark{width:21px!important;height:21px!important;flex-basis:21px!important}
+.tb .logo{
+  font-family:'Cairo',Tahoma,sans-serif!important;
+  font-size:19px!important;
+  font-weight:700!important;
+  letter-spacing:0!important;
+  line-height:1.35!important;
+  color:#fff2c5!important;
+  text-shadow:0 1px 1px rgba(4,17,34,.42);
+  text-rendering:optimizeLegibility;
+}
+@media(max-width:800px){
+  .tb .brand{gap:5px!important}
+  .tb .brand-mark{width:20px!important;height:20px!important;flex-basis:20px!important}
+  .tb .logo{font-size:17px!important;letter-spacing:0!important}
+}
+@media(max-width:360px){
+  .tb .logo{font-size:16px!important}
+}
+</style>
+
 </head>
 <body>
 <div class="app" id="app">
 <button type="button" id="exitFocus" class="focus-exit" aria-label="الخروج من وضع التركيز" title="الخروج من وضع التركيز">×</button>
 <div class="tb">
- <button class="back" id="bk" aria-label="رجوع">→</button>
+ <button class="back" id="bk" aria-label="رجوع" title="العودة إلى قائمة الأعمال أو إغلاق النافذة">→</button>
  <span class="brand"><svg class="brand-mark" viewBox="0 0 512 512" aria-hidden="true"><path d="M70 420 Q235 320 424 60 Q405 260 70 420Z" fill="#e7c16d" stroke="#fff0bd" stroke-width="9"/><path d="M72 420 Q248 250 424 60 M155 340 L145 255 M220 276 L220 185 M292 202 L310 130 M360 132 L390 92" fill="none" stroke="#76501e" stroke-width="10" stroke-linecap="round"/></svg><span class="logo">مفكرة أنوار</span></span>
  <input id="t" placeholder="عنوان العمل">
- <button type="button" id="archiveBtn" class="archive-launch" aria-label="أرشيف أنوار" title="أرشيف أنوار"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4.5h18v4H3zM5 8.5v11h14v-11M9 12h6M9 15h6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
- <button id="rb" title="إذاعة القرآن الكريم" aria-label="تشغيل إذاعة القرآن">▶</button>
+ <button type="button" id="archiveBtn" class="archive-launch" aria-label="أرشيف أنوار" title="أرشيف أنوار" aria-haspopup="dialog" aria-controls="archiveDialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4.5h18v4H3zM5 8.5v11h14v-11M9 12h6M9 15h6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+ <button type="button" id="rb" title="تشغيل أو إيقاف إذاعة القرآن" aria-label="تشغيل إذاعة القرآن" aria-pressed="false">▶</button>
  <button id="th" type="button" aria-label="تبديل الوضع الليلي والنهاري" title="تبديل الوضع الليلي والنهاري"><svg class="toolbar-icon theme-toggle-icon" viewBox="0 0 24 24" aria-hidden="true"><circle class="theme-sun" cx="12" cy="12" r="4"/><path class="theme-sun" d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/><path class="theme-moon" d="M20.3 15.4A8.5 8.5 0 0 1 8.6 3.7 8.5 8.5 0 1 0 20.3 15.4Z"/></svg></button>
  <button id="paletteBtn" type="button" aria-label="تغيير ألوان المفكرة" title="تغيير ألوان المفكرة"><svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2a8.8 8.8 0 1 0 0 17.6h1.3a1.9 1.9 0 0 0 1.3-3.3 1.8 1.8 0 0 1 1.3-3h1.3a3.7 3.7 0 0 0 3.7-3.7c0-4.2-4-7.6-8.9-7.6Z"/><circle cx="7.8" cy="11" r="1"/><circle cx="10" cy="7.4" r="1"/><circle cx="14.3" cy="7.4" r="1"/><circle cx="17.2" cy="10.2" r="1"/></svg></button>
- <button id="bkp" type="button" aria-label="نسخة احتياطية مشفرة" title="نسخة احتياطية مشفرة"><svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h12l3.5 3.5v13.5H3.5V3.5H5Z"/><path d="M7 3.5v6h9v-6M8 20.5v-7h8v7"/></svg></button>
+ <button id="bkp" type="button" aria-label="نسخة احتياطية مشفرة" title="نسخة احتياطية مشفرة" aria-haspopup="dialog" aria-controls="dg"><svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h12l3.5 3.5v13.5H3.5V3.5H5Z"/><path d="M7 3.5v6h9v-6M8 20.5v-7h8v7"/></svg></button>
   <button id="vaultLockBtn" type="button" aria-label="قفل الخزنة المشفرة" title="قفل الخزنة؛ اضغط لاحقًا لفتحها بقفل الهاتف أو كلمة المرور الأساسية"><svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="10" width="15" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg></button>
  
 </div>
@@ -1710,7 +1735,7 @@ dialog[open]>.float-head{display:none!important}
 <div class="st"><span id="info"></span><span>تكبير <input type="range" id="zm" min="60" max="150" value="100"></span></div>
 
 <div class="rib" id="rib">
- <div class="g"><div><button class="b" id="prn" title="طباعة">🖨️</button><button class="b" id="pdf" title="تنزيل PDF">📄</button><button class="b word-export" id="word" title="تنزيل Word (DOCX)" aria-label="تنزيل Word">W</button><select id="ty" aria-label="نوع العمل" title="نوع العمل"><option value="poem">قصيدة</option><option value="text">نص</option><option value="idea">فكرة</option></select></div><small>الملف</small></div>
+ <div class="g"><div><button class="b" id="prn" title="طباعة العمل الحالي" aria-label="طباعة العمل الحالي">🖨️</button><button class="b" id="pdf" title="تنزيل ملف PDF" aria-label="تنزيل العمل بصيغة PDF">📄</button><button class="b word-export" id="word" title="تنزيل Word (DOCX)" aria-label="تنزيل Word">W</button><select id="ty" aria-label="نوع العمل" title="نوع العمل"><option value="poem">قصيدة</option><option value="text">نص</option><option value="idea">فكرة</option></select></div><small>الملف</small></div>
  <div class="g"><div><button class="b" id="fb" title="نوع الخط" style="min-width:110px">الخط ▾</button><button class="b" id="paperStyleBtn" title="تغيير شكل الورقة" aria-expanded="false">▤ الورقة</button><select id="sz" title="حجم الخط"><option>14</option><option>16</option><option>18</option><option selected>20</option><option>24</option><option>28</option><option>32</option><option>40</option><option>56</option></select></div><small>الخط</small></div>
  <div id="paperStylePanel" class="paper-style-panel" hidden role="group" aria-label="اختيار شكل الورقة">
  <div class="paper-style-title">شكل صفحة الكتابة</div>
@@ -1719,9 +1744,9 @@ dialog[open]>.float-head{display:none!important}
  <button type="button" class="paper-style-option" data-paper="poetry" aria-pressed="false"><span class="paper-preview preview-poetry"><i></i><i></i></span><span><b>الشعر العمودي</b><small>صدر وعجز بإطارين</small></span></button>
  <button type="button" class="paper-style-option" data-paper="framed" aria-pressed="false"><span class="paper-preview preview-framed"></span><span><b>مؤطرة</b><small>إطار أدبي رقيق</small></span></button>
 </div>
- <div class="g"><div><button class="b" data-c="bold"><b>B</b></button><button class="b" data-c="italic"><i>I</i></button><button class="b" data-c="underline"><u>U</u></button><input type="color" id="fc" value="#222222" title="لون الخط"><input type="color" id="hc" value="#fff2a8" title="تمييز"></div><small>التنسيق</small></div>
- <div class="g"><div><button class="b" data-c="justifyRight">▶≡</button><button class="b" data-c="justifyCenter">≡</button><button class="b" data-c="justifyLeft">≡◀</button><button class="b" data-c="justifyFull">☰</button><button class="b" data-c="insertUnorderedList">•≡</button><button class="b" data-c="insertOrderedList">1≡</button></div><small>الفقرة</small></div>
- <div class="g"><div><button class="b" id="vs">📜 بيت</button><button class="b" id="sp">🔊 إلقاء</button><button class="b" id="fo">🎯 تركيز</button><button class="b" id="ip">💡 إلهام</button><button class="b" id="pn">☆ تثبيت</button><button class="b" id="cy">📋</button><button class="b" id="hist">🕘 الإصدارات</button><button class="b dn" id="dl">🗑️</button></div><small>أدوات أنوار</small></div>
+ <div class="g"><div><button class="b" data-c="bold" title="خط عريض" aria-label="تطبيق الخط العريض"><b>B</b></button><button class="b" data-c="italic" title="خط مائل" aria-label="تطبيق الخط المائل"><i>I</i></button><button class="b" data-c="underline" title="تسطير" aria-label="تسطير النص"><u>U</u></button><input type="color" id="fc" value="#222222" title="لون الخط"><input type="color" id="hc" value="#fff2a8" title="تمييز"></div><small>التنسيق</small></div>
+ <div class="g"><div><button class="b" data-c="justifyRight" title="محاذاة إلى اليمين" aria-label="محاذاة الفقرة إلى اليمين">▶≡</button><button class="b" data-c="justifyCenter" title="توسيط" aria-label="توسيط الفقرة">≡</button><button class="b" data-c="justifyLeft" title="محاذاة إلى اليسار" aria-label="محاذاة الفقرة إلى اليسار">≡◀</button><button class="b" data-c="justifyFull" title="ضبط جانبي الفقرة" aria-label="ضبط الفقرة من الجانبين">☰</button><button class="b" data-c="insertUnorderedList" title="قائمة نقطية" aria-label="إدراج قائمة نقطية">•≡</button><button class="b" data-c="insertOrderedList" title="قائمة مرقمة" aria-label="إدراج قائمة مرقمة">1≡</button></div><small>الفقرة</small></div>
+ <div class="g"><div><button class="b" id="vs" title="إدراج بيت شعري من شطرين" aria-label="إدراج بيت شعري">📜 بيت</button><button class="b" id="sp" title="قراءة النص بصوت مسموع" aria-label="إلقاء النص صوتيًا">🔊 إلقاء</button><button class="b" id="fo" title="إخفاء الأدوات للتركيز على الكتابة" aria-label="تشغيل وضع التركيز">🎯 تركيز</button><button class="b" id="ip" title="عرض فكرة تساعد على الكتابة" aria-label="عرض فكرة للكتابة">💡 إلهام</button><button class="b" id="pn" title="تثبيت العمل أو إلغاء تثبيته" aria-label="تثبيت العمل أو إلغاء تثبيته">☆ تثبيت</button><button class="b" id="cy" title="نسخ نص العمل" aria-label="نسخ نص العمل إلى الحافظة">📋</button><button class="b" id="hist" title="فتح سجل الإصدارات السابقة" aria-label="سجل إصدارات العمل">🕘 الإصدارات</button><button class="b dn" id="dl" title="حذف العمل" aria-label="حذف العمل الحالي">🗑️</button></div><small>أدوات أنوار</small></div>
  <div class="g book-tool-card" id="bookToolPanel">
  <header class="book-tool-head">
   <button type="button" class="book-tool-toggle" id="bookToolToggle" aria-expanded="false" aria-controls="bookToolContent">
