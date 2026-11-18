@@ -58,6 +58,7 @@ const context = {
 };
 const baseEnv = () => ({
   ALLOWED_ORIGIN: "https://byan80543-tech.github.io",
+  TEST_DIAGNOSTICS: "true",
   IP_HASH_SECRET: "test-secret-only-for-unit-tests-32-characters-minimum",
   EDGE_LIMITER: { async limit() { return { success: true }; } },
   IP_LIMITER: makeLimiter()
