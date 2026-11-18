@@ -78,23 +78,25 @@
       if (updateButton.disabled) return;
       updateButton.disabled = true;
       laterButton.disabled = true;
-      description.textContent = 'جارٍ حفظ تعديلاتك المشفّرة والتحقق منها…';
+      description.textContent = 'جارٍ حفظ تعديلاتك والتحقق منها…';
 
       let releasePage = null;
       try {
         const bridge = window.AnouarUpdateBridge;
-        if (!bridge || typeof bridge.prepareForReload !== 'function') {
-          throw new Error('تعذّر تهيئة الحفظ الآمن. أعد تحميل المفكرة ثم حاول مجدداً.');
+        if (bridge && typeof bridge.prepareForReload === 'function') {
+          releasePage = await bridge.prepareForReload();
+        } else {
+          // Recovery path: an earlier page script may have been blocked by a
+          // stale CSP hash. In that case no editor session was initialized.
+          description.textContent = 'نعالج تشغيل التطبيق ثم نعيد تحميله دون حذف بياناته المحلية…';
         }
 
-        releasePage = await bridge.prepareForReload();
-
         const targetWorker = getWaitingWorker() || worker;
-        if (!targetWorker || targetWorker.state !== 'installed') {
+        if (!targetWorker || !['installed', 'activating', 'activated'].includes(targetWorker.state)) {
           throw new Error('لم يعد التحديث جاهزاً. أعد المحاولة بعد لحظة.');
         }
 
-        description.textContent = 'اكتمل الحفظ. يجري تفعيل الإصدار الجديد…';
+        description.textContent = 'تم تجهيز الصفحة. يجري تفعيل الإصدار الجديد…';
 
         const controllerChanged = new Promise((resolve, reject) => {
           let settled = false;
@@ -103,16 +105,34 @@
             if (settled) return;
             settled = true;
             serviceWorker.removeEventListener('controllerchange', onControllerChange);
+            targetWorker.removeEventListener('statechange', onWorkerStateChange);
             if (timeoutId !== null) window.clearTimeout(timeoutId);
             if (error) reject(error);
             else resolve();
           };
           const onControllerChange = () => finish();
+          const onWorkerStateChange = () => {
+            if (targetWorker.state === 'redundant') {
+              finish(new Error('تعذّر تفعيل النسخة الجديدة. بقيت بياناتك كما هي؛ حاول مجدداً.'));
+            } else if (targetWorker.state === 'activated' &&
+                       registration && registration.active === targetWorker &&
+                       serviceWorker.controller === targetWorker) {
+              finish();
+            }
+          };
           serviceWorker.addEventListener('controllerchange', onControllerChange);
+          targetWorker.addEventListener('statechange', onWorkerStateChange);
           timeoutId = window.setTimeout(() => {
-            finish(new Error('تأخر تفعيل الإصدار الجديد. لم نحذف بياناتك؛ حاول التحديث مرة أخرى.'));
-          }, 20000);
+            finish(new Error('تأخر تفعيل الإصدار الجديد. لم نحذف بياناتك؛ أُعيد فتح الصفحة ويمكنك المحاولة مجدداً.'));
+          }, 15000);
           try {
+            // Handle the narrow race where activation completed before the
+            // controllerchange listener was attached.
+            if (registration && registration.active === targetWorker &&
+                serviceWorker.controller === targetWorker) {
+              finish();
+              return;
+            }
             targetWorker.postMessage({ type: 'ANOUAR_ACTIVATE_UPDATE' });
           } catch (error) {
             finish(error);
