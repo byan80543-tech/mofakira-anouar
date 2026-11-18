@@ -231,9 +231,19 @@ await failedButton.click();
 assert.equal(failedVisit.registration.waiting.messages.length, 0, 'save failure prevents worker activation');
 assert.equal(failedButton.disabled, false, 'failed save re-enables the update action');
 
-assert.ok(html.includes('window.AnouarUpdateBridge'), 'the page exposes its encrypted-save bridge');
-assert.ok(html.includes('await vaultSaveQueue'), 'the update bridge waits for the encrypted save queue');
-assert.ok(html.indexOf('flushPendingEdit(false)') < html.indexOf('await vaultSaveQueue'), 'pending editor changes are flushed before reload is permitted');
-assert.ok(html.includes('storageRecoveryBlocked'), 'the update bridge refuses to reload during storage recovery');
+const inlineScripts = [...html.matchAll(/<script\\b([^>]*)>([\\s\\S]*?)<\\/script\\s*>/gi)].filter(match => !/\\bsrc\\s*=/.test(match[1]));
+const appScript = inlineScripts.find(match => match[2].includes('function save(){') && match[2].includes('window.AnouarUpdateBridge'));
+assert.ok(appScript, 'the main application script exposes its encrypted-save bridge');
+const bridgeStart = appScript[2].indexOf('window.AnouarUpdateBridge');
+const bridgeEnd = appScript[2].indexOf('\\n});', bridgeStart);
+const bridgeSource = appScript[2].slice(bridgeStart, bridgeEnd);
+const initClose = appScript[2].indexOf('},0));', bridgeStart);
+assert.ok(initClose > bridgeStart, 'the update bridge remains inside the notebook initialization scope');
+assert.ok(bridgeSource.includes('storageRecoveryBlocked'), 'the update bridge refuses to reload during storage recovery');
+assert.ok(bridgeSource.includes('await vaultSaveQueue'), 'the update bridge waits for the encrypted save queue');
+assert.ok(bridgeSource.includes('flushPrivatePreferenceSave()'), 'the update bridge flushes delayed preference changes');
+assert.ok(bridgeSource.indexOf('app.inert = true') < bridgeSource.indexOf('flushPendingEdit(false)'), 'editing is frozen before pending note changes are flushed');
+assert.ok(bridgeSource.indexOf('flushPendingEdit(false)') < bridgeSource.indexOf('await vaultSaveQueue'), 'pending editor changes are flushed before the encrypted queue is awaited');
+assert.ok(bridgeSource.includes('vaultLastWriteError'), 'a failed encrypted write cancels the update');
 
 console.log('Safe update notification, first-install tracking, deferral and encrypted-save tests passed.');
