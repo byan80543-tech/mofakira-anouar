@@ -3689,6 +3689,15 @@ button:focus:not(:focus-visible){outline:none}
 @media(max-width:520px){#vaultDeviceSetupDialog{padding:17px;border-radius:13px}}
 </style>
 
+
+<style id="anwar-toolbar-spacing-and-palette-cycle-v2">
+/* فراغ صغير ومتوازن بين عناصر الشريط بعد نقل النسخة المشفرة */
+.tb{gap:4px!important}
+@media(max-width:800px){.tb{gap:4px!important}}
+/* الألوان تتغير مباشرة من الأيقونة؛ لا تظهر لوحة اختيار */
+#palettePanel{display:none!important}
+</style>
+
 </body></html>`;
  try{await dl.save({filename:((cur.title||'أنوار').replace(/[\\/:*?"<>|]/g,'-').slice(0,60))+'.html',data:new Blob([h],{type:'text/html'})});toast('افتح الملف المنزَّل وستظهر نافذة الطباعة تلقائيًا',5000)}catch(e){}
 }
@@ -5458,26 +5467,24 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
 })();
 
 (function(){
- const panel=$('palettePanel'),button=$('paletteBtn');if(!panel||!button)return;
- const choices=[...panel.querySelectorAll('[data-palette-choice]')];
- function refresh(){
-  choices.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.paletteChoice===(S.palette||'blue'))));
-  panel.querySelectorAll('[data-wall]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.wall===(S.wallColor||'mist'))));
-  panel.querySelectorAll('[data-paper]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.paper===(S.paperColor||'white'))));
+ const button=$('paletteBtn');if(!button)return;
+ const palettes=[
+  ['blue','أزرق هادئ'],['green','أخضر مريح'],['purple','بنفسجي'],
+  ['rose','وردي ناعم'],['amber','عنبر دافئ'],['slate','رمادي أنيق']
+ ];
+ function syncLabel(){
+  const current=palettes.find(item=>item[0]===(S.palette||'blue'))||palettes[0];
+  button.setAttribute('aria-label','تغيير لون الواجهة؛ اللون الحالي '+current[1]);
+  button.title='اللون الحالي: '+current[1]+'؛ انقر للتغيير';
  }
- button.addEventListener('click',e=>{e.stopPropagation();panel.classList.toggle('open');refresh()});
- panel.addEventListener('click',e=>{
-  const b=e.target.closest('button');if(!b)return;
-  if(b.dataset.paletteChoice){S.palette=b.dataset.paletteChoice;}
-  else if(b.dataset.wall){S.wallColor=b.dataset.wall;}
-  else if(b.dataset.paper){S.paperColor=b.dataset.paper;}
-  else if(b.id==='unifiedColor'){S.paperColor=({mist:'gray',slate:'gray'}[S.wallColor]||S.wallColor||'cream');}
-  else return;
-  save();theme();refresh();toast('تم تطبيق الألوان وحفظها على هذا الجهاز');
+ button.addEventListener('click',()=>{
+  const index=palettes.findIndex(item=>item[0]===(S.palette||'blue'));
+  S.palette=palettes[(index+1+palettes.length)%palettes.length][0];
+  save();theme();syncLabel();
+  toast('تم تغيير لون الواجهة وحفظه');
  });
- document.addEventListener('click',e=>{if(!e.target.closest('#palettePanel,#paletteBtn'))panel.classList.remove('open')});
- document.addEventListener('keydown',e=>{if(e.key==='Escape')panel.classList.remove('open')});refresh();
-})();
+ syncLabel();
+})();;
 $('vaultForm').addEventListener('submit',submitVaultForm);
 $('vaultDeviceUnlock').addEventListener('click',unlockVaultWithDevice);
 $('vaultPasswordFallbackToggle').addEventListener('click',()=>{
