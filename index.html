@@ -6180,5 +6180,24 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
   }
 }
 </style>
+
+<style id="anwar-home-toolbar-spacing-v1">
+/* الصفحة الرئيسية على الهاتف: فصل مجموعة الأيقونات عن اسم المفكرة ومنع التداخل */
+@media(max-width:800px){
+  .app:not(.ed) > .tb{
+    gap:8px!important;
+    padding-inline:9px!important;
+  }
+  .app:not(.ed) > .tb .brand{
+    flex:0 0 auto!important;
+    min-width:max-content!important;
+    margin-inline-end:auto!important;
+    justify-content:flex-start!important;
+  }
+}
+@media(max-width:380px){
+  .app:not(.ed) > .tb{gap:6px!important;padding-inline:7px!important}
+}
+</style>
 </body>
 </html>
