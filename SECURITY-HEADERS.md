@@ -32,7 +32,7 @@
 
 ```text
 /*
-  Content-Security-Policy: default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'none'; script-src 'self' https://cdnjs.cloudflare.com 'sha256-rZL76x658whwPBX0XZWP9L4MoP/My6BALTehUXEWtRY=' 'sha256-4giI+ESUJtIatupQ0GRa19vnQYslezSh4XuPQ1lOMX8=' 'sha256-wYI6hHRUO1S/JI5u1R/fnK9fHzj/6IglQ1+CY82F1Co=' 'sha256-QYwkkTcnQ+I/GO9GzNxZiLL3+C66HISY56P+LRrjBz0='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'none'; script-src 'self' https://cdnjs.cloudflare.com 'sha256-2hfKs02QbjOqbW6nnlUKK5v0Kmtok9HTIOsEYOV9f0A=' 'sha256-4giI+ESUJtIatupQ0GRa19vnQYslezSh4XuPQ1lOMX8=' 'sha256-wYI6hHRUO1S/JI5u1R/fnK9fHzj/6IglQ1+CY82F1Co=' 'sha256-QYwkkTcnQ+I/GO9GzNxZiLL3+C66HISY56P+LRrjBz0='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
