@@ -1,5 +1,5 @@
 const SITE_URL = "https://mofakira-anouar.pages.dev/";
-const PREVIEW_IMAGE = "https://mofakira-anouar.pages.dev/icon-512.png";
+const PREVIEW_IMAGE = "https://mofakira-anouar.pages.dev/icon-512.png?v=2";
 const TITLE = "مفكرة أنوار الذكية";
 const DESCRIPTION = "مفكرة أدبية ذكية لكتابة القصائد والنصوص والأفكار وحفظها، مع أدوات للقراءة والمحتوى الصوتي والأذكار.";
 
