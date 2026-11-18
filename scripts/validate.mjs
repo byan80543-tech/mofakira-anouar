@@ -66,7 +66,9 @@ ok(html.includes('src="toolbar-back-navigation.js"'),'contextual back-navigation
 ok(html.includes('<script src="api-gateway-config.js"></script>'),'optional API gateway configuration loads before app interaction');
 ok(apiGatewayConfig.includes('ANWAR_API_GATEWAY_BASE') && apiGatewayConfig.includes('= \"\";'),'API gateway endpoint defaults to disabled until its deployed URL is configured');
 ok(html.includes('https://*.workers.dev') && apiGatewayWorker.includes('export class IpRateLimiter'),'CSP permits the future Worker endpoint and the gateway exports its Durable Object limiter');
-ok(apiGatewayWorker.includes('CF-Connecting-IP') && apiGatewayWorker.includes('idFromName(clientKey)') && apiGatewayWorker.includes('Retry-After'),'API gateway applies per-IP limits and emits retry instructions');
+ok(apiGatewayWorker.includes('CF-Connecting-IP') && apiGatewayWorker.includes('idFromName("anwar-api-gateway-global-rate-limiter")') && apiGatewayWorker.includes('Retry-After'),'API gateway applies global and per-IP limits in one Durable Object call');
+ok(apiGatewayWorker.includes('IP_HASH_SECRET') && apiGatewayWorker.includes('name: "HMAC"'),'IP rate-limit keys use a Cloudflare-only HMAC secret instead of storing raw IP addresses');
+ok(apiGatewayWorker.includes('total: { limit: 600') && apiGatewayWorker.includes('client: { limit: 120'),'gateway enforces a site-wide request ceiling plus a per-IP ceiling');
 ok(apiGatewayWorker.includes('ALLOWED_COUNTRY_CODES') && !apiGatewayWorker.includes('searchParams.get("url")'),'API gateway restricts country parameters and does not expose an open URL proxy');
 
 ok(html.includes('<script src="click-guard.js" defer></script>'),'click-burst guard is loaded as a same-origin deferred script');
