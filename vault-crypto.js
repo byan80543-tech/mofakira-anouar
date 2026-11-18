@@ -7,6 +7,7 @@
  const CIPHER='AES-256-GCM';
  const ITERATIONS=600000;
  const MAX_CIPHERTEXT_BYTES=8*1024*1024;
+ const MAX_PLAINTEXT_BYTES=MAX_CIPHERTEXT_BYTES-16;
  const encoder=new TextEncoder();
  const decoder=new TextDecoder('utf-8',{fatal:true});
 
@@ -30,6 +31,13 @@
  function requireCrypto(){
   if(!root.crypto||!root.crypto.subtle||typeof root.crypto.getRandomValues!=='function'){
    throw new Error('التشفير غير متاح في هذا المتصفح. افتح المفكرة عبر اتصال HTTPS وحدّث المتصفح.');
+  }
+ }
+ function validatePlaintext(plaintext){
+  if(typeof plaintext!=='string')throw new Error('محتوى الخزنة غير صالح.');
+  const byteLength=encoder.encode(plaintext).byteLength;
+  if(byteLength>MAX_PLAINTEXT_BYTES){
+   throw new Error('حجم بيانات المفكرة يتجاوز الحد الآمن للتشفير (8 ميغابايت). قسّم المحتوى إلى أعمال أصغر ثم أعد المحاولة.');
   }
  }
  function validatePassword(password){
@@ -74,7 +82,7 @@
  }
  async function encryptWithKey(key,template,plaintext){
   requireCrypto();
-  if(typeof plaintext!=='string')throw new Error('محتوى الخزنة غير صالح.');
+  validatePlaintext(plaintext);
   const meta=metadata(template);
   const iv=root.crypto.getRandomValues(new Uint8Array(12));
   const encrypted=await root.crypto.subtle.encrypt(
@@ -103,6 +111,7 @@
  }
  async function createVault(password,plaintext){
   validatePassword(password);
+  validatePlaintext(plaintext);
   requireCrypto();
   const salt=root.crypto.getRandomValues(new Uint8Array(16));
   const meta={format:FORMAT,version:VERSION,kdf:KDF,cipher:CIPHER,iterations:ITERATIONS,salt:bytesToBase64(salt),saltBytes:salt};

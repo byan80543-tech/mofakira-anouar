@@ -35,4 +35,17 @@ const altered={...created.envelope,ciphertext:(originalCiphertext[0]==='A'?'B':'
 await assert.rejects(()=>vault.decryptEnvelope(password,altered),/تالف|غير صالحة/,'tampered ciphertext is rejected');
 assert.throws(()=>vault.validateEnvelope({...created.envelope,iterations:1000}),/غير مدعومة/,'weakened KDF settings are rejected');
 await assert.rejects(()=>vault.createVault('short',plaintext),/12 محرفًا/,'short passwords are rejected');
+
+// Check actual UTF-8 bytes before deriving a key or writing an envelope.
+const oversizedArabic='ا'.repeat(4*1024*1024);
+await assert.rejects(
+ ()=>vault.createVault(password,oversizedArabic),
+ /8 ميغابايت/,
+ 'oversized UTF-8 snapshots are rejected before vault creation'
+);
+await assert.rejects(
+ ()=>vault.encryptWithKey(created.key,created.envelope,oversizedArabic),
+ /8 ميغابايت/,
+ 'oversized encrypted backups are rejected before AES-GCM encryption'
+);
 console.log('All encrypted-vault cryptography tests passed.');

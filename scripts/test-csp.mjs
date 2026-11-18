@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
 
 const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
+const securityHeaders=fs.readFileSync(new URL('../SECURITY-HEADERS.md',import.meta.url),'utf8');
 const cspTag=html.match(/<meta\s+http-equiv="Content-Security-Policy"\s+content="([^"]+)">/i);
 assert.ok(cspTag,'an enforced document CSP meta policy is present');
 const directives=new Map(cspTag[1].split(';').map(part=>{
@@ -27,7 +28,9 @@ const hashSources=scriptSources.filter(source=>/^'sha256-[A-Za-z0-9+/]+=*'$/.tes
 assert.equal(hashSources.length,inlineScripts.length,'each inline script has one allowlisted SHA-256 hash');
 for(let i=0;i<inlineScripts.length;i++){
  const digest=createHash('sha256').update(inlineScripts[i][2],'utf8').digest('base64');
- assert.ok(hashSources.includes("'sha256-"+digest+"'"),'inline script '+(i+1)+' matches its CSP hash');
+ const source="'sha256-"+digest+"'";
+ assert.ok(hashSources.includes(source),'inline script '+(i+1)+' matches its CSP hash');
+ assert.ok(securityHeaders.includes(source),'security header deployment guide contains the current inline script hash '+(i+1));
 }
 const styleSources=requireDirective('style-src',"'self'","'unsafe-inline'",'https://fonts.googleapis.com');
 assert.ok(styleSources.includes("'unsafe-inline'"),'inline styles remain supported intentionally');
