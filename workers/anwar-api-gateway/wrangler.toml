@@ -13,3 +13,11 @@ class_name = "IpRateLimiter"
 [exports.IpRateLimiter]
 type = "durable-object"
 storage = "sqlite"
+
+[[ratelimits]]
+name = "EDGE_LIMITER"
+namespace_id = "20261118"
+
+[ratelimits.simple]
+limit = 400
+period = 60
