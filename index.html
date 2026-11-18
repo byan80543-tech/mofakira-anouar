@@ -1722,6 +1722,13 @@ dialog[open]>.float-head{display:none!important}
 .tb #bk:active{opacity:.98!important;transform:scale(.92)}
 .tb #bk:focus-visible{outline:1px solid rgba(244,223,173,.85)!important;outline-offset:0!important;opacity:1!important}
 .tb>#vaultLockBtn{order:0!important}
+
+/* أثناء تحرير العمل: أخفِ الأرشيف والقفل واترك أدوات الكتابة الأساسية فقط */
+.app.ed .tb #archiveBtn,
+.app.ed .tb #vaultLockBtn{display:none!important}
+/* زر × يبقى ظاهراً للعودة من صفحة التحرير */
+.app.ed .tb #bk{display:grid!important}
+
 @media(prefers-reduced-motion:reduce){.tb #bk{transition:none!important}}
 </style>
 
