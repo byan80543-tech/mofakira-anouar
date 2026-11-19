@@ -6,7 +6,10 @@ const code=fs.readFileSync(new URL('../click-guard.js',import.meta.url),'utf8');
 let now=0,handler=null,nextTimer=0;
 const timers=new Map();
 const insideTarget={inside:true,closest(){return null}};
-const tasbihTarget={inside:true,closest(selector){return selector.includes('#tasbihTap')}};
+const tasbihTarget={inside:true,closest(selector){return selector.includes('#tasbihPanel button')}};
+const tasbihVoiceTarget={inside:true,closest(selector){return selector.includes('#tasbihPanel button')}};
+const tasbihInputTarget={inside:true,closest(selector){return selector.includes('#tasbihPanel input')}};
+const tasbihCounterTarget={inside:true,closest(selector){return selector.includes('#tasbihPanel [role="button"]')}};
 const tasbihToggleTarget={inside:true,closest(selector){return selector.includes('#adhkarTasbihToggle')}};
 const outsideTarget={inside:false,closest(){return null}};
 const body={
@@ -87,6 +90,12 @@ for(let i=0;i<10;i++){
 for(let i=0;i<30;i++){
  now=2000+i*25;
  assert.equal(tap({target:tasbihTarget}).defaultPrevented,false,'tasbih count tap '+(i+1)+' is never blocked');
+}
+
+// Tasbih voice, add-dhikr and circular-counter controls remain usable during cooldown.
+for (const target of [tasbihVoiceTarget,tasbihInputTarget,tasbihCounterTarget]) {
+ now=2600;
+ assert.equal(tap({target}).defaultPrevented,false,'legitimate tasbih controls are exempt from click cooldown');
 }
 
 // The 11th ordinary tap is prevented and does not reach the page click handlers.
