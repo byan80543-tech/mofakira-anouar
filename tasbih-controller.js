@@ -53,12 +53,13 @@
   function renderOfficialOptions(){
    const existing=Array.from(select.querySelectorAll('optgroup')).filter(group=>group.dataset.anwarOfficialDhikrs==='true');
    existing.forEach(group=>group.remove());
-   ['morning','evening','daily'].forEach(period=>{
+   ['tasbih','morning','evening','daily'].forEach(period=>{
     const items=officialAdhkar.filter(item=>item&&item.period===period&&typeof item.text==='string'&&item.text.trim());
     if(!items.length)return;
     const group=document.createElement('optgroup');
-    group.label=period==='morning'?'أذكار الصباح الرسمية':period==='evening'?'أذكار المساء الرسمية':'أذكار يومية';
+    group.label=period==='tasbih'?'أذكار السبحة الرسمية':period==='morning'?'أذكار الصباح الرسمية':period==='evening'?'أذكار المساء الرسمية':'أذكار يومية';
     group.dataset.anwarOfficialDhikrs='true';
+    group.dataset.anwarOfficialPeriod=period;
     items.forEach(item=>{
      const option=document.createElement('option');
      option.value='official:'+item.id;
@@ -66,7 +67,8 @@
      option.textContent=item.title;
      option.dataset.anwarOfficialDhikr='true';
      option.dataset.anwarOfficialId=item.id;
-     option.dataset.repeat=String(item.count||1);
+     option.dataset.repeat=item.count==null?'غير محدد':String(item.count||1);
+     option.dataset.occasion=item.occasion||'';
      option.dataset.source=item.source||'حصن المسلم';
      option.dataset.period=period;
      group.appendChild(option);
@@ -115,7 +117,18 @@
   }
   function renderCards(){
    cards.replaceChildren();
-   Array.from(select.querySelectorAll('optgroup')).forEach(group=>{
+   const groupPriority=group=>{
+    const period=group.dataset&&group.dataset.anwarOfficialPeriod;
+    if(period==='tasbih')return 0;
+    if(period==='morning')return 2;
+    if(period==='evening')return 3;
+    if(period==='daily')return 4;
+    if(group.dataset&&group.dataset.anwarCustomDhikrs==='true')return 5;
+    return 1;
+   };
+   Array.from(select.querySelectorAll('optgroup'))
+    .sort((a,b)=>groupPriority(a)-groupPriority(b))
+    .forEach(group=>{
     const options=Array.from(group.children).filter(option=>option.tagName==='OPTION'&&(isCustomOption(option)||!isRemovedOfficial(option)));
     if(!options.length)return;
     const section=document.createElement('section');
@@ -154,9 +167,17 @@
       const meta=document.createElement('span');
       meta.className='tasbih-dhikr-card-meta';
       const repeat=document.createElement('span');
-      repeat.textContent='التكرار: '+(option.dataset.repeat||'1')+' '+(Number(option.dataset.repeat)===1?'مرة':'مرات');
+      const repeatValue=option.dataset.repeat||'1';
+      const repeatNumber=Number(repeatValue);
+      const repeatSuffix=Number.isFinite(repeatNumber)?(repeatNumber===1?' مرة':' مرات'):'';
+      repeat.textContent='التكرار: '+repeatValue+repeatSuffix;
       const source=document.createElement('span');
       source.textContent='المصدر: '+(option.dataset.source||'حصن المسلم');
+      if(option.dataset.occasion){
+       const occasion=document.createElement('span');
+       occasion.textContent='الوقت: '+option.dataset.occasion;
+       meta.appendChild(occasion);
+      }
       meta.appendChild(repeat);
       meta.appendChild(source);
       button.appendChild(meta);

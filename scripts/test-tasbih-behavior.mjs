@@ -137,6 +137,14 @@ assert.equal(count(counterInput),3,'the circular counter supports Space from the
 const officialApp=buildApp();
 const officialOptions=officialApp.nodes.tasbihDhikr.options.filter(option=>option.dataset.anwarOfficialDhikr==='true');
 assert.ok(officialOptions.length>=35,'morning and evening official adhkar are both loaded');
+const officialTasbih=officialOptions.filter(option=>option.dataset.period==='tasbih');
+assert.ok(officialTasbih.length>=8,'a separate official tasbih collection is loaded');
+assert.ok(officialTasbih.some(option=>option.textContent==='سبحان الله'&&option.dataset.repeat==='33'&&option.dataset.source.includes('مسلم 597')),'the tasbih subhan Allah card has its established repetition and source');
+assert.ok(officialTasbih.some(option=>option.textContent==='الحمد لله'&&option.dataset.repeat==='33'),'the tahmid card has its established repetition');
+assert.ok(officialTasbih.some(option=>option.textContent==='الله أكبر'&&option.dataset.repeat==='33'),'the takbir card has its established repetition');
+assert.ok(officialTasbih.some(option=>option.textContent==='لا حول ولا قوة إلا بالله'&&option.dataset.repeat==='غير محدد'),'unfixed repetitions are not invented');
+assert.equal(officialApp.nodes.tasbihDhikrCards.children[0].children[0].textContent,'أذكار السبحة الرسمية','official tasbih is shown first in the visible list');
+assert.ok(officialApp.nodes.tasbihDhikrCards.children[0].children.some(card=>card.dataset.anwarOfficialId==='tasbih-after-prayer'),'the official tasbih card is visible in the first list section');
 const renderedOfficialCards=officialApp.nodes.tasbihDhikrCards.children.flatMap(group=>group.children).filter(card=>card.dataset.anwarOfficialId);
 assert.ok(renderedOfficialCards.length>=35,'official morning/evening/daily adhkar render visibly in tasbih cards using native DOM children');
 assert.ok(officialApp.nodes.tasbihDhikrCards.children.some(group=>group.children.some(card=>card.className==='tasbih-dhikr-card'&&card.children.some(child=>child.className==='tasbih-dhikr-card-name'&&child.textContent==='سبحان الله'))),'the original basic tasbih adhkar remain alongside the new official morning/evening sections');
