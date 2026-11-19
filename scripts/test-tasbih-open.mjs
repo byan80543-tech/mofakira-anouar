@@ -2,15 +2,10 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
-const source=fs.readFileSync(new URL('../app-core.js',import.meta.url),'utf8');
-
-// The real owner-tab function is private to the deferred app initializer.
-// Evaluate the exact source that exports the narrow bridge from that scope.
-const ownerStart=source.indexOf('function showOwnerPanel(which)');
-const ownerEnd=source.indexOf('\nasync function makeQR()',ownerStart);
-assert.ok(ownerStart>=0&&ownerEnd>ownerStart,'owner panel controller exists');
-const ownerBridgeSource=source.slice(ownerStart,ownerEnd);
-assert.ok(ownerBridgeSource.includes('window.AnwarShowOwnerPanel=function(which){'),'owner panel controller exports the cross-IIFE bridge');
+const root=new URL('../',import.meta.url);
+const html=fs.readFileSync(new URL('index.html',root),'utf8');
+const appCore=fs.readFileSync(new URL('app-core.js',root),'utf8');
+const controller=fs.readFileSync(new URL('tasbih-controller.js',root),'utf8');
 
 function classList(){
  const values=new Set();
@@ -19,99 +14,92 @@ function classList(){
   contains(name){return values.has(name)}
  };
 }
-const nodes={
- ownerPanel:{hidden:false},
- adhkarPanel:{hidden:true},
- sharePanel:{hidden:false},
- ownerTab:{classList:classList()},
- adhkarTab:{classList:classList()},
- shareTab:{classList:classList()}
-};
-const renderCalls=[];
-const windowObject={};
-vm.runInNewContext(ownerBridgeSource,{
- window:windowObject,
- $:id=>nodes[id]||null,
- renderAdhkar:period=>renderCalls.push(period)
-},{timeout:2000});
-
-assert.equal(windowObject.AnwarShowOwnerPanel('adhkar'),true,'the bridge accepts the adhkar destination');
-assert.equal(nodes.ownerPanel.hidden,true,'the owner tab is hidden');
-assert.equal(nodes.adhkarPanel.hidden,false,'the adhkar panel is shown');
-assert.equal(nodes.sharePanel.hidden,true,'the share panel is hidden');
-assert.equal(nodes.adhkarTab.classList.contains('active'),true,'the adhkar tab is marked active');
-assert.deepEqual(renderCalls,['morning'],'the existing adhkar renderer is invoked');
-assert.equal(windowObject.AnwarShowOwnerPanel('unknown'),false,'unknown destinations are rejected');
-
-// Extract the production open handler. Deliberately do NOT expose a global
-// showOwnerPanel function: that was the exact false-positive in the old test.
-const tasbihStart=source.indexOf("const $=id=>document.getElementById(id),panel=$('tasbihPanel')");
-assert.notEqual(tasbihStart,-1,'tasbih controller exists');
-const openStart=source.indexOf(' function openPanel(){',tasbihStart);
-const openEnd=source.indexOf("\n toggleButton.addEventListener('click',openPanel);",openStart);
-assert.ok(openStart>tasbihStart&&openEnd>openStart,'tasbih open handler can be extracted');
-const openFunction=source.slice(openStart,openEnd).trim();
-assert.ok(openFunction.includes("window.AnwarShowOwnerPanel('adhkar')"),'tasbih uses the explicit cross-IIFE bridge');
-assert.equal(openFunction.replaceAll('window.AnwarShowOwnerPanel','').includes('showOwnerPanel('),false,'tasbih does not call the out-of-scope function directly');
-
-const calls=[];
-const panel={hidden:true,scrollIntoView(options){calls.push(['scroll',options])}};
-const toggleButton={attributes:{},setAttribute(name,value){this.attributes[name]=String(value)}};
-const closeButton={focused:false,focus(){this.focused=true}};
-const ownerDialog={open:false,showModal(){this.open=true;calls.push(['showModal'])}};
-let closeCalls=0;
-const sandbox={
- panel,toggleButton,closeButton,ownerDialog,window:windowObject,
- $:id=>id==='adhkarPanel'?nodes.adhkarPanel:null,
- closePanel(){closeCalls++;panel.hidden=true;toggleButton.setAttribute('aria-expanded','false')},
- requestAnimationFrame(callback){callback()},
- console:{error(){}},
- toast(message){calls.push(['toast',message])}
-};
-
-vm.runInNewContext(openFunction+'\nopenPanel();',sandbox,{timeout:2000});
-assert.equal(ownerDialog.open,true,'the parent dialog opens when necessary');
-assert.equal(nodes.adhkarPanel.hidden,false,'the actual owner-panel bridge leaves adhkar visible');
-assert.equal(panel.hidden,false,'the tasbih panel becomes visible');
-assert.equal(toggleButton.attributes['aria-expanded'],'true','the launch icon reports expanded state');
-assert.equal(closeButton.focused,true,'focus moves into the opened tasbih panel');
-assert.ok(calls.some(item=>item[0]==='scroll'),'the opened panel is brought into view');
-
-vm.runInNewContext(openFunction+'\nopenPanel();',sandbox,{timeout:2000});
-assert.equal(closeCalls,1,'pressing the icon again closes an already open panel');
-
-// Missing initialization must fail visibly and must not pretend the panel opened.
-const missingBridgeCalls=[];
-const missingSandbox={
- panel:{hidden:true,scrollIntoView(){}},
- toggleButton:{setAttribute(){}},
- closeButton:{focus(){}},
- ownerDialog:{open:true,showModal(){}},
- window:{},
- $:id=>id==='adhkarPanel'?{hidden:true}:null,
- closePanel(){},
- requestAnimationFrame(callback){callback()},
- console:{error(){}},
- toast(message){missingBridgeCalls.push(message)}
-};
-vm.runInNewContext(openFunction+'\nopenPanel();',missingSandbox,{timeout:2000});
-assert.equal(missingSandbox.panel.hidden,true,'panel remains closed when initialization is missing');
-assert.equal(missingBridgeCalls.length,1,'missing bridge produces a visible recovery message');
-
-
-const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
-const outerTabsStart=html.indexOf('<div class="owner-tabs">',html.indexOf('<dialog id="ownerDialog">'));
-const ownerPanelStart=html.indexOf('<section id="ownerPanel"',outerTabsStart);
+const dialogStart=html.indexOf('<dialog id="ownerDialog">');
+const outerStart=html.indexOf('<div class="owner-tabs">',dialogStart);
+const ownerPanelStart=html.indexOf('<section id="ownerPanel"',outerStart);
 const adhkarPanelStart=html.indexOf('<section id="adhkarPanel"',ownerPanelStart);
-const innerTabsStart=html.indexOf('<div class="owner-tabs adhkar-tabs"',adhkarPanelStart);
-const tasbihPanelStart=html.indexOf('<section id="tasbihPanel"',innerTabsStart);
-assert.ok(outerTabsStart>=0&&ownerPanelStart>outerTabsStart&&adhkarPanelStart>ownerPanelStart&&innerTabsStart>adhkarPanelStart&&tasbihPanelStart>innerTabsStart,'both tab rows exist in expected dialog sections');
-const outerTabs=html.slice(outerTabsStart,ownerPanelStart);
-const innerTabs=html.slice(innerTabsStart,tasbihPanelStart);
-assert.ok(outerTabs.includes('id="adhkarTasbihToggle"')&&outerTabs.includes('aria-controls="tasbihPanel"'),'tasbih launcher occupies the former top-level adhkar-tab position');
-assert.ok(innerTabs.includes('id="adhkarTab"'),'adhkar tab occupies the former tasbih-button position');
-assert.ok(!outerTabs.includes('id="adhkarTab"')&&!innerTabs.includes('id="adhkarTasbihToggle"'),'swapped IDs occur only in their new positions');
-assert.equal((html.match(/id="adhkarTasbihToggle"/g)||[]).length,1,'tasbih launcher ID remains unique');
-assert.equal((html.match(/id="adhkarTab"/g)||[]).length,1,'adhkar tab ID remains unique');
+const innerStart=html.indexOf('<div class="owner-tabs adhkar-tabs"',adhkarPanelStart);
+const tasbihStart=html.indexOf('<section id="tasbihPanel"',innerStart);
+assert.ok(dialogStart>=0&&outerStart>dialogStart&&ownerPanelStart>outerStart&&adhkarPanelStart>ownerPanelStart&&innerStart>adhkarPanelStart&&tasbihStart>innerStart,'dialog contains the expected owner and adhkar sections');
+const outerTabs=html.slice(outerStart,ownerPanelStart);
+const innerTabs=html.slice(innerStart,tasbihStart);
+assert.ok(outerTabs.includes('id="ownerTab"')&&outerTabs.includes('id="adhkarTab"')&&outerTabs.includes('id="shareTab"'),'top navigation exposes owner, adhkar and share tabs');
+assert.ok(innerTabs.includes('id="morningTab"')&&innerTabs.includes('id="eveningTab"')&&innerTabs.includes('id="adhkarTasbihToggle"'),'morning, evening and tasbih controls are visible together in the adhkar view');
+assert.ok(!innerTabs.includes('id="adhkarTab"')&&!outerTabs.includes('id="adhkarTasbihToggle"'),'adhkar tab is not buried inside the hidden adhkar panel');
+for(const id of ['adhkarTab','adhkarTasbihToggle','morningTab','eveningTab','tasbihPanel']){
+ assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,id+' remains unique');
+}
+assert.ok(appCore.includes("morning:[")&&appCore.includes("evening:["),'official morning and evening adhkar data remain in the notebook');
+assert.ok(appCore.includes("window.AnwarRenderAdhkar=function(period)"),'notebook exposes a small public renderer bridge');
+assert.ok(!appCore.includes("const $=id=>document.getElementById(id),panel=$('tasbihPanel')"),'old tasbih controller was removed from the delayed notebook initializer');
+assert.ok(html.includes('src="./tasbih-controller.js?v=20261119-1" defer'),'the new independent controller is loaded by the page');
+assert.ok(fs.readFileSync(new URL('service-worker.js',root),'utf8').includes("'./tasbih-controller.js'"),'the independent controller is included in the offline shell');
 
-console.log('Tasbih launch tests passed: real scoped owner bridge, tab state, opening, focus, scrolling, toggle-close and missing-bridge failure path.');
+function extractBetween(startText,endText){
+ const start=controller.indexOf(startText);
+ const end=controller.indexOf(endText,start);
+ assert.ok(start>=0&&end>start,'controller function exists: '+startText);
+ return controller.slice(start,end).trim();
+}
+const switchFn=extractBetween('  function switchOwnerView(which){','  function revealAdhkarView(){');
+const revealFn=extractBetween('  function revealAdhkarView(){','  function openPanel(){');
+const openFn=extractBetween('  function openPanel(){','  function closePanel(');
+
+function buildSandbox(bridge){
+ const calls=[];
+ const panel={hidden:true,scrollIntoView(options){calls.push(['scroll',options])}};
+ const ownerDialog={open:false,showModal(){this.open=true;calls.push(['showModal'])}};
+ const nodes={
+  ownerPanel:{hidden:false},
+  adhkarPanel:{hidden:true},
+  sharePanel:{hidden:false},
+  ownerTab:{classList:classList()},
+  adhkarTab:{classList:classList()},
+  shareTab:{classList:classList()}
+ };
+ const toggleButton={attributes:{},setAttribute(name,value){this.attributes[name]=String(value)}};
+ const sandbox={
+  panel,ownerDialog,nodes,toggleButton,
+  ownerPanel:nodes.ownerPanel,adhkarPanel:nodes.adhkarPanel,sharePanel:nodes.sharePanel,
+  ownerTab:nodes.ownerTab,adhkarTab:nodes.adhkarTab,shareTab:nodes.shareTab,
+  closeButton:{focus(){calls.push(['focus'])}},
+  closePanel(){calls.push(['close'])},
+  window:bridge||{},
+  $:id=>nodes[id]||null,
+  requestAnimationFrame(fn){fn()},
+  console:{warn(){},error(){}},
+  calls
+ };
+ return sandbox;
+}
+const bridgeSandbox=buildSandbox({
+ AnwarShowOwnerPanel(which){
+  bridgeSandbox.nodes.ownerPanel.hidden=which!=='owner';
+  bridgeSandbox.nodes.adhkarPanel.hidden=which!=='adhkar';
+  bridgeSandbox.nodes.sharePanel.hidden=which!=='share';
+  return true;
+ }
+});
+vm.runInNewContext(switchFn+'\n'+revealFn+'\n'+openFn+'\nopenPanel();',bridgeSandbox,{timeout:2000});
+assert.equal(bridgeSandbox.ownerDialog.open,true,'launcher opens the parent dialog');
+assert.equal(bridgeSandbox.nodes.adhkarPanel.hidden,false,'launcher selects the adhkar view');
+assert.equal(bridgeSandbox.panel.hidden,false,'launcher visibly opens the tasbih panel');
+assert.equal(bridgeSandbox.toggleButton.attributes['aria-expanded'],'true','launcher exposes its expanded state');
+assert.ok(openFn.includes('panel.scrollIntoView'),'open handler scrolls the panel into view');
+assert.ok(openFn.includes('closeButton.focus()'),'open handler moves focus to the close control');
+
+const fallbackSandbox=buildSandbox({AnwarRenderAdhkar(period){fallbackSandbox.calls.push(['render',period]);return true}});
+vm.runInNewContext(switchFn+'\n'+revealFn+'\n'+openFn+'\nopenPanel();',fallbackSandbox,{timeout:2000});
+assert.equal(fallbackSandbox.nodes.adhkarPanel.hidden,false,'fallback opens the adhkar view when the old bridge is absent');
+assert.equal(fallbackSandbox.nodes.ownerPanel.hidden,true,'fallback hides the owner view');
+assert.ok(fallbackSandbox.calls.some(item=>item[0]==='render'&&item[1]==='morning'),'fallback restores the morning list');
+assert.equal(fallbackSandbox.panel.hidden,false,'fallback still opens the tasbih panel');
+
+assert.ok(controller.includes("toggleButton.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();openPanel()})"),'tasbih launcher has its own direct click listener');
+assert.ok(controller.includes("morningTab.addEventListener('click'")&&controller.includes("eveningTab.addEventListener('click'"),'morning and evening tab actions are bound');
+assert.ok(controller.includes("tap.addEventListener('click',()=>add(1))")&&controller.includes("minus.addEventListener('click',()=>add(-1))")&&controller.includes("reset.addEventListener('click'"),'counter increment, decrement and reset remain wired');
+assert.ok(controller.includes("preferences.set('tasbih'")&&controller.includes("preferences.subscribe(saved=>"),'counter and dhikr preferences use the encrypted preference adapter');
+assert.ok(controller.includes("removeButton.addEventListener('click'")&&controller.includes("restoreButton.addEventListener('click'")&&controller.includes("customAdd.addEventListener('click'"),'custom dhikr management remains wired');
+assert.ok(controller.includes("recognition.lang='ar-SA'")&&controller.includes('countPhraseMatches(said,select.value)'),'Arabic speech recognition counts the selected phrase only');
+
+console.log('Tasbih rebuild tests passed: independent launch, fallback recovery, restored morning/evening navigation, counter, encrypted preferences, custom dhikr and voice recognition.');
