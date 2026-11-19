@@ -236,9 +236,9 @@
    if(ownerPanel)ownerPanel.hidden=true;
    adhkarPanel.hidden=false;
    if(sharePanel)sharePanel.hidden=true;
-   if(ownerTab)ownerTab.classList.remove('active');
-   if(adhkarTab)adhkarTab.classList.add('active');
-   if(shareTab)shareTab.classList.remove('active');
+   if(ownerTab)ownerTab.classList.toggle('active',false);
+   if(adhkarTab)adhkarTab.classList.toggle('active',true);
+   if(shareTab)shareTab.classList.toggle('active',false);
    if(typeof window.AnwarRenderAdhkar==='function'){
     try{window.AnwarRenderAdhkar('morning')}
     catch(error){console.warn('تعذر تحديث قائمة أذكار الصباح؛ بقيت السبحة قابلة للفتح.',error)}
