@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import vm from 'node:vm';
 
-const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
+const html=fs.readFileSync(new URL('../app-core.js',import.meta.url),'utf8');
 const between=(start,end)=>{
   const a=html.indexOf(start),b=html.indexOf(end,a);
   if(a<0||b<0)throw new Error('Missing source block: '+start);
