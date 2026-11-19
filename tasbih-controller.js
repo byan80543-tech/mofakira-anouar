@@ -200,7 +200,7 @@
    saveAndUpdate();
   }
   function chooseDhikr(value,resetCount){
-   const option=Array.from(select.options).find(item=>item.value===value&&(isCustomOption(item)||!removedOfficialDhikrs.includes(item.value)));
+   const option=Array.from(select.options).find(item=>item.value===value&&(isCustomOption(item)||!isRemovedOfficial(item)));
    if(!option)return;
    if(voiceActive)stopVoice('توقف التسجيل لأن الذكر المختار تغيّر.');
    select.value=option.value;
