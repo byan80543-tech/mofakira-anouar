@@ -285,6 +285,12 @@ try {
     method: "POST", headers: { Origin: "https://byan80543-tech.github.io", "CF-Connecting-IP": "192.0.2.52" }, body: unsupportedForm
   }), aiEnv, context);
   assert.equal(response.status, 415);
+  const videoForm = new FormData();
+  videoForm.append("audio", new Blob([new Uint8Array([1])], { type: "video/mp4" }), "video.mp4");
+  response = await worker.fetch(new Request("https://gateway.example.workers.dev/v1/transcribe", {
+    method: "POST", headers: { Origin: "https://byan80543-tech.github.io", "CF-Connecting-IP": "192.0.2.55" }, body: videoForm
+  }), aiEnv, context);
+  assert.equal(response.status, 415, "video containers are rejected even when they may contain audio");
   const blockedOriginForm = new FormData();
   blockedOriginForm.append("audio", new Blob([new Uint8Array([1])], { type: "audio/mpeg" }), "a.mp3");
   response = await worker.fetch(new Request("https://gateway.example.workers.dev/v1/transcribe", {
