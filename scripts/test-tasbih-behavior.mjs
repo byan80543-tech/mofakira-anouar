@@ -133,7 +133,7 @@ function buildApp(options={}){
  sandbox.window=sandbox;sandbox.globalThis=sandbox;
  vm.runInNewContext(officialAdhkar,sandbox,{timeout:3000});
  vm.runInNewContext(controller,sandbox,{timeout:3000});
- return {nodes,preferences,get state(){return clone(state)},recognitions,sandbox,flushTimers};
+ return {nodes,preferences,get state(){return clone(state)},recognitions,sandbox,flushTimers,get pendingTimers(){return [...timers.values()]}};
 }
 function count(app){return app.state.tasbih.count}
 
@@ -267,6 +267,7 @@ app.nodes.tasbihDhikr.dispatch('change');
 app.nodes.tasbihVoice.click();
 assert.equal(recognition.started,1,'the recording button starts the speech recognition service');
 recognition.onstart();
+recognition.onspeechstart();
 const interim={0:{transcript:'سُبْحَانَ الله'},length:1,isFinal:false};
 recognition.onresult({resultIndex:0,results:[interim]});
 assert.equal(app.nodes.tasbihVoiceTranscript.textContent,'سُبْحَانَ الله','interim recognized words are shown immediately in the transcript');
@@ -274,6 +275,7 @@ assert.equal(count(app),0,'interim speech is displayed but not counted before re
 const spoken={0:{transcript:'سُبْحَانَ الله، سبحان الله'},length:1,isFinal:true};
 recognition.onresult({resultIndex:0,results:[spoken]});
 assert.equal(count(app),2,'a final Arabic transcript counts each complete, normalized phrase');
+assert.equal(app.pendingTimers.length,0,'the transcript does not fade while rapid speech is still being detected');
 assert.equal(app.nodes.tasbihVoiceTranscript.textContent,'سبحان الله','a completed phrase replaces interim text instead of adding to a growing transcript');
 assert.ok(app.nodes.tasbihVoiceTranscript.classList.contains('is-temporary'),'recognized words are marked for temporary display');
 recognition.onresult({resultIndex:0,results:[spoken]});
@@ -282,6 +284,13 @@ const punctuated={0:{transcript:'سبحان الله؛'},length:1,isFinal:true};
 recognition.onresult({resultIndex:1,results:[spoken,punctuated]});
 assert.equal(count(app),3,'Arabic punctuation and cumulative final results do not prevent a correct match');
 assert.equal(app.nodes.tasbihVoiceTranscript.textContent,'سبحان الله','even when the browser returns cumulative results, only the latest dhikr remains visible');
+assert.equal(app.pendingTimers.length,0,'every complete repetition increments the count immediately without waiting for the speaker to pause');
+recognition.onspeechend();
+assert.equal(app.pendingTimers[0].delay,650,'a real speech pause starts the short fade delay');
+recognition.onspeechstart();
+assert.equal(app.pendingTimers.length,0,'resuming speech cancels a pending fade so rapid repetition stays visible');
+assert.equal(app.nodes.tasbihVoiceTranscript.textContent,'سبحان الله','the phrase remains visible when speech resumes before the pause delay ends');
+recognition.onspeechend();
 app.flushTimers();
 assert.equal(app.nodes.tasbihVoiceTranscript.textContent,'','the recognized phrase clears after its fade-out interval');
 assert.ok(!app.nodes.tasbihVoiceTranscript.classList.contains('is-temporary'),'the transcript styling resets after clearing');
