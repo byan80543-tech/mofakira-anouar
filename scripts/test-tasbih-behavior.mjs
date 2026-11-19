@@ -78,6 +78,7 @@ function buildApp(options={}){
  for(const id of ids)nodes[id]=id==='tasbihDhikr'?new FakeSelect(id):new FakeElement(id,id==='ownerDialog'?'DIALOG':'DIV');
  const themeNames=['emerald','dark','pink','night','heritage','glass'];
  themeNames.forEach(name=>{nodes['tasbihTheme'+name[0].toUpperCase()+name.slice(1)].dataset.tasbihThemeOption=name});
+ nodes.tasbihThemePicker.hidden=true;
  const counter=new FakeElement('counter','DIV');nodes.tasbihPanel.counter=counter;
  nodes.ownerDialog.showModal=function(){this.open=true};
  const groupPattern=/<optgroup label="([^"]*)">([\s\S]*?)<\/optgroup>/g;
