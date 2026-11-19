@@ -523,22 +523,24 @@
      // بعض المتصفحات تقسّم الجملة إلى نتائج نهائية متعددة؛ نجمعها قبل المطابقة.
      if(!voiceActive||!event||!event.results)return;
      const results=event.results;
-     const finalParts=[],latestParts=[];
+     const finalParts=[],interimParts=[],latestParts=[];
      const resultStart=Number.isInteger(event.resultIndex)?Math.max(0,Math.min(results.length,event.resultIndex)):Math.max(0,results.length-1);
      for(let i=0;i<results.length;i++){
       const result=results[i];
       const said=bestSpeechText(result,voiceTargetPhrase);
       if(!said)continue;
       if(result.isFinal)finalParts.push(said);
+      else interimParts.push(said);
       if(i>=resultStart)latestParts.push(said);
      }
-     // Keep the complete internal transcript for reliable counting, but show
-     // only the latest recognized segment in the small visual preview.
+     // Count from finalized speech plus the current live interim segment.
+     // When interim becomes final, voiceMatchCount prevents counting it twice.
      const finalText=finalParts.join(' ').trim();
+     const liveText=[finalText,interimParts.join(' ').trim()].filter(Boolean).join(' ').trim();
      const latestText=latestParts.length?latestParts[latestParts.length-1]:'';
      if(latestText)showVoiceTranscript(latestText);
-     if(!finalText)return;
-     const totalMatches=countPhraseMatches(finalText,voiceTargetPhrase);
+     if(!liveText)return;
+     const totalMatches=countPhraseMatches(liveText,voiceTargetPhrase);
      const newMatches=Math.max(0,totalMatches-voiceMatchCount);
      if(newMatches>0){
       voiceMatchCount=totalMatches;
