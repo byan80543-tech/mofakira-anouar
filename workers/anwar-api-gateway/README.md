@@ -4,7 +4,7 @@
 
 ## المسارات المسموحة
 
-- `POST /v1/transcribe` — تفريغ ملف صوتي يرفعه المستخدم عبر Workers AI باستخدام `@cf/openai/whisper-large-v3-turbo`. يرسل الملف في multipart field باسم `audio`، بحد أقصى 8 MiB، ويُعاد النص فقط.
+- `POST /v1/transcribe` — تفريغ ملف صوتي يرفعه المستخدم عبر Workers AI باستخدام `@cf/openai/whisper-large-v3-turbo`. يرسل الملف في multipart field باسم `audio`، بحد أقصى 8 MiB، ويُعاد النص مع عدد كلماته ومعلومة اللغة إن وفرها المحرك.
 - `GET /v1/reciters` — قائمة القراء من MP3Quran.
 - `GET /v1/radios` — قائمة المحطات من MP3Quran.
 - `GET /v1/country/list?nationality=MA&page=1` — صفحة بلد من Way2Quran. رموز البلدان مقيدة بالقائمة الموجودة في الكود.
