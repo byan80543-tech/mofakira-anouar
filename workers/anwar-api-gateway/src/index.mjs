@@ -164,7 +164,7 @@ function isAllowedUpstreamHost(hostname) {
   return hostname === "www.mp3quran.net" ||
     hostname === "mp3quran.net" ||
     hostname === "way2quran.com" ||
-    hostname.endsWith(".way2quran.com");
+    hostname === "www.way2quran.com";
 }
 
 async function fetchSameOriginOnly(target) {
