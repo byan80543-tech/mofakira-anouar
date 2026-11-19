@@ -187,7 +187,7 @@ for(const match of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)){
   catch(error){failures.push(`inline script ${scriptCount}: ${error.message}`)}
 }
 ok(scriptCount===0,'application HTML contains no inline JavaScript');
-try{new vm.Script(appCore,{filename:'app-core.js'});ok(true,'extracted application bundle syntax is valid')}catch(error){failures.push('app-core.js: '+error.message)}
+try{new vm.Script(appCore,{filename:'app-core.js'});ok(true,'extracted application bundle syntax is valid')}catch(error){failures.push('app-core.js: '+error.message+' '+String(error.stack||'').split('\\n').slice(0,3).join(' '))}
 ok(appCore.includes('const LIST_PAGE_SIZE=50;') && appCore.includes('listRenderLimit+=LIST_PAGE_SIZE') && appCore.includes('archiveRenderLimit+=LIST_PAGE_SIZE'),'main list and archive use progressive 50-item rendering');
 ok(iconGenerator.includes("ImageFilter.UnsharpMask") && iconGenerator.includes("radius=0.7, percent=125, threshold=2"),'192px launcher icon receives a controlled sharpening pass after downsampling');
 ok(appSource.includes("icon-192.png?v=20261118-clarity1") && appSource.includes("type:'image/png'"),'media artwork uses the crisp PNG icon instead of the compressed JPEG');
