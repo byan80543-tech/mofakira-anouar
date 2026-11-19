@@ -263,7 +263,9 @@
   else if(!visibleOptions().some(option=>option.value===select.value))select.value=firstVisible()?firstVisible().value:'';
   update();
 
-  toggleButton.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();openPanel()});
+  // The launch click is delegated by app-core.js, alongside the other dialog tabs.
+  // Keep the counter controller independent, but expose one explicit toggle API.
+
   closeButton.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();closePanel()});
   tap.addEventListener('click',()=>add(1));
   minus.addEventListener('click',()=>add(-1));
@@ -384,6 +386,20 @@
     update();
    });
   }
+  window.AnwarTasbihController=Object.freeze({
+   toggle(){
+    if(!window.__ANWAR_TASBIH_CONTROLLER_READY__)return false;
+    if(panel.hidden)openPanel();
+    else closePanel();
+    return true;
+   },
+   open(){
+    if(!window.__ANWAR_TASBIH_CONTROLLER_READY__)return false;
+    if(panel.hidden)openPanel();
+    return !panel.hidden;
+   },
+   close(){closePanel(false);return panel.hidden}
+  });
   window.__ANWAR_TASBIH_CONTROLLER_READY__=true;
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
