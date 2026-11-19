@@ -22,7 +22,8 @@ const ok=(condition,message)=>{if(!condition)failures.push(message);else console
 try{new vm.Script(tasbihController,{filename:'tasbih-controller.js'});ok(true,'standalone tasbih controller JavaScript syntax is valid')}catch(error){failures.push('tasbih-controller.js: '+error.message)}
 ok(appCore.includes('window.AnwarRenderAdhkar=function(period)') && appCore.includes('window.AnwarShowOwnerPanel=function(which)'), 'notebook exposes narrow bridges for adhkar rendering and panel selection');
 ok(!appCore.includes("const $=id=>document.getElementById(id),panel=$('tasbihPanel')"), 'tasbih runtime is removed from the delayed notebook initializer');
-ok(tasbihController.includes("toggleButton.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();openPanel()})") && tasbihController.includes('function revealAdhkarView()') && tasbihController.includes('panel.hidden=false'), 'standalone tasbih launcher opens its panel independently of the notebook initializer');
+ok(tasbihController.includes('window.AnwarTasbihController=Object.freeze({') && tasbihController.includes('toggle(){') && tasbihController.includes('panel.hidden=false') && !tasbihController.includes("toggleButton.addEventListener('click'"), 'standalone tasbih controller exposes a toggle API without competing with delegated clicks');
+ok(appCore.includes('function toggleTasbihFromToolbar(button)') && appCore.includes("else if(id==='adhkarTasbihToggle')toggleTasbihFromToolbar(t);"), 'tasbih launcher follows the same delegated click path as adjacent notebook tabs');
 ok(tasbihController.includes("preferences.set('tasbih'") && tasbihController.includes("preferences.subscribe(saved=>"), 'tasbih settings remain integrated with encrypted private preferences');
 ok(tasbihController.includes("removeButton.addEventListener('click'") && tasbihController.includes("restoreButton.addEventListener('click'") && tasbihController.includes("customAdd.addEventListener('click'"), 'custom dhikr add, remove and official restore actions are wired');
 ok(tasbihController.includes("voiceButton.addEventListener('click'") && tasbihController.includes('countPhraseMatches(said,select.value)'), 'Arabic voice recognition counts only exact matches of the selected dhikr');
@@ -190,7 +191,7 @@ ok(socialFunction.includes(".on('meta[property=\"og:title\"]'") && socialFunctio
 const qualityWorkflow=fs.readFileSync(path.join(root,'.github/workflows/quality.yml'),'utf8');
 ok(qualityWorkflow.includes('wrangler@4.164.0') && !qualityWorkflow.includes('wrangler@latest'),'quality dry-run pins the Wrangler version used by deployment');
 ok(appSource.includes("content-visibility:auto;contain-intrinsic-size:auto 76px"),'off-screen note cards skip unnecessary painting');
-ok(html.includes('<link rel="preload" href="./app-core.js?v=20261119-7" as="script">') && html.includes('src="./app-core.js?v=20261119-7" defer') && appCore.length>200000,'main application bundle is externally loaded and preload/script cache versions match');
+ok(html.includes('<link rel="preload" href="./app-core.js?v=20261119-8" as="script">') && html.includes('src="./app-core.js?v=20261119-8" defer') && appCore.length>200000,'main application bundle is externally loaded and preload/script cache versions match');
 ok(serviceWorker.includes("'./app-core.js'") && /const CACHE_NAME='anwar-shell-\d{4}-\d{2}-\d{2}-v\d+';/.test(serviceWorker),'service worker precaches the extracted main bundle under a new shell version');
 ok(appSource.includes("backdrop-filter:none;-webkit-backdrop-filter:none"),'vault startup overlay avoids an expensive full-screen blur');
 
