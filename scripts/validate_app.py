@@ -14,6 +14,7 @@ from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 INDEX = ROOT / "index.html"
+APP_CORE = ROOT / "app-core.js"
 MANIFEST = ROOT / "manifest.webmanifest"
 SERVICE_WORKER = ROOT / "service-worker.js"
 errors: list[str] = []
@@ -92,7 +93,7 @@ def png_dimensions(path: Path) -> tuple[int, int] | None:
 
 
 def main() -> int:
-    for path in (INDEX, MANIFEST, SERVICE_WORKER):
+    for path in (INDEX, APP_CORE, MANIFEST, SERVICE_WORKER):
         if not path.is_file():
             fail(f"Required file is missing: {path.relative_to(ROOT)}")
     if errors:
@@ -100,6 +101,7 @@ def main() -> int:
         return 1
 
     html = INDEX.read_text(encoding="utf-8")
+    app_core = APP_CORE.read_text(encoding="utf-8")
     parser = PageAudit()
     parser.feed(html)
     parser.close()
@@ -176,6 +178,8 @@ def main() -> int:
                     f"declared {expected_dimensions}, actual {actual_dimensions}"
                 )
 
+    check_js_syntax(app_core, "app-core.js")
+
     sw_text = SERVICE_WORKER.read_text(encoding="utf-8")
     check_js_syntax(sw_text, "service-worker.js")
     assets_match = re.search(r"SHELL_ASSETS\s*=\s*\[(.*?)\]", sw_text, re.S)
@@ -185,8 +189,8 @@ def main() -> int:
         for asset in re.findall(r"['\"](\.\/[^'\"]+)['\"]", assets_match.group(1)):
             check_local_url(asset, "service-worker.js")
 
-    if "navigator.serviceWorker.register('./service-worker.js'" not in html:
-        fail("Service worker registration is missing from index.html")
+    if "navigator.serviceWorker.register('./service-worker.js'" not in app_core:
+        fail("Service worker registration is missing from app-core.js")
     if 'toolbar-back-navigation.js' not in sw_text:
         fail('Service worker shell does not precache the contextual back-navigation helper')
 
