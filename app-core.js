@@ -2048,15 +2048,15 @@ function formatTranscriptText(value,formatIndex){
 }
 function transcriptChooseCaption(){
  const input=$('transcriptYoutubeUrl');
- const videoId=parseYouTubeVideoId(input&&input.value);
- if(!videoId){transcriptStatus('أدخل رابط YouTube صحيحًا أولًا.',true);if(input)input.focus();return}
- transcriptStatus('الرابط صحيح. اختر ملف ترجمة SRT أو VTT لديك حق استخدامه؛ لا يمكن استخراج نص أي فيديو عام من الرابط وحده.',false);
+ const url=String(input&&input.value||'').trim();
+ if(url&&!parseYouTubeVideoId(url)){transcriptStatus('رابط YouTube غير صالح. صحّحه أو اترك الحقل فارغًا لاستيراد ملف الترجمة.',true);if(input)input.focus();return}
+ transcriptStatus(url?'اختر ملف ترجمة مصرحًا باستخدامه لهذا الفيديو.':'اختر ملف ترجمة SRT أو VTT محفوظًا على هاتفك.',false);
  $('transcriptCaptionFile').click();
 }
 async function importTranscriptCaption(file){
  if(!file)return;
- const videoId=parseYouTubeVideoId($('transcriptYoutubeUrl').value);
- if(!videoId){transcriptStatus('الرابط غير صالح. أدخل رابط YouTube صحيحًا ثم أعد الاختيار.',true);return}
+ const url=String($('transcriptYoutubeUrl').value||'').trim();
+ if(url&&!parseYouTubeVideoId(url)){transcriptStatus('رابط YouTube غير صالح. صحّحه ثم أعد اختيار الترجمة.',true);return}
  const extension=(file.name.split('.').pop()||'').toLowerCase();
  if(!['srt','vtt','txt'].includes(extension)){transcriptStatus('الصيغ المدعومة: SRT وVTT وTXT.',true);return}
  if(file.size>2*1024*1024){transcriptStatus('حجم ملف الترجمة أكبر من 2 ميغابايت.',true);return}
@@ -2083,6 +2083,82 @@ async function importTranscriptCaption(file){
   transcriptStatus('تعذّرت قراءة ملف الترجمة. لم يتغير أي عمل محفوظ.',true);
  }
 }
+
+function transcriptWorkerEndpoint(){
+ const raw=String(globalThis.ANWAR_API_GATEWAY_BASE||'').trim();
+ if(!raw)return '';
+ try{
+  const base=new URL(raw);
+  if(base.protocol!=='https:'||!base.hostname.endsWith('.workers.dev')||base.username||base.password)return '';
+  return base.origin+'/v1/transcribe';
+ }catch(error){return ''}
+}
+async function transcribeAudioFile(){
+ const file=$('transcriptAudioFile')?.files?.[0];
+ const button=$('transcriptGenerate');
+ if(!file){transcriptStatus('اختر ملفًا صوتيًا أولًا.',true);return}
+ if(file.size<=0){transcriptStatus('الملف الصوتي فارغ.',true);return}
+ if(file.size>8*1024*1024){transcriptStatus('حجم الملف أكبر من 8 ميغابايت. اختر ملفًا أصغر.',true);return}
+ if(!$('transcriptConsent')?.checked){transcriptStatus('يرجى تأكيد حقك في استخدام التسجيل قبل رفعه للمعالجة السحابية.',true);return}
+ const sourceUrl=String($('transcriptYoutubeUrl')?.value||'').trim();
+ if(sourceUrl&&!parseYouTubeVideoId(sourceUrl)){transcriptStatus('رابط YouTube غير صحيح. صحّحه أو امسحه قبل التفريغ.',true);return}
+ const endpoint=transcriptWorkerEndpoint();
+ if(!endpoint){
+  transcriptStatus('خدمة التفريغ لم تُفعّل بعد: يلزم نشر عامل Cloudflare ثم ضبط عنوانه في api-gateway-config.js.',true);
+  return;
+ }
+ const oldLabel=button?.textContent;
+ if(button){button.disabled=true;button.textContent='جارٍ تحويل الصوت…';button.setAttribute('aria-busy','true')}
+ transcriptStatus('يجري إرسال الصوت بأمان إلى محرك Whisper لمعالجته. قد يستغرق ذلك بعض الوقت…',false);
+ const controller=new AbortController();
+ const timeout=setTimeout(()=>controller.abort(),180000);
+ try{
+  const form=new FormData();
+  form.append('audio',file,file.name||'recording.webm');
+  form.append('consent','true');
+  const response=await fetch(endpoint,{
+   method:'POST',
+   body:form,
+   signal:controller.signal,
+   credentials:'omit',
+   referrerPolicy:'no-referrer'
+  });
+  let result={};
+  try{result=await response.json()}catch(error){}
+  if(!response.ok){
+   const message=response.status===429?'بلغت حد التفريغ اليومي المسموح؛ حاول غدًا.':
+    response.status===413?'الملف أكبر من الحد المسموح.':
+    response.status===415?'صيغة الملف غير مدعومة.':
+    response.status===503?'خدمة التفريغ غير مفعّلة أو متوقفة مؤقتًا.':
+    String(result.error||'تعذّر تفريغ الملف الصوتي.');
+   transcriptStatus(message,true);
+   return;
+  }
+  const text=String(result.text||'').trim();
+  if(!text){transcriptStatus('لم يُرجع محرك التفريغ نصًا. جرّب تسجيلًا أوضح.',true);return}
+  transcriptSourceName=file.name||'تفريغ صوتي';
+  transcriptBaseText=text;
+  transcriptFormatIndex=0;
+  const formatted=formatTranscriptText(text,0);
+  transcriptLastRendered=formatted;
+  $('transcriptTitle').value=(file.name||'تفريغ صوتي').replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').slice(0,100)||'تفريغ صوتي';
+  $('transcriptText').value=formatted;
+  $('transcriptText').spellcheck=false;
+  $('transcriptSpellcheck').setAttribute('aria-pressed','false');
+  $('transcriptFormatLabel').textContent=TRANSCRIPT_FORMATS[0];
+  $('transcriptEditorPanel').hidden=false;
+  const words=Number(result.wordCount)||text.split(/\s+/).filter(Boolean).length;
+  const language=result.language?' · اللغة المكتشفة: '+result.language:'';
+  transcriptStatus('اكتمل التفريغ بنجاح · '+words+' كلمة'+language,false);
+  transcriptEditorStatus('راجع الأسماء والمصطلحات والنص الديني أو الشعري يدويًا قبل اعتماده.');
+ }catch(error){
+  transcriptStatus(error&&error.name==='AbortError'?'انتهت مهلة الاتصال قبل اكتمال التفريغ. جرّب ملفًا أقصر.':'تعذّر الاتصال بخدمة التفريغ. تحقق من الإنترنت ثم أعد المحاولة.',true);
+ }finally{
+  clearTimeout(timeout);
+  if(button){button.disabled=false;button.textContent=oldLabel||'🎙️ توليد النص من الصوت';button.removeAttribute('aria-busy')}
+ }
+}
+
 function cycleTranscriptFormat(){
  const area=$('transcriptText');
  if(!area||!area.value.trim()){transcriptEditorStatus('استورد ملف ترجمة أولًا.');return}
@@ -2359,6 +2435,7 @@ document.addEventListener('click',e=>{
  else if(id==='newBook')openBookDialog();
  else if(id==='createBook')createBook();
  else if(id==='addBookFile')$('bookFilePicker').click();
+  else if(id==='transcriptGenerate')transcribeAudioFile();
   else if(id==='transcriptChooseCaption')transcriptChooseCaption();
   else if(id==='transcriptSpellcheck')toggleTranscriptSpellcheck();
   else if(id==='transcriptFormat')cycleTranscriptFormat();

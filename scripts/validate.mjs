@@ -102,6 +102,9 @@ ok(apiGatewayDeployWorkflow.includes('workflow_dispatch:') && apiGatewayDeployWo
 ok(apiGatewayDeployWorkflow.includes('CLOUDFLARE_API_TOKEN') && apiGatewayDeployWorkflow.includes('CLOUDFLARE_ACCOUNT_ID') && apiGatewayDeployWorkflow.includes('IP_HASH_SECRET'),'deployment reads Cloudflare credentials and HMAC key only from repository secrets');
 
 ok(apiGatewayWorker.includes('ALLOWED_COUNTRY_CODES') && !apiGatewayWorker.includes('searchParams.get("url")'),'API gateway restricts country parameters and does not expose an open URL proxy');
+ok(apiGatewayWorker.includes('TRANSCRIPTION_MODEL = "@cf/openai/whisper-large-v3-turbo"') && apiGatewayWorker.includes('url.pathname !== "/v1/transcribe"') && apiGatewayWorker.includes('env.AI.run(TRANSCRIPTION_MODEL') && apiGatewayWorker.includes('MAX_AUDIO_BYTES = 8 * 1024 * 1024'),'API gateway exposes a fixed-size, fixed-model speech transcription route only');
+ok(apiGatewayWorker.includes('transcribe-global') && apiGatewayWorker.includes('state.transcription = Array.isArray(state.transcription)') && apiGatewayWorker.includes('RATE_POLICIES.transcribe'),'transcription requests have durable daily global and per-client limits');
+ok(apiGatewayWorker.includes('!allowedOrigins.includes(origin)') && apiGatewayWorker.includes('ALLOWED_ORIGINS'),'API gateway reflects CORS only for exact configured production origins');
 
 ok(appSource.includes('<script src="click-guard.js" defer></script>'),'click-burst guard is loaded as a same-origin deferred script');
 ok(fs.readFileSync(path.join(root,'service-worker.js'),'utf8').includes("'./click-guard.js'"),'service worker precaches the click-burst guard for offline use');
@@ -196,7 +199,8 @@ ok(appSource.includes("content-visibility:auto;contain-intrinsic-size:auto 76px"
 const appCorePreload=html.match(new RegExp('<link rel="preload" href="([^"]*app-core[.]js[?]v=[^"]+)" as="script">'));
 const appCoreScript=html.match(new RegExp('<script src="([^"]*app-core[.]js[?]v=[^"]+)" defer></script>'));
 ok(!!appCorePreload && !!appCoreScript && appCorePreload[1].includes('app-core.js?v=') && appCorePreload[1]===appCoreScript[1] && appCore.length>200000,'main application bundle is externally loaded and preload/script cache versions match');
-ok(appSource.includes('id="youtubeTranscriptTool"') && appSource.includes('id="transcriptYoutubeUrl"') && appSource.includes('id="transcriptText"') && appSource.includes('id="transcriptExportPdf"'),'book transcript editor UI and export controls are present');
+ok(appSource.includes('id="youtubeTranscriptTool"') && appSource.includes('id="transcriptYoutubeUrl"') && appSource.includes('id="transcriptAudioFile"') && appSource.includes('id="transcriptConsent"') && appSource.includes('id="transcriptGenerate"') && appSource.includes('id="transcriptText"') && appSource.includes('id="transcriptExportPdf"'),'book transcript editor, audio upload, cloud consent and export controls are present');
+ok(appCore.includes('async function transcribeAudioFile()') && appCore.includes("else if(id==='transcriptGenerate')transcribeAudioFile()") && appCore.includes("form.append('audio',file,file.name||'recording.webm')") && appCore.includes("form.append('consent','true')") && apiGatewayWorker.includes('consent.length !== 1'),'cloud audio transcription is wired to the generate button and server-enforced consent');
 ok(appCore.includes('function parseYouTubeVideoId') && appCore.includes('function parseCaptionFile') && appCore.includes("else if(id==='transcriptExportPdf')exportTranscript('pdf')") && appCore.includes("else if(id==='transcriptInsertBook')insertTranscriptIntoBook()"),'transcript URL validation, caption parsing, PDF export and book insertion are wired');
 ok(appSource.includes("backdrop-filter:none;-webkit-backdrop-filter:none"),'vault startup overlay avoids an expensive full-screen blur');
 
