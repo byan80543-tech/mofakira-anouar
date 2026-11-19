@@ -175,8 +175,8 @@ ok(socialFunction.includes(".on('meta[property=\"og:title\"]'") && socialFunctio
 const qualityWorkflow=fs.readFileSync(path.join(root,'.github/workflows/quality.yml'),'utf8');
 ok(qualityWorkflow.includes('wrangler@4.164.0') && !qualityWorkflow.includes('wrangler@latest'),'quality dry-run pins the Wrangler version used by deployment');
 ok(appSource.includes("content-visibility:auto;contain-intrinsic-size:auto 76px"),'off-screen note cards skip unnecessary painting');
-ok(html.includes('src="./app-core.js?v=20261119-4" defer') && appCore.length>200000,'main application bundle is external and cacheable');
-ok(serviceWorker.includes("'./app-core.js'") && serviceWorker.includes('anwar-shell-2026-11-19-v69'),'service worker precaches the extracted main bundle under a new shell version');
+ok(html.includes('<link rel="preload" href="./app-core.js?v=20261119-5" as="script">') && html.includes('src="./app-core.js?v=20261119-5" defer') && appCore.length>200000,'main application bundle is externally loaded and preload/script cache versions match');
+ok(serviceWorker.includes("'./app-core.js'") && serviceWorker.includes('anwar-shell-2026-11-19-v70'),'service worker precaches the extracted main bundle under a new shell version');
 ok(appSource.includes("backdrop-filter:none;-webkit-backdrop-filter:none"),'vault startup overlay avoids an expensive full-screen blur');
 
 

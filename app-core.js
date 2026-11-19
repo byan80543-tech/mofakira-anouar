@@ -2040,6 +2040,13 @@ async function handleBookFile(file){
 }
 
 function showOwnerPanel(which){const own=which==='owner',adh=which==='adhkar';$('ownerPanel').hidden=!own;$('adhkarPanel').hidden=!adh;$('sharePanel').hidden=which!=='share';$('ownerTab').classList.toggle('active',own);$('adhkarTab').classList.toggle('active',adh);$('shareTab').classList.toggle('active',which==='share');if(adh)renderAdhkar('morning')}
+// Explicit bridge: the tasbih controller is in a separate IIFE and cannot
+// access this function through lexical scope.
+window.AnwarShowOwnerPanel=function(which){
+ if(which!=='owner'&&which!=='adhkar'&&which!=='share')return false;
+ showOwnerPanel(which);
+ return true;
+};
 async function makeQR(){
  const url=$('shareUrl').value.trim();
  let parsedUrl;try{parsedUrl=new URL(url)}catch(error){toast('أدخل رابطًا عامًا يبدأ بـ https:// أو http://');return}
@@ -4059,9 +4066,11 @@ window.AnouarUpdateBridge = Object.freeze({
   if(!panel.hidden){closePanel();return}
   try{
    if(!ownerDialog.open)ownerDialog.showModal();
-   // Switch the parent dialog directly. A synthetic click on the tab is not
-   // needed and can be intercepted by delegated click handlers.
-   showOwnerPanel('adhkar');
+   // The parent-panel controller lives in another IIFE; use its explicit bridge.
+   if(typeof window.AnwarShowOwnerPanel!=='function'||
+      window.AnwarShowOwnerPanel('adhkar')!==true){
+    throw new Error('واجهة الأذكار غير جاهزة');
+   }
    const adhkarPanel=$('adhkarPanel');
    if(!adhkarPanel)throw new Error('تعذّر العثور على لوحة الأذكار');
    adhkarPanel.hidden=false;
