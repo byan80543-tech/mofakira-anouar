@@ -157,6 +157,12 @@ ok(iconGenerator.includes("ImageFilter.UnsharpMask") && iconGenerator.includes("
 ok(html.includes("icon-192.png?v=20261118-clarity1") && html.includes("type:'image/png'"),'media artwork uses the crisp PNG icon instead of the compressed JPEG');
 ok(html.includes("function scheduleRadioWarmup()") && html.includes("scheduleRadioWarmup();\n   if(!reciterUiReady)") && !html.includes(" scheduleRadioWarmup();\n rb.addEventListener"),'radio metadata warmup starts only after the visitor opens the radio panel');
 ok(html.includes("setTimeout(renderList,90)") && html.includes("setTimeout(renderArchive,120)"),'note and archive searches are lightly debounced to reduce repeated rendering');
+ok(html.includes("const q=$('q').value.trim().toLocaleLowerCase(),items=[];") && html.includes("String(n.title||'')+' '+body).toLocaleLowerCase().includes(q)"),'main note search is case-insensitive for Latin titles and body text');
+ok(html.includes("function openSafeBlobTab(url){") && html.includes("try{opened.opener=null}catch(error){}") && !html.includes("window.open(url,'_blank','noopener')"),'blob documents use a safe popup flow without a null-return false negative');
+const socialFunction=fs.readFileSync(path.join(root,'functions/index.js'),'utf8');
+ok(socialFunction.includes(".on('meta[property=\"og:title\"]'") && socialFunction.includes('head.onEndTag(endTag =>') && socialFunction.includes('endTag.before(SOCIAL_META, { html: true })'),'Cloudflare social metadata is injected only when a page has no Open Graph title');
+const qualityWorkflow=fs.readFileSync(path.join(root,'.github/workflows/quality.yml'),'utf8');
+ok(qualityWorkflow.includes('wrangler@4.164.0') && !qualityWorkflow.includes('wrangler@latest'),'quality dry-run pins the Wrangler version used by deployment');
 ok(html.includes("content-visibility:auto;contain-intrinsic-size:auto 76px"),'off-screen note cards skip unnecessary painting');
 ok(html.includes("backdrop-filter:none;-webkit-backdrop-filter:none"),'vault startup overlay avoids an expensive full-screen blur');
 
