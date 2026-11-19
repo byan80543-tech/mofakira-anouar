@@ -71,7 +71,7 @@ assert.equal(unsupportedArabic.isRequested(),false,'unsupported Arabic recogniti
 assert.equal(instances.length,beforeUnsupported,'no non-Arabic or alternate locale is attempted');
 assert.ok(statuses.some(item=>item.state==='error'&&/العربية/.test(item.detail)),'Arabic-only limitation is explained to the user');
 
-const interrupted=browser.AnwarPoetryDictation.create({});
+const interrupted=browser.AnwarPoetryDictation.create({onStatus:(state,detail)=>statuses.push({state,detail})});
 interrupted.start();
 const beforeRestart=instances.length;
 instances.at(-1).end();
