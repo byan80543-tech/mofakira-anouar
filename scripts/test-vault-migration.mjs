@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { webcrypto } from 'node:crypto';
 
 const root=new URL('..',import.meta.url);
-const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
+const html=fs.readFileSync(new URL('../app-core.js',import.meta.url),'utf8');
 const cryptoSource=fs.readFileSync(new URL('../vault-crypto.js',import.meta.url),'utf8');
 const extract=(start,end)=>{
   const a=html.indexOf(start),b=html.indexOf(end,a);
