@@ -25,9 +25,14 @@
    if(toggleButton)toggleButton.title='تعذر تشغيل السبحة: واجهة غير مكتملة';
    return;
   }
-  window.__ANWAR_TASBIH_CONTROLLER_READY__=true;
   const preferences=globalThis.AnwarPrivatePreferences;
-  const initial=preferences&&typeof preferences.get==='function'?preferences.get().tasbih:{count:0,dhikr:select.value,customDhikrs:[],removedOfficialDhikrs:[]};
+  // لا نفترض أن الخزنة تحتوي tasbih؛ قد تكون أول زيارة أو بيانات قديمة.
+  const defaultTasbih={count:0,dhikr:select.value,customDhikrs:[],removedOfficialDhikrs:[]};
+  let initial=defaultTasbih;
+  try{
+   const stored=preferences&&typeof preferences.get==='function'?preferences.get():null;
+   if(stored&&stored.tasbih&&typeof stored.tasbih==='object')initial=stored.tasbih;
+  }catch(error){console.warn('تعذر قراءة إعدادات السبحة؛ سيبدأ العداد بإعداداته الافتراضية.',error)}
   let count=Number.isSafeInteger(initial.count)?Math.max(0,initial.count):0;
   let customDhikrs=Array.isArray(initial.customDhikrs)?initial.customDhikrs.slice():[];
   let removedOfficialDhikrs=Array.isArray(initial.removedOfficialDhikrs)?initial.removedOfficialDhikrs.slice():[];
@@ -371,6 +376,7 @@
     update();
    });
   }
+  window.__ANWAR_TASBIH_CONTROLLER_READY__=true;
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
  else init();
