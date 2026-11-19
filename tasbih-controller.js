@@ -11,6 +11,7 @@
   const ownerDialog=$('ownerDialog'),ownerPanel=$('ownerPanel'),adhkarPanel=$('adhkarPanel'),sharePanel=$('sharePanel');
   const ownerTab=$('ownerTab'),adhkarTab=$('adhkarTab'),shareTab=$('shareTab');
   const countNode=$('tasbihCount'),phraseNode=$('tasbihPhrase'),select=$('tasbihDhikr');
+  const counterControl=panel&&panel.querySelector('.anwar-tasbih-counter');
   const themeToggle=$('tasbihThemeToggle'),themePicker=$('tasbihThemePicker');
   const themeIds=['emerald','dark','pink','night','heritage','glass'];
   const themeButtons=themeIds.map(name=>({name,button:$('tasbihTheme'+name[0].toUpperCase()+name.slice(1))}));
@@ -21,7 +22,7 @@
   const voicePanel=$('tasbihVoicePanel'),voiceButton=$('tasbihVoice');
   const voiceState=$('tasbihVoiceState'),voiceStatus=$('tasbihVoiceStatus');
   const voiceButtonLabel=$('tasbihVoiceButtonLabel'),voiceTranscript=$('tasbihVoiceTranscript');
-  const required={panel,toggleButton,closeButton,ownerDialog,adhkarPanel,select,countNode,phraseNode,tap,minus,reset,cards,customInput,customAdd,customStatus,removeButton,restoreButton,voicePanel,voiceButton,voiceState,voiceStatus,voiceButtonLabel,voiceTranscript,themeToggle,themePicker,...Object.fromEntries(themeButtons.map(item=>['theme'+item.name,item.button]))};
+  const required={panel,toggleButton,closeButton,ownerDialog,adhkarPanel,select,countNode,phraseNode,counterControl,tap,minus,reset,cards,customInput,customAdd,customStatus,removeButton,restoreButton,voicePanel,voiceButton,voiceState,voiceStatus,voiceButtonLabel,voiceTranscript,themeToggle,themePicker,...Object.fromEntries(themeButtons.map(item=>['theme'+item.name,item.button]))};
   const missing=Object.keys(required).filter(key=>!required[key]);
   if(missing.length){
    console.error('تعذر تهيئة السبحة؛ عناصر الواجهة الناقصة:',missing);
@@ -298,6 +299,17 @@
    themeToggle.setAttribute('aria-expanded',themePicker.hidden?'false':'true');
   });
   themeButtons.forEach(item=>item.button.addEventListener('click',()=>chooseTheme(item.name)));
+  // The circular number itself is an accessible tap target as well as the dedicated button.
+  counterControl.setAttribute('role','button');
+  counterControl.setAttribute('tabindex','0');
+  counterControl.setAttribute('aria-label','اضغط هنا لتسجيل تسبيحة واحدة');
+  counterControl.addEventListener('click',()=>add(1));
+  counterControl.addEventListener('keydown',event=>{
+   if(event.key==='Enter'||event.key===' '){
+    event.preventDefault();
+    add(1);
+   }
+  });
   tap.addEventListener('click',()=>add(1));
   minus.addEventListener('click',()=>add(-1));
   reset.addEventListener('click',()=>{count=0;saveAndUpdate()});

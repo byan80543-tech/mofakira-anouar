@@ -1875,6 +1875,12 @@ dialog[open]>.float-head{display:none!important}
 @media(max-width:390px){.anwar-tasbih-theme-grid{gap:5px}.anwar-tasbih-theme-choice{min-height:85px;font-size:8px;padding-inline:2px}}
 @media(prefers-reduced-motion:reduce){.anwar-tasbih-theme-choice{transition:none}}
 </style>
+<style id="anwar-tasbih-counter-control-v1">
+#tasbihPanel .anwar-tasbih-counter{cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+#tasbihPanel .anwar-tasbih-counter:focus-visible{outline:3px solid var(--tasbih-accent-soft);outline-offset:4px}
+#tasbihPanel .anwar-tasbih-counter:active{transform:scale(.97)}
+#tasbihPanel .anwar-tasbih-counter span{font-size:10px}
+</style>
 </head>
 <body>
 <div class="app" id="app">
@@ -2176,7 +2182,7 @@ dialog[open]>.float-head{display:none!important}
      </div>
      <small id="tasbihCustomDhikrStatus" role="status" aria-live="polite">تُحفظ أذكارك المضافة على هذا الجهاز لتختارها لاحقاً.</small>
     </div>
-    <div class="anwar-tasbih-counter" aria-live="polite"><strong id="tasbihCount">0</strong><span>عدد التسبيحات</span></div>
+    <div class="anwar-tasbih-counter" id="tasbihCounterControl" role="button" tabindex="0" aria-label="اضغط هنا لتسجيل تسبيحة واحدة" title="اضغط على العداد لزيادة التسبيحات" aria-live="polite"><strong id="tasbihCount">0</strong><span>عدد التسبيحات · اضغط للزيادة</span></div>
     <div class="anwar-tasbih-actions"><button type="button" id="tasbihMinus" class="anwar-tasbih-small" aria-label="إنقاص العدد">−</button><button type="button" id="tasbihTap" class="anwar-tasbih-tap" aria-label="سجل تسبيحة واحدة">سبّح</button><button type="button" id="tasbihReset" class="anwar-tasbih-small" aria-label="تصفير العداد">↺</button></div>
     <section class="anwar-tasbih-voice" id="tasbihVoicePanel" data-state="idle" aria-label="التسجيل الصوتي للسبحة">
      <div class="anwar-tasbih-voice-head">
@@ -2274,7 +2280,7 @@ dialog[open]>.float-head{display:none!important}
 <script src="./vault-crypto.js?v=20261118-2"></script>
 <script src="./vault-device-unlock.js?v=20261118-1"></script>
 <script src="./app-core.js?v=20261119-8" defer></script>
-<script src="./tasbih-controller.js?v=20261119-5" defer></script>
+<script src="./tasbih-controller.js?v=20261119-6" defer></script>
 
 
 
