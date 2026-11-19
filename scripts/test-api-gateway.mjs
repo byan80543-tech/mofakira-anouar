@@ -255,7 +255,7 @@ try {
         assert.equal(model, "@cf/openai/whisper-large-v3-turbo");
         assert.equal(input.task, "transcribe");
         assert.ok(typeof input.audio === "string" && input.audio.length > 0);
-        return { text: "هذا نص عربي تجريبي", word_count: 4, transcription_info: { language: "arabic" } };
+        return { transcription_info: { text: "هذا نص عربي تجريبي", word_count: 4 } };
       }
     }
   };
@@ -270,7 +270,7 @@ try {
   const transcriptResult = await response.json();
   assert.equal(transcriptResult.text, "هذا نص عربي تجريبي");
   assert.equal(transcriptResult.wordCount, 4);
-  assert.equal(transcriptResult.language, "arabic");
+  assert.equal(transcriptResult.language, "");
   assert.equal(modelCalls, 1);
 
   // Transcription rejects missing files, unsupported formats, untrusted origins and disabled AI.
