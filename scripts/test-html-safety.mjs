@@ -29,6 +29,7 @@ assert.ok(!importedText.includes("execCommand('insertHTML'"));
 const countryRequest=section(app,'function resolveCountryRequest(value){','function dedupeCountryRows(rows){','country source URL validation');
 assert.ok(countryRequest.includes("allowedOrigins=new Set([base.origin,'https://www.way2quran.com'])"));
 assert.ok(countryRequest.includes("source.username||source.password||source.port||source.hash"));
+assert.ok(app.includes("u.username||u.password||u.port||u.hash||u.search"),'country profile links reject URL credentials, ports, fragments and unexpected query parameters');
 assert.ok(countryRequest.includes("new URL('/v1/country/list',gateway)"));
 assert.ok(countryRequest.includes("new URL('/v1/country/profile',gateway)"));
 assert.ok(countryRequest.includes("apiUrl.searchParams.set('nationality',code)"));
