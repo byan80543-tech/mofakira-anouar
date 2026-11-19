@@ -148,7 +148,7 @@ const longOfficial=officialOptions.find(option=>option.value.length>200);
 assert.ok(longOfficial,'a long official dhikr is present for persistence-boundary testing');
 officialApp.nodes.tasbihDhikr.value=longOfficial.value;
 officialApp.nodes.tasbihRemoveDhikr.click();
-assert.ok(officialApp.state.tasbih.removedOfficialDhikrs.includes(longOfficial.value),'removing a long official dhikr stores its complete text');
+assert.ok(officialApp.state.tasbih.removedOfficialDhikrs.includes(longOfficial.dataset.anwarOfficialId),'removing an official dhikr stores its stable identifier');
 const restoredRemoved=buildApp({initialRemoved:officialApp.state.tasbih.removedOfficialDhikrs});
 assert.ok(!restoredRemoved.nodes.tasbihDhikr.options.some(option=>option.value===longOfficial.value),'a removed long official dhikr stays hidden after reload');
 restoredRemoved.nodes.tasbihRestoreOfficial.click();
