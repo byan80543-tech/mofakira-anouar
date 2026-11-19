@@ -26,7 +26,7 @@ ok(html.includes('id="sp"')&&html.includes('id="speakRead"'),'poetry dictation a
 ok(html.indexOf('<script src="./poetry-dictation.js')<html.indexOf('<script src="./app-core.js'),'poetry dictation controller loads before the notebook application');
 ok(appCore.includes("else if(id==='sp')togglePoetryDictation()")&&appCore.includes("else if(id==='speakRead')speakText()"),'dictation and speech playback are routed to their own actions');
 ok(appCore.includes('function appendPoetryDictationText')&&appCore.includes('touch();'),'dictated final speech is inserted into the current editable note and triggers persistence');
-ok(serviceWorker.includes("'./poetry-dictation.js'")&&serviceWorker.includes('v95'),'poetry dictation is part of the versioned offline app shell');
+ok(serviceWorker.includes("'./poetry-dictation.js'")&&/const CACHE_NAME='anwar-shell-\\d{4}-\\d{2}-\\d{2}-v\\d+';/.test(serviceWorker),'poetry dictation is part of the versioned offline app shell');
 
 ok(appCore.includes('window.AnwarRenderAdhkar=function(period)') && appCore.includes('window.AnwarShowOwnerPanel=function(which)'), 'notebook exposes narrow bridges for adhkar rendering and panel selection');
 ok(!appCore.includes("const $=id=>document.getElementById(id),panel=$('tasbihPanel')"), 'tasbih runtime is removed from the delayed notebook initializer');
