@@ -54,7 +54,7 @@ const firstResource=Math.min(...['<link ','<script','<style'].map(token=>{
  return position<0?Number.MAX_SAFE_INTEGER:position;
 }));
 assert.ok(cspIndex>=0&&cspIndex<firstResource,'CSP appears before the first resource-bearing element');
-assert.ok(/<meta\s+name="referrer"\s+content="strict-origin-when-cross-origin"\s*>/i.test(html),'a conservative referrer policy is declared');
+assert.equal(htmlAudit.referrer_meta,'strict-origin-when-cross-origin','a conservative referrer policy is declared');
 assert.ok(!cspContent.includes('frame-ancestors')&&!cspContent.includes('report-uri')&&!cspContent.includes('report-to'),'header-only CSP directives are not presented as active meta controls');
 const deployedCsp=deployedHeaders.match(/Content-Security-Policy:\s*([^\n]+)/);
 assert.ok(deployedCsp,'Cloudflare _headers includes a CSP response header');
