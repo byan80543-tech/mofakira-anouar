@@ -20,12 +20,17 @@ class HtmlInspector(HTMLParser):
         self.inline_handlers: list[str] = []
         self.inline_scripts: list[str] = []
         self.csp_meta: str | None = None
+        self.referrer_meta: str | None = None
+        self.script_sources: list[str] = []
+        self.preload_scripts: list[str] = []
+        self.elements: list[dict[str, Any]] = []
         self._inside_inline_script = False
         self._script_parts: list[str] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         tag = tag.lower()
         values = {key.lower(): value for key, value in attrs}
+        self.elements.append({"tag": tag, "attrs": values})
         element_id = values.get("id")
         if element_id:
             self.ids.append(element_id)
@@ -49,8 +54,17 @@ class HtmlInspector(HTMLParser):
             http_equiv = (values.get("http-equiv") or "").strip().lower()
             if http_equiv == "content-security-policy" and values.get("content") is not None:
                 self.csp_meta = values["content"]
+            if (values.get("name") or "").strip().lower() == "referrer":
+                self.referrer_meta = values.get("content")
+
+        if tag == "link":
+            rel = set((values.get("rel") or "").lower().split())
+            if "preload" in rel and (values.get("as") or "").lower() == "script" and values.get("href"):
+                self.preload_scripts.append(values["href"])
 
         if tag == "script":
+            if values.get("src"):
+                self.script_sources.append(values["src"])
             self._inside_inline_script = "src" not in values
             self._script_parts = []
 
@@ -74,6 +88,10 @@ class HtmlInspector(HTMLParser):
             "inline_handlers": self.inline_handlers,
             "inline_scripts": self.inline_scripts,
             "csp_meta": self.csp_meta,
+            "referrer_meta": self.referrer_meta,
+            "script_sources": self.script_sources,
+            "preload_scripts": self.preload_scripts,
+            "elements": self.elements,
         }
 
 
