@@ -1,7 +1,7 @@
 (function installAnwarPoetryDictation(root){
  'use strict';
 
- const LANGUAGES=['ar-MA','ar-SA','ar'];
+ const LANGUAGES=['ar'];
 
  function create(options){
   const config=options&&typeof options==='object'?options:{};
@@ -13,7 +13,7 @@
   };
   const Recognition=root.SpeechRecognition||root.webkitSpeechRecognition;
   let recognition=null,requested=false,active=false;
-  let languageIndex=0,restarts=0,restartTimer=null,generation=0;
+  let restarts=0,restartTimer=null,generation=0;
   let committed=[];
   const seenEvents=typeof WeakSet==='function'?new WeakSet():null;
 
@@ -46,23 +46,6 @@
     restartTimer=null;
     if(requested)startSession();
    },delay);
-  }
-  function switchLanguage(){
-   if(languageIndex>=LANGUAGES.length-1){
-    fail('خدمة التعرف الصوتي لا تدعم العربية على هذا الجهاز.');
-    return;
-   }
-   languageIndex++;
-   const old=recognition;
-   recognition=null;
-   generation++;
-   stopSession(old);
-   clearRestart();
-   status('language-fallback','نجرب إعدادًا عربيًا بديلًا للتعرف على الكلام.');
-   restartTimer=timers.set(()=>{
-    restartTimer=null;
-    if(requested)startSession();
-   },120);
   }
   function handleResults(event){
    if(!event||!event.results)return;
@@ -114,7 +97,7 @@
    catch(error){fail('تعذّر تهيئة خدمة التعرف الصوتي في هذا المتصفح.');return;}
    recognition=session;
    try{
-    session.lang=LANGUAGES[languageIndex];
+    session.lang=LANGUAGES[0];
     session.continuous=true;
     session.interimResults=true;
     session.maxAlternatives=1;
@@ -132,7 +115,8 @@
     if(!requested||recognition!==session||generation!==currentGeneration)return;
     const reason=String(event&&event.error||'');
     if(reason==='language-not-supported'){
-     switchLanguage();return;
+     fail('هذا المتصفح لا يدعم التعرف الصوتي باللغة العربية. جرّب Chrome محدّثًا.');
+     return;
     }
     if(reason==='not-allowed'||reason==='service-not-allowed'){
      fail('لم يُسمح باستخدام الميكروفون. راجع إذن الميكروفون في المتصفح.');
@@ -164,7 +148,7 @@
   function start(){
    if(requested)return true;
    if(!Recognition){status('error','هذا المتصفح لا يدعم التعرف الصوتي. جرّب Chrome محدّثًا.');return false;}
-   requested=true;active=false;languageIndex=0;restarts=0;committed=[];
+   requested=true;active=false;restarts=0;committed=[];
    status('requesting','نطلب تشغيل الميكروفون من المتصفح.');
    startSession();
    return requested;
@@ -179,7 +163,7 @@
   }
   function isRequested(){return requested}
   function isActive(){return active}
-  function getLanguage(){return LANGUAGES[languageIndex]}
+  function getLanguage(){return LANGUAGES[0]}
 
   return Object.freeze({start,stop,isRequested,isActive,getLanguage});
  }
