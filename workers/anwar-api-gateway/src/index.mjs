@@ -514,6 +514,9 @@ export default {
 
     if (request.method === "POST") {
       if (url.pathname !== "/v1/transcribe" || url.search) {
+        if (!url.search && resolveRoute(url)) {
+          return errorResponse("طريقة الطلب غير مسموحة.", 405, origin, { Allow: "GET, OPTIONS" });
+        }
         return errorResponse("المسار غير موجود.", 404, origin);
       }
 
