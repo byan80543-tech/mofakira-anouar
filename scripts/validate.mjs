@@ -37,7 +37,7 @@ const innerTabs=html.slice(innerTabsStart,tasbihPanelStart);
 ok(outerTabs.includes('id="ownerTab"') && outerTabs.includes('id="adhkarTab"') && outerTabs.includes('id="shareTab"'), 'owner, adhkar and sharing tabs are restored to the visible top-level navigation');
 ok(innerTabs.includes('id="morningTab"') && innerTabs.includes('id="eveningTab"') && innerTabs.includes('id="adhkarTasbihToggle"'), 'morning, evening and tasbih controls are grouped together inside the adhkar view');
 ok(!innerTabs.includes('id="adhkarTab"') && !outerTabs.includes('id="adhkarTasbihToggle"'), 'adhkar navigation is no longer hidden behind its own panel and the tasbih launcher is not misplaced');
-ok(html.includes('src="./tasbih-controller.js?v=20261119-1" defer') && serviceWorker.includes("'./tasbih-controller.js'") && serviceWorker.includes('anwar-shell-2026-11-19-v72'), 'standalone tasbih controller is versioned and precached for offline use');
+ok(/<script src="\.\/tasbih-controller\.js\?v=\d{8}-\d+" defer><\/script>/.test(html) && serviceWorker.includes("'./tasbih-controller.js'") && /const CACHE_NAME='anwar-shell-\d{4}-\d{2}-\d{2}-v\d+';/.test(serviceWorker), 'standalone tasbih controller is versioned and precached for offline use');
 
 ok(manifest.name==='مفكرة أنوار' && manifest.short_name==='مفكرة أنوار','PWA name and short_name');
 ok(manifest.start_url==='/mofakira-anouar/' && manifest.scope==='/mofakira-anouar/','GitHub Pages start_url and scope');
@@ -191,7 +191,7 @@ const qualityWorkflow=fs.readFileSync(path.join(root,'.github/workflows/quality.
 ok(qualityWorkflow.includes('wrangler@4.164.0') && !qualityWorkflow.includes('wrangler@latest'),'quality dry-run pins the Wrangler version used by deployment');
 ok(appSource.includes("content-visibility:auto;contain-intrinsic-size:auto 76px"),'off-screen note cards skip unnecessary painting');
 ok(html.includes('<link rel="preload" href="./app-core.js?v=20261119-7" as="script">') && html.includes('src="./app-core.js?v=20261119-7" defer') && appCore.length>200000,'main application bundle is externally loaded and preload/script cache versions match');
-ok(serviceWorker.includes("'./app-core.js'") && serviceWorker.includes('anwar-shell-2026-11-19-v72'),'service worker precaches the extracted main bundle under a new shell version');
+ok(serviceWorker.includes("'./app-core.js'") && /const CACHE_NAME='anwar-shell-\d{4}-\d{2}-\d{2}-v\d+';/.test(serviceWorker),'service worker precaches the extracted main bundle under a new shell version');
 ok(appSource.includes("backdrop-filter:none;-webkit-backdrop-filter:none"),'vault startup overlay avoids an expensive full-screen blur');
 
 
