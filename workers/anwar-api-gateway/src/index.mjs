@@ -71,9 +71,11 @@ function errorResponse(message, status, origin, headers = {}) {
 function resolveRoute(url) {
   if (url.pathname === "/v1/reciters") {
     if (url.searchParams.size !== 0) return { error: "معاملات غير مسموحة." };
+    const upstream = new URL("/api/v3/reciters", "https://www.mp3quran.net");
+    upstream.searchParams.set("language", "ar");
     return {
       bucket: "catalog",
-      upstream: "https://www.mp3quran.net/api/v3/reciters?language=ar",
+      upstream,
       cacheTtl: CACHE_TTLS.reciters,
       maxBytes: MAX_UPSTREAM_BYTES,
       kind: "reciters"
@@ -82,9 +84,11 @@ function resolveRoute(url) {
 
   if (url.pathname === "/v1/radios") {
     if (url.searchParams.size !== 0) return { error: "معاملات غير مسموحة." };
+    const upstream = new URL("/api/v3/radios", "https://www.mp3quran.net");
+    upstream.searchParams.set("language", "ar");
     return {
       bucket: "catalog",
-      upstream: "https://www.mp3quran.net/api/v3/radios?language=ar",
+      upstream,
       cacheTtl: CACHE_TTLS.radios,
       maxBytes: MAX_UPSTREAM_BYTES,
       kind: "radios"
@@ -110,7 +114,7 @@ function resolveRoute(url) {
     if (page > 1) upstream.searchParams.set("currentPage", String(page));
     return {
       bucket: "country-list",
-      upstream: upstream.href,
+      upstream,
       cacheTtl: CACHE_TTLS.countryList,
       maxBytes: 3 * 1024 * 1024,
       kind: "html"
@@ -126,9 +130,11 @@ function resolveRoute(url) {
         !/^[a-z0-9-]{1,100}$/i.test(slug)) {
       return { error: "معرّف صفحة القارئ غير صالح." };
     }
+    const upstream = new URL("https://way2quran.com");
+    upstream.pathname = "/ar/reciters/" + slug;
     return {
       bucket: "country-profile",
-      upstream: "https://way2quran.com/ar/reciters/" + slug,
+      upstream,
       cacheTtl: CACHE_TTLS.countryProfile,
       maxBytes: 3 * 1024 * 1024,
       kind: "html"
@@ -181,11 +187,24 @@ function isAllowedUpstreamHost(hostname) {
     hostname === "www.way2quran.com";
 }
 
-async function fetchSameOriginOnly(target) {
-  if (target.protocol !== "https:" || !isAllowedUpstreamHost(target.hostname) || target.port) {
-    throw new Error("Upstream host is not allowlisted");
+function validateUpstreamUrl(target) {
+  if (!(target instanceof URL)) {
+    throw new Error("Upstream URL must be parsed before use");
   }
-  let current = target;
+  const safe = new URL(target.href);
+  if (safe.protocol !== "https:" ||
+      !isAllowedUpstreamHost(safe.hostname) ||
+      safe.username ||
+      safe.password ||
+      safe.port ||
+      safe.hash) {
+    throw new Error("Upstream URL is not allowlisted");
+  }
+  return safe;
+}
+
+async function fetchSameOriginOnly(target) {
+  let current = validateUpstreamUrl(target);
 
   for (let hop = 0; hop < 3; hop += 1) {
     const controller = new AbortController();
@@ -209,10 +228,7 @@ async function fetchSameOriginOnly(target) {
     if (response.status >= 300 && response.status < 400) {
       const location = response.headers.get("Location");
       if (!location) throw new Error("Upstream redirect without a location");
-      const next = new URL(location, current);
-      if (next.protocol !== "https:" || next.port || !isAllowedUpstreamHost(next.hostname)) {
-        throw new Error("Redirect to an unapproved upstream host rejected");
-      }
+      const next = validateUpstreamUrl(new URL(location, current));
       current = next;
       continue;
     }
@@ -607,7 +623,7 @@ export default {
 
     let upstream;
     try {
-      upstream = await fetchSameOriginOnly(new URL(route.upstream));
+      upstream = await fetchSameOriginOnly(route.upstream);
       if (upstream.status === 429) {
         const retry = upstream.headers.get("Retry-After") || "30";
         return errorResponse(
