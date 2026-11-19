@@ -193,9 +193,9 @@
    renderCards();
    const selected=Array.from(select.options).find(option=>option.value===select.value);
    removeButton.disabled=!selected;
-   removeButton.textContent=selected&&isCustomOption(selected)?'حذف الذكر المضاف':'إزالة الذكر الرسمي من قائمتي';
+   removeButton.textContent='إزالة الذكر';
    restoreButton.hidden=removedOfficialDhikrs.length===0;
-   restoreButton.textContent='استعادة الأذكار الرسمية'+(removedOfficialDhikrs.length?' ('+removedOfficialDhikrs.length+')':'');
+   restoreButton.textContent='استعادة القائمة'+(removedOfficialDhikrs.length?' ('+removedOfficialDhikrs.length+')':'');
   }
   function firstVisible(){
    return visibleOptions()[0]||null;
