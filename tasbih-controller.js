@@ -175,6 +175,7 @@
   function normalizeSpeech(value){
    return String(value||'').toLocaleLowerCase('ar').normalize('NFD')
     .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g,'')
+    .replace(/[،؛؟٪٫٬۔]/g,' ')
     .replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/ـ/g,'')
     .replace(/[^\u0600-\u06FFa-z0-9\s]/gi,' ').replace(/\s+/g,' ').trim();
   }
