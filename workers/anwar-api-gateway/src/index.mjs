@@ -566,11 +566,105 @@ async function servePublicYouTubeTranscript(videoId, language, origin) {
   }
 }
 
-async function transcribeAudio(request, env, origin) {
-  if (!env.AI || typeof env.AI.run !== "function") {
-    return errorResponse("خدمة التفريغ السحابي غير مفعّلة على الخادم بعد.", 503, origin);
-  }
+async function transcribeWithJais(file, apiKey) {
+  const form = new FormData();
+  form.append("file", file, String(file.name || "recording.webm").slice(0, 180));
+  form.append("model", "IFM/Jais-ASR");
+  // Keep French/English spans in their original script. Do not pin one language:
+  // IFM recommends automatic language/dialect detection for mixed speech.
+  form.append("code_switch", "true");
 
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 120_000);
+  try {
+    const response = await fetch("https://api.ifm.ai/v1/audio/transcriptions", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + apiKey },
+      body: form,
+      signal: controller.signal
+    });
+    const raw = await readTextWithLimit(response, 1024 * 1024);
+    let payload = {};
+    try { payload = raw ? JSON.parse(raw) : {}; } catch {}
+    if (!response.ok) return { ok: false, status: response.status };
+    const text = typeof payload.text === "string" ? payload.text.trim() : "";
+    if (payload.no_speech === true || !text) {
+      return { ok: false, status: 422 };
+    }
+    if (text.length > 250_000) return { ok: false, status: 502 };
+
+    const segments = Array.isArray(payload.segments)
+      ? payload.segments.slice(0, 200).map(segment => ({
+          start: Number.isFinite(Number(segment?.start)) ? Number(segment.start) : null,
+          end: Number.isFinite(Number(segment?.end)) ? Number(segment.end) : null,
+          language: String(segment?.language || "").slice(0, 24),
+          text: String(segment?.text || "").slice(0, 20_000),
+          truncated: segment?.truncated === true
+        })).filter(segment => segment.text)
+      : [];
+    const language = String(payload.language || "").slice(0, 24);
+    const languages = Array.from(new Set(
+      [language, ...segments.map(segment => segment.language)]
+        .map(value => String(value || "").trim())
+        .filter(Boolean)
+    )).slice(0, 12);
+    return {
+      ok: true,
+      result: {
+        text,
+        language,
+        languages,
+        segments,
+        truncated: payload.truncated === true,
+        durationSeconds: Number.isFinite(Number(payload.duration_seconds))
+          ? Number(payload.duration_seconds)
+          : null,
+        wordCount: text.split(/\s+/).filter(Boolean).length,
+        provider: "Jais-ASR"
+      }
+    };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function transcribeWithWhisper(file, env, origin) {
+  if (!env.AI || typeof env.AI.run !== "function") {
+    return errorResponse("خدمة التفريغ الاحتياطية غير مفعّلة على الخادم.", 503, origin);
+  }
+  try {
+    const audioBytes = new Uint8Array(await file.arrayBuffer());
+    if (!audioBytes.length || audioBytes.length > MAX_AUDIO_BYTES) {
+      return errorResponse("تعذّر التحقق من حجم الملف الصوتي.", 413, origin);
+    }
+    const result = await env.AI.run(TRANSCRIPTION_MODEL, {
+      audio: bytesToBase64(audioBytes),
+      task: "transcribe"
+    });
+    const transcriptionInfo = result?.transcription_info;
+    const text = typeof transcriptionInfo?.text === "string" ? transcriptionInfo.text.trim() : "";
+    if (!text || text.length > 250_000) {
+      return errorResponse("لم يُنتج محرك التفريغ الاحتياطي نصًا صالحًا. جرّب ملفًا أوضح وأقصر.", 502, origin);
+    }
+    const detectedLanguage = String(transcriptionInfo?.language || "").slice(0, 24);
+    const wordCount = Number.isFinite(Number(transcriptionInfo?.word_count))
+      ? Math.max(0, Number(transcriptionInfo.word_count))
+      : text.split(/\s+/).filter(Boolean).length;
+    return withCors(json({
+      text,
+      language: detectedLanguage,
+      languages: detectedLanguage ? [detectedLanguage] : [],
+      wordCount,
+      provider: "Whisper",
+      truncated: false
+    }, 200), origin);
+  } catch {
+    // Never log or persist audio bytes or transcription contents.
+    return errorResponse("تعذّر إتمام التفريغ الصوتي الآن. حاول بملف أصغر أو أعد المحاولة لاحقًا.", 502, origin);
+  }
+}
+
+async function transcribeAudio(request, env, origin) {
   const contentLength = Number(request.headers.get("Content-Length") || 0);
   if (contentLength > MAX_AUDIO_BYTES + 128_000) {
     return errorResponse("حجم الملف يتجاوز الحد المسموح وهو 8 ميغابايت.", 413, origin);
@@ -601,29 +695,31 @@ async function transcribeAudio(request, env, origin) {
     return errorResponse("صيغة الصوت غير مدعومة. استخدم MP3 أو M4A أو WAV أو OGG أو WEBM أو FLAC.", 415, origin);
   }
 
-  try {
-    const audioBytes = new Uint8Array(await file.arrayBuffer());
-    if (!audioBytes.length || audioBytes.length > MAX_AUDIO_BYTES) {
-      return errorResponse("تعذّر التحقق من حجم الملف الصوتي.", 413, origin);
+  const apiKey = String(env.IFM_API_KEY || "").trim();
+  if (apiKey) {
+    let attempt;
+    try {
+      attempt = await transcribeWithJais(file, apiKey);
+    } catch {
+      // A transient IFM/network failure may use the existing Cloudflare model.
+      attempt = { ok: false, status: 502 };
     }
-    const result = await env.AI.run(TRANSCRIPTION_MODEL, {
-      audio: bytesToBase64(audioBytes),
-      task: "transcribe"
-    });
-    const transcriptionInfo = result?.transcription_info;
-    const text = typeof transcriptionInfo?.text === "string" ? transcriptionInfo.text.trim() : "";
-    if (!text || text.length > 250_000) {
-      return errorResponse("لم يُنتج محرك التفريغ نصًا صالحًا. جرّب ملفًا أوضح وأقصر.", 502, origin);
+    if (attempt.ok) {
+      return withCors(json(attempt.result, 200), origin);
     }
-    const detectedLanguage = String(transcriptionInfo?.language || "").slice(0, 24);
-    const wordCount = Number.isFinite(Number(transcriptionInfo?.word_count))
-      ? Math.max(0, Number(transcriptionInfo.word_count))
-      : text.split(/\s+/).filter(Boolean).length;
-    return withCors(json({ text, language: detectedLanguage, wordCount }, 200), origin);
-  } catch {
-    // Never log or persist audio bytes or transcription contents.
-    return errorResponse("تعذّر إتمام التفريغ الصوتي الآن. حاول بملف أصغر أو أعد المحاولة لاحقًا.", 502, origin);
+    if (attempt.status === 422) {
+      return errorResponse("لم يُكتشف كلام واضح في التسجيل. جرّب ملفًا أوضح.", 422, origin);
+    }
+    if (attempt.status === 401 || attempt.status === 403) {
+      return errorResponse("تعذّر التحقق من مفتاح خدمة Jais-ASR. راجع سر IFM_API_KEY في إعدادات النشر.", 503, origin);
+    }
+    if (attempt.status !== 429 && attempt.status < 500) {
+      return errorResponse("رفضت خدمة Jais-ASR الملف أو إعدادات الطلب. تحقق من الصيغة ثم أعد المحاولة.", 502, origin);
+    }
+    // 429 and upstream/network failures fall through to the configured Whisper backup.
   }
+
+  return transcribeWithWhisper(file, env, origin);
 }
 
 export default {
