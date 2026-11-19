@@ -2021,6 +2021,13 @@ dialog[open]>.float-head{display:none!important}
  .transcript-format-menu button{width:100%;text-align:right;border:0!important;background:transparent!important;padding:8px 10px!important;font-size:11px!important}
  .transcript-format-menu button:hover,.transcript-format-menu button:focus-visible{background:var(--ac2)!important;color:var(--ac)!important}
  #bookToolContent #transcriptText{min-height:176px;resize:vertical;white-space:pre-wrap;line-height:2.05;font:14px/2.05 Amiri,'Noto Naskh Arabic',serif}
+ .transcript-table-preview{max-width:100%;overflow:auto;border:1px solid var(--bd);border-radius:9px;padding:8px;background:var(--sf)}
+ .transcript-table-preview[hidden]{display:none!important}
+ .transcript-table-caption{margin:0 0 7px;color:var(--mu);font:10px/1.7 Cairo,Tahoma,sans-serif}
+ .transcript-table-preview table{min-width:430px;border-collapse:collapse;width:100%;table-layout:fixed;direction:rtl}
+ .transcript-table-preview th,.transcript-table-preview td{border:1px solid #b9ad98;padding:8px;text-align:right;vertical-align:top;white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.8 Cairo,Tahoma,sans-serif}
+ .transcript-table-preview th{background:#eee5d1;color:#624b23}
+ .transcript-table-preview td:last-child{min-width:110px;height:36px;background:rgba(255,255,255,.35)}
  .transcript-consent{display:flex;align-items:flex-start;gap:8px;color:var(--mu);font:10px/1.8 Cairo,Tahoma,sans-serif}
  .transcript-consent input{margin-top:4px;accent-color:var(--ac);flex:none}
  .transcript-upload-note{color:var(--mu);font:10px/1.8 Cairo,Tahoma,sans-serif}
@@ -2177,9 +2184,10 @@ dialog[open]>.float-head{display:none!important}
     <label class="transcript-field" for="transcriptTitle">عنوان التفريغ
      <input id="transcriptTitle" type="text" maxlength="100" value="تفريغ فيديو">
     </label>
-    <label class="transcript-field" for="transcriptText">النص المستخرج
+    <label class="transcript-field" for="transcriptText">النص المستخرج والقابل للتحرير
      <textarea id="transcriptText" rows="9" dir="rtl" lang="ar" spellcheck="false" placeholder="سيظهر النص هنا بعد التفريغ الصوتي أو استيراد الترجمة..."></textarea>
     </label>
+    <div id="transcriptTablePreview" class="transcript-table-preview" hidden aria-live="polite"></div>
     <div class="transcript-toolbar" aria-label="أدوات مراجعة النص">
      <button type="button" id="transcriptSpellcheck" aria-pressed="false" title="تشغيل التدقيق الإملائي المتاح في المتصفح">✎ التدقيق الإملائي</button>
      <div class="transcript-format-wrap">
