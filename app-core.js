@@ -969,7 +969,7 @@ function theme(){
  document.documentElement.style.setProperty('--paper-text',p[1]);
 }
 function chips(){$('chips').innerHTML=[['all','الكل'],['poem','قصائد'],['text','نصوص'],['idea','أفكار'],['pin','⭐ المثبّتة']].map(([k,v])=>`<button class="chip ${flt===k?'on':''}" data-k="${k}">${v}</button>`).join('')}
-function plain(h){const d=document.createElement('div');d.innerHTML=h;return d.innerText||d.textContent||''}
+function plain(h){const d=new DOMParser().parseFromString(san(h),'text/html');return d.body?.innerText||d.body?.textContent||''}
 const notePlainTextCache=new WeakMap();
 function plainNote(n){
  const html=String(n.html||''),cached=notePlainTextCache.get(n);
@@ -1805,8 +1805,7 @@ async function downloadBlob(blob,filename,options={}){
  }catch(error){console.warn('تعذّر تنزيل الملف',error);toast('تعذّر تجهيز التنزيل في هذا المتصفح.');return false}
 }
 function notePlainText(note){
- const box=document.createElement('div');box.innerHTML=san(note.html||'');
- return (box.innerText||box.textContent||'').replace(/\u00a0/g,' ').trim();
+ return plain(note.html||'').replace(/\u00a0/g,' ').trim();
 }
 function recordsText(records,title){
  const parts=[title||'مختارات من مفكرة أنوار','مفكرة أنوار · Anouar Oumlili',''];
@@ -2322,12 +2321,45 @@ function insertImportedText(text,filename){
  if(!cur)return;
  const clean=String(text||'').replace(/\u0000/g,'').slice(0,500000);
  if(!clean.trim()){toast('الملف لا يحتوي على نص قابل للإدراج.');return}
- const html=clean.split(/\r?\n/).map(line=>'<div>'+esc(line||'')+'</div>').join('');
  pg.focus();
- const selection=window.getSelection();
+ let selection=window.getSelection();
  if(saved&&pg.contains(saved.startContainer))restore();
- else if(selection){selection.removeAllRanges();const range=document.createRange();range.selectNodeContents(pg);range.collapse(false);selection.addRange(range)}
- document.execCommand('insertHTML',false,html);touch();
+ else if(selection){
+  selection.removeAllRanges();
+  const endRange=document.createRange();
+  endRange.selectNodeContents(pg);
+  endRange.collapse(false);
+  selection.addRange(endRange);
+ }
+ selection=window.getSelection();
+ let range=null;
+ if(selection&&selection.rangeCount){
+  const currentRange=selection.getRangeAt(0);
+  if(pg.contains(currentRange.commonAncestorContainer))range=currentRange;
+ }
+ if(!range){
+  range=document.createRange();
+  range.selectNodeContents(pg);
+  range.collapse(false);
+ }
+ range.deleteContents();
+ const fragment=document.createDocumentFragment();
+ let lastBlock=null;
+ clean.split(/\r?\n/).forEach(line=>{
+  const block=document.createElement('div');
+  if(line)block.textContent=line;
+  else block.append(document.createElement('br'));
+  fragment.append(block);
+  lastBlock=block;
+ });
+ range.insertNode(fragment);
+ if(lastBlock){
+  range.setStartAfter(lastBlock);
+  range.collapse(true);
+  const nextSelection=window.getSelection();
+  if(nextSelection){nextSelection.removeAllRanges();nextSelection.addRange(range)}
+ }
+ touch();
  $('bookFileStatus').textContent='تم إدراج نص الملف «'+filename+'» في العمل المفتوح.';
  toast('تم استيراد النص إلى المفكرة ✓',3500);
 }
@@ -3048,8 +3080,8 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
   try{
    const url=new URL(source);
    if(url.origin!=='https://www.mp3quran.net'||url.searchParams.size!==1||url.searchParams.get('language')!=='ar')return source;
-   if(url.pathname==='/api/v3/reciters')return base+'/v1/reciters';
-   if(url.pathname==='/api/v3/radios')return base+'/v1/radios';
+   if(url.pathname==='/api/v3/reciters')return new URL('/v1/reciters',base).href;
+   if(url.pathname==='/api/v3/radios')return new URL('/v1/radios',base).href;
   }catch(_e){}
   return source;
  }
@@ -3210,7 +3242,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
   const doc=new DOMParser().parseFromString(html,'text/html'),rows=[];
   doc.querySelectorAll('a[href]').forEach(a=>{
    let u;try{u=new URL(a.getAttribute('href'),COUNTRY_BASE)}catch(_e){return}
-   if(!/(^|\.)way2quran\.com$/i.test(u.hostname))return;
+   if(u.protocol!=='https:'||u.username||u.password||!['way2quran.com','www.way2quran.com'].includes(u.hostname.toLowerCase()))return;
    const match=u.pathname.match(/^\/ar\/reciters\/([^/]+)\/?$/);
    if(!match)return;
    const raw=(a.textContent||a.getAttribute('aria-label')||a.getAttribute('title')||'').replace(/[\u064B-\u065F\u0670]/g,'').replace(/\s+/g,' ').trim();
@@ -3244,32 +3276,63 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
   }
  }
  const countryFetchFailureUntil=new Map();
- async function fetchCountryHtml(url,externalSignal){
-  if(externalSignal&&externalSignal.aborted)throw new Error('أُلغي الطلب السابق');
-  const retryAt=countryFetchFailureUntil.get(url)||0;
-  if(retryAt>Date.now())throw new Error('تم تأجيل إعادة طلب هذه الصفحة لتخفيف الضغط؛ حاول بعد قليل.');
-  try{
+ function resolveCountryRequest(value){
+  const base=new URL(COUNTRY_BASE);
+  const source=new URL(String(value));
+  const allowedOrigins=new Set([base.origin,'https://www.way2quran.com']);
+  if(source.protocol!=='https:'||!allowedOrigins.has(source.origin)||source.username||source.password||source.port||source.hash){
+   throw new Error('المصدر أو مسار القارئ غير موثوق.');
+  }
+  let sourceUrl=null,apiUrl=null;
+  const basePath=base.pathname;
+  if(source.pathname===basePath||source.pathname===basePath+'/'){
+   if([...source.searchParams.keys()].some(key=>key!=='nationality'&&key!=='currentPage')){
+    throw new Error('معاملات صفحة البلد غير صالحة.');
+   }
+   const code=source.searchParams.get('nationality')||'';
+   const pageText=source.searchParams.get('currentPage')||'1';
+   const allowedCodes=new Set(Object.values(countryDirectory).map(item=>item.code));
+   const page=Number(pageText);
+   if(source.searchParams.getAll('nationality').length!==1||
+      source.searchParams.getAll('currentPage').length>1||
+      !allowedCodes.has(code)||!/^\d{1,3}$/.test(pageText)||
+      !Number.isInteger(page)||page<1||page>100){
+    throw new Error('معاملات صفحة البلد غير صالحة.');
+   }
+   sourceUrl=new URL(COUNTRY_BASE);
+   sourceUrl.searchParams.set('nationality',code);
+   if(page>1)sourceUrl.searchParams.set('currentPage',String(page));
    const gateway=anwarApiGatewayBase();
    if(gateway){
-    const source=new URL(url),base=new URL(COUNTRY_BASE);
-    let route='';
-    if(source.origin===base.origin&&source.pathname.replace(/\/$/,'')===base.pathname.replace(/\/$/,'')&&
-       [...source.searchParams.keys()].every(key=>key==='nationality'||key==='currentPage')){
-     const code=source.searchParams.get('nationality')||'';
-     const pageText=source.searchParams.get('currentPage')||'1';
-     const allowedCodes=new Set(Object.values(countryDirectory).map(item=>item.code));
-     const page=Number(pageText);
-     if(source.searchParams.getAll('nationality').length!==1||source.searchParams.getAll('currentPage').length>1||
-        !allowedCodes.has(code)||!/^\d{1,3}$/.test(pageText)||!Number.isInteger(page)||page<1||page>100){
-      throw new Error('معاملات صفحة البلد غير صالحة.');
-     }
-     route='/v1/country/list?nationality='+encodeURIComponent(code)+'&page='+page;
-    }else if(source.origin===base.origin&&source.searchParams.size===0){
-     const match=source.pathname.match(/^\/ar\/reciters\/([a-z0-9-]{1,100})\/?$/i);
-     if(match)route='/v1/country/profile?slug='+encodeURIComponent(match[1]);
+    apiUrl=new URL('/v1/country/list',gateway);
+    apiUrl.searchParams.set('nationality',code);
+    if(page>1)apiUrl.searchParams.set('page',String(page));
+   }
+  }else if(source.searchParams.size===0){
+   const match=source.pathname.match(/^\/ar\/reciters\/([a-z0-9-]{1,100})\/?$/i);
+   if(match){
+    const slug=match[1];
+    sourceUrl=new URL(COUNTRY_BASE);
+    sourceUrl.pathname=basePath+'/'+slug;
+    const gateway=anwarApiGatewayBase();
+    if(gateway){
+     apiUrl=new URL('/v1/country/profile',gateway);
+     apiUrl.searchParams.set('slug',slug);
     }
-    if(!route)throw new Error('المصدر أو مسار القارئ غير مدرج في بوابة أنوار.');
-    const response=await fetch(gateway+route,{
+   }
+  }
+  if(!sourceUrl)throw new Error('المصدر أو مسار القارئ غير مدرج في بوابة أنوار.');
+  return {sourceUrl:sourceUrl.href,gatewayUrl:apiUrl?apiUrl.href:''};
+ }
+ async function fetchCountryHtml(url,externalSignal){
+  if(externalSignal&&externalSignal.aborted)throw new Error('أُلغي الطلب السابق');
+  const request=resolveCountryRequest(url);
+  const sourceUrl=request.sourceUrl;
+  const retryAt=countryFetchFailureUntil.get(sourceUrl)||0;
+  if(retryAt>Date.now())throw new Error('تم تأجيل إعادة طلب هذه الصفحة لتخفيف الضغط؛ حاول بعد قليل.');
+  try{
+   if(request.gatewayUrl){
+    const response=await fetch(request.gatewayUrl,{
      signal:externalSignal,cache:'force-cache',credentials:'omit',referrerPolicy:'no-referrer'
     });
     if(!response.ok){
@@ -3282,22 +3345,22 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
     return body;
    }
 
-   const encoded=encodeURIComponent(url);
-   const proxies=[
-    'https://api.allorigins.win/raw?url='+encoded,
-    'https://corsproxy.io/?url='+encoded
-   ];
+   const allOriginsUrl=new URL('/raw','https://api.allorigins.win');
+   allOriginsUrl.searchParams.set('url',sourceUrl);
+   const corsProxyUrl=new URL('/','https://corsproxy.io');
+   corsProxyUrl.searchParams.set('url',sourceUrl);
+   const proxies=[allOriginsUrl.href,corsProxyUrl.href];
    const controllers=[];
    const abortJobs=()=>controllers.forEach(controller=>{try{controller.abort()}catch(_e){}});
    if(externalSignal)externalSignal.addEventListener('abort',abortJobs,{once:true});
    try{
     let lastError=null;
-    for(const proxy of proxies){
+    for(const proxyUrl of proxies){
      if(externalSignal&&externalSignal.aborted)throw new Error('أُلغي الطلب السابق');
      const controller=new AbortController();controllers.push(controller);
      const timer=setTimeout(()=>controller.abort(),5000);
      try{
-      const response=await fetch(proxy,{signal:controller.signal,cache:'force-cache',credentials:'omit',referrerPolicy:'no-referrer'});
+      const response=await fetch(proxyUrl,{signal:controller.signal,cache:'force-cache',credentials:'omit',referrerPolicy:'no-referrer'});
       if(!response.ok)throw new Error('HTTP '+response.status);
       const body=await response.text();
       if(body.length<300||body.length>3000000||(!body.includes('/ar/reciters')&&!body.includes('media.way2quran.com')))throw new Error('استجابة غير صالحة');
@@ -3313,7 +3376,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
   }catch(error){
    if(!(externalSignal&&externalSignal.aborted)){
     const delay=Math.max(10000,Math.min(60000,Number(error.retryAfterMs)||15000));
-    countryFetchFailureUntil.set(url,Date.now()+delay);
+    countryFetchFailureUntil.set(sourceUrl,Date.now()+delay);
    }
    throw error;
   }
@@ -3461,7 +3524,10 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  let countryActiveAudio=null,countryActiveButton=null,countryActiveCard=null;
  function countryMp3QuranSource(name){
   const key=readerKey(name);
-  const matches=R.filter(r=>readerKey(r[0])===key&&/^https:\/\//i.test(String(r[1]||''))&&/\.mp3quran\.net$/i.test((()=>{try{return new URL(r[1]).hostname}catch(_e){return ''}})()));
+  const matches=R.filter(r=>{
+   if(readerKey(r[0])!==key||!String(r[1]||''))return false;
+   try{const audioUrl=new URL(r[1]);return audioUrl.protocol==='https:'&&!audioUrl.username&&!audioUrl.password&&['mp3quran.net','www.mp3quran.net'].includes(audioUrl.hostname.toLowerCase())}catch(_e){return false}
+  });
   if(!matches.length)return '';
   const match=matches.find(r=>Array.isArray(r[2])&&r[2].includes(1))||matches.find(r=>Array.isArray(r[2])&&r[2].length)||matches[0];
   const folder=safeHttpsURL(match[1]);if(!folder)return '';
@@ -3474,8 +3540,9 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
   const add=value=>{
    if(!value)return;
    let u;try{u=new URL(String(value).trim().replace(/&amp;/gi,'&'),'https://way2quran.com/')}catch(_e){return}
-   const hostAllowed=/(^|\.)way2quran\.com$/i.test(u.hostname)||/(^|\.)mp3quran\.net$/i.test(u.hostname);
-   if(u.protocol==='https:'&&hostAllowed&&/\.(?:mp3|m4a|aac|ogg|wav)(?:$|[?#])/i.test(u.href)&&!found.includes(u.href))found.push(u.href);
+   const hostAllowed=['way2quran.com','www.way2quran.com','mp3quran.net','www.mp3quran.net'].includes(u.hostname.toLowerCase());
+   const audioPath=/\.(?:mp3|m4a|aac|ogg|wav)$/i.test(u.pathname);
+   if(u.protocol==='https:'&&!u.username&&!u.password&&!u.port&&hostAllowed&&audioPath&&!found.includes(u.href))found.push(u.href);
   };
   doc.querySelectorAll('audio[src],audio source[src],audio source[data-src],source[src],source[data-src],a[href],[data-audio-url],[data-audio],[data-mp3],[data-file],[data-media],[data-src],[data-url]').forEach(el=>{
    ['src','href','data-audio-url','data-audio','data-mp3','data-file','data-media','data-src','data-url'].forEach(k=>add(el.getAttribute(k)));
