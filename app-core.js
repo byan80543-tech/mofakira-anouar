@@ -2116,6 +2116,10 @@ async function transcribeAudioFile(){
   transcriptStatus('خدمة التفريغ لم تُفعّل بعد: يلزم نشر عامل Cloudflare ثم ضبط عنوانه في api-gateway-config.js.',true);
   return;
  }
+ if(!window.confirm('سيُرسل الملف الصوتي الذي اخترته إلى خدمة تفريغ سحابية لمعالجته. لا ترسل تسجيلًا خاصًا أو يحتوي على بيانات أشخاص دون موافقتهم. هل توافق على الإرسال؟')){
+  transcriptStatus('أُلغيت المعالجة؛ لم يُرسل الملف إلى الخدمة.',false);
+  return;
+ }
  const oldLabel=button?.textContent;
  if(button){button.disabled=true;button.textContent='جارٍ تحويل الصوت…';button.setAttribute('aria-busy','true')}
  transcriptStatus('يجري إرسال الصوت بأمان إلى محرك Whisper لمعالجته. قد يستغرق ذلك بعض الوقت…',false);

@@ -281,8 +281,10 @@ assert.equal(count(app),2,'the finalized result counts only the additional phras
 assert.equal(app.pendingTimers.length,0,'the transcript does not fade while rapid speech is still being detected');
 assert.equal(app.nodes.tasbihVoiceTranscript.textContent,'سبحان الله','a completed phrase replaces interim text instead of adding to a growing transcript');
 assert.ok(app.nodes.tasbihVoiceTranscript.classList.contains('is-temporary'),'recognized words are marked for temporary display');
-recognition.onresult({resultIndex:0,results:[spoken]});
-assert.equal(count(app),2,'repeated final events do not count the same words twice');
+const duplicateFinalEvent={resultIndex:0,results:[spoken]};
+recognition.onresult(duplicateFinalEvent);
+recognition.onresult(duplicateFinalEvent);
+assert.equal(count(app),2,'a duplicate delivery of the same final event is not counted twice');
 const punctuated={0:{transcript:'سبحان الله؛'},length:1,isFinal:true};
 recognition.onresult({resultIndex:1,results:[spoken,punctuated]});
 assert.equal(count(app),3,'Arabic punctuation and cumulative final results do not prevent a correct match');
@@ -322,6 +324,48 @@ const secondPart={0:{transcript:'وأتوب إليه'},length:1,isFinal:true};
 splitRecognition.onresult({resultIndex:1,results:[firstPart,secondPart]});
 assert.equal(count(splitApp),1,'the controller joins multiple final segments before matching a complete dhikr');
 assert.equal(splitApp.nodes.tasbihVoiceTranscript.textContent,'أستغفر الله العظيم وأتوب إليه','the complete spoken phrase is retained visibly');
+
+// Some Android speech services send a new one-result batch for each spoken phrase
+// instead of keeping the full cumulative result list for the whole session.
+const resetBatchApp=buildApp();
+resetBatchApp.nodes.tasbihDhikr.value='سبحان الله';
+resetBatchApp.nodes.tasbihDhikr.dispatch('change');
+resetBatchApp.nodes.tasbihVoice.click();
+const resetBatchRecognition=resetBatchApp.recognitions[0];
+resetBatchRecognition.onstart();
+const firstRepeatedResult={0:{transcript:'سبحان الله'},length:1,isFinal:true};
+resetBatchRecognition.onresult({resultIndex:0,results:[firstRepeatedResult]});
+assert.equal(count(resetBatchApp),1,'the first final phrase in a one-result batch is counted');
+const secondRepeatedResult={0:{transcript:'سبحان الله'},length:1,isFinal:true};
+resetBatchRecognition.onresult({resultIndex:0,results:[secondRepeatedResult]});
+assert.equal(count(resetBatchApp),2,'a fresh one-result batch after a finalized phrase counts the next repetition');
+
+const fallbackApp=buildApp();
+fallbackApp.nodes.tasbihDhikr.value='سبحان الله';
+fallbackApp.nodes.tasbihDhikr.dispatch('change');
+fallbackApp.nodes.tasbihVoice.click();
+const fallbackRecognition=fallbackApp.recognitions[0];
+fallbackRecognition.onstart();
+fallbackRecognition.onerror({error:'language-not-supported'});
+assert.equal(fallbackRecognition.lang,'ar-SA','an unsupported Moroccan locale automatically falls back to Arabic Saudi');
+assert.equal(fallbackApp.nodes.tasbihVoiceState.textContent,'جارٍ تشغيل الميكروفون','language fallback keeps the voice control in a starting state');
+fallbackRecognition.onend();
+assert.equal(fallbackApp.pendingTimers.length,1,'the fallback waits for the previous recognition session to end');
+fallbackApp.flushTimers();
+assert.equal(fallbackRecognition.started,2,'the recognizer restarts automatically with the fallback language');
+fallbackRecognition.onstart();
+assert.equal(fallbackApp.nodes.tasbihVoiceState.textContent,'الميكروفون نشط','the fallback session becomes active after it starts');
+
+const restartApp=buildApp();
+restartApp.nodes.tasbihDhikr.value='سبحان الله';
+restartApp.nodes.tasbihDhikr.dispatch('change');
+restartApp.nodes.tasbihVoice.click();
+const restartRecognition=restartApp.recognitions[0];
+restartRecognition.onstart();
+restartRecognition.onend();
+assert.equal(restartApp.nodes.tasbihVoiceState.textContent,'جارٍ تشغيل الميكروفون','an unexpected mobile recognition end schedules a recovery session');
+restartApp.flushTimers();
+assert.equal(restartRecognition.started,2,'the same voice session automatically restarts after an unexpected end');
 
 // A broken speech-recognition constructor must not disable the manual tasbih.
 const brokenVoice=buildApp({throwRecognition:true});
