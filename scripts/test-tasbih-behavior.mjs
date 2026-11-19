@@ -158,6 +158,8 @@ officialApp.nodes.tasbihDhikr.value=longOfficial.value;
 officialApp.nodes.tasbihRemoveDhikr.click();
 assert.ok(officialApp.state.tasbih.removedOfficialDhikrs.includes(longOfficial.dataset.anwarOfficialId),'removing an official dhikr stores its stable identifier');
 const restoredRemoved=buildApp({initialRemoved:officialApp.state.tasbih.removedOfficialDhikrs});
+assert.ok(restoredRemoved.state.tasbih.removedOfficialDhikrs.includes(longOfficial.dataset.anwarOfficialId),'reload receives the stored official ID');
+assert.ok(restoredRemoved.nodes.tasbihDhikr.options.some(option=>option.dataset.anwarOfficialId===longOfficial.dataset.anwarOfficialId),'the test fixture recreates the same official ID');
 assert.ok(!restoredRemoved.nodes.tasbihDhikr.options.some(option=>option.dataset.anwarOfficialId===longOfficial.dataset.anwarOfficialId),'a removed official dhikr stays hidden after reload by its unique ID');
 restoredRemoved.nodes.tasbihRestoreOfficial.click();
 assert.ok(restoredRemoved.nodes.tasbihDhikr.options.some(option=>option.dataset.anwarOfficialId===longOfficial.dataset.anwarOfficialId),'the official dhikr can be restored after reload');
