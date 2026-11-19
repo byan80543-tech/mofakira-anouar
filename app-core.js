@@ -2660,8 +2660,8 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  // Keep the radio's requested volume separate from temporary ducking.
  let radioBaseVolume=au.volume,radioShouldPlay=false,radioResumePending=false,radioLastResumeAttempt=0;
  function syncRadioDucking(){
-  const anotherAudioIsPlaying=Array.from(document.querySelectorAll('audio')).some(element=>
-   element!==au&&!element.paused&&!element.ended&&element.readyState>=2
+  const anotherAudioIsPlaying=Array.from(document.querySelectorAll('audio,video')).some(element=>
+   element!==au&&!element.paused&&!element.ended&&!element.muted&&element.volume>0&&element.readyState>=2
   );
   const nextVolume=radioBaseVolume*(anotherAudioIsPlaying?0.28:1);
   if(Math.abs(au.volume-nextVolume)>.005)au.volume=nextVolume;
@@ -2784,7 +2784,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
   const fileName=String(n).padStart(3,'0')+'.mp3';
   const u=station?safeHttpsURL($('rl').value):(base?base+fileName:'');
   if(!u){
-   started=false;st.textContent='لا يتوفر رابط صوت صالح لهذا الاختيار.';ui();return;
+   radioShouldPlay=false;started=false;st.textContent='لا يتوفر رابط صوت صالح لهذا الاختيار.';ui();return;
   }
   // ابدأ التشغيل من البيانات التي جُهّزت مسبقًا إن كان المصدر هو نفسه، ولا تُعد تحميله من الصفر.
   au.preload='auto';
