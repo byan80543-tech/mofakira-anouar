@@ -1334,7 +1334,7 @@ dialog[open]>.float-head{display:none!important}
 .anwar-tasbih-voice button{display:flex;align-items:center;justify-content:center;gap:6px;min-height:35px;flex:none;padding:6px 11px;border:1px solid var(--bd);border-radius:20px;background:var(--sf);color:var(--tx);font:600 10px Cairo,Tahoma,sans-serif;white-space:nowrap;cursor:pointer}
 .anwar-tasbih-voice button[aria-pressed="true"]{background:#dceee7;color:#23543f;border-color:#7d9d80}
 .anwar-tasbih-voice button:disabled{opacity:.55;cursor:not-allowed}
-.anwar-tasbih-transcript{display:grid;gap:3px;padding:8px 9px;border:1px solid var(--bd);border-radius:9px;background:var(--sf)}
+.anwar-tasbih-transcript[hidden]{display:none!important}.anwar-tasbih-transcript{display:grid;gap:3px;padding:8px 9px;border:1px solid var(--bd);border-radius:9px;background:var(--sf)}
 .anwar-tasbih-transcript span{color:var(--mu);font:9px Cairo,Tahoma,sans-serif}
 .anwar-tasbih-transcript strong{min-height:1.6em;color:var(--tx);font:600 12px/1.7 Amiri,serif;overflow-wrap:anywhere;transition:opacity .6s ease,transform .6s ease}
 .anwar-tasbih-transcript strong.is-fading{opacity:0;transform:translateY(-3px)}
@@ -2243,11 +2243,10 @@ dialog[open]>.float-head{display:none!important}
   <section id="tasbihPanel" class="anwar-tasbih-inline" hidden aria-labelledby="tasbihTitle">
    <header class="anwar-tasbih-inline-head">
     <div><strong id="tasbihTitle">سبحة الأذكار</strong></div>
-    <button type="button" id="tasbihThemeToggle" class="anwar-tasbih-theme-toggle" aria-controls="tasbihThemePicker" aria-expanded="false" title="تغيير مظهر السبحة"><span aria-hidden="true">🎨</span><span>المظهر</span></button>
+    <button type="button" id="tasbihThemeToggle" class="anwar-tasbih-theme-toggle" aria-controls="tasbihThemePicker" aria-expanded="false"><span aria-hidden="true">🎨</span><span>المظهر</span></button>
     <button type="button" id="tasbihClose" aria-label="إغلاق السبحة">إغلاق</button>
    </header>
-   <div id="tasbihThemePicker" class="anwar-tasbih-theme-picker" hidden role="group" aria-label="اختيار مظهر السبحة">
-    <div class="anwar-tasbih-theme-caption"><strong>اختر اللوحة التي تريحك</strong><small>تغيير الشكل لا يمس العداد أو الأذكار</small></div>
+   <div id="tasbihThemePicker" class="anwar-tasbih-theme-picker" hidden role="group" aria-label="المظهر">
     <div class="anwar-tasbih-theme-grid">
      <button type="button" id="tasbihThemeEmerald" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="emerald" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="emerald" aria-hidden="true"><span>33</span></span><span>الأخضر والذهبي</span></button>
      <button type="button" id="tasbihThemeDark" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="dark" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="dark" aria-hidden="true"><span>33</span></span><span>الفخم الداكن</span></button>
@@ -2259,7 +2258,7 @@ dialog[open]>.float-head{display:none!important}
    </div>
    <div class="anwar-tasbih-content">
     <div class="anwar-tasbih-phrase" id="tasbihPhrase">أستغفر الله العظيم وأتوب إليه</div>
-    <div class="anwar-tasbih-label" id="tasbihDhikrLabel">اختر الذكر</div>
+    <div class="anwar-sr-only" id="tasbihDhikrLabel">قائمة الأذكار</div>
     <div id="tasbihDhikrCards" class="tasbih-dhikr-cards" role="group" aria-labelledby="tasbihDhikrLabel"></div>
     <div class="tasbih-dhikr-management">
      <button type="button" id="tasbihRemoveDhikr" disabled>إزالة الذكر</button>
@@ -2274,27 +2273,27 @@ dialog[open]>.float-head{display:none!important}
     <div class="anwar-custom-dhikr">
      <label for="tasbihCustomDhikrInput">ذكر جديد</label>
      <div class="anwar-custom-dhikr-row">
-      <input id="tasbihCustomDhikrInput" type="text" maxlength="200" autocomplete="off" placeholder="اكتب الذكر الذي ترغب في إضافته">
+      <input id="tasbihCustomDhikrInput" type="text" maxlength="200" autocomplete="off">
       <button type="button" id="tasbihAddCustomDhikr">إضافة</button>
      </div>
-     <small id="tasbihCustomDhikrStatus" role="status" aria-live="polite">تُحفظ أذكارك على هذا الجهاز.</small>
+     <small id="tasbihCustomDhikrStatus" role="status" aria-live="polite"></small>
     </div>
-    <div class="anwar-tasbih-counter" id="tasbihCounterControl" role="button" tabindex="0" aria-label="عداد التسبيح: اضغط لزيادة العدد" title="اضغط لزيادة العدد" aria-live="polite"><strong id="tasbihCount">0</strong><span class="anwar-sr-only">عدد التسبيحات</span></div>
-    <div class="anwar-tasbih-actions"><button type="button" id="tasbihMinus" class="anwar-tasbih-small anwar-tasbih-flower" aria-label="إنقاص العدد" title="إنقاص تكرار واحد"><span aria-hidden="true">🌸</span></button><button type="button" id="tasbihTap" class="anwar-tasbih-tap" aria-label="سجل تسبيحة واحدة">سبّح</button><button type="button" id="tasbihReset" class="anwar-tasbih-small anwar-tasbih-flower" aria-label="تصفير العداد" title="تصفير العداد"><span aria-hidden="true">🌸</span></button></div>
+    <div class="anwar-tasbih-counter" id="tasbihCounterControl" role="button" tabindex="0" aria-label="عداد التسبيح" aria-live="polite"><strong id="tasbihCount">0</strong><span class="anwar-sr-only">عدد التسبيحات</span></div>
+    <div class="anwar-tasbih-actions"><button type="button" id="tasbihMinus" class="anwar-tasbih-small anwar-tasbih-flower" aria-label="إنقاص العدد"><span aria-hidden="true">🌸</span></button><button type="button" id="tasbihTap" class="anwar-tasbih-tap" aria-label="سجل تسبيحة واحدة">سبّح</button><button type="button" id="tasbihReset" class="anwar-tasbih-small anwar-tasbih-flower" aria-label="تصفير العداد"><span aria-hidden="true">🌸</span></button></div>
     <section class="anwar-tasbih-voice" id="tasbihVoicePanel" data-state="idle" aria-label="التسجيل الصوتي للسبحة">
      <div class="anwar-tasbih-voice-head">
       <div class="anwar-tasbih-voice-copy">
        <span class="anwar-tasbih-voice-dot" aria-hidden="true"></span>
        <div class="anwar-tasbih-voice-label">
-        <strong id="tasbihVoiceState">جاهز للتسجيل</strong>
-        <small id="tasbihVoiceStatus" role="status" aria-live="polite">اختر الذكر وابدأ القراءة.</small>
+        <strong id="tasbihVoiceState" aria-live="polite"></strong>
+        <small id="tasbihVoiceStatus" role="status" aria-live="polite"></small>
        </div>
       </div>
       <button type="button" id="tasbihVoice" aria-pressed="false"><span aria-hidden="true">🎙️</span><span id="tasbihVoiceButtonLabel">ابدأ التسجيل</span></button>
      </div>
-     <div class="anwar-tasbih-transcript">
-      <span>آخر عبارة التقطها الميكروفون</span>
-      <strong id="tasbihVoiceTranscript" aria-live="polite">لم يبدأ التسجيل بعد</strong>
+     <div class="anwar-tasbih-transcript" hidden>
+      <span>النص الملتقط</span>
+      <strong id="tasbihVoiceTranscript" aria-live="polite"></strong>
      </div>
      <small class="anwar-tasbih-voice-hint">يُحتسب العدد عند نطق الذكر كاملاً.</small>
     </section>
