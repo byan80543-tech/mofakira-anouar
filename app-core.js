@@ -2009,8 +2009,8 @@ function transcriptEditorStatus(message){
 }
 function decodeCaptionEntities(value){
  const namedEntities={amp:'&',lt:'<',gt:'>',quot:'"',apos:"'",nbsp:' '};
- return String(value||'').replace(/&(?:amp|lt|gt|quot|apos|nbsp);|&#\\d+;/gi,(entity)=>{
-  const numeric=/^&#(\\d+);$/i.exec(entity);
+ return String(value||'').replace(/&(?:amp|lt|gt|quot|apos|nbsp);|&#\d+;/gi,(entity)=>{
+  const numeric=/^&#(\d+);$/i.exec(entity);
   if(numeric){
    const code=Number(numeric[1]);
    return Number.isInteger(code)&&code>0&&code<=0x10ffff?String.fromCodePoint(code):' ';
