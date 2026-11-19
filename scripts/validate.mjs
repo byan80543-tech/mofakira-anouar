@@ -38,7 +38,7 @@ ok(tasbihController.includes("preferences.set('tasbih'") && tasbihController.inc
 ok(tasbihController.includes("removeButton.addEventListener('click'") && tasbihController.includes("restoreButton.addEventListener('click'") && tasbihController.includes("customAdd.addEventListener('click'"), 'custom dhikr add, remove and official restore actions are wired');
 ok(tasbihController.includes("voiceButton.addEventListener('click'") && tasbihController.includes('bestSpeechText(result,voiceTargetPhrase)') && tasbihController.includes('countPhraseMatches(liveText,voiceTargetPhrase)') && tasbihController.includes('voiceResultSegments') && tasbihController.includes('freshBatch') && tasbihController.includes("const speechLanguages=['ar-MA','ar-SA','ar']") && tasbihController.includes('voiceFallbackPending') && tasbihController.includes('scheduleVoiceRestart') && tasbihController.includes('recognition.onspeechstart=') && tasbihController.includes('recognition.onspeechend=') && html.includes('.anwar-tasbih-transcript strong.is-fading'), 'Arabic speech recognition handles different result batching, locale fallbacks and mobile session restarts');
 ok(html.includes('id="anwar-tasbih-touch-polish-v1"') && html.includes('-webkit-tap-highlight-color:transparent'), 'tasbih touch feedback suppresses the blue tap highlight while retaining keyboard focus');
-ok((html.match(/class="anwar-tasbih-small anwar-tasbih-flower"/g)||[]).length===2 && html.includes('aria-label="إنقاص العدد"') && html.includes('aria-label="تصفير العداد"') && html.includes('id="anwar-tasbih-side-flowers-v1"'), 'both side controls use matching flower icons and keep distinct accessible actions');
+ok(htmlAudit.elements.filter(element=>element.attrs.class==='anwar-tasbih-small anwar-tasbih-flower').length===2 && html.includes('aria-label="إنقاص العدد"') && html.includes('aria-label="تصفير العداد"') && html.includes('id="anwar-tasbih-side-flowers-v1"'), 'both side controls use matching flower icons and keep distinct accessible actions');
 const ownerDialogStart=html.indexOf('<dialog id="ownerDialog">');
 const outerTabsStart=html.indexOf('<div class="owner-tabs">',ownerDialogStart);
 const ownerPanelStart=html.indexOf('<section id="ownerPanel"',outerTabsStart);
@@ -50,8 +50,9 @@ const innerTabs=html.slice(innerTabsStart,tasbihPanelStart);
 ok(outerTabs.includes('id="ownerTab"') && outerTabs.includes('id="adhkarTab"') && outerTabs.includes('id="shareTab"'), 'owner, adhkar and sharing tabs are restored to the visible top-level navigation');
 ok(innerTabs.includes('id="morningTab"') && innerTabs.includes('id="eveningTab"') && innerTabs.includes('id="adhkarTasbihToggle"'), 'morning, evening and tasbih controls are grouped together inside the adhkar view');
 ok(!innerTabs.includes('id="adhkarTab"') && !outerTabs.includes('id="adhkarTasbihToggle"'), 'adhkar navigation is no longer hidden behind its own panel and the tasbih launcher is not misplaced');
-ok(/<script src="\.\/tasbih-controller\.js\?v=\d{8}-\d+" defer><\/script>/.test(html) && serviceWorker.includes("'./tasbih-controller.js'") && /const CACHE_NAME='anwar-shell-\d{4}-\d{2}-\d{2}-v\d+';/.test(serviceWorker), 'standalone tasbih controller is versioned and precached for offline use');
-ok(html.includes('src="./poetry-dictation.js?v=20261119-1" defer') && serviceWorker.includes("'./poetry-dictation.js'") && appCore.includes('window.AnwarPoetryDictation'), 'poetry dictation controller is versioned and precached for offline use');
+const tasbihScript=htmlAudit.script_sources.find(src=>src.startsWith('./tasbih-controller.js?v='));
+ok(!!tasbihScript && serviceWorker.includes("'./tasbih-controller.js'") && /const CACHE_NAME='anwar-shell-[0-9]{4}-[0-9]{2}-[0-9]{2}-v[0-9]+';/.test(serviceWorker), 'standalone tasbih controller is versioned and precached for offline use');
+ok(htmlAudit.script_sources.includes('./poetry-dictation.js?v=20261119-1') && serviceWorker.includes("'./poetry-dictation.js'") && appCore.includes('window.AnwarPoetryDictation'), 'poetry dictation controller is versioned and precached for offline use');
 
 ok(manifest.name==='مفكرة أنوار' && manifest.short_name==='مفكرة أنوار','PWA name and short_name');
 ok(manifest.start_url==='/mofakira-anouar/' && manifest.scope==='/mofakira-anouar/','GitHub Pages start_url and scope');
@@ -87,7 +88,7 @@ ok(appSource.includes("size:v.size,paper:v.paper||'plain'"),'restoring a previou
 
 ok(appSource.includes('async function ensurePdfLibraries()'),'PDF libraries load only when PDF export is requested');
 ok(appSource.includes('async function makeQR()'),'QR library loads only when QR generation is requested');
-ok(!/<script\b[^>]*\bsrc\s*=\s*["'][^"']*(?:html2canvas|qrcodejs|jspdf)/i.test(html),'heavy PDF and QR libraries are not loaded by static script tags');
+ok(!htmlAudit.script_sources.some(src=>/(html2canvas|qrcodejs|jspdf)/i.test(src)),'heavy PDF and QR libraries are not loaded by static script tags');
 ok(!appSource.includes('Object.hasOwn('),'storage normalization avoids unsupported Object.hasOwn calls');
 ok(appSource.includes('src="./vault-crypto.js?v=20261118-2"'),'the local vault crypto helper is loaded by the notebook');
 ok(appSource.includes('id="vaultGate"') && appSource.includes('id="vaultLockBtn"'),'password gate and manual vault lock controls are present');
