@@ -536,7 +536,6 @@
      if(voiceActive){stopVoice('تم إيقاف التسجيل.');return}
      try{
       voiceMatchCount=0;
-      voiceMatchCount=0;
       voiceTargetPhrase=String(optionText(Array.from(select.options).find(option=>option.value===select.value))||'').trim();
       if(!voiceTargetPhrase){
        setVoiceState('error','اختر ذكراً قبل بدء التسجيل.');
