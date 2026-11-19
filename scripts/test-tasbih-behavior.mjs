@@ -163,6 +163,8 @@ assert.equal(officialApp.nodes.tasbihPhrase.textContent,kursiOptions[1].dataset.
 const officialCard=officialApp.nodes.tasbihDhikrCards.children.flatMap(group=>group.children).find(card=>card.className==='tasbih-dhikr-card'&&card.children.some(child=>child.className==='tasbih-dhikr-card-meta'));
 assert.ok(officialCard,'official adhkar render as designed cards with details');
 assert.ok(officialCard.children.some(child=>child.className==='tasbih-dhikr-card-text'),'official cards display the full dhikr text');
+assert.ok(!controller.includes('tasbih-dhikr-tulip')&&!controller.includes('secondFlower'),'the dhikr cards no longer render repeated tulip icons');
+assert.ok(html.includes('id="anwar-tulip-adhkar-board-v1"')&&html.includes('#tasbihPanel .tasbih-dhikr-cards::before')&&html.includes('assets/tulip-cutout.svg'),'the tulip artwork is applied to the shared dhikr-list board');
 const longOfficial=officialOptions.find(option=>option.dataset.dhikrText.length>200);
 assert.ok(longOfficial,'a long official dhikr is present for persistence-boundary testing');
 officialApp.nodes.tasbihDhikr.value=longOfficial.value;
