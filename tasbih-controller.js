@@ -160,12 +160,12 @@
       const repeatValue=option.dataset.repeat||'1';
       const repeatNumber=Number(repeatValue);
       const repeatSuffix=Number.isFinite(repeatNumber)?(repeatNumber===1?' مرة':' مرات'):'';
-      repeat.textContent='التكرار: '+repeatValue+repeatSuffix;
+      repeat.textContent=repeatValue+repeatSuffix;
       const source=document.createElement('span');
-      source.textContent='المصدر: '+(option.dataset.source||'حصن المسلم');
+      source.textContent=option.dataset.source||'حصن المسلم';
       if(option.dataset.occasion){
        const occasion=document.createElement('span');
-       occasion.textContent='الوقت: '+option.dataset.occasion;
+       occasion.textContent=option.dataset.occasion;
        meta.appendChild(occasion);
       }
       meta.appendChild(repeat);
@@ -180,7 +180,7 @@
    if(!cards.children.length){
     const empty=document.createElement('div');
     empty.className='tasbih-dhikr-empty';
-    empty.textContent='لا توجد أذكار ظاهرة في قائمتك. أضف ذكراً جديداً أو استعد الأذكار الرسمية.';
+    empty.textContent='القائمة فارغة.';
     cards.appendChild(empty);
    }
   }
@@ -219,7 +219,7 @@
    voiceTargetPhrase=optionText(option);
    voiceMatchCount=0;
    if(resetCount)count=0;
-   setVoiceTranscript('بانتظار نطق الذكر المختار.');
+   setVoiceTranscript('');
    saveAndUpdate();
   }
   function add(amount){
@@ -232,7 +232,7 @@
   }
   function setVoiceState(state,message){
    voicePanel.dataset.state=state;
-   voiceState.textContent=state==='starting'?'جارٍ تشغيل الميكروفون':state==='listening'?'الميكروفون نشط':state==='error'?'تعذر التسجيل':'جاهز للتسجيل';
+   voiceState.textContent=state==='starting'?'جارٍ تشغيل الميكروفون':state==='listening'?'الميكروفون نشط':state==='error'?'تعذر التسجيل':'';
    voiceStatus.textContent=message||'';
    const active=state==='starting'||state==='listening';
    voiceButton.setAttribute('aria-pressed',active?'true':'false');
@@ -260,7 +260,10 @@
    clearVoiceTranscriptTimer();
    voiceTranscript.classList.remove('is-temporary');
    voiceTranscript.classList.remove('is-fading');
-   voiceTranscript.textContent=String(text||'');
+   const value=String(text||'');
+   const transcriptCard=voiceTranscript.parentElement;
+   if(transcriptCard)transcriptCard.hidden=!value.trim();
+   voiceTranscript.textContent=value;
   }
   function scheduleVoiceTranscriptFade(delay){
    if(!voiceTranscript||!voiceTranscript.textContent)return;
@@ -270,6 +273,8 @@
     voiceTranscript.classList.add('is-fading');
     voiceTranscriptTimer=window.setTimeout(()=>{
      voiceTranscript.textContent='';
+     const transcriptCard=voiceTranscript.parentElement;
+     if(transcriptCard)transcriptCard.hidden=true;
      voiceTranscript.classList.remove('is-fading');
      voiceTranscript.classList.remove('is-temporary');
      voiceTranscriptTimer=null;
@@ -338,7 +343,7 @@
   }
   function addCustomDhikr(){
    const value=String(customInput.value||'').replace(/\s+/g,' ').trim();
-   if(!value){customStatus.textContent='اكتب الذكر أولاً ثم اضغط إضافة.';customInput.focus();return}
+   if(!value){customStatus.textContent='اكتب الذكر.';customInput.focus();return}
    if(value.length>200){customStatus.textContent='الحد الأقصى لطول الذكر هو 200 حرف.';customInput.focus();return}
    const removedOfficial=Array.from(select.options).find(option=>!isCustomOption(option)&&optionText(option)===value&&isRemovedOfficial(option));
    if(removedOfficial){
@@ -346,17 +351,17 @@
     removedOfficialDhikrs=removedOfficialDhikrs.filter(item=>item!==removalKey);
     customInput.value='';
     chooseDhikr(removedOfficial.value,true);
-    customStatus.textContent='أُعيد الذكر الرسمي إلى قائمتك واختير للسبحة.';
+    customStatus.textContent='أُعيد الذكر.';
     return;
    }
    const existing=Array.from(select.options).find(option=>optionText(option)===value&&(isCustomOption(option)||!isRemovedOfficial(option)));
-   if(existing){customInput.value='';chooseDhikr(existing.value,true);customStatus.textContent='هذا الذكر موجود في القائمة، وقد تم اختياره.';return}
+   if(existing){customInput.value='';chooseDhikr(existing.value,true);customStatus.textContent='الذكر موجود.';return}
    if(customDhikrs.length>=30){customStatus.textContent='وصلت إلى الحد الأقصى وهو 30 ذكراً مضافاً.';return}
    customDhikrs.push(value);
    renderCustomOptions();
    customInput.value='';
    chooseDhikr(value,true);
-   customStatus.textContent='تمت إضافة الذكر وحفظه ضمن إعداداتك الخاصة.';
+   customStatus.textContent='تمت الإضافة.';
   }
   function switchOwnerView(which){
    let usedBridge=false;
@@ -435,7 +440,7 @@
   // The circular number itself is an accessible tap target as well as the dedicated button.
   counterControl.setAttribute('role','button');
   counterControl.setAttribute('tabindex','0');
-  counterControl.setAttribute('aria-label','اضغط هنا لتسجيل تسبيحة واحدة');
+  counterControl.setAttribute('aria-label','عداد التسبيح');
   counterControl.addEventListener('click',()=>add(1));
   counterControl.addEventListener('keydown',event=>{
    if(event.key==='Enter'||event.key===' '){
@@ -454,7 +459,7 @@
    voiceMatchCount=0;
    count=0;
    saveAndUpdate();
-   setVoiceTranscript('بانتظار نطق الذكر المختار.');
+   setVoiceTranscript('');
   });
   removeButton.addEventListener('click',()=>{
    const selected=Array.from(select.options).find(option=>option.value===select.value);
@@ -470,7 +475,7 @@
    select.value=next?next.value:'';
    count=0;
    saveAndUpdate();
-   customStatus.textContent=custom?'تم حذف الذكر المضاف من قائمتك.':'تمت إزالة الذكر الرسمي من قائمتك فقط. يمكنك استعادته متى شئت.';
+   customStatus.textContent=custom?'تم الحذف.':'تمت الإزالة.';
   });
   restoreButton.addEventListener('click',()=>{
    if(!removedOfficialDhikrs.length)return;
@@ -479,7 +484,7 @@
    if(!select.value)select.value=firstVisible()?firstVisible().value:'';
    count=0;
    saveAndUpdate();
-   customStatus.textContent='تمت استعادة جميع الأذكار الرسمية إلى قائمتك.';
+   customStatus.textContent='تمت الاستعادة.';
   });
   if(ownerTab)ownerTab.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();closePanel(false);switchOwnerView('owner')});
   if(adhkarTab)adhkarTab.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();closePanel(false);switchOwnerView('adhkar')});
@@ -515,8 +520,8 @@
      voiceActive=true;
      voiceSpeechInProgress=false;
      voicePausePending=false;
-     setVoiceState('listening','الميكروفون يعمل الآن؛ انطق الذكر المختار بوضوح.');
-     if(!voiceTranscript.textContent||voiceTranscript.textContent==='لم يبدأ التسجيل بعد')setVoiceTranscript('بانتظار العبارة…');
+     setVoiceState('listening','');
+
     };
     recognition.onspeechstart=()=>{
      if(!voiceActive)return;
@@ -525,7 +530,7 @@
      clearVoiceTranscriptTimer();
      voiceTranscript.classList.remove('is-fading');
      if(voiceTranscript.textContent)voiceTranscript.classList.add('is-temporary');
-     setVoiceState('listening','تم رصد صوتك؛ تابع نطق الذكر المختار.');
+     setVoiceState('listening','');
     };
     recognition.onspeechend=()=>{
      if(!voiceActive)return;
@@ -560,13 +565,13 @@
       voiceMatchCount=totalMatches;
       add(newMatches);
       showVoiceTranscript(lastMatchedPhraseText(liveText,voiceTargetPhrase)||latestText||voiceTargetPhrase);
-      setVoiceState('listening','تم التعرف على الذكر وإضافة '+newMatches.toLocaleString('ar')+' إلى العداد.');
+      setVoiceState('listening','تم الاحتساب: '+newMatches.toLocaleString('ar'));
      }else if(totalMatches===0&&finalText){
-      setVoiceState('listening','التقطت العبارة، لكنها لا تطابق الذكر المختار كاملاً. النص الملتقط: '+(latestText||'تعذر تمييز العبارة'));
+      setVoiceState('listening','لم يطابق الذكر المختار.');
      }
     };
     recognition.onnomatch=()=>{
-     if(voiceActive)setVoiceState('listening','سمعت صوتاً، لكن تعذر تمييز الكلمات. حاول النطق بوضوح وبسرعة أهدأ.');
+     if(voiceActive)setVoiceState('listening','لم يتضح الكلام.');
     };
     recognition.onerror=event=>{
      const code=event&&event.error;
@@ -596,7 +601,7 @@
      if(voiceActive){
       voiceActive=false;
       voiceTargetPhrase='';
-      setVoiceState('idle','انتهى الاستماع. ابدأ التسجيل مجدداً للمتابعة.');
+      setVoiceState('idle','انتهى التسجيل.');
      }
     };
     voiceButton.addEventListener('click',()=>{
@@ -609,7 +614,7 @@
        return;
       }
       setVoiceTranscript('بانتظار العبارة…');
-      setVoiceState('starting','جارٍ تفعيل الميكروفون…');
+      setVoiceState('starting','');
       voiceActive=true;
       recognition.start();
      }catch(error){
