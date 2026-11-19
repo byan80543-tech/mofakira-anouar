@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="preload" href="./app-core.js?v=20261119-6" as="script">
+<link rel="preload" href="./app-core.js?v=20261119-7" as="script">
 <script src="api-gateway-config.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>مفكرة أنوار | Anouar Oumlili</title>
@@ -2048,13 +2048,7 @@ dialog[open]>.float-head{display:none!important}
  <h2>مفكرة أنوار</h2>
  <div class="owner-tabs">
   <button type="button" class="active" id="ownerTab">الملكية</button>
-  <button type="button" id="adhkarTasbihToggle" class="adhkar-tasbih-toggle" aria-expanded="false" aria-controls="tasbihPanel">
-   <svg viewBox="0 0 36 36" aria-hidden="true">
-    <path d="M18 4.5C10.7 4.5 5 10.3 5 17.4S10.7 30.5 18 30.5s13-5.8 13-13.1S25.3 4.5 18 4.5Z" fill="none" stroke="#b58b55" stroke-width="1.5"/>
-    <g fill="#7b343b" stroke="#54212b" stroke-width=".7"><circle cx="18" cy="5.2" r="2.6"/><circle cx="25.7" cy="7.8" r="2.5"/><circle cx="30.5" cy="14.2" r="2.5"/><circle cx="30" cy="22" r="2.5"/><circle cx="24.4" cy="28" r="2.5"/><circle cx="16.5" cy="30.5" r="2.5"/><circle cx="9" cy="27.5" r="2.5"/><circle cx="5.2" cy="20.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><circle cx="11.5" cy="6.8" r="2.5"/></g>
-    <circle cx="18" cy="17.5" r="3.2" fill="#a97839" stroke="#f1d89c" stroke-width="1"/>
-   </svg><span>السبحة</span>
-  </button>
+  <button type="button" id="adhkarTab">الأذكار</button>
   <button type="button" id="shareTab">بطاقة النشر</button>
  </div>
  <section id="ownerPanel" class="owner-card">
@@ -2068,8 +2062,14 @@ dialog[open]>.float-head{display:none!important}
   <div class="owner-tabs adhkar-tabs" style="margin-top:0">
    <button type="button" class="active" id="morningTab">أذكار الصباح</button>
    <button type="button" id="eveningTab">أذكار المساء</button>
-   <button type="button" id="adhkarTab">الأذكار</button>
-  </div>
+   
+  <button type="button" id="adhkarTasbihToggle" class="adhkar-tasbih-toggle" aria-expanded="false" aria-controls="tasbihPanel">
+   <svg viewBox="0 0 36 36" aria-hidden="true">
+    <path d="M18 4.5C10.7 4.5 5 10.3 5 17.4S10.7 30.5 18 30.5s13-5.8 13-13.1S25.3 4.5 18 4.5Z" fill="none" stroke="#b58b55" stroke-width="1.5"/>
+    <g fill="#7b343b" stroke="#54212b" stroke-width=".7"><circle cx="18" cy="5.2" r="2.6"/><circle cx="25.7" cy="7.8" r="2.5"/><circle cx="30.5" cy="14.2" r="2.5"/><circle cx="30" cy="22" r="2.5"/><circle cx="24.4" cy="28" r="2.5"/><circle cx="16.5" cy="30.5" r="2.5"/><circle cx="9" cy="27.5" r="2.5"/><circle cx="5.2" cy="20.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><circle cx="11.5" cy="6.8" r="2.5"/></g>
+    <circle cx="18" cy="17.5" r="3.2" fill="#a97839" stroke="#f1d89c" stroke-width="1"/>
+   </svg><span>السبحة</span>
+  </button></div>
   <section id="tasbihPanel" class="anwar-tasbih-inline" hidden aria-labelledby="tasbihTitle">
    <header class="anwar-tasbih-inline-head"><div><strong id="tasbihTitle">سبحة الأذكار</strong><small>تسبيحك وعدّادك في مكان واحد</small></div><button type="button" id="tasbihClose" aria-label="إغلاق السبحة">إغلاق</button></header>
    <div class="anwar-tasbih-content">
@@ -2191,7 +2191,8 @@ dialog[open]>.float-head{display:none!important}
 <div id="toast"></div>
 <script src="./vault-crypto.js?v=20261118-2"></script>
 <script src="./vault-device-unlock.js?v=20261118-1"></script>
-<script src="./app-core.js?v=20261119-6" defer></script>
+<script src="./app-core.js?v=20261119-7" defer></script>
+<script src="./tasbih-controller.js?v=20261119-1" defer></script>
 
 
 
