@@ -178,6 +178,9 @@ recognition.onresult({resultIndex:0,results:[spoken]});
 assert.equal(count(app),2,'a final Arabic transcript counts each complete matching phrase');
 recognition.onresult({resultIndex:0,results:[spoken]});
 assert.equal(count(app),2,'a repeated final event at the same result index is counted only once');
+const punctuated={0:{transcript:'سبحان الله؛'},length:1,isFinal:true};
+recognition.onresult({resultIndex:1,results:[spoken,punctuated]});
+assert.equal(count(app),3,'Arabic semicolon punctuation does not prevent a correct phrase from matching');
 
 // A final result arriving after stop must not increment the counter.
 app.nodes.tasbihVoice.click();
@@ -187,7 +190,7 @@ recognition.onstart();
 const late={0:{transcript:'سبحان الله'},length:1,isFinal:true};
 app.nodes.tasbihVoice.click();
 recognition.onresult({resultIndex:0,results:[late]});
-assert.equal(count(app),2,'a late final transcript after stop is ignored');
+assert.equal(count(app),3,'a late final transcript after stop is ignored');
 
 // Changing the selected dhikr stops the old recording before a late result can be attributed to the new phrase.
 app.nodes.tasbihVoice.click();
