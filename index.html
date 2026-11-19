@@ -1336,7 +1336,9 @@ dialog[open]>.float-head{display:none!important}
 .anwar-tasbih-voice button:disabled{opacity:.55;cursor:not-allowed}
 .anwar-tasbih-transcript{display:grid;gap:3px;padding:8px 9px;border:1px solid var(--bd);border-radius:9px;background:var(--sf)}
 .anwar-tasbih-transcript span{color:var(--mu);font:9px Cairo,Tahoma,sans-serif}
-.anwar-tasbih-transcript strong{min-height:1.6em;color:var(--tx);font:600 12px/1.7 Amiri,serif;overflow-wrap:anywhere}
+.anwar-tasbih-transcript strong{min-height:1.6em;color:var(--tx);font:600 12px/1.7 Amiri,serif;overflow-wrap:anywhere;transition:opacity .6s ease,transform .6s ease}
+.anwar-tasbih-transcript strong.is-fading{opacity:0;transform:translateY(-3px)}
+@media(prefers-reduced-motion:reduce){.anwar-tasbih-transcript strong{transition:none!important}}
 .anwar-tasbih-voice-hint{color:var(--mu);font:9px/1.6 Cairo,Tahoma,sans-serif}
 @keyframes anwarVoicePulse{50%{box-shadow:0 0 0 7px #32966a12;opacity:.72}}
 @media(max-width:460px){.anwar-tasbih-voice{padding:9px;gap:8px}.anwar-tasbih-voice button{padding:6px 9px;font-size:9px}.anwar-tasbih-voice-label small{font-size:9px}}
@@ -2353,7 +2355,7 @@ dialog[open]>.float-head{display:none!important}
 <script src="./vault-device-unlock.js?v=20261118-1"></script>
 <script src="./app-core.js?v=20261119-8" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
-<script src="./tasbih-controller.js?v=20261119-11" defer></script>
+<script src="./tasbih-controller.js?v=20261119-12" defer></script>
 
 
 
