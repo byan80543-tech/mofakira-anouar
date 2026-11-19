@@ -5,8 +5,9 @@ import assert from 'node:assert/strict';
 const code=fs.readFileSync(new URL('../click-guard.js',import.meta.url),'utf8');
 let now=0,handler=null,nextTimer=0;
 const timers=new Map();
-const insideTarget={inside:true};
-const outsideTarget={inside:false};
+const insideTarget={inside:true,closest(){return null}};
+const tasbihTarget={inside:true,closest(selector){return selector.includes('#tasbihTap')}};
+const outsideTarget={inside:false,closest(){return null}};
 const body={
  children:[],
  appendChild(node){this.children.push(node)},
@@ -74,7 +75,13 @@ for(let i=0;i<10;i++){
  assert.equal(event.defaultPrevented,false,'tap '+(i+1)+' of 10 is allowed');
 }
 
-// The 11th tap is prevented and does not reach the page click handlers.
+// Rapid tasbih taps are exempt so the global guard cannot interrupt counting.
+for(let i=0;i<30;i++){
+ now=2000+i*25;
+ assert.equal(tap({target:tasbihTarget}).defaultPrevented,false,'tasbih count tap '+(i+1)+' is never blocked');
+}
+
+// The 11th ordinary tap is prevented and does not reach the page click handlers.
 now=1000;
 const eleventh=tap();
 assert.equal(eleventh.defaultPrevented,true,'the 11th rapid tap is prevented');
@@ -89,4 +96,4 @@ assert.equal(notice.style.opacity,'1','one warning remains visible rather than s
 // Normal interaction resumes after the cooldown.
 now=6000;
 assert.equal(tap().defaultPrevented,false,'clicking resumes after the cooldown');
-console.log('Click guard checks passed: burst limit, cooldown, keyboard exemption, and trusted-event handling.');
+console.log('Click guard checks passed: burst limit, cooldown, keyboard exemption, trusted-event handling, and tasbih counter exemption.');
