@@ -6,6 +6,7 @@ const root=process.cwd();
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const appCore=fs.readFileSync(path.join(root,'app-core.js'),'utf8');
 const tasbihController=fs.readFileSync(path.join(root,'tasbih-controller.js'),'utf8');
+const poetryDictation=fs.readFileSync(path.join(root,'poetry-dictation.js'),'utf8');
 const appSource=html+String.fromCharCode(10)+appCore;
 const serviceWorker=fs.readFileSync(path.join(root,'service-worker.js'),'utf8');
 const manifest=JSON.parse(fs.readFileSync(path.join(root,'manifest.webmanifest'),'utf8'));
@@ -20,6 +21,7 @@ const iconGenerator=fs.readFileSync(path.join(root,'scripts/generate-pwa-icons.p
 const failures=[];
 const ok=(condition,message)=>{if(!condition)failures.push(message);else console.log('PASS',message)};
 try{new vm.Script(tasbihController,{filename:'tasbih-controller.js'});ok(true,'standalone tasbih controller JavaScript syntax is valid')}catch(error){failures.push('tasbih-controller.js: '+error.message)}
+try{new vm.Script(poetryDictation,{filename:'poetry-dictation.js'});ok(true,'standalone poetry dictation controller JavaScript syntax is valid')}catch(error){failures.push('poetry-dictation.js: '+error.message)}
 ok(appCore.includes('window.AnwarRenderAdhkar=function(period)') && appCore.includes('window.AnwarShowOwnerPanel=function(which)'), 'notebook exposes narrow bridges for adhkar rendering and panel selection');
 ok(!appCore.includes("const $=id=>document.getElementById(id),panel=$('tasbihPanel')"), 'tasbih runtime is removed from the delayed notebook initializer');
 ok(tasbihController.includes('window.AnwarTasbihController=Object.freeze({') && tasbihController.includes('toggle(){') && tasbihController.includes('panel.hidden=false') && !tasbihController.includes("toggleButton.addEventListener('click'"), 'standalone tasbih controller exposes a toggle API without competing with delegated clicks');
@@ -41,6 +43,7 @@ ok(outerTabs.includes('id="ownerTab"') && outerTabs.includes('id="adhkarTab"') &
 ok(innerTabs.includes('id="morningTab"') && innerTabs.includes('id="eveningTab"') && innerTabs.includes('id="adhkarTasbihToggle"'), 'morning, evening and tasbih controls are grouped together inside the adhkar view');
 ok(!innerTabs.includes('id="adhkarTab"') && !outerTabs.includes('id="adhkarTasbihToggle"'), 'adhkar navigation is no longer hidden behind its own panel and the tasbih launcher is not misplaced');
 ok(/<script src="\.\/tasbih-controller\.js\?v=\d{8}-\d+" defer><\/script>/.test(html) && serviceWorker.includes("'./tasbih-controller.js'") && /const CACHE_NAME='anwar-shell-\d{4}-\d{2}-\d{2}-v\d+';/.test(serviceWorker), 'standalone tasbih controller is versioned and precached for offline use');
+ok(/<script src="\\.\\/poetry-dictation\\.js\\?v=\\d{8}-\\d+" defer><\\/script>/.test(html) && serviceWorker.includes("'./poetry-dictation.js'") && appCore.includes('window.AnwarPoetryDictation'), 'poetry dictation controller is versioned and precached for offline use');
 
 ok(manifest.name==='مفكرة أنوار' && manifest.short_name==='مفكرة أنوار','PWA name and short_name');
 ok(manifest.start_url==='/mofakira-anouar/' && manifest.scope==='/mofakira-anouar/','GitHub Pages start_url and scope');
