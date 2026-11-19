@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 
 const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const controller=fs.readFileSync(new URL('../tasbih-controller.js',import.meta.url),'utf8');
+const appCore=fs.readFileSync(new URL('../app-core.js',import.meta.url),'utf8');
 const officialAdhkar=fs.readFileSync(new URL('../official-adhkar.js',import.meta.url),'utf8');
 
 class FakeElement {
@@ -155,6 +156,12 @@ assert.ok(restoredRemoved.nodes.tasbihDhikr.options.some(option=>option.value===
 
 const app=buildApp();
 assert.equal(app.sandbox.__ANWAR_TASBIH_CONTROLLER_READY__,true,'the controller initializes when the required UI is present');
+assert.equal(app.sandbox.AnwarTasbihController.open(),true,'the public tasbih controller opens the panel');
+assert.equal(app.nodes.tasbihPanel.hidden,false,'the tasbih panel becomes visible when opened');
+assert.equal(app.nodes.adhkarTasbihToggle.getAttribute('aria-expanded'),'true','opening the tasbih updates the launch icon state');
+assert.equal(app.sandbox.AnwarTasbihController.close(),true,'the public tasbih controller closes the panel');
+assert.equal(app.nodes.tasbihPanel.hidden,true,'the tasbih panel hides when closed');
+assert.match(appCore,/else if\(id==='adhkarTasbihToggle'\)toggleTasbihFromToolbar\(t\)/,'the visible tasbih toolbar icon is delegated to the controller');
 assert.equal(app.nodes.tasbihPanel.dataset.tasbihTheme,'emerald','the classic emerald theme is the safe default');
 app.nodes.tasbihThemeToggle.click();
 assert.equal(app.nodes.tasbihThemePicker.hidden,false,'the appearance selector opens from its palette button');
@@ -222,6 +229,7 @@ const recognition=app.recognitions[0];
 app.nodes.tasbihDhikr.value='سبحان الله';
 app.nodes.tasbihDhikr.dispatch('change');
 app.nodes.tasbihVoice.click();
+assert.equal(recognition.started,1,'the recording button starts the speech recognition service');
 recognition.onstart();
 const spoken={0:{transcript:'سُبْحَانَ الله، سبحان الله'},length:1,isFinal:true};
 recognition.onresult({resultIndex:0,results:[spoken]});
