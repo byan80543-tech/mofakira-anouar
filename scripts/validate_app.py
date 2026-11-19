@@ -8,9 +8,10 @@ import subprocess
 import struct
 import sys
 import tempfile
-from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urlsplit
+
+from html_inspector import inspect_html
 
 ROOT = Path(__file__).resolve().parents[1]
 INDEX = ROOT / "index.html"
@@ -19,36 +20,6 @@ MANIFEST = ROOT / "manifest.webmanifest"
 SERVICE_WORKER = ROOT / "service-worker.js"
 errors: list[str] = []
 warnings: list[str] = []
-
-
-class PageAudit(HTMLParser):
-    def __init__(self) -> None:
-        super().__init__(convert_charrefs=True)
-        self.ids: list[str] = []
-        self.references: list[tuple[str, str]] = []
-        self.local_resources: list[str] = []
-        self.blank_links: list[tuple[str, str]] = []
-        self.inline_handlers: list[str] = []
-
-    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        values = dict(attrs)
-        element_id = values.get("id")
-        if element_id:
-            self.ids.append(element_id)
-
-        for key in ("aria-controls", "aria-labelledby", "aria-describedby", "for", "headers"):
-            value = values.get(key)
-            if value:
-                self.references.extend((key, part) for part in value.split())
-
-        if tag.lower() == "a" and (values.get("target") or "").lower() == "_blank":
-            self.blank_links.append((values.get("href") or "", values.get("rel") or ""))
-
-        for key, value in attrs:
-            if key.lower().startswith("on"):
-                self.inline_handlers.append(key)
-            if key.lower() in ("src", "href") and value:
-                self.local_resources.append(value)
 
 
 def fail(message: str) -> None:
@@ -102,35 +73,30 @@ def main() -> int:
 
     html = INDEX.read_text(encoding="utf-8")
     app_core = APP_CORE.read_text(encoding="utf-8")
-    parser = PageAudit()
-    parser.feed(html)
-    parser.close()
+    audit = inspect_html(html)
 
-    duplicates = sorted({item for item in parser.ids if parser.ids.count(item) > 1})
+    duplicates = sorted({item for item in audit["ids"] if audit["ids"].count(item) > 1})
     if duplicates:
         fail("Duplicate HTML IDs: " + ", ".join(duplicates))
 
-    id_set = set(parser.ids)
+    id_set = set(audit["ids"])
     missing = sorted({
-        target for _, target in parser.references if target not in id_set
+        target for _, target in audit["references"] if target not in id_set
     })
     if missing:
         fail("ARIA/label references target missing IDs: " + ", ".join(missing))
 
-    for href, rel in parser.blank_links:
+    for href, rel in audit["blank_links"]:
         if "noopener" not in rel.lower().split():
             fail(f'target="_blank" link lacks rel="noopener": {href}')
 
-    if parser.inline_handlers:
-        fail("Inline HTML event handlers found: " + ", ".join(parser.inline_handlers))
+    if audit["inline_handlers"]:
+        fail("Inline HTML event handlers found: " + ", ".join(audit["inline_handlers"]))
 
-    for resource in parser.local_resources:
+    for resource in audit["local_resources"]:
         check_local_url(resource, "index.html")
 
-    for element in re.finditer(r"<script\b([^>]*)>([\s\S]*?)</script\s*>", html, re.I):
-        attributes, source = element.group(1), element.group(2)
-        if re.search(r"\bsrc\s*=", attributes, re.I):
-            continue
+    for source in audit["inline_scripts"]:
         if source.strip():
             check_js_syntax(source, "inline script")
 
@@ -203,7 +169,7 @@ def main() -> int:
         return 1
 
     print("Static quality checks passed.")
-    print(f"HTML IDs checked: {len(parser.ids)}")
+    print(f"HTML IDs checked: {len(audit["ids"])}")
     print("Inline JavaScript and service-worker syntax: valid")
     print("Local HTML/manifest/service-worker resources: present")
     if warnings:
