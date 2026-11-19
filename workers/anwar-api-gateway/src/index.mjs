@@ -10,8 +10,7 @@ const RATE_POLICIES = Object.freeze({
   client: { limit: 30, windowMs: 60_000 },
   catalog: { limit: 20, windowMs: 60_000 },
   "country-list": { limit: 8, windowMs: 60_000 },
-  "country-profile": { limit: 12, windowMs: 60_000 },
-  "youtube-transcript": { limit: 30, windowMs: 60_000 }
+  "country-profile": { limit: 12, windowMs: 60_000 }
 });
 
 const CACHE_TTLS = Object.freeze({
@@ -288,7 +287,7 @@ export class IpRateLimiter {
 
     const clientKey = payload && payload.clientKey;
     const buckets = payload && payload.buckets;
-    const validRouteBuckets = new Set(["catalog", "country-list", "country-profile", "youtube-transcript"]);
+    const validRouteBuckets = new Set(["catalog", "country-list", "country-profile"]);
     const validShape = Array.isArray(buckets) &&
       buckets.length === 3 &&
       buckets[0] === "total" &&
@@ -329,7 +328,7 @@ export class IpRateLimiter {
         continue;
       }
       delete value.transcribe;
-      for (const bucket of ["client", "catalog", "country-list", "country-profile", "youtube-transcript"]) {
+      for (const bucket of ["client", "catalog", "country-list", "country-profile"]) {
         const windowMs = RATE_POLICIES[bucket]?.windowMs || 60_000;
         const bucketCutoff = now - windowMs;
         value[bucket] = Array.isArray(value[bucket])
@@ -346,8 +345,7 @@ export class IpRateLimiter {
       client: [],
       catalog: [],
       "country-list": [],
-      "country-profile": [],
-      "youtube-transcript": []
+      "country-profile": []
     };
     const checks = [
       { bucket: "total", timestamps: state.global, policy: RATE_POLICIES.total },
@@ -384,140 +382,6 @@ export class IpRateLimiter {
 }
 
 
-const MAX_YOUTUBE_PAGE_BYTES = 4 * 1024 * 1024;
-const MAX_YOUTUBE_CAPTION_BYTES = 2 * 1024 * 1024;
-const YOUTUBE_HOSTS = new Set(["youtube.com", "www.youtube.com", "m.youtube.com"]);
-
-function extractYouTubePlayerResponse(html) {
-  const pattern = /ytInitialPlayerResponse\s*=\s*/g;
-  let match;
-  while ((match = pattern.exec(html))) {
-    const start = html.indexOf("{", pattern.lastIndex);
-    if (start < 0) continue;
-    let depth = 0, inString = false, escaped = false;
-    for (let index = start; index < html.length; index += 1) {
-      const character = html[index];
-      if (inString) {
-        if (escaped) escaped = false;
-        else if (character === "\\") escaped = true;
-        else if (character === '"') inString = false;
-        continue;
-      }
-      if (character === '"') inString = true;
-      else if (character === "{") depth += 1;
-      else if (character === "}") {
-        depth -= 1;
-        if (depth === 0) {
-          try { return JSON.parse(html.slice(start, index + 1)); } catch { break; }
-        }
-      }
-    }
-    pattern.lastIndex = Math.max(pattern.lastIndex, start + 1);
-  }
-  return null;
-}
-
-async function fetchYouTubeText(url, maxBytes, accept) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 12_000);
-  try {
-    const response = await fetch(url.href, {
-      method: "GET",
-      redirect: "follow",
-      signal: controller.signal,
-      headers: {
-        Accept: accept,
-        "Accept-Language": "ar,en;q=0.8"
-      }
-    });
-    const finalUrl = new URL(response.url || url.href);
-    if (finalUrl.protocol !== "https:" || !YOUTUBE_HOSTS.has(finalUrl.hostname) || finalUrl.port) {
-      try { await response.body?.cancel(); } catch {}
-      throw new Error("YouTube redirected outside its approved hostnames");
-    }
-    if (!response.ok) {
-      try { await response.body?.cancel(); } catch {}
-      throw new Error("YouTube returned HTTP " + response.status);
-    }
-    return await readTextWithLimit(response, maxBytes);
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-async function getPublicYouTubeTranscript(videoId, requestedLanguage) {
-  const watchUrl = new URL("https://www.youtube.com/watch");
-  watchUrl.searchParams.set("v", videoId);
-  const html = await fetchYouTubeText(watchUrl, MAX_YOUTUBE_PAGE_BYTES, "text/html,application/xhtml+xml");
-  const player = extractYouTubePlayerResponse(html);
-  if (!player) {
-    return {
-      error: "تعذّر قراءة بيانات الفيديو العامة من YouTube. قد يتطلب الفيديو تسجيل الدخول أو لا يتيح بيانات الترجمة.",
-      status: 403
-    };
-  }
-  const playability = player.playabilityStatus?.status;
-  if (playability && playability !== "OK") {
-    return {
-      error: "هذا الفيديو غير متاح للعامل دون تسجيل دخول أو صلاحية خاصة؛ لم نحاول تجاوز قيده.",
-      status: 403
-    };
-  }
-  const tracks = player.captions?.playerCaptionsTracklistRenderer?.captionTracks;
-  if (!Array.isArray(tracks) || tracks.length === 0) {
-    return {
-      error: "لا توجد ترجمة نصية متاحة علنًا لهذا الفيديو. يمكنك استيراد ملف ترجمة أو استخدام ملف صوتي تملك حق معالجته.",
-      status: 404
-    };
-  }
-  const requested = String(requestedLanguage || "ar").toLowerCase();
-  const selected = tracks.find(track => String(track.languageCode || "").toLowerCase() === requested) ||
-    tracks.find(track => String(track.languageCode || "").toLowerCase().startsWith(requested + "-")) ||
-    tracks.find(track => String(track.languageCode || "").toLowerCase().startsWith("ar")) ||
-    tracks.find(track => track.isDefault) ||
-    tracks[0];
-  let captionUrl;
-  try { captionUrl = new URL(selected.baseUrl); } catch {
-    return { error: "مسار الترجمة الذي أعاده YouTube غير صالح.", status: 502 };
-  }
-  if (captionUrl.protocol !== "https:" ||
-      !YOUTUBE_HOSTS.has(captionUrl.hostname) ||
-      captionUrl.port ||
-      captionUrl.pathname !== "/api/timedtext") {
-    return { error: "رفضنا مسار ترجمة لا ينتمي إلى واجهة captions المعروفة في YouTube.", status: 502 };
-  }
-  captionUrl.searchParams.set("fmt", "vtt");
-  const captions = await fetchYouTubeText(captionUrl, MAX_YOUTUBE_CAPTION_BYTES, "text/vtt,text/plain,*/*");
-  if (!captions.trim() || !/WEBVTT|\d{2}:\d{2}[:.]\d{2}/i.test(captions)) {
-    return {
-      error: "لم يُرجع YouTube ملف ترجمة نصيًا قابلًا للقراءة لهذا المسار.",
-      status: 404
-    };
-  }
-  const trackName = selected.name?.simpleText || selected.languageCode || "";
-  return {
-    title: String(player.videoDetails?.title || "تفريغ فيديو YouTube").slice(0, 180),
-    language: String(selected.languageCode || "").slice(0, 24),
-    languageName: String(trackName).slice(0, 80),
-    autoGenerated: selected.kind === "asr",
-    captions
-  };
-}
-
-async function servePublicYouTubeTranscript(videoId, language, origin) {
-  try {
-    const result = await getPublicYouTubeTranscript(videoId, language);
-    if (result.status) return errorResponse(result.error, result.status, origin);
-    return withCors(json(result, 200), origin);
-  } catch {
-    return errorResponse(
-      "تعذّر الوصول إلى مسار الترجمة في YouTube الآن. أعد المحاولة أو استورد ملف ترجمة نصية محفوظًا لديك.",
-      502,
-      origin
-    );
-  }
-}
-
 export default {
   async fetch(request, env, ctx) {
     const configuredOrigins = String(env.ALLOWED_ORIGINS || env.ALLOWED_ORIGIN || "");
@@ -548,42 +412,6 @@ export default {
 
     if (request.method !== "GET") {
       return errorResponse("طريقة الطلب غير مسموحة.", 405, origin, { Allow: "GET, OPTIONS" });
-    }
-
-    if (request.method === "GET" && url.pathname === "/v1/youtube-transcript") {
-      const allowedKeys = ["videoId", "lang"];
-      if ([...url.searchParams.keys()].some(key => !allowedKeys.includes(key)) ||
-          url.searchParams.getAll("videoId").length !== 1 ||
-          url.searchParams.getAll("lang").length > 1) {
-        return errorResponse("معاملات طلب الترجمة غير صالحة.", 400, origin);
-      }
-      const videoId = url.searchParams.get("videoId") || "";
-      const language = url.searchParams.get("lang") || "ar";
-      if (!/^[A-Za-z0-9_-]{11}$/.test(videoId) || !/^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})?$/i.test(language)) {
-        return errorResponse("معرّف الفيديو أو رمز اللغة غير صالح.", 400, origin);
-      }
-      let edgeDecision;
-      try {
-        if (!env.EDGE_LIMITER) throw new Error("Edge rate limiter binding missing");
-        edgeDecision = await env.EDGE_LIMITER.limit({ key: "anwar-api-gateway" });
-      } catch {
-        return errorResponse("بوابة تحديد المعدل الطرفية غير متاحة مؤقتًا.", 503, origin);
-      }
-      if (!edgeDecision.success) {
-        return errorResponse("تم تجاوز الحد الطرفي للطلبات. انتظر قليلًا ثم أعد المحاولة.", 429, origin, { "Retry-After": "60" });
-      }
-      let decision;
-      try {
-        decision = await applyRateLimits(request, env, "youtube-transcript");
-      } catch {
-        return errorResponse("بوابة الحماية غير متاحة مؤقتًا. حاول لاحقًا.", 503, origin);
-      }
-      if (decision.blocked) {
-        return errorResponse("وصلت إلى حد استخراج الترجمات اليومي لهذا الاتصال. حاول لاحقًا.", 429, origin, {
-          "Retry-After": String(decision.retryAfter)
-        });
-      }
-      return servePublicYouTubeTranscript(videoId, language, origin);
     }
 
     const route = resolveRoute(url);
