@@ -58,7 +58,7 @@ requestAnimationFrame(()=>setTimeout(()=>{
 const TYPES={poem:'قصيدة',text:'نص',idea:'فكرة'},IC={poem:'🪶',text:'📜',idea:'💡'};
 const FONTS=['Amiri','Amiri Quran','Aref Ruqaa','Aref Ruqaa Ink','Scheherazade New','Lateef','Harmattan','Noto Naskh Arabic','Markazi Text','Mirza','Katibeh','Gulzar','Cairo','Tajawal','Almarai','Alexandria','Changa','Mada','Readex Pro','IBM Plex Sans Arabic','Noto Sans Arabic','Noto Kufi Arabic','Vazirmatn','Rubik','Baloo Bhaijaan 2','Lemonada','Reem Kufi','Reem Kufi Fun','Reem Kufi Ink','El Messiri','Kufam','Lalezar','Rakkas','Jomhuria','Marhey','Vibes','Blaka','Qahiri','Playpen Sans Arabic','Noto Nastaliq Urdu','Traditional Arabic','Simplified Arabic','Sakkal Majalla','Segoe UI','Tahoma','Arial','Times New Roman','Courier New'];
 const PROMPTS=['اكتب عن رائحة المطر على أول تراب بعد غياب طويل','قصيدة عن ضوء مصباح وحيد في آخر الليل','ماذا يقول القمر لمن ينتظر؟','صف وجهًا لا تنساه دون أن تذكر ملامحه','اكتب رسالة إلى نفسك بعد عشر سنوات','قصيدة عن وطن يسكن حقيبة سفر','ما الذي تعلّمته من الصمت؟','اكتب عن قهوة الصباح كأنها صديق قديم','بيت شعر يبدأ بكلمة «لولا»','اكتب عن بابٍ لم تجرؤ على فتحه','قصيدة عن الحنين بثلاث صور فقط'];
-let S={notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[],preferences:globalThis.AnwarPrivatePreferences.normalize({})},cur=null,draftNote=null,flt='all',tm,speaking=false,saved=null,storageRecoveryBlocked=false,storageRecoveryRaw=null,storageRecoveryExported=false,storageRecoveryMode='none',storageRecoveryBackupAvailable=false;
+let S={notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[],preferences:globalThis.AnwarPrivatePreferences.normalize({})},cur=null,draftNote=null,flt='all',tm,speaking=false,poetryDictationController=null,poetryDictationRange=null,poetryDictationNeedsSpace=false,saved=null,storageRecoveryBlocked=false,storageRecoveryRaw=null,storageRecoveryExported=false,storageRecoveryMode='none',storageRecoveryBackupAvailable=false;
 const $=id=>document.getElementById(id),pg=$('pg');
 const VAULT_STORAGE_KEY='anwar_vault_v1',VAULT_BACKUP_KEY='anwar_vault_backup_v1',VAULT_MODE_KEY='anwar_vault_mode_v1';
 let vaultKey=null,vaultTemplate=null,vaultUnlocked=false,vaultGateMode='setup',vaultReady=false,vaultDisableAfterUnlock=false;
@@ -2395,7 +2395,111 @@ function downloadAppIcon(){
  img.src=href;
 }
 function downloadQRPoster(){const box=$('qrPreview'),qr=box.querySelector('canvas')||box.querySelector('img');if(!qr){toast('أنشئ رمز QR أولًا');return}const c=document.createElement('canvas');c.width=1080;c.height=1350;const x=c.getContext('2d');x.fillStyle='#f8f3e8';x.fillRect(0,0,c.width,c.height);x.strokeStyle='#b58a43';x.lineWidth=18;x.strokeRect(35,35,1010,1280);x.strokeStyle='#173b58';x.lineWidth=4;x.strokeRect(58,58,964,1234);x.fillStyle='#102f4b';x.textAlign='center';x.direction='rtl';x.font='bold 70px serif';x.fillText('مفكرة أنوار',540,175);x.font='34px serif';x.fillStyle='#76562a';x.fillText('الكلمة والقرآن رفيقان في كل وقت',540,235);x.fillStyle='#fff';x.fillRect(330,310,420,420);x.strokeStyle='#c29a50';x.lineWidth=12;x.strokeRect(320,300,440,440);if(qr.tagName==='CANVAS')x.drawImage(qr,350,330,380,380);else{x.drawImage(qr,350,330,380,380)}x.fillStyle='#173b58';x.font='bold 42px serif';x.fillText('امسح الرمز لزيارة المفكرة',540,825);x.font='34px serif';x.fillText('المطوّر وصاحب المشروع: Anouar Oumlili',540,910);x.fillText('أنوار أومليلي · الحسيمة · المملكة المغربية',540,970);x.font='28px serif';x.fillStyle='#80602f';x.fillText('المملكة المغربية',540,1080);x.font='25px serif';x.fillText('مفكرة أدبية · إذاعة القرآن · الأذكار',540,1150);const a=document.createElement('a');a.download='بطاقة-مفكرة-أنوار.png';a.href=c.toDataURL('image/png');a.click();toast('تم تجهيز بطاقة النشر PNG')}
-function speak(){
+function capturePoetryDictationRange(){
+ const selection=window.getSelection();
+ if(selection&&selection.rangeCount&&pg.contains(selection.anchorNode)&&pg.contains(selection.focusNode)){
+  return selection.getRangeAt(0).cloneRange();
+ }
+ const range=document.createRange();
+ range.selectNodeContents(pg);
+ range.collapse(false);
+ return range;
+}
+function poetryDictationPreviousCharacter(range){
+ try{
+  const prefix=document.createRange();
+  prefix.selectNodeContents(pg);
+  prefix.setEnd(range.startContainer,range.startOffset);
+  return prefix.toString().slice(-1);
+ }catch(error){return ''}
+}
+function appendPoetryDictationText(value){
+ const text=String(value||'').replace(/\\u200b/g,' ').replace(/\\s+/g,' ').trim();
+ if(!text||!cur||storageRecoveryBlocked)return;
+ try{
+  const range=poetryDictationRange&&pg.contains(poetryDictationRange.startContainer)
+   ?poetryDictationRange.cloneRange():capturePoetryDictationRange();
+  const punctuation=/^[،؛.!؟:»)]/.test(text);
+  const insertion=(poetryDictationNeedsSpace&&!punctuation?' ':'')+text;
+  range.deleteContents();
+  const node=document.createTextNode(insertion);
+  range.insertNode(node);
+  range.setStartAfter(node);
+  range.collapse(true);
+  poetryDictationRange=range.cloneRange();
+  poetryDictationNeedsSpace=true;
+  const selection=window.getSelection();
+  if(selection){selection.removeAllRanges();selection.addRange(range);}
+  touch();
+ }catch(error){
+  console.error('تعذّر إدراج النص المملى في صفحة المفكرة',error);
+  toast('تعذّر إدراج الكلام في موضع الكتابة. أوقف الإلقاء وحاول مجددًا.');
+ }
+}
+function stopPoetryDictation(showMessage){
+ if(!poetryDictationController||!poetryDictationController.isRequested())return false;
+ poetryDictationController.stop();
+ poetryDictationRange=null;
+ if(tm)flushPendingEdit(true);
+ if(showMessage)toast('تم إيقاف الإلقاء وحفظ النص في المفكرة.');
+ return true;
+}
+function updatePoetryDictationButton(state){
+ const button=$('sp');
+ if(!button)return;
+ if(state==='listening'){
+  button.textContent='⏹️ إيقاف';
+  button.title='إيقاف الإلقاء الصوتي وإبقاء النص في المفكرة';
+  button.setAttribute('aria-pressed','true');
+ }else if(state==='requesting'||state==='restarting'||state==='language-fallback'){
+  button.textContent='⏳ جارٍ الاستماع';
+  button.title='جارٍ تشغيل التعرف الصوتي؛ اضغط لإيقافه';
+  button.setAttribute('aria-pressed','true');
+ }else{
+  button.textContent='🎙️ إلقاء';
+  button.title='إلقاء القصيدة صوتيًا وتحويل كلامك إلى كتابة داخل المفكرة';
+  button.setAttribute('aria-pressed','false');
+ }
+}
+function togglePoetryDictation(){
+ if(poetryDictationController&&poetryDictationController.isRequested()){
+  stopPoetryDictation(true);
+  return;
+ }
+ if(!cur){toast('أنشئ عملًا أو افتح قصيدة أولًا قبل الإلقاء الصوتي.');return;}
+ if(storageRecoveryBlocked){toast('الحفظ متوقف حمايةً لبياناتك؛ عالج الاسترداد أولًا.');return;}
+ const api=window.AnwarPoetryDictation;
+ if(!api||typeof api.create!=='function'){
+  toast('أداة الإملاء الصوتي غير محمّلة. أعد تحميل المفكرة وحاول مجددًا.');
+  return;
+ }
+ if(speaking){
+  speaking=false;speakText.run=(speakText.run||0)+1;
+  try{window.speechSynthesis?.cancel()}catch(error){}
+  $('speakRead').textContent='🔊 قراءة';
+ }
+ poetryDictationRange=capturePoetryDictationRange();
+ const previous=poetryDictationPreviousCharacter(poetryDictationRange);
+ poetryDictationNeedsSpace=Boolean(previous&&!/\\s/.test(previous));
+ poetryDictationController=api.create({
+  onText:text=>appendPoetryDictationText(text),
+  onStatus:(state,detail)=>{
+   updatePoetryDictationButton(state);
+   if(state==='error')toast(detail||'تعذّر تشغيل التعرف الصوتي.',5000);
+   else if(state==='language-fallback')toast(detail||'نجرب إعدادًا عربيًا بديلًا.');
+  }
+ });
+ const started=poetryDictationController.start();
+ if(!started){
+  poetryDictationRange=null;
+  updatePoetryDictationButton('stopped');
+  return;
+ }
+ toast('ألقِ القصيدة الآن؛ سيظهر الكلام المكتمل داخل صفحة المفكرة. قد يعالج المتصفح الصوت عبر خدمة التعرف لديه.',4500);
+}
+window.addEventListener('pagehide',()=>stopPoetryDictation(false));
+function speakText(){
+  if(poetryDictationController&&poetryDictationController.isRequested())stopPoetryDictation(false);
   const synth=window.speechSynthesis;
   if(!synth||typeof window.SpeechSynthesisUtterance!=='function'){
    toast('الإلقاء الصوتي غير متاح في هذا المتصفح؛ جرّب Chrome المحدّث');
@@ -2403,11 +2507,11 @@ function speak(){
   }
   if(speaking){
    speaking=false;speak.run=(speak.run||0)+1;
-   synth.cancel();$('sp').textContent='🔊 إلقاء';toast('تم إيقاف الإلقاء');
+   synth.cancel();$('speakRead').textContent='🔊 إلقاء';toast('تم إيقاف الإلقاء');
    return;
   }
   const text=(pg.innerText||pg.textContent||'').replace(/\u200b/g,' ').replace(/[ \t]+\n/g,'\n').trim();
-  if(!text){toast('اكتب نصًا أولًا ثم اضغط «إلقاء»');return;}
+  if(!text){toast('اكتب نصًا أولًا ثم اضغط «قراءة»');return;}
   const voices=typeof synth.getVoices==='function'?synth.getVoices():[];
   const voice=voices.find(v=>/^ar[-_]MA/i.test(v.lang||''))||
    voices.find(v=>/^ar[-_]SA/i.test(v.lang||''))||
@@ -2427,11 +2531,11 @@ function speak(){
   if(rest)chunks.push(rest);
   let index=0;
   const run=speak.run=(speak.run||0)+1;
-  speaking=true;$('sp').textContent='⏹️ إيقاف';
+  speaking=true;$('speakRead').textContent='⏹️ إيقاف';
   toast(voice?'بدأ الإلقاء بالصوت العربي: '+voice.name:'بدأ الإلقاء؛ يستخدم المتصفح صوته الافتراضي إن كان يدعم العربية');
   function finish(message){
    if(run!==speak.run)return;
-   speaking=false;$('sp').textContent='🔊 إلقاء';
+   speaking=false;$('speakRead').textContent='🔊 إلقاء';
    if(message)toast(message,4000);
   }
   function next(){
@@ -2498,14 +2602,14 @@ document.addEventListener('click',e=>{
  if(t.id==='transcriptFocusClose'){closeTranscriptFocus();return}
  if(t.dataset.transcriptFormat!==undefined){applyTranscriptFormat(Number(t.dataset.transcriptFormat));return;}
  if(t.dataset.archiveFilter!==undefined){archiveFilter=t.dataset.archiveFilter;renderArchive(true);return}
- if(t.dataset.archiveId){const selected=S.notes.find(n=>n.id===t.dataset.archiveId);if(selected){openNote(selected);$('archiveDialog').close()}return}
+ if(t.dataset.archiveId){stopPoetryDictation(false);const selected=S.notes.find(n=>n.id===t.dataset.archiveId);if(selected){openNote(selected);$('archiveDialog').close()}return}
  if(t.id==='listMore'){listRenderLimit+=LIST_PAGE_SIZE;renderList();return}
  if(t.id==='archiveMore'){archiveRenderLimit+=LIST_PAGE_SIZE;renderArchive();return}
- if(t.id==='archiveBtn'){openArchive();return}
+ if(t.id==='archiveBtn'){stopPoetryDictation(false);openArchive();return}
  if(t.id==='closeArchive'){$('archiveDialog').close();return}
  if(t.dataset.f){applyFont(t.dataset.f);return}
  if(t.classList.contains('chip')){flt=t.dataset.k;chips();renderList(true);return}
- if(t.classList.contains('card')){openNote(S.notes.find(n=>n.id===t.dataset.id));return}
+ if(t.classList.contains('card')){stopPoetryDictation(false);openNote(S.notes.find(n=>n.id===t.dataset.id));return}
  if(t.dataset.c){cmd(t.dataset.c);return}
  const id=t.id;
  if(t.dataset.paper){setPaperStyle(t.dataset.paper);return}
@@ -2528,13 +2632,13 @@ document.addEventListener('click',e=>{
  else if(id==='makeQR')makeQR();
  else if(id==='downloadQR')downloadQRPoster();
  else if(id==='downloadIcon')downloadAppIcon();
- else if(id==='new')newNote();
- else if(id==='bk'){openNote(null);$('app').classList.remove('focus')}
+ else if(id==='new'){stopPoetryDictation(false);newNote();}
+ else if(id==='bk'){stopPoetryDictation(false);openNote(null);$('app').classList.remove('focus')}
  else if(id==='th'){S.theme=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';save();theme()}
  else if(id==='prn')doPrint();
  else if(id==='pdf')doPdf();
  else if(id==='word')doWord();
- else if(id==='sp')speak();
+ else if(id==='sp')togglePoetryDictation();\n else if(id==='speakRead')speakText();
  else if(id==='fb'){const r=t.getBoundingClientRect(),m=$('fm');m.style.top=r.bottom+4+'px';m.style.left=Math.max(6,Math.min(r.left,innerWidth-266))+'px';fontList('');$('fq').value='';m.classList.toggle('o');loadFontStylesheets(true).catch(error=>{console.warn(error);toast('بعض الخطوط تحتاج إلى اتصال بالإنترنت',3500)})}
  else if(id==='vs'&&cur)insertPoetryVerse();
  else if(id==='exitFocus'){$('app').classList.remove('focus');requestAnimationFrame(()=>$('fo')?.focus())}
