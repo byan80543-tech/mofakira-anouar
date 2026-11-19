@@ -222,25 +222,33 @@
   }
   function openPanel(){
    if(!panel.hidden){closePanel();return}
+   // Open the dialog first, but never let a navigation bridge or rendering
+   // error keep the actual tasbih panel hidden inside its parent section.
    try{
     if(!ownerDialog.open){
      if(typeof ownerDialog.showModal==='function')ownerDialog.showModal();
      else ownerDialog.setAttribute('open','');
     }
-    revealAdhkarView();
-    panel.hidden=false;
-    toggleButton.setAttribute('aria-expanded','true');
-    requestAnimationFrame(()=>{
-     try{panel.scrollIntoView({behavior:'smooth',block:'nearest'})}catch(error){}
-    });
-    closeButton.focus();
    }catch(error){
-    console.error('تعذر فتح السبحة',error);
-    if(typeof window.AnwarShowOwnerPanel!=='function')revealAdhkarView();
-    panel.hidden=false;
-    toggleButton.setAttribute('aria-expanded','true');
-    if(typeof window.toast==='function')window.toast('فُتحت واجهة السبحة مع تعذر بعض تفاصيل العرض.');
+    console.error('تعذر فتح نافذة الأذكار بالطريقة الحوارية؛ ستتم محاولة عرضها مباشرة.',error);
+    try{if(!ownerDialog.open)ownerDialog.setAttribute('open','')}catch(fallbackError){}
    }
+   if(ownerPanel)ownerPanel.hidden=true;
+   adhkarPanel.hidden=false;
+   if(sharePanel)sharePanel.hidden=true;
+   if(ownerTab)ownerTab.classList.toggle('active',false);
+   if(adhkarTab)adhkarTab.classList.toggle('active',true);
+   if(shareTab)shareTab.classList.toggle('active',false);
+   if(typeof window.AnwarRenderAdhkar==='function'){
+    try{window.AnwarRenderAdhkar('morning')}
+    catch(error){console.warn('تعذر تحديث قائمة أذكار الصباح؛ بقيت السبحة قابلة للفتح.',error)}
+   }
+   panel.hidden=false;
+   toggleButton.setAttribute('aria-expanded','true');
+   requestAnimationFrame(()=>{
+    try{panel.scrollIntoView({behavior:'smooth',block:'nearest'})}catch(error){}
+   });
+   closeButton.focus()
   }
   function closePanel(restoreFocus){
    if(voiceActive)stopVoice('توقف الاستماع عند إغلاق السبحة.');
