@@ -1881,6 +1881,16 @@ dialog[open]>.float-head{display:none!important}
 #tasbihPanel .anwar-tasbih-counter:active{transform:scale(.97)}
 #tasbihPanel .anwar-tasbih-counter span{font-size:10px}
 </style>
+<style id="anwar-official-adhkar-polish">
+.anwar-sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+#tasbihPanel .tasbih-dhikr-card{display:grid;grid-template-columns:1fr auto;align-items:center;gap:5px 10px;text-align:right}
+#tasbihPanel .tasbih-dhikr-card-name{font-weight:700}
+#tasbihPanel .tasbih-dhikr-card-text{grid-column:1/-1;white-space:normal;line-height:1.9;font-size:13px;color:var(--tx)}
+#tasbihPanel .tasbih-dhikr-card-meta{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:5px 12px;color:var(--mu);font-size:11px;line-height:1.7}
+#tasbihPanel .tasbih-dhikr-card-meta span{display:inline-block}
+#tasbihPanel .anwar-tasbih-counter{cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+#tasbihPanel .anwar-tasbih-counter:focus-visible{outline:3px solid var(--tasbih-accent-soft);outline-offset:4px}
+</style>
 </head>
 <body>
 <div class="app" id="app">
@@ -2182,7 +2192,7 @@ dialog[open]>.float-head{display:none!important}
      </div>
      <small id="tasbihCustomDhikrStatus" role="status" aria-live="polite">تُحفظ أذكارك المضافة على هذا الجهاز لتختارها لاحقاً.</small>
     </div>
-    <div class="anwar-tasbih-counter" id="tasbihCounterControl" role="button" tabindex="0" aria-label="اضغط هنا لتسجيل تسبيحة واحدة" title="اضغط على العداد لزيادة التسبيحات" aria-live="polite"><strong id="tasbihCount">0</strong><span>عدد التسبيحات · اضغط للزيادة</span></div>
+    <div class="anwar-tasbih-counter" id="tasbihCounterControl" role="button" tabindex="0" aria-label="عداد التسبيح: اضغط لزيادة العدد" title="اضغط لزيادة العدد" aria-live="polite"><strong id="tasbihCount">0</strong><span class="anwar-sr-only">عدد التسبيحات</span></div>
     <div class="anwar-tasbih-actions"><button type="button" id="tasbihMinus" class="anwar-tasbih-small" aria-label="إنقاص العدد">−</button><button type="button" id="tasbihTap" class="anwar-tasbih-tap" aria-label="سجل تسبيحة واحدة">سبّح</button><button type="button" id="tasbihReset" class="anwar-tasbih-small" aria-label="تصفير العداد">↺</button></div>
     <section class="anwar-tasbih-voice" id="tasbihVoicePanel" data-state="idle" aria-label="التسجيل الصوتي للسبحة">
      <div class="anwar-tasbih-voice-head">
@@ -2280,7 +2290,8 @@ dialog[open]>.float-head{display:none!important}
 <script src="./vault-crypto.js?v=20261118-2"></script>
 <script src="./vault-device-unlock.js?v=20261118-1"></script>
 <script src="./app-core.js?v=20261119-8" defer></script>
-<script src="./tasbih-controller.js?v=20261119-6" defer></script>
+<script src="./official-adhkar.js?v=20261119-1" defer></script>
+<script src="./tasbih-controller.js?v=20261119-7" defer></script>
 
 
 
