@@ -5,6 +5,7 @@ import vm from 'node:vm';
 const root=process.cwd();
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const appCore=fs.readFileSync(path.join(root,'app-core.js'),'utf8');
+const tasbihController=fs.readFileSync(path.join(root,'tasbih-controller.js'),'utf8');
 const appSource=html+String.fromCharCode(10)+appCore;
 const serviceWorker=fs.readFileSync(path.join(root,'service-worker.js'),'utf8');
 const manifest=JSON.parse(fs.readFileSync(path.join(root,'manifest.webmanifest'),'utf8'));
@@ -18,11 +19,25 @@ const clickGuard=fs.readFileSync(path.join(root,'click-guard.js'),'utf8');
 const iconGenerator=fs.readFileSync(path.join(root,'scripts/generate-pwa-icons.py'),'utf8');
 const failures=[];
 const ok=(condition,message)=>{if(!condition)failures.push(message);else console.log('PASS',message)};
-const tasbihLogicStart=appCore.indexOf("const $=id=>document.getElementById(id),panel=$('tasbihPanel');");
-const tasbihLogicEnd=appCore.indexOf("const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;",tasbihLogicStart);
-const tasbihLogic=appCore.slice(tasbihLogicStart,tasbihLogicEnd);
-ok(tasbihLogic.includes("let renderedCustomDhikrsKey='',renderedDhikrCardsKey=''") && tasbihLogic.includes("if(dhikrCardsKey()!==renderedDhikrCardsKey)renderDhikrCards()"),'tasbih cards redraw only when the selection or dhikr list changes, not on counter-only updates');
-ok(tasbihLogic.includes("if(renderedCustomDhikrsKey!==customDhikrsKey())renderCustomOptions()"),'custom dhikr option elements are rebuilt only when the custom list changes');
+try{new vm.Script(tasbihController,{filename:'tasbih-controller.js'});ok(true,'standalone tasbih controller JavaScript syntax is valid')}catch(error){failures.push('tasbih-controller.js: '+error.message)}
+ok(appCore.includes('window.AnwarRenderAdhkar=function(period)') && appCore.includes('window.AnwarShowOwnerPanel=function(which)'), 'notebook exposes narrow bridges for adhkar rendering and panel selection');
+ok(!appCore.includes("const $=id=>document.getElementById(id),panel=$('tasbihPanel')"), 'tasbih runtime is removed from the delayed notebook initializer');
+ok(tasbihController.includes("toggleButton.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();openPanel()})") && tasbihController.includes('function revealAdhkarView()') && tasbihController.includes('panel.hidden=false'), 'standalone tasbih launcher opens its panel independently of the notebook initializer');
+ok(tasbihController.includes("preferences.set('tasbih'") && tasbihController.includes("preferences.subscribe(saved=>"), 'tasbih settings remain integrated with encrypted private preferences');
+ok(tasbihController.includes("removeButton.addEventListener('click'") && tasbihController.includes("restoreButton.addEventListener('click'") && tasbihController.includes("customAdd.addEventListener('click'"), 'custom dhikr add, remove and official restore actions are wired');
+ok(tasbihController.includes("voiceButton.addEventListener('click'") && tasbihController.includes('countPhraseMatches(said,select.value)'), 'Arabic voice recognition counts only exact matches of the selected dhikr');
+const ownerDialogStart=html.indexOf('<dialog id="ownerDialog">');
+const outerTabsStart=html.indexOf('<div class="owner-tabs">',ownerDialogStart);
+const ownerPanelStart=html.indexOf('<section id="ownerPanel"',outerTabsStart);
+const adhkarPanelStart=html.indexOf('<section id="adhkarPanel"',ownerPanelStart);
+const innerTabsStart=html.indexOf('<div class="owner-tabs adhkar-tabs"',adhkarPanelStart);
+const tasbihPanelStart=html.indexOf('<section id="tasbihPanel"',innerTabsStart);
+const outerTabs=html.slice(outerTabsStart,ownerPanelStart);
+const innerTabs=html.slice(innerTabsStart,tasbihPanelStart);
+ok(outerTabs.includes('id="ownerTab"') && outerTabs.includes('id="adhkarTab"') && outerTabs.includes('id="shareTab"'), 'owner, adhkar and sharing tabs are restored to the visible top-level navigation');
+ok(innerTabs.includes('id="morningTab"') && innerTabs.includes('id="eveningTab"') && innerTabs.includes('id="adhkarTasbihToggle"'), 'morning, evening and tasbih controls are grouped together inside the adhkar view');
+ok(!innerTabs.includes('id="adhkarTab"') && !outerTabs.includes('id="adhkarTasbihToggle"'), 'adhkar navigation is no longer hidden behind its own panel and the tasbih launcher is not misplaced');
+ok(html.includes('src="./tasbih-controller.js?v=20261119-1" defer') && serviceWorker.includes("'./tasbih-controller.js'") && serviceWorker.includes('anwar-shell-2026-11-19-v72'), 'standalone tasbih controller is versioned and precached for offline use');
 
 ok(manifest.name==='مفكرة أنوار' && manifest.short_name==='مفكرة أنوار','PWA name and short_name');
 ok(manifest.start_url==='/mofakira-anouar/' && manifest.scope==='/mofakira-anouar/','GitHub Pages start_url and scope');
@@ -175,8 +190,8 @@ ok(socialFunction.includes(".on('meta[property=\"og:title\"]'") && socialFunctio
 const qualityWorkflow=fs.readFileSync(path.join(root,'.github/workflows/quality.yml'),'utf8');
 ok(qualityWorkflow.includes('wrangler@4.164.0') && !qualityWorkflow.includes('wrangler@latest'),'quality dry-run pins the Wrangler version used by deployment');
 ok(appSource.includes("content-visibility:auto;contain-intrinsic-size:auto 76px"),'off-screen note cards skip unnecessary painting');
-ok(html.includes('<link rel="preload" href="./app-core.js?v=20261119-6" as="script">') && html.includes('src="./app-core.js?v=20261119-6" defer') && appCore.length>200000,'main application bundle is externally loaded and preload/script cache versions match');
-ok(serviceWorker.includes("'./app-core.js'") && serviceWorker.includes('anwar-shell-2026-11-19-v71'),'service worker precaches the extracted main bundle under a new shell version');
+ok(html.includes('<link rel="preload" href="./app-core.js?v=20261119-7" as="script">') && html.includes('src="./app-core.js?v=20261119-6" defer') && appCore.length>200000,'main application bundle is externally loaded and preload/script cache versions match');
+ok(serviceWorker.includes("'./app-core.js'") && serviceWorker.includes('anwar-shell-2026-11-19-v72'),'service worker precaches the extracted main bundle under a new shell version');
 ok(appSource.includes("backdrop-filter:none;-webkit-backdrop-filter:none"),'vault startup overlay avoids an expensive full-screen blur');
 
 
