@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="preload" href="./app-core.js?v=20261119-9" as="script">
+<link rel="preload" href="./app-core.js?v=20261119-10" as="script">
 <script src="api-gateway-config.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>مفكرة أنوار | Anouar Oumlili</title>
@@ -2016,6 +2016,11 @@ dialog[open]>.float-head{display:none!important}
  #bookToolContent .transcript-field input,#bookToolContent .transcript-field textarea{box-sizing:border-box;width:100%;margin:0;border:1px solid var(--bd);border-radius:9px;padding:10px;background:var(--sf);color:var(--tx);font:12px/1.9 Cairo,Tahoma,sans-serif}
  #bookToolContent #transcriptYoutubeUrl{text-align:left;direction:ltr}
  #bookToolContent #transcriptText{min-height:176px;resize:vertical;white-space:pre-wrap;line-height:2.05;font:14px/2.05 Amiri,'Noto Naskh Arabic',serif}
+ .transcript-consent{display:flex;align-items:flex-start;gap:8px;color:var(--mu);font:10px/1.8 Cairo,Tahoma,sans-serif}
+ .transcript-consent input{margin-top:4px;accent-color:var(--ac);flex:none}
+ .transcript-upload-note{color:var(--mu);font:10px/1.8 Cairo,Tahoma,sans-serif}
+ .transcript-generate-button{min-height:40px;border:1px solid #c9a96a;border-radius:9px;padding:8px 12px;background:linear-gradient(110deg,#f7efd9,#fffaf0);color:#624b23;font:700 12px Cairo,Tahoma,sans-serif}
+ .transcript-generate-button:disabled{opacity:.6;cursor:wait}
  .transcript-import-button,.transcript-toolbar button,.transcript-export-actions button{min-height:34px;border:1px solid var(--bd);border-radius:8px;padding:6px 10px;background:var(--sf);color:var(--tx);font:700 10px Cairo,Tahoma,sans-serif}
  .transcript-import-button{border-color:#c9a96a;background:linear-gradient(110deg,#f7efd9,#fffaf0);color:#624b23}
  .transcript-status{margin:0;color:var(--mu);font:10px/1.8 Cairo,Tahoma,sans-serif}
@@ -2144,12 +2149,21 @@ dialog[open]>.float-head{display:none!important}
   <section class="anwar-transcript-tool" id="youtubeTranscriptTool" aria-labelledby="transcriptToolTitle">
    <header class="transcript-tool-head">
     <span aria-hidden="true">🎙️</span>
-    <div><strong id="transcriptToolTitle">من المسموع إلى المكتوب</strong><small>استيراد الترجمة وتحريرها</small></div>
+    <div><strong id="transcriptToolTitle">من المسموع إلى المكتوب</strong><small>تفريغ صوتي بالذكاء الاصطناعي ثم مراجعة النص</small></div>
    </header>
    <label class="transcript-field" for="transcriptYoutubeUrl">رابط فيديو YouTube
     <input id="transcriptYoutubeUrl" type="url" inputmode="url" autocomplete="url" placeholder="https://www.youtube.com/watch?v=..." dir="ltr">
    </label>
-   <button type="button" id="transcriptChooseCaption" class="transcript-import-button">استيراد الترجمة</button>
+   <label class="transcript-field" for="transcriptAudioFile">ارفع ملفًا صوتيًا لتوليد النص تلقائيًا
+    <input id="transcriptAudioFile" type="file" accept="audio/*,.mp3,.m4a,.wav,.ogg,.webm,.flac,.aac">
+   </label>
+   <label class="transcript-consent" for="transcriptConsent">
+    <input id="transcriptConsent" type="checkbox">
+    <span>أؤكد أن لدي حق استخدام هذا التسجيل ورفعه للمعالجة السحابية.</span>
+   </label>
+   <button type="button" id="transcriptGenerate" class="transcript-generate-button">🎙️ توليد النص من الصوت</button>
+   <small class="transcript-upload-note">يدعم الملفات الصوتية حتى 8 ميغابايت. يُرسل التسجيل إلى Cloudflare Workers AI للتفريغ ولا تُحفظ نسخة منه في مفكرة أنوار. رابط YouTube مرجع للفيديو فقط؛ يلزم رفع تسجيل تملك حق استخدامه أو استيراد ترجمته المصرح بها.</small>
+   <button type="button" id="transcriptChooseCaption" class="transcript-import-button">أو استيراد ملف ترجمة SRT / VTT</button>
    <input type="file" id="transcriptCaptionFile" hidden accept=".srt,.vtt,.txt,text/plain,text/vtt">
    <p id="transcriptSourceStatus" class="transcript-status" role="status" aria-live="polite">للفيديو الذي تملكه أو لديك إذن باستخدام ترجمته، اختر ملف SRT أو VTT أو TXT محفوظًا على هاتفك. لا تسحب المفكرة نص فيديو عام من YouTube دون صلاحية.</p>
 
@@ -2472,7 +2486,7 @@ dialog[open]>.float-head{display:none!important}
 <div id="toast"></div>
 <script src="./vault-crypto.js?v=20261118-2"></script>
 <script src="./vault-device-unlock.js?v=20261118-1"></script>
-<script src="./app-core.js?v=20261119-9" defer></script>
+<script src="./app-core.js?v=20261119-10" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
 <script src="./tasbih-controller.js?v=20261119-17" defer></script>
 
