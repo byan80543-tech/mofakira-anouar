@@ -1848,15 +1848,33 @@ function makeStoredZip(entries){
  put32(ev,12,centralSize);put32(ev,16,offset);put16(ev,20,0);
  return new Blob([...localParts,...centralParts,end],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
 }
+function transcriptWordTableXml(rows){
+ const widths=[700,4700,3900];
+ const border='<w:tblBorders><w:top w:val="single" w:sz="6" w:color="B9AD98"/><w:left w:val="single" w:sz="6" w:color="B9AD98"/><w:bottom w:val="single" w:sz="6" w:color="B9AD98"/><w:right w:val="single" w:sz="6" w:color="B9AD98"/><w:insideH w:val="single" w:sz="4" w:color="D5CCBD"/><w:insideV w:val="single" w:sz="4" w:color="D5CCBD"/></w:tblBorders>';
+ const grid='<w:tblGrid>'+widths.map(width=>'<w:gridCol w:w="'+width+'"/>').join('')+'</w:tblGrid>';
+ const body=rows.map((row,rowIndex)=>{
+  const cells=widths.map((width,index)=>{
+   const value=String(row[index]??'');
+   const shade=rowIndex===0?'<w:shd w:fill="EEE5D1"/>':'';
+   return '<w:tc><w:tcPr><w:tcW w:w="'+width+'" w:type="dxa"/>'+shade+'</w:tcPr><w:p><w:pPr><w:bidi/><w:jc w:val="right"/></w:pPr><w:r><w:rPr><w:rtl/><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="22"/></w:rPr><w:t xml:space="preserve">'+xmlEscape(value||' ')+'</w:t></w:r></w:p></w:tc>';
+  }).join('');
+  return '<w:tr>'+cells+'</w:tr>';
+ }).join('');
+ return '<w:tbl><w:tblPr><w:bidiVisual/><w:tblW w:w="9300" w:type="dxa"/>'+border+'</w:tblPr>'+grid+body+'</w:tbl>';
+}
 function recordsDocx(records,title){
  const paragraphs=[];
  paragraphs.push('<w:p><w:pPr><w:pStyle w:val="Title"/></w:pPr><w:r><w:t>'+xmlEscape(title)+'</w:t></w:r></w:p>');
  records.forEach((note,index)=>{
   paragraphs.push('<w:p><w:pPr><w:pStyle w:val="Heading1"/></w:pPr><w:r><w:t>'+xmlEscape(note.title||'بلا عنوان')+'</w:t></w:r></w:p>');
   paragraphs.push('<w:p><w:r><w:rPr><w:color w:val="777777"/><w:sz w:val="20"/></w:rPr><w:t>'+xmlEscape((TYPES[note.type]||'عمل')+' · '+fmt(note.ts))+'</w:t></w:r></w:p>');
-  notePlainText(note).split(/\n/).forEach(line=>{
-   paragraphs.push('<w:p><w:pPr><w:bidi/><w:jc w:val="right"/></w:pPr><w:r><w:rPr><w:rtl/><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="30"/></w:rPr><w:t xml:space="preserve">'+xmlEscape(line||' ')+'</w:t></w:r></w:p>');
-  });
+  if(Array.isArray(note.transcriptRows)&&note.transcriptRows.length>1){
+   paragraphs.push(transcriptWordTableXml(note.transcriptRows));
+  }else{
+   notePlainText(note).split(/\n/).forEach(line=>{
+    paragraphs.push('<w:p><w:pPr><w:bidi/><w:jc w:val="right"/></w:pPr><w:r><w:rPr><w:rtl/><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="30"/></w:rPr><w:t xml:space="preserve">'+xmlEscape(line||' ')+'</w:t></w:r></w:p>');
+   });
+  }
  });
  paragraphs.push('<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:color w:val="999999"/><w:sz w:val="18"/></w:rPr><w:t>مفكرة أنوار · © 2026 Anouar Oumlili</w:t></w:r></w:p>');
  const documentXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'+paragraphs.join('')+'<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>';
@@ -1980,7 +1998,7 @@ function openBookDialog(){
 }
 
 let transcriptBaseText='',transcriptLastRendered='',transcriptFormatIndex=0,transcriptSourceName='تفريغ فيديو';
-const TRANSCRIPT_FORMATS=['فقرات','جمل','قائمة'];
+const TRANSCRIPT_FORMATS=['فقرات منظمة','جمل منفصلة','نقاط','قائمة مرقمة','مقاطع بعناوين','جدول للمذاكرة'];
 function transcriptStatus(message,error){
  const status=$('transcriptSourceStatus');
  if(status){status.textContent=message;status.dataset.state=error?'error':'ready'}
@@ -2030,33 +2048,42 @@ function parseCaptionFile(source,extension){
  });
  return captions.join('\n').trim();
 }
+function transcriptParagraphs(value){
+ const lines=String(value||'').replace(/\r\n?/g,'\n').split('\n').map(line=>line.trim()).filter(Boolean);
+ const paragraphs=[];
+ for(let i=0;i<lines.length;i+=3)paragraphs.push(lines.slice(i,i+3).join(' '));
+ return paragraphs;
+}
+function transcriptSentences(value){
+ const lines=String(value||'').replace(/\r\n?/g,'\n').split('\n').map(line=>line.trim()).filter(Boolean);
+ const sentences=[];
+ lines.forEach(line=>{
+  const parts=line.match(/[^.!?؟؛]+[.!?؟؛]?/g)||[line];
+  parts.map(part=>part.trim()).filter(Boolean).forEach(part=>sentences.push(part));
+ });
+ return sentences;
+}
+function transcriptStudyRows(value){
+ return [['م','المقطع / الفكرة','ملاحظات الطالب']].concat(
+  transcriptParagraphs(value).map((paragraph,index)=>[String(index+1),paragraph,''])
+ );
+}
 function formatTranscriptText(value,formatIndex){
  const lines=String(value||'').replace(/\r\n?/g,'\n').split('\n').map(line=>line.trim()).filter(Boolean);
  if(!lines.length)return '';
- if(formatIndex===1){
-  const sentences=[];
-  lines.forEach(line=>{
-   const parts=line.match(/[^.!?؟؛]+[.!?؟؛]?/g)||[line];
-   parts.map(part=>part.trim()).filter(Boolean).forEach(part=>sentences.push(part));
-  });
-  return sentences.join('\n');
- }
- if(formatIndex===2)return lines.map((line,index)=>(index+1)+'. '+line).join('\n');
- const paragraphs=[];
- for(let i=0;i<lines.length;i+=3)paragraphs.push(lines.slice(i,i+3).join(' '));
- return paragraphs.join('\n\n');
+ if(formatIndex===1)return transcriptSentences(value).join('\n');
+ if(formatIndex===2)return transcriptSentences(value).map(line=>'• '+line).join('\n');
+ if(formatIndex===3)return transcriptSentences(value).map((line,index)=>(index+1)+'. '+line).join('\n');
+ if(formatIndex===4)return transcriptParagraphs(value).map((paragraph,index)=>'المحور '+(index+1)+'\n'+paragraph).join('\n\n');
+ if(formatIndex===5)return transcriptStudyRows(value).map(row=>row.join('\t')).join('\n');
+ return transcriptParagraphs(value).join('\n\n');
 }
 function transcriptChooseCaption(){
- const input=$('transcriptYoutubeUrl');
- const url=String(input&&input.value||'').trim();
- if(url&&!parseYouTubeVideoId(url)){transcriptStatus('رابط YouTube غير صالح. صحّحه أو اترك الحقل فارغًا لاستيراد ملف الترجمة.',true);if(input)input.focus();return}
- transcriptStatus(url?'اختر ملف ترجمة مصرحًا باستخدامه لهذا الفيديو.':'اختر ملف ترجمة SRT أو VTT محفوظًا على هاتفك.',false);
+ transcriptStatus('اختر ملف ترجمة SRT أو VTT أو TXT محفوظًا على هاتفك.',false);
  $('transcriptCaptionFile').click();
 }
 async function importTranscriptCaption(file){
  if(!file)return;
- const url=String($('transcriptYoutubeUrl').value||'').trim();
- if(url&&!parseYouTubeVideoId(url)){transcriptStatus('رابط YouTube غير صالح. صحّحه ثم أعد اختيار الترجمة.',true);return}
  const extension=(file.name.split('.').pop()||'').toLowerCase();
  if(!['srt','vtt','txt'].includes(extension)){transcriptStatus('الصيغ المدعومة: SRT وVTT وTXT.',true);return}
  if(file.size>2*1024*1024){transcriptStatus('حجم ملف الترجمة أكبر من 2 ميغابايت.',true);return}
@@ -2071,6 +2098,7 @@ async function importTranscriptCaption(file){
   transcriptLastRendered=formatted;
   $('transcriptTitle').value=(file.name||'تفريغ فيديو').replace(/\.(srt|vtt|txt)$/i,'').replace(/[_-]+/g,' ').slice(0,100)||'تفريغ فيديو';
   $('transcriptText').value=formatted;
+  refreshTranscriptTablePreview();
   $('transcriptText').spellcheck=false;
   $('transcriptSpellcheck').setAttribute('aria-pressed','false');
   $('transcriptFormatLabel').textContent=TRANSCRIPT_FORMATS[0];
@@ -2093,6 +2121,67 @@ function transcriptWorkerEndpoint(){
   return base.origin+'/v1/transcribe';
  }catch(error){return ''}
 }
+
+function transcriptYoutubeEndpoint(videoId){
+ const raw=String(globalThis.ANWAR_API_GATEWAY_BASE||'').trim();
+ if(!raw)return '';
+ try{
+  const base=new URL(raw);
+  if(base.protocol!=='https:'||!base.hostname.endsWith('.workers.dev')||base.username||base.password)return '';
+  return base.origin+'/v1/youtube-transcript?videoId='+encodeURIComponent(videoId)+'&lang=ar';
+ }catch(error){return ''}
+}
+async function transcribeYouTubeLink(){
+ const url=String($('transcriptYoutubeUrl')?.value||'').trim();
+ const videoId=parseYouTubeVideoId(url);
+ const button=$('transcriptGenerateYoutube');
+ if(!url){transcriptStatus('ألصق رابط فيديو YouTube أولًا.',true);$('transcriptYoutubeUrl')?.focus();return}
+ if(!videoId){transcriptStatus('رابط YouTube غير صالح. استخدم رابط watch أو youtu.be أو Shorts أو Live.',true);$('transcriptYoutubeUrl')?.focus();return}
+ const endpoint=transcriptYoutubeEndpoint(videoId);
+ if(!endpoint){transcriptStatus('خدمة استخراج الترجمة لم تُفعّل بعد. يلزم نشر بوابة أنوار وضبط عنوانها.',true);return}
+ const oldLabel=button?.textContent;
+ if(button){button.disabled=true;button.textContent='جارٍ فحص الترجمة المتاحة…';button.setAttribute('aria-busy','true')}
+ transcriptStatus('يجري البحث عن مسار ترجمة متاح لهذا الفيديو؛ لا يتم تنزيل الفيديو أو تجاوز صلاحياته…',false);
+ const controller=new AbortController();
+ const timeout=setTimeout(()=>controller.abort(),30000);
+ try{
+  const response=await fetch(endpoint,{method:'GET',signal:controller.signal,credentials:'omit',referrerPolicy:'no-referrer'});
+  let result={};
+  try{result=await response.json()}catch(error){}
+  if(!response.ok){
+   const message=response.status===429?'وصلت إلى حد الاستخدام اليومي لاستخراج الترجمات؛ أعد المحاولة لاحقًا.':
+    response.status===403?'الفيديو يتطلب تسجيل الدخول أو صلاحية وصول غير متاحة للعامل.':
+    response.status===404?'لم يعثر YouTube على ترجمة نصية متاحة لهذا الفيديو. جرّب استيراد ملف ترجمة أو رفع ملف صوتي تملك حق استخدامه.':
+    String(result.error||'تعذّر استخراج الترجمة من هذا الرابط.');
+   transcriptStatus(message,true);
+   return;
+  }
+  const text=parseCaptionFile(String(result.captions||''),'vtt');
+  if(!text){transcriptStatus('وصلت استجابة الفيديو دون نص ترجمة قابل للقراءة. جرّب ملف ترجمة SRT أو VTT.',true);return}
+  const title=String(result.title||'تفريغ فيديو YouTube').trim().slice(0,100)||'تفريغ فيديو YouTube';
+  transcriptSourceName='YouTube · '+title;
+  transcriptBaseText=text;
+  transcriptFormatIndex=0;
+  transcriptLastRendered=formatTranscriptText(text,0);
+  $('transcriptTitle').value=title;
+  $('transcriptText').value=transcriptLastRendered;
+  refreshTranscriptTablePreview();
+  $('transcriptText').spellcheck=false;
+  $('transcriptSpellcheck').setAttribute('aria-pressed','false');
+  $('transcriptFormatLabel').textContent=TRANSCRIPT_FORMATS[0];
+  $('transcriptEditorPanel').hidden=false;
+  const words=text.trim().split(/\s+/).filter(Boolean).length;
+  const language=result.languageName||result.language||'';
+  const auto=result.autoGenerated?' · ترجمة تلقائية':' · ترجمة مضافة';
+  transcriptStatus('تم استخراج الترجمة المتاحة بنجاح · '+words+' كلمة'+(language?' · '+language:'')+auto,false);
+  transcriptEditorStatus('راجع الأسماء والمصطلحات، خصوصًا الآيات والأحاديث والأبيات الشعرية، قبل اعتماد النص.');
+ }catch(error){
+  transcriptStatus(error&&error.name==='AbortError'?'انتهت مهلة فحص الترجمة. أعد المحاولة أو استورد ملف ترجمة.':'تعذّر الاتصال ببوابة أنوار. تحقق من الاتصال ثم أعد المحاولة.',true);
+ }finally{
+  clearTimeout(timeout);
+  if(button){button.disabled=false;button.textContent=oldLabel||'🎬 توليد النص من رابط YouTube';button.removeAttribute('aria-busy')}
+ }
+}
 async function transcribeAudioFile(){
  const file=$('transcriptAudioFile')?.files?.[0];
  const button=$('transcriptGenerate');
@@ -2100,8 +2189,6 @@ async function transcribeAudioFile(){
  if(file.size<=0){transcriptStatus('الملف الصوتي فارغ.',true);return}
  if(file.size>8*1024*1024){transcriptStatus('حجم الملف أكبر من 8 ميغابايت. اختر ملفًا أصغر.',true);return}
  if(!$('transcriptConsent')?.checked){transcriptStatus('يرجى تأكيد حقك في استخدام التسجيل قبل رفعه للمعالجة السحابية.',true);return}
- const sourceUrl=String($('transcriptYoutubeUrl')?.value||'').trim();
- if(sourceUrl&&!parseYouTubeVideoId(sourceUrl)){transcriptStatus('رابط YouTube غير صحيح. صحّحه أو امسحه قبل التفريغ.',true);return}
  const endpoint=transcriptWorkerEndpoint();
  if(!endpoint){
   transcriptStatus('خدمة التفريغ لم تُفعّل بعد: يلزم نشر عامل Cloudflare ثم ضبط عنوانه في api-gateway-config.js.',true);
@@ -2143,6 +2230,7 @@ async function transcribeAudioFile(){
   transcriptLastRendered=formatted;
   $('transcriptTitle').value=(file.name||'تفريغ صوتي').replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').slice(0,100)||'تفريغ صوتي';
   $('transcriptText').value=formatted;
+  refreshTranscriptTablePreview();
   $('transcriptText').spellcheck=false;
   $('transcriptSpellcheck').setAttribute('aria-pressed','false');
   $('transcriptFormatLabel').textContent=TRANSCRIPT_FORMATS[0];
@@ -2159,23 +2247,60 @@ async function transcribeAudioFile(){
  }
 }
 
-function cycleTranscriptFormat(){
+function closeTranscriptFormatMenu(){
+ const menu=$('transcriptFormatMenu'),button=$('transcriptFormat');
+ if(menu)menu.hidden=true;
+ if(button)button.setAttribute('aria-expanded','false');
+}
+function toggleTranscriptFormatMenu(){
+ const menu=$('transcriptFormatMenu'),button=$('transcriptFormat');
+ if(!menu||!button)return;
+ const open=menu.hidden;
+ menu.hidden=!open;
+ button.setAttribute('aria-expanded',String(open));
+}
+function applyTranscriptFormat(index){
  const area=$('transcriptText');
- if(!area||!area.value.trim()){transcriptEditorStatus('استورد ملف ترجمة أولًا.');return}
+ if(!area||!area.value.trim()){transcriptEditorStatus('ولّد النص أو استورد ملف ترجمة أولًا.');closeTranscriptFormatMenu();return}
  if(area.value!==transcriptLastRendered)transcriptBaseText=area.value;
- transcriptFormatIndex=(transcriptFormatIndex+1)%TRANSCRIPT_FORMATS.length;
- const formatted=formatTranscriptText(transcriptBaseText,transcriptFormatIndex);
+ transcriptFormatIndex=index;
+ const formatted=index<0?transcriptBaseText:formatTranscriptText(transcriptBaseText,index);
  transcriptLastRendered=formatted;
  area.value=formatted;
- $('transcriptFormatLabel').textContent=TRANSCRIPT_FORMATS[transcriptFormatIndex];
- transcriptEditorStatus('تغيّر ترتيب العرض إلى: '+TRANSCRIPT_FORMATS[transcriptFormatIndex]+' · يمكنك متابعة التحرير.');
+ refreshTranscriptTablePreview();
+ $('transcriptFormatLabel').textContent=index<0?'النص الأصلي':TRANSCRIPT_FORMATS[index];
+ transcriptEditorStatus(index<0?'أُعيد النص إلى ترتيبه الأصلي.':'تم ترتيب النص بصيغة: '+TRANSCRIPT_FORMATS[index]+' · بقي المحتوى الأصلي محفوظًا للعودة إليه.');
+ closeTranscriptFormatMenu();
+}
+function refreshTranscriptTablePreview(){
+ const preview=$('transcriptTablePreview'),area=$('transcriptText');
+ if(!preview)return;
+ if(transcriptFormatIndex!==5||!area||!area.value.trim()){
+  preview.hidden=true;preview.innerHTML='';return;
+ }
+ const rows=area.value.split(/\r?\n/).filter(Boolean).map(line=>{
+  const cells=line.split('\t');
+  return [cells[0]||'',cells[1]||'',cells[2]||''];
+ });
+ if(!rows.length){preview.hidden=true;preview.innerHTML='';return}
+ preview.innerHTML='<div class="transcript-table-caption">معاينة جدول المذاكرة · يمكنك تنزيله بصيغة PDF أو Word</div>'+transcriptTableHtml(rows);
+ preview.hidden=false;
+}
+function transcriptTableHtml(rows){
+ const cellStyle='border:1px solid #b9ad98;padding:9px 8px;vertical-align:top;text-align:right;line-height:1.8;';
+ const headerHtml='<thead><tr>'+(rows[0]||[]).map(cell=>'<th style="'+cellStyle+'background:#eee5d1;font-weight:700;">'+esc(cell)+'</th>').join('')+'</tr></thead>';
+ const bodyHtml='<tbody>'+rows.slice(1).map(row=>'<tr>'+row.map((cell,index)=>'<td style="'+cellStyle+(index===2?'min-width:115px;min-height:32px;':'')+'">'+esc(cell)+'</td>').join('')+'</tr>').join('')+'</tbody>';
+ return '<table dir="rtl" style="width:100%;border-collapse:collapse;table-layout:fixed;margin:14px 0;">'+headerHtml+bodyHtml+'</table>';
 }
 function getTranscriptRecord(){
  const title=$('transcriptTitle').value.trim()||'تفريغ فيديو';
  const text=$('transcriptText').value.trim();
  if(!text){transcriptEditorStatus('لا يوجد نص لتصديره.');return null}
- const html=text.split(/\n/).map(line=>'<div>'+esc(line||'')+'</div>').join('');
- return {title,text,html,record:{title,type:'text',ts:Date.now(),html,paper:'plain'}};
+ const rows=transcriptFormatIndex===5?text.split(/\r?\n/).filter(Boolean).map(line=>line.split('\t')):null;
+ const html=rows?transcriptTableHtml(rows):text.split(/\n/).map(line=>'<div>'+esc(line||'')+'</div>').join('');
+ const record={title,type:'text',ts:Date.now(),html,paper:'plain'};
+ if(rows)record.transcriptRows=rows;
+ return {title,text,html,rows,record};
 }
 async function exportTranscript(format){
  const item=getTranscriptRecord();if(!item)return false;
@@ -2183,7 +2308,7 @@ async function exportTranscript(format){
  try{
   if(format==='pdf'){
    $('pa').style.cssText='position:fixed;left:-10000px;top:0;width:794px;padding:48px 58px;background:#fff;color:#111;font-family:Amiri,serif;font-size:20px;line-height:2;direction:rtl';
-   $('pa').innerHTML='<h1>'+esc(item.title)+'</h1><div class="m">تفريغ نصي من مفكرة أنوار</div><hr><section style="font:20px/2 Amiri,serif;text-align:right">'+item.html+'</section><div class="f">مفكرة أنوار · © 2026 Anouar Oumlili</div>';
+   $('pa').innerHTML='<style>table{border-collapse:collapse;width:100%;table-layout:fixed;direction:rtl}th,td{border:1px solid #b9ad98;padding:9px 8px;text-align:right;vertical-align:top;line-height:1.8;overflow-wrap:anywhere}th{background:#eee5d1;font-weight:700}td:last-child{min-width:110px;height:34px}</style><h1>'+esc(item.title)+'</h1><div class="m">تفريغ نصي من مفكرة أنوار</div><hr><section style="font:20px/2 Amiri,serif;text-align:right">'+item.html+'</section><div class="f">مفكرة أنوار · © 2026 Anouar Oumlili</div>';
    const saved=await renderPaPdf(base+'.pdf');
    if(saved)transcriptEditorStatus('تم تنزيل ملف PDF.');
    return saved;
@@ -2417,7 +2542,9 @@ document.addEventListener('click',e=>{
  const t=e.target.closest('button,.card,#fl div,.archive-card');
  if(!e.target.closest('#fm')&&t?.id!=='fb')$('fm').classList.remove('o');
  if(!e.target.closest('#paperStylePanel')&&t?.id!=='paperStyleBtn'){$('paperStylePanel').hidden=true;$('paperStyleBtn').setAttribute('aria-expanded','false')}
+ if(!e.target.closest('.transcript-format-wrap'))closeTranscriptFormatMenu();
  if(!t)return;
+ if(t.dataset.transcriptFormat!==undefined){applyTranscriptFormat(Number(t.dataset.transcriptFormat));return;}
  if(t.dataset.archiveFilter!==undefined){archiveFilter=t.dataset.archiveFilter;renderArchive(true);return}
  if(t.dataset.archiveId){const selected=S.notes.find(n=>n.id===t.dataset.archiveId);if(selected){openNote(selected);$('archiveDialog').close()}return}
  if(t.id==='listMore'){listRenderLimit+=LIST_PAGE_SIZE;renderList();return}
@@ -2436,9 +2563,10 @@ document.addEventListener('click',e=>{
  else if(id==='createBook')createBook();
  else if(id==='addBookFile')$('bookFilePicker').click();
   else if(id==='transcriptGenerate')transcribeAudioFile();
+  else if(id==='transcriptGenerateYoutube')transcribeYouTubeLink();
   else if(id==='transcriptChooseCaption')transcriptChooseCaption();
   else if(id==='transcriptSpellcheck')toggleTranscriptSpellcheck();
-  else if(id==='transcriptFormat')cycleTranscriptFormat();
+  else if(id==='transcriptFormat')toggleTranscriptFormatMenu();
   else if(id==='transcriptExportPdf')exportTranscript('pdf');
   else if(id==='transcriptExportDocx')exportTranscript('docx');
   else if(id==='transcriptExportTxt')exportTranscript('txt');
@@ -2546,9 +2674,11 @@ $('transcriptCaptionFile').addEventListener('change',e=>{
  if(file)importTranscriptCaption(file);
  e.target.value='';
 });
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeTranscriptFormatMenu()});
 $('transcriptText').addEventListener('input',()=>{
  const value=$('transcriptText').value;
  if(value!==transcriptLastRendered)transcriptBaseText=value;
+ if(transcriptFormatIndex===5)refreshTranscriptTablePreview();
 });
 $('bookFormat').addEventListener('change',e=>{
  const hints={pdf:'ينشئ ملف PDF جاهزاً للقراءة والطباعة ويحفظه مباشرة على الجهاز.',docx:'ينشئ مستند Word قابلاً للتحرير.',txt:'يحفظ النص العربي في ملف بسيط.',html:'ينشئ صفحة ويب مستقلة من أعمال الكتاب.'};

@@ -2015,7 +2015,19 @@ dialog[open]>.float-head{display:none!important}
  .transcript-field{display:grid;gap:5px;color:var(--tx);font:700 11px Cairo,Tahoma,sans-serif}
  #bookToolContent .transcript-field input,#bookToolContent .transcript-field textarea{box-sizing:border-box;width:100%;margin:0;border:1px solid var(--bd);border-radius:9px;padding:10px;background:var(--sf);color:var(--tx);font:12px/1.9 Cairo,Tahoma,sans-serif}
  #bookToolContent #transcriptYoutubeUrl{text-align:left;direction:ltr}
+ .transcript-format-wrap{position:relative;display:inline-flex;align-items:center}
+ .transcript-format-menu{position:absolute;z-index:30;top:calc(100% + 6px);right:0;min-width:190px;max-width:min(260px,85vw);padding:6px;border:1px solid var(--bd);border-radius:10px;background:var(--sf);box-shadow:0 8px 22px rgba(20,35,50,.16);display:grid;gap:3px}
+ .transcript-format-menu[hidden]{display:none!important}
+ .transcript-format-menu button{width:100%;text-align:right;border:0!important;background:transparent!important;padding:8px 10px!important;font-size:11px!important}
+ .transcript-format-menu button:hover,.transcript-format-menu button:focus-visible{background:var(--ac2)!important;color:var(--ac)!important}
  #bookToolContent #transcriptText{min-height:176px;resize:vertical;white-space:pre-wrap;line-height:2.05;font:14px/2.05 Amiri,'Noto Naskh Arabic',serif}
+ .transcript-table-preview{max-width:100%;overflow:auto;border:1px solid var(--bd);border-radius:9px;padding:8px;background:var(--sf)}
+ .transcript-table-preview[hidden]{display:none!important}
+ .transcript-table-caption{margin:0 0 7px;color:var(--mu);font:10px/1.7 Cairo,Tahoma,sans-serif}
+ .transcript-table-preview table{min-width:430px;border-collapse:collapse;width:100%;table-layout:fixed;direction:rtl}
+ .transcript-table-preview th,.transcript-table-preview td{border:1px solid #b9ad98;padding:8px;text-align:right;vertical-align:top;white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.8 Cairo,Tahoma,sans-serif}
+ .transcript-table-preview th{background:#eee5d1;color:#624b23}
+ .transcript-table-preview td:last-child{min-width:110px;height:36px;background:rgba(255,255,255,.35)}
  .transcript-consent{display:flex;align-items:flex-start;gap:8px;color:var(--mu);font:10px/1.8 Cairo,Tahoma,sans-serif}
  .transcript-consent input{margin-top:4px;accent-color:var(--ac);flex:none}
  .transcript-upload-note{color:var(--mu);font:10px/1.8 Cairo,Tahoma,sans-serif}
@@ -2151,33 +2163,46 @@ dialog[open]>.float-head{display:none!important}
     <span aria-hidden="true">🎙️</span>
     <div><strong id="transcriptToolTitle">من المسموع إلى المكتوب</strong><small>تفريغ صوتي بالذكاء الاصطناعي ثم مراجعة النص</small></div>
    </header>
-   <label class="transcript-field" for="transcriptYoutubeUrl">رابط فيديو YouTube (للمرجع فقط) · اختياري
-    <input id="transcriptYoutubeUrl" type="url" inputmode="url" autocomplete="url" placeholder="https://www.youtube.com/watch?v=..." dir="ltr">
+   <label class="transcript-field" for="transcriptYoutubeUrl">رابط فيديو YouTube
+    <input id="transcriptYoutubeUrl" type="url" inputmode="url" autocomplete="url" placeholder="ألصق رابط الفيديو هنا" dir="ltr">
    </label>
-   <label class="transcript-field" for="transcriptAudioFile">ارفع ملفًا صوتيًا لتوليد النص تلقائيًا
+   <button type="button" id="transcriptGenerateYoutube" class="transcript-generate-button">🎬 توليد النص من رابط YouTube</button>
+   <label class="transcript-field" for="transcriptAudioFile">أو اختر ملفًا صوتيًا من جهازك
     <input id="transcriptAudioFile" type="file" accept="audio/*,.mp3,.m4a,.wav,.ogg,.webm,.flac,.aac">
    </label>
    <label class="transcript-consent" for="transcriptConsent">
     <input id="transcriptConsent" type="checkbox">
     <span>أؤكد أن لدي حق استخدام هذا التسجيل ورفعه للمعالجة السحابية.</span>
    </label>
-   <button type="button" id="transcriptGenerate" class="transcript-generate-button">🎙️ توليد النص من الصوت</button>
-   <small class="transcript-upload-note">يدعم الملفات الصوتية حتى 8 ميغابايت. يُرسل التسجيل إلى Cloudflare Workers AI للتفريغ ولا تُحفظ نسخة منه في مفكرة أنوار. قد تُحسب تكلفة الاستخدام بعد الحصة المجانية وفق خطة Cloudflare. رابط YouTube مرجع للفيديو فقط؛ يلزم رفع تسجيل تملك حق استخدامه أو استيراد ترجمته المصرح بها.</small>
-   <button type="button" id="transcriptChooseCaption" class="transcript-import-button">أو استيراد ملف ترجمة SRT / VTT</button>
+   <button type="button" id="transcriptGenerate" class="transcript-import-button">🎙️ توليد النص من الملف الصوتي</button>
+   <small class="transcript-upload-note">يحاول رابط YouTube استخراج مسار الترجمة النصية المتاح للفيديو دون تنزيله أو تجاوز صلاحياته. إذا لم تتوفر ترجمة، يمكنك استيراد ملف SRT أو VTT أو رفع تسجيل تملك حق استخدامه. حد الملف الصوتي 8 ميغابايت.</small>
+   <button type="button" id="transcriptChooseCaption" class="transcript-import-button">استيراد ملف ترجمة SRT / VTT / TXT</button>
    <input type="file" id="transcriptCaptionFile" hidden accept=".srt,.vtt,.txt,text/plain,text/vtt">
-   <p id="transcriptSourceStatus" class="transcript-status" role="status" aria-live="polite">للفيديو الذي تملكه أو لديك إذن باستخدام ترجمته، اختر ملف SRT أو VTT أو TXT محفوظًا على هاتفك. لا تسحب المفكرة نص فيديو عام من YouTube دون صلاحية.</p>
+   <p id="transcriptSourceStatus" class="transcript-status" role="status" aria-live="polite">ألصق رابط الفيديو واضغط «توليد النص من رابط YouTube». إذا لم تكن هناك ترجمة متاحة، ستظهر لك طريقة بديلة واضحة.</p>
 
    <div id="transcriptEditorPanel" class="transcript-editor-panel" hidden>
     <label class="transcript-field" for="transcriptTitle">عنوان التفريغ
      <input id="transcriptTitle" type="text" maxlength="100" value="تفريغ فيديو">
     </label>
-    <label class="transcript-field" for="transcriptText">النص المستخرج
+    <label class="transcript-field" for="transcriptText">النص المستخرج والقابل للتحرير
      <textarea id="transcriptText" rows="9" dir="rtl" lang="ar" spellcheck="false" placeholder="سيظهر النص هنا بعد التفريغ الصوتي أو استيراد الترجمة..."></textarea>
     </label>
+    <div id="transcriptTablePreview" class="transcript-table-preview" hidden aria-live="polite"></div>
     <div class="transcript-toolbar" aria-label="أدوات مراجعة النص">
      <button type="button" id="transcriptSpellcheck" aria-pressed="false" title="تشغيل التدقيق الإملائي المتاح في المتصفح">✎ التدقيق الإملائي</button>
-     <button type="button" id="transcriptFormat" title="تبديل ترتيب النص بين الفقرات والجمل والقائمة">☷ تنسيق النص</button>
-     <span id="transcriptFormatLabel" class="transcript-format-label">فقرات</span>
+     <div class="transcript-format-wrap">
+      <button type="button" id="transcriptFormat" aria-haspopup="menu" aria-expanded="false" title="اختيار طريقة واحدة لترتيب النص">☷</button>
+      <div id="transcriptFormatMenu" class="transcript-format-menu" role="menu" hidden>
+       <button type="button" role="menuitem" data-transcript-format="0">فقرات منظمة</button>
+       <button type="button" role="menuitem" data-transcript-format="1">جمل منفصلة</button>
+       <button type="button" role="menuitem" data-transcript-format="2">نقاط مرتبة</button>
+       <button type="button" role="menuitem" data-transcript-format="3">قائمة مرقمة</button>
+       <button type="button" role="menuitem" data-transcript-format="4">مقاطع بعناوين</button>
+       <button type="button" role="menuitem" data-transcript-format="5">جدول للمذاكرة</button>
+       <button type="button" role="menuitem" data-transcript-format="-1">استعادة النص الأصلي</button>
+      </div>
+     </div>
+     <span id="transcriptFormatLabel" class="transcript-format-label">فقرات منظمة</span>
     </div>
     <div class="transcript-export-actions" aria-label="تنزيل التفريغ">
      <button type="button" id="transcriptExportPdf" title="تنزيل النص بصيغة PDF">PDF</button>
