@@ -16,6 +16,7 @@ assert.equal(state.readerAdvance,'c');
 assert.equal(state.radio.surah,1);
 assert.equal(state.tasbih.count,0);
 assert.equal(state.tasbih.dhikr,'أستغفر الله العظيم وأتوب إليه');
+assert.deepEqual(Array.from(state.tasbih.customDhikrs),[],'custom dhikr list starts empty');
 
 let notifications=0,persisted=null;
 api.subscribe(()=>notifications++);
@@ -42,10 +43,15 @@ assert.equal(state.readerAdvance,'c','invalid reader modes use the safe default'
 assert.equal(state.tasbih.count,0,'negative counters are rejected');
 assert.equal(state.tasbih.dhikr.length,200,'dhikr labels are length-limited');
 
-state=api.normalize({radio:{surah:114},readerAdvance:'s',tasbih:{count:1000000001,dhikr:''}});
+state=api.normalize({radio:{surah:114},readerAdvance:'s',tasbih:{count:1000000001,dhikr:'',customDhikrs:['  سبحان الله  ','سبحان الله','الحمد لله']}});
 assert.equal(state.radio.surah,114);
 assert.equal(state.tasbih.count,1000000000,'counter values are capped at the documented safe maximum');
 assert.equal(state.tasbih.dhikr,'أستغفر الله العظيم وأتوب إليه','empty dhikr labels use a safe default');
+assert.deepEqual(Array.from(state.tasbih.customDhikrs),['سبحان الله','الحمد لله'],'custom dhikrs are trimmed, deduplicated and kept in order');
+const many=Array.from({length:40},(_,index)=>'ذكر '+index);
+const capped=api.normalize({tasbih:{customDhikrs:many.concat(['ذ'.repeat(240),''])}});
+assert.equal(capped.tasbih.customDhikrs.length,30,'custom dhikr list is capped at 30 entries');
+assert.ok(capped.tasbih.customDhikrs.every(item=>item.length<=200&&item.trim()),'custom dhikr entries are normalized and length-limited');
 
 const helperStart=html.indexOf('function importLegacyPrivatePreferences(base){');
 const helperEnd=html.indexOf('async function persistVaultSnapshot(plaintext){',helperStart);
