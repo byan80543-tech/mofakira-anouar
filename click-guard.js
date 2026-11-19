@@ -67,6 +67,9 @@
   const target=event.target;
   if(!target||!body.contains(target)||target===notice||
      (typeof notice.contains==='function'&&notice.contains(target)))return;
+  // Tasbih buttons are intentionally high-frequency controls; do not let the
+  // global anti-burst guard interrupt a legitimate counting session.
+  if(typeof target.closest==='function'&&target.closest('#tasbihTap, #anwarFloatTap, [data-anwar-counter-tap]'))return;
 
   const timestamp=clock();
   if(timestamp<cooldownUntil){
