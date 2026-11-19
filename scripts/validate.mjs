@@ -169,7 +169,7 @@ ok(!deployWorkflow.includes('cp _headers dist/mofakira-anouar/_headers'),'securi
 ok(securityHeaders.includes("frame-ancestors 'none'") && securityHeaders.includes('X-Frame-Options: DENY'),'HTTP headers prevent cross-origin framing');
 ok(securityHeaders.includes('X-Content-Type-Options: nosniff') && securityHeaders.includes('Referrer-Policy: strict-origin-when-cross-origin'),'HTTP headers set MIME-sniffing and referrer protections');
 ok(securityHeaders.includes('Permissions-Policy: camera=(), geolocation=(), microphone=(self)'),'HTTP Permissions-Policy disables unused camera and location access');
-ok(securityHeaders.includes("script-src 'self' https://cdnjs.cloudflare.com") && securityHeaders.includes("'sha256-2hfKs02QbjOqbW6nnlUKK5v0Kmtok9HTIOsEYOV9f0A='") && securityHeaders.includes('upgrade-insecure-requests'),'HTTP CSP mirrors the approved script hashes and secure resource policy');
+ok(securityHeaders.includes("Content-Security-Policy:") && securityHeaders.includes("script-src 'self' https://cdnjs.cloudflare.com") && securityHeaders.includes('upgrade-insecure-requests'),'HTTP CSP response header is present and retains the secure resource policy; exact inline hashes are checked by test-csp.mjs');
 
 if(failures.length){
   console.error('\nValidation failed:');
