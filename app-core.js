@@ -4057,11 +4057,26 @@ window.AnouarUpdateBridge = Object.freeze({
  }
  function openPanel(){
   if(!panel.hidden){closePanel();return}
-  if(!ownerDialog.open)ownerDialog.showModal();
-  if($('adhkarPanel').hidden)$('adhkarTab').click();
-  panel.hidden=false;toggleButton.setAttribute('aria-expanded','true');
-  requestAnimationFrame(()=>panel.scrollIntoView({behavior:'smooth',block:'nearest'}));
-  closeButton.focus();
+  try{
+   if(!ownerDialog.open)ownerDialog.showModal();
+   // Switch the parent dialog directly. A synthetic click on the tab is not
+   // needed and can be intercepted by delegated click handlers.
+   showOwnerPanel('adhkar');
+   const adhkarPanel=$('adhkarPanel');
+   if(!adhkarPanel)throw new Error('تعذّر العثور على لوحة الأذكار');
+   adhkarPanel.hidden=false;
+   panel.hidden=false;
+   toggleButton.setAttribute('aria-expanded','true');
+   requestAnimationFrame(()=>{
+    if(typeof panel.scrollIntoView==='function'){
+     panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+    }
+   });
+   closeButton.focus();
+  }catch(error){
+   console.error('تعذّر فتح نافذة السبحة',error);
+   if(typeof toast==='function')toast('تعذّر فتح نافذة السبحة. أغلق النافذة وحاول مجددًا.');
+  }
  }
  toggleButton.addEventListener('click',openPanel);
  customAdd.addEventListener('click',addCustomDhikr);
