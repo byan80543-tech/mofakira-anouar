@@ -1891,6 +1891,24 @@ dialog[open]>.float-head{display:none!important}
 #tasbihPanel .anwar-tasbih-counter{cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
 #tasbihPanel .anwar-tasbih-counter:focus-visible{outline:3px solid var(--tasbih-accent-soft);outline-offset:4px}
 </style>
+
+<style id="anwar-tasbih-touch-polish-v1">
+/* إزالة وميض اللمس الأزرق مع الإبقاء على تركيز لوحة المفاتيح بلون السبحة */
+#tasbihPanel button,#tasbihPanel [role="button"]{
+ -webkit-tap-highlight-color:transparent;
+ touch-action:manipulation;
+}
+#tasbihPanel button:focus:not(:focus-visible),
+#tasbihPanel [role="button"]:focus:not(:focus-visible){
+ outline:none!important;
+}
+#tasbihPanel button:focus-visible,
+#tasbihPanel [role="button"]:focus-visible{
+ outline:2px solid var(--tasbih-accent-soft,#c9a96a)!important;
+ outline-offset:3px;
+}
+</style>
+
 </head>
 <body>
 <div class="app" id="app">
@@ -2291,7 +2309,7 @@ dialog[open]>.float-head{display:none!important}
 <script src="./vault-device-unlock.js?v=20261118-1"></script>
 <script src="./app-core.js?v=20261119-8" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
-<script src="./tasbih-controller.js?v=20261119-9" defer></script>
+<script src="./tasbih-controller.js?v=20261119-10" defer></script>
 
 
 
