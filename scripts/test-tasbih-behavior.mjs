@@ -286,7 +286,7 @@ assert.equal(count(app),2,'repeated final events do not count the same words twi
 const punctuated={0:{transcript:'سبحان الله؛'},length:1,isFinal:true};
 recognition.onresult({resultIndex:1,results:[spoken,punctuated]});
 assert.equal(count(app),3,'Arabic punctuation and cumulative final results do not prevent a correct match');
-assert.equal(app.nodes.tasbihVoiceTranscript.textContent,'سبحان الله','even when the browser returns cumulative results, only the latest dhikr remains visible');
+assert.equal(app.nodes.tasbihVoiceTranscript.textContent,'سبحان الله؛','even when the browser returns cumulative results, only the latest recognized dhikr remains visible with its captured punctuation');
 assert.equal(app.pendingTimers.length,0,'every complete repetition increments the count immediately without waiting for the speaker to pause');
 recognition.onspeechend();
 assert.equal(app.pendingTimers[0].delay,650,'a real speech pause starts the short fade delay');
