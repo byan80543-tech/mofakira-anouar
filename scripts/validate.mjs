@@ -157,7 +157,7 @@ for(const match of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)){
   try{new vm.Script(match[2],{filename:`inline-script-${scriptCount}.js`})}
   catch(error){failures.push(`inline script ${scriptCount}: ${error.message}`)}
 }
-ok(scriptCount>0,'remaining inline JavaScript blocks discovered');
+ok(scriptCount===0,'application HTML contains no inline JavaScript');
 try{new vm.Script(appCore,{filename:'app-core.js'});ok(true,'extracted application bundle syntax is valid')}catch(error){failures.push('app-core.js: '+error.message)}
 ok(appCore.includes('const LIST_PAGE_SIZE=50;') && appCore.includes('listRenderLimit+=LIST_PAGE_SIZE') && appCore.includes('archiveRenderLimit+=LIST_PAGE_SIZE'),'main list and archive use progressive 50-item rendering');
 ok(iconGenerator.includes("ImageFilter.UnsharpMask") && iconGenerator.includes("radius=0.7, percent=125, threshold=2"),'192px launcher icon receives a controlled sharpening pass after downsampling');
@@ -170,8 +170,8 @@ ok(socialFunction.includes(".on('meta[property=\"og:title\"]'") && socialFunctio
 const qualityWorkflow=fs.readFileSync(path.join(root,'.github/workflows/quality.yml'),'utf8');
 ok(qualityWorkflow.includes('wrangler@4.164.0') && !qualityWorkflow.includes('wrangler@latest'),'quality dry-run pins the Wrangler version used by deployment');
 ok(appSource.includes("content-visibility:auto;contain-intrinsic-size:auto 76px"),'off-screen note cards skip unnecessary painting');
-ok(html.includes('src="./app-core.js?v=20261119-1"') && appCore.length>200000,'main application bundle is external and cacheable');
-ok(serviceWorker.includes("'./app-core.js'") && serviceWorker.includes('anwar-shell-2026-11-19-v65'),'service worker precaches the extracted main bundle under a new shell version');
+ok(html.includes('src="./app-core.js?v=20261119-2" defer') && appCore.length>200000,'main application bundle is external and cacheable');
+ok(serviceWorker.includes("'./app-core.js'") && serviceWorker.includes('anwar-shell-2026-11-19-v66'),'service worker precaches the extracted main bundle under a new shell version');
 ok(appSource.includes("backdrop-filter:none;-webkit-backdrop-filter:none"),'vault startup overlay avoids an expensive full-screen blur');
 
 
