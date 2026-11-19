@@ -23,7 +23,7 @@ assert.ok(!toggleBody.includes('__anwarStopCountryAudio'),'toggling the radio do
 assert.ok(toggleBody.includes('radioShouldPlay=false'),'manual pause clears the resume intent');
 
 assert.ok(radio.includes('function syncRadioDucking()'),'radio ducking helper exists');
-assert.ok(radio.includes('anotherAudioIsPlaying?0.28:1'),'radio is lowered, not paused, while another in-app audio element plays');
+assert.ok(radio.includes("document.querySelectorAll('audio,video')")&&radio.includes('anotherAudioIsPlaying?0.28:1'),'radio is lowered, not paused, while another audible in-app audio or video element plays');
 assert.ok(radio.includes("document.addEventListener(type,syncRadioDucking,true)"),'audio events from other in-app players update ducking');
 assert.ok(radio.includes('function resumeRadioAfterReturn()'),'safe foreground resume helper exists');
 assert.ok(radio.includes('!radioShouldPlay||!au.src||au.ended||!au.paused||radioResumePending'),'resume avoids manual pauses, ended tracks, and duplicate attempts');
