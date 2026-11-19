@@ -32,12 +32,11 @@
 
 كلما تغير نص أي كتلة JavaScript مضمنة يجب تحديث بصمتها في CSP. يفحص `scripts/test-csp.mjs` البصمات في CI، وتتحقق `scripts/validate.mjs` من وجود الرؤوس المطلوبة وموضع نشرها.
 
-البصمات الحالية للكتل المضمنة الأربع، ويجب أن تبقى متطابقة في `index.html` و`_headers` وهذا الدليل:
+البصمات الحالية للكتل البرمجية المضمنة الثلاث، ويجب أن تبقى متطابقة في `index.html` و`_headers` وهذا الدليل:
 
-- `'sha256-2Beg0nunIEYQVr2fI7art6C6EPTQzSJyN8rtyFmUvo8='`
-- `'sha256-4giI+ESUJtIatupQ0GRa19vnQYslezSh4XuPQ1lOMX8='`
-- `'sha256-8YkHgI92MLtaZEym4Zs2fhcBnrUqCXMnywRd2wUa99U='`
-- `'sha256-QYwkkTcnQ+I/GO9GzNxZiLL3+C66HISY56P+LRrjBz0='`
+- 'sha256-4giI+ESUJtIatupQ0GRa19vnQYslezSh4XuPQ1lOMX8='
+- 'sha256-8YkHgI92MLtaZEym4Zs2fhcBnrUqCXMnywRd2wUa99U='
+- 'sha256-QYwkkTcnQ+I/GO9GzNxZiLL3+C66HISY56P+LRrjBz0='
 
 
 ## ما لم نفعّله عمداً
