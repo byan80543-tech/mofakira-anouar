@@ -193,8 +193,8 @@ ok(socialFunction.includes(".on('meta[property=\"og:title\"]'") && socialFunctio
 const qualityWorkflow=fs.readFileSync(path.join(root,'.github/workflows/quality.yml'),'utf8');
 ok(qualityWorkflow.includes('wrangler@4.164.0') && !qualityWorkflow.includes('wrangler@latest'),'quality dry-run pins the Wrangler version used by deployment');
 ok(appSource.includes("content-visibility:auto;contain-intrinsic-size:auto 76px"),'off-screen note cards skip unnecessary painting');
-const appCorePreload=html.match(new RegExp('<link rel="preload" href="([^"]+)" as="script">'));
-const appCoreScript=html.match(new RegExp('<script src="([^"]+)" defer></script>'));
+const appCorePreload=html.match(new RegExp('<link rel="preload" href="([^"]*app-core[.]js[?]v=[^"]+)" as="script">'));
+const appCoreScript=html.match(new RegExp('<script src="([^"]*app-core[.]js[?]v=[^"]+)" defer></script>'));
 ok(!!appCorePreload && !!appCoreScript && appCorePreload[1].includes('app-core.js?v=') && appCorePreload[1]===appCoreScript[1] && appCore.length>200000,'main application bundle is externally loaded and preload/script cache versions match');
 ok(appSource.includes('id="youtubeTranscriptTool"') && appSource.includes('id="transcriptYoutubeUrl"') && appSource.includes('id="transcriptText"') && appSource.includes('id="transcriptExportPdf"'),'book transcript editor UI and export controls are present');
 ok(appCore.includes('function parseYouTubeVideoId') && appCore.includes('function parseCaptionFile') && appCore.includes("else if(id==='transcriptExportPdf')exportTranscript('pdf')") && appCore.includes("else if(id==='transcriptInsertBook')insertTranscriptIntoBook()"),'transcript URL validation, caption parsing, PDF export and book insertion are wired');
