@@ -73,13 +73,13 @@ function buildApp(options={}){
   'tasbihReset','tasbihDhikrCards','tasbihCustomDhikrInput','tasbihAddCustomDhikr','tasbihCustomDhikrStatus',
   'tasbihRemoveDhikr','tasbihRestoreOfficial','tasbihVoicePanel','tasbihVoice','tasbihVoiceState',
   'tasbihVoiceStatus','tasbihVoiceButtonLabel','tasbihVoiceTranscript','morningTab','eveningTab',
-  'tasbihThemeToggle','tasbihThemePicker','tasbihThemeEmerald','tasbihThemeDark','tasbihThemePink','tasbihThemeNight','tasbihThemeHeritage','tasbihThemeGlass'
+  'tasbihCounterControl','tasbihThemeToggle','tasbihThemePicker','tasbihThemeEmerald','tasbihThemeDark','tasbihThemePink','tasbihThemeNight','tasbihThemeHeritage','tasbihThemeGlass'
  ];
  for(const id of ids)nodes[id]=id==='tasbihDhikr'?new FakeSelect(id):new FakeElement(id,id==='ownerDialog'?'DIALOG':'DIV');
  const themeNames=['emerald','dark','pink','night','heritage','glass'];
  themeNames.forEach(name=>{nodes['tasbihTheme'+name[0].toUpperCase()+name.slice(1)].dataset.tasbihThemeOption=name});
  nodes.tasbihThemePicker.hidden=true;
- const counter=new FakeElement('counter','DIV');nodes.tasbihPanel.counter=counter;
+ const counter=new FakeElement('tasbihCounterControl','DIV');nodes.tasbihPanel.counter=counter;nodes.tasbihCounterControl=counter;
  nodes.ownerDialog.showModal=function(){this.open=true};
  const groupPattern=/<optgroup label="([^"]*)">([\s\S]*?)<\/optgroup>/g;
  for(const groupMatch of selectMatch[1].matchAll(groupPattern)){
@@ -122,6 +122,14 @@ function buildApp(options={}){
  return {nodes,preferences,get state(){return clone(state)},recognitions,sandbox};
 }
 function count(app){return app.state.tasbih.count}
+
+const counterInput=buildApp();
+counterInput.nodes.tasbihCounterControl.click();
+assert.equal(count(counterInput),1,'tapping the circular counter itself increments the count');
+counterInput.nodes.tasbihCounterControl.dispatch('keydown',{key:'Enter'});
+assert.equal(count(counterInput),2,'the circular counter supports Enter from the keyboard');
+counterInput.nodes.tasbihCounterControl.dispatch('keydown',{key:' '});
+assert.equal(count(counterInput),3,'the circular counter supports Space from the keyboard');
 
 const app=buildApp();
 assert.equal(app.sandbox.__ANWAR_TASBIH_CONTROLLER_READY__,true,'the controller initializes when the required UI is present');
