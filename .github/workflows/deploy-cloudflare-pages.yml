@@ -1,7 +1,11 @@
 name: Deploy Anwar Notebook to Cloudflare Pages
 
 on:
-  push:
+  workflow_run:
+    workflows:
+      - Quality checks
+    types:
+      - completed
     branches:
       - main
   workflow_dispatch:
@@ -15,11 +19,14 @@ concurrency:
 
 jobs:
   deploy:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Check out source
+      - name: Check out the exact commit that passed quality checks
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
       - name: Prepare static site while preserving the PWA path
         shell: bash
