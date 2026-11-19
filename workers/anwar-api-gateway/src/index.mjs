@@ -583,12 +583,8 @@ async function transcribeAudio(request, env, origin) {
     return errorResponse("تعذّرت قراءة الملف المرفوع. أعد اختيار الملف وحاول مجددًا.", 400, origin);
   }
 
-  if ([...form.keys()].some(key => !["audio", "consent"].includes(key))) {
-    return errorResponse("حقول الطلب غير معروفة.", 400, origin);
-  }
-  const consent = form.getAll("consent");
-  if (consent.length !== 1 || consent[0] !== "true") {
-    return errorResponse("يلزم تأكيد حق استخدام التسجيل قبل إرساله للمعالجة.", 400, origin);
+  if ([...form.keys()].some(key => key !== "audio")) {
+    return errorResponse("أرفق ملفًا صوتيًا واحدًا فقط.", 400, origin);
   }
   const audioFiles = form.getAll("audio");
   const file = audioFiles.length === 1 ? audioFiles[0] : null;
