@@ -25,7 +25,7 @@ const browser={
 };
 vm.runInNewContext(source,{window:browser,globalThis:browser,WeakSet,Array,Object,String,Number,Math});
 assert.ok(browser.AnwarPoetryDictation,'dictation controller is exported');
-assert.deepEqual(Array.from(browser.AnwarPoetryDictation.LANGUAGES),['ar-MA','ar-SA','ar']);
+assert.deepEqual(Array.from(browser.AnwarPoetryDictation.LANGUAGES),['ar'],'only standard Arabic is enabled');
 
 function flushTimers(){
  let rounds=0;
@@ -45,7 +45,8 @@ let controller=browser.AnwarPoetryDictation.create({
  clearTimeout:id=>timers.delete(id)
 });
 assert.equal(controller.start(),true,'dictation should start when SpeechRecognition exists');
-assert.equal(instances[0].lang,'ar-MA','Moroccan Arabic is preferred');
+assert.equal(instances[0].lang,'ar','standard Arabic is the sole recognition language');
+assert.equal(controller.getLanguage(),'ar','controller exposes Arabic only');
 assert.equal(instances[0].continuous,true,'recognition stays continuous where supported');
 assert.equal(instances[0].interimResults,true,'interim recognition is enabled');
 
@@ -62,12 +63,13 @@ controller.stop();
 assert.equal(controller.isRequested(),false,'manual stop clears the recording request');
 assert.equal(controller.isActive(),false,'manual stop clears active capture');
 
-const fallback=browser.AnwarPoetryDictation.create({onStatus:(state)=>statuses.push({state})});
-fallback.start();
-instances[1].error('language-not-supported');
-flushTimers();
-assert.equal(instances.at(-1).lang,'ar-SA','unsupported Moroccan locale falls back to Saudi Arabic');
-fallback.stop();
+const unsupportedArabic=browser.AnwarPoetryDictation.create({onStatus:(state,detail)=>statuses.push({state,detail})});
+unsupportedArabic.start();
+const beforeUnsupported=instances.length;
+instances.at(-1).error('language-not-supported');
+assert.equal(unsupportedArabic.isRequested(),false,'unsupported Arabic recognition fails clearly without switching languages');
+assert.equal(instances.length,beforeUnsupported,'no non-Arabic or alternate locale is attempted');
+assert.ok(statuses.some(item=>item.state==='error'&&/العربية/.test(item.detail)),'Arabic-only limitation is explained to the user');
 
 const interrupted=browser.AnwarPoetryDictation.create({});
 interrupted.start();
@@ -77,7 +79,7 @@ assert.equal(timers.size,1,'unexpected session end schedules a reconnect');
 flushTimers();
 assert.equal(instances.length,beforeRestart+1,'unexpected session end starts a new recognition session');
 interrupted.stop();
-assert.ok(statuses.some(item=>item.state==='language-fallback'),'language fallback is surfaced to the UI');
+assert.ok(statuses.some(item=>item.state==='restarting'),'temporary recognition interruption is surfaced to the UI');
 
 const unsupported={};
 vm.runInNewContext(source,{window:unsupported,globalThis:unsupported,WeakSet,Array,Object,String,Number,Math});
@@ -86,4 +88,4 @@ const unavailable=unsupported.AnwarPoetryDictation.create({onStatus:(state)=>uns
 assert.equal(unavailable.start(),false,'unsupported browsers must not pretend to start');
 assert.equal(unsupportedStatus,'error','unsupported browser state is reported');
 
-console.log('PASS Arabic poetry dictation: fresh Android batches, repeated phrases, cumulative results, interim filtering, locale fallback, bounded reconnect and stop');
+console.log('PASS Arabic poetry dictation: fresh Android batches, repeated phrases, cumulative results, interim filtering, Arabic-only language enforcement, bounded reconnect and stop');
