@@ -34,7 +34,7 @@
 
 البصمات الحالية للكتل المضمنة الأربع، ويجب أن تبقى متطابقة في `index.html` و`_headers` وهذا الدليل:
 
-- `'sha256-zpGC6rTLyP8ZC2+ZVM0RYkcrIftVAapu2D95oDFElh4='`
+- `'sha256-4oXgFwEfW4qXEgi8OzBXPr10shcKinT/tF+EBaNlVqQ='`
 - `'sha256-4giI+ESUJtIatupQ0GRa19vnQYslezSh4XuPQ1lOMX8='`
 - `'sha256-8YkHgI92MLtaZEym4Zs2fhcBnrUqCXMnywRd2wUa99U='`
 - `'sha256-QYwkkTcnQ+I/GO9GzNxZiLL3+C66HISY56P+LRrjBz0='`
