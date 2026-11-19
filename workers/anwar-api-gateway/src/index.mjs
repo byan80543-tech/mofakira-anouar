@@ -315,8 +315,6 @@ export class IpRateLimiter {
     state.global = Array.isArray(state.global)
       ? state.global.filter(timestamp => Number.isFinite(timestamp) && timestamp > cutoff)
       : [];
-    // Drop counters from the retired audio-transcription endpoint.
-    delete state.transcription;
     if (!state.clients || typeof state.clients !== "object" || Array.isArray(state.clients)) {
       state.clients = {};
     }
@@ -327,7 +325,6 @@ export class IpRateLimiter {
         delete state.clients[key];
         continue;
       }
-      delete value.transcribe;
       for (const bucket of ["client", "catalog", "country-list", "country-profile"]) {
         const windowMs = RATE_POLICIES[bucket]?.windowMs || 60_000;
         const bucketCutoff = now - windowMs;
