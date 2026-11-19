@@ -586,10 +586,6 @@ export default {
       return servePublicYouTubeTranscript(videoId, language, origin);
     }
 
-    if (request.method !== "GET") {
-      return errorResponse("طريقة الطلب غير مسموحة.", 405, origin, { Allow: "GET, OPTIONS" });
-    }
-
     const route = resolveRoute(url);
     if (!route) return errorResponse("المسار غير موجود.", 404, origin);
     if (route.error) return errorResponse(route.error, 400, origin);
