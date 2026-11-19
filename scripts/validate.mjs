@@ -174,6 +174,9 @@ const securityHeaders=fs.readFileSync(path.join(root,'_headers'),'utf8');
 ok(deployWorkflow.includes('cp _headers dist/_headers'),'Cloudflare Pages receives _headers at the deployment output root');
 ok(deployWorkflow.includes('test -s dist/_headers') && deployWorkflow.includes("grep -q \"frame-ancestors 'none'\" dist/_headers"),'deployment fails closed if the root security header file is missing or incomplete');
 ok(!deployWorkflow.includes('cp _headers dist/mofakira-anouar/_headers'),'security headers are not misplaced inside the nested PWA directory');
+ok(deployWorkflow.includes('workflow_run:') && deployWorkflow.includes('Quality checks') && deployWorkflow.includes("github.event.workflow_run.conclusion == 'success'"),'automatic Cloudflare production deployment waits for a successful Quality checks run');
+ok(deployWorkflow.includes('github.event.workflow_run.head_sha'),'Cloudflare deployment checks out the exact commit that CI validated');
+
 ok(securityHeaders.includes("frame-ancestors 'none'") && securityHeaders.includes('X-Frame-Options: DENY'),'HTTP headers prevent cross-origin framing');
 ok(securityHeaders.includes('X-Content-Type-Options: nosniff') && securityHeaders.includes('Referrer-Policy: strict-origin-when-cross-origin'),'HTTP headers set MIME-sniffing and referrer protections');
 ok(securityHeaders.includes('Permissions-Policy: camera=(), geolocation=(), microphone=(self)'),'HTTP Permissions-Policy disables unused camera and location access');
