@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
-const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
+const html=fs.readFileSync(new URL('../app-core.js',import.meta.url),'utf8');
 const apiStart=html.indexOf('/* Encrypted private settings shared by the notebook modules. */');
 const apiEnd=html.indexOf('requestAnimationFrame(()=>setTimeout(()=>{',apiStart);
 assert.ok(apiStart>=0&&apiEnd>apiStart,'private preference API is present');
