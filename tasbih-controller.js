@@ -306,6 +306,20 @@
    }
    return matches;
   }
+  function lastMatchedPhraseText(transcript,phrase){
+   const words=String(transcript||'').trim().split(/\s+/).filter(Boolean);
+   const target=normalizeSpeech(phrase).split(' ').filter(Boolean);
+   if(!target.length||words.length<target.length)return '';
+   const normalized=words.map(normalizeSpeech);
+   for(let i=words.length-target.length;i>=0;i--){
+    let matched=true;
+    for(let j=0;j<target.length;j++){
+     if(normalized[i+j]!==target[j]){matched=false;break}
+    }
+    if(matched)return words.slice(i,i+target.length).join(' ');
+   }
+   return '';
+  }
   function bestSpeechText(result,phrase){
    if(!result)return '';
    const alternatives=Number.isInteger(result.length)&&result.length>0?result.length:1;
@@ -545,7 +559,7 @@
      if(newMatches>0){
       voiceMatchCount=totalMatches;
       add(newMatches);
-      showVoiceTranscript(voiceTargetPhrase);
+      showVoiceTranscript(lastMatchedPhraseText(liveText,voiceTargetPhrase)||latestText||voiceTargetPhrase);
       setVoiceState('listening','تم التعرف على الذكر وإضافة '+newMatches.toLocaleString('ar')+' إلى العداد.');
      }else if(totalMatches===0&&finalText){
       setVoiceState('listening','التقطت العبارة، لكنها لا تطابق الذكر المختار كاملاً. النص الملتقط: '+(latestText||'تعذر تمييز العبارة'));
