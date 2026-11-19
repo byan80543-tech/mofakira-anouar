@@ -228,6 +228,7 @@ resolveBridge();
 await new Promise(resolve => setImmediate(resolve));
 assert.equal(safeWorker.messages.length, 1, 'the visitor approves activation only after save preparation');
 assert.equal(safeWorker.messages[0].type, 'ANOUAR_ACTIVATE_UPDATE', 'the expected consent message is sent to the waiting worker');
+safeVisit.serviceWorker.controller = safeWorker;
 safeVisit.triggerControllerChange();
 await updatePromise;
 assert.equal(safeVisit.reloadCount(), 1, 'the page reloads only after the new worker takes control');
