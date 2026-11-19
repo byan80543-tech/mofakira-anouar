@@ -32,7 +32,7 @@ for(const id of ['adhkarTab','adhkarTasbihToggle','morningTab','eveningTab','tas
 assert.ok(appCore.includes("morning:[")&&appCore.includes("evening:["),'official morning and evening adhkar data remain in the notebook');
 assert.ok(appCore.includes("window.AnwarRenderAdhkar=function(period)"),'notebook exposes a small public renderer bridge');
 assert.ok(!appCore.includes("const $=id=>document.getElementById(id),panel=$('tasbihPanel')"),'old tasbih controller was removed from the delayed notebook initializer');
-assert.ok(html.includes('src="./tasbih-controller.js?v=20261119-1" defer'),'the new independent controller is loaded by the page');
+assert.ok(/<script src="\.\/tasbih-controller\.js\?v=\d{8}-\d+" defer><\/script>/.test(html),'the new independent controller is loaded by the page with a versioned URL');
 assert.ok(fs.readFileSync(new URL('service-worker.js',root),'utf8').includes("'./tasbih-controller.js'"),'the independent controller is included in the offline shell');
 
 function extractBetween(startText,endText){
