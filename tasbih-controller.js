@@ -257,15 +257,17 @@
    const value=String(customInput.value||'').replace(/\s+/g,' ').trim();
    if(!value){customStatus.textContent='اكتب الذكر أولاً ثم اضغط إضافة.';customInput.focus();return}
    if(value.length>200){customStatus.textContent='الحد الأقصى لطول الذكر هو 200 حرف.';customInput.focus();return}
-   if(removedOfficialDhikrs.includes(value)){
-    removedOfficialDhikrs=removedOfficialDhikrs.filter(item=>item!==value);
+   const removedOfficial=Array.from(select.options).find(option=>!isCustomOption(option)&&optionText(option)===value&&isRemovedOfficial(option));
+   if(removedOfficial){
+    const removalKey=removedOfficial.dataset.anwarOfficialId||removedOfficial.value;
+    removedOfficialDhikrs=removedOfficialDhikrs.filter(item=>item!==removalKey);
     customInput.value='';
-    chooseDhikr(value,true);
+    chooseDhikr(removedOfficial.value,true);
     customStatus.textContent='أُعيد الذكر الرسمي إلى قائمتك واختير للسبحة.';
     return;
    }
-   const existing=Array.from(select.options).find(option=>optionText(option)===value);
-   if(existing){customInput.value='';chooseDhikr(value,true);customStatus.textContent='هذا الذكر موجود في القائمة، وقد تم اختياره.';return}
+   const existing=Array.from(select.options).find(option=>optionText(option)===value&&(isCustomOption(option)||!isRemovedOfficial(option)));
+   if(existing){customInput.value='';chooseDhikr(existing.value,true);customStatus.textContent='هذا الذكر موجود في القائمة، وقد تم اختياره.';return}
    if(customDhikrs.length>=30){customStatus.textContent='وصلت إلى الحد الأقصى وهو 30 ذكراً مضافاً.';return}
    customDhikrs.push(value);
    renderCustomOptions();
