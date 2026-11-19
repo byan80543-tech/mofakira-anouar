@@ -59,6 +59,8 @@ jobs:
         run: node scripts/test-tasbih-open.mjs
       - name: Test tasbih counter, voice capture and dhikr management
         run: node scripts/test-tasbih-behavior.mjs
+      - name: Test Arabic poetry voice dictation across Android result batches
+        run: node scripts/test-poetry-dictation.mjs
       - name: Validate manifest, icons, HTML IDs and JavaScript syntax
         run: node scripts/validate.mjs
       - name: Verify Content Security Policy and inline script hashes
@@ -67,8 +69,6 @@ jobs:
         run: node scripts/test-click-guard.mjs
       - name: Validate Cloudflare Worker bundle and Wrangler bindings
         run: npx --yes wrangler@4.164.0 deploy --dry-run --config workers/anwar-api-gateway/wrangler.toml
-      - name: Test API gateway allowlist, cache and IP rate limiting
-        run: node scripts/test-api-gateway.mjs
       - name: Test notebook storage and recovery paths
         run: node scripts/test-storage.mjs
       - name: Test encrypted vault cryptography and backup integrity
@@ -91,3 +91,5 @@ jobs:
         run: node scripts/test-service-worker.mjs
       - name: Test smart update notification lifecycle
         run: node scripts/test-update-notice.mjs
+      - name: Test API gateway allowlist, cache and IP rate limiting
+        run: node scripts/test-api-gateway.mjs
