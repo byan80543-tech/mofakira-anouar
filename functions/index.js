@@ -40,7 +40,7 @@ export async function onRequest(context) {
     .on("head", {
       element(head) {
         head.onEndTag(endTag => {
-          if (!hasSocialTitle) endTag.append(SOCIAL_META, { html: true });
+          if (!hasSocialTitle) endTag.before(SOCIAL_META, { html: true });
         });
       },
     })
