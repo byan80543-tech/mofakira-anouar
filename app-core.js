@@ -2506,8 +2506,8 @@ function speakText(){
    return;
   }
   if(speaking){
-   speaking=false;speak.run=(speak.run||0)+1;
-   synth.cancel();$('speakRead').textContent='🔊 إلقاء';toast('تم إيقاف الإلقاء');
+   speaking=false;speakText.run=(speakText.run||0)+1;
+   synth.cancel();$('speakRead').textContent='🔊 قراءة';toast('تم إيقاف الإلقاء');
    return;
   }
   const text=(pg.innerText||pg.textContent||'').replace(/\u200b/g,' ').replace(/[ \t]+\n/g,'\n').trim();
@@ -2530,24 +2530,24 @@ function speakText(){
   }
   if(rest)chunks.push(rest);
   let index=0;
-  const run=speak.run=(speak.run||0)+1;
+  const run=speakText.run=(speakText.run||0)+1;
   speaking=true;$('speakRead').textContent='⏹️ إيقاف';
   toast(voice?'بدأ الإلقاء بالصوت العربي: '+voice.name:'بدأ الإلقاء؛ يستخدم المتصفح صوته الافتراضي إن كان يدعم العربية');
   function finish(message){
-   if(run!==speak.run)return;
-   speaking=false;$('speakRead').textContent='🔊 إلقاء';
+   if(run!==speakText.run)return;
+   speaking=false;$('speakRead').textContent='🔊 قراءة';
    if(message)toast(message,4000);
   }
   function next(){
-   if(run!==speak.run||!speaking)return;
+   if(run!==speakText.run||!speaking)return;
    if(index>=chunks.length){finish('اكتمل إلقاء النص');return;}
    const utterance=new window.SpeechSynthesisUtterance(chunks[index]);
    utterance.lang=voice?.lang||'ar-SA';
    if(voice)utterance.voice=voice;
    utterance.rate=.85;utterance.pitch=1;utterance.volume=1;
-   utterance.onend=()=>{if(run!==speak.run)return;index++;next();};
+   utterance.onend=()=>{if(run!==speakText.run)return;index++;next();};
    utterance.onerror=e=>{
-    if(run!==speak.run)return;
+    if(run!==speakText.run)return;
     const reason=e&&e.error;
     finish(reason==='not-allowed'?
      'منع المتصفح الإلقاء؛ اضغط الزر مجددًا واسمح بخدمة تحويل النص إلى كلام':
