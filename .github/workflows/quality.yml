@@ -67,6 +67,8 @@ jobs:
         run: node scripts/test-storage.mjs
       - name: Test encrypted vault cryptography and backup integrity
         run: node scripts/test-vault-crypto.mjs
+      - name: Test encrypted save limits match vault restore limits
+        run: node scripts/test-vault-save-guard.mjs
       - name: Test encrypted vault migration and rollback
         run: node scripts/test-vault-migration.mjs
       - name: Test encrypted vault startup and backup-only recovery
