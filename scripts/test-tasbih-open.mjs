@@ -116,7 +116,7 @@ const delegatedSandbox={
  console:{error(){}},
  button:delegatedButton
 };
-vm.runInNewContext(helperSource+'\\ntoggleTasbihFromToolbar(button);',delegatedSandbox,{timeout:2000});
+vm.runInNewContext(helperSource+'\ntoggleTasbihFromToolbar(button);',delegatedSandbox,{timeout:2000});
 assert.ok(delegatedCalls.some(call=>call[0]==='controller-toggle'),'the shared click route delegates to the standalone tasbih controller');
 
 const fallbackButton={attributes:{},setAttribute(name,value){this.attributes[name]=String(value)}};
@@ -133,7 +133,7 @@ const fallbackSandbox={
  console:{error(){}},
  button:fallbackButton
 };
-vm.runInNewContext(helperSource+'\\ntoggleTasbihFromToolbar(button);',fallbackSandbox,{timeout:2000});
+vm.runInNewContext(helperSource+'\ntoggleTasbihFromToolbar(button);',fallbackSandbox,{timeout:2000});
 assert.equal(fallbackDialog.open,true,'delegated fallback opens the parent dialog');
 assert.equal(fallbackAdhkar.hidden,false,'delegated fallback opens the adhkar view');
 assert.equal(fallbackPanel.hidden,false,'delegated fallback opens the tasbih panel even if its controller is unavailable');
