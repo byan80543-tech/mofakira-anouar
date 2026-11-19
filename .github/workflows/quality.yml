@@ -55,6 +55,8 @@ jobs:
           node-version: 22
       - name: Validate manifest, icons, HTML IDs and JavaScript syntax
         run: node scripts/validate.mjs
+      - name: Test radio continuity across in-app audio and foreground interruptions
+        run: node scripts/test-radio-interruptions.mjs
       - name: Verify Content Security Policy and inline script hashes
         run: node scripts/test-csp.mjs
       - name: Test click-burst protection and cooldown
