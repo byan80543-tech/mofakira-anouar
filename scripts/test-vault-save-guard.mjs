@@ -27,7 +27,7 @@ function harness(){
   vaultBackupWarningShown:false,
   Date,JSON,Array,String,Number,Math,Set,Object,Error
  };
- vm.runInNewContext(source+'\\nthis.persist=persistVaultSnapshot;',sandbox,{timeout:3000});
+ vm.runInNewContext(source+'\nthis.persist=persistVaultSnapshot;',sandbox,{timeout:3000});
  return {sandbox,values,run:sandbox.persist,get encryptCalls(){return encryptCalls}};
 }
 const valid=harness();
