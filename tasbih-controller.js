@@ -17,12 +17,13 @@
   const themeButtons=themeIds.map(name=>({name,button:$('tasbihTheme'+name[0].toUpperCase()+name.slice(1))}));
   const tap=$('tasbihTap'),minus=$('tasbihMinus'),reset=$('tasbihReset');
   const cards=$('tasbihDhikrCards'),customInput=$('tasbihCustomDhikrInput');
+  const dhikrToggle=$('tasbihDhikrToggle'),dhikrList=$('tasbihDhikrListPanel');
   const customAdd=$('tasbihAddCustomDhikr'),customStatus=$('tasbihCustomDhikrStatus');
   const removeButton=$('tasbihRemoveDhikr'),restoreButton=$('tasbihRestoreOfficial');
   const voicePanel=$('tasbihVoicePanel'),voiceButton=$('tasbihVoice');
   const voiceState=$('tasbihVoiceState'),voiceStatus=$('tasbihVoiceStatus');
   const voiceButtonLabel=$('tasbihVoiceButtonLabel'),voiceTranscript=$('tasbihVoiceTranscript');
-  const required={panel,toggleButton,closeButton,ownerDialog,adhkarPanel,select,countNode,phraseNode,counterControl,tap,minus,reset,cards,customInput,customAdd,customStatus,removeButton,restoreButton,voicePanel,voiceButton,voiceState,voiceStatus,voiceButtonLabel,voiceTranscript,themeToggle,themePicker,...Object.fromEntries(themeButtons.map(item=>['theme'+item.name,item.button]))};
+  const required={panel,toggleButton,closeButton,ownerDialog,adhkarPanel,select,countNode,phraseNode,counterControl,tap,minus,reset,cards,dhikrToggle,dhikrList,customInput,customAdd,customStatus,removeButton,restoreButton,voicePanel,voiceButton,voiceState,voiceStatus,voiceButtonLabel,voiceTranscript,themeToggle,themePicker,...Object.fromEntries(themeButtons.map(item=>['theme'+item.name,item.button]))};
   const missing=Object.keys(required).filter(key=>!required[key]);
   if(missing.length){
    console.error('تعذر تهيئة السبحة؛ عناصر الواجهة الناقصة:',missing);
@@ -211,6 +212,11 @@
    themeToggle.setAttribute('aria-expanded','false');
    saveAndUpdate();
   }
+  function setDhikrListOpen(open){
+   const expanded=Boolean(open);
+   dhikrList.hidden=!expanded;
+   dhikrToggle.setAttribute('aria-expanded',expanded?'true':'false');
+  }
   function chooseDhikr(value,resetCount){
    const option=Array.from(select.options).find(item=>item.value===value&&(isCustomOption(item)||!isRemovedOfficial(item)));
    if(!option)return;
@@ -219,6 +225,7 @@
    voiceTargetPhrase=optionText(option);
    voiceMatchCount=0;
    if(resetCount)count=0;
+   setDhikrListOpen(false);
    setVoiceTranscript('');
    saveAndUpdate();
   }
@@ -415,6 +422,7 @@
   function closePanel(restoreFocus){
    themePicker.hidden=true;
    themeToggle.setAttribute('aria-expanded','false');
+   setDhikrListOpen(false);
    if(voiceActive)stopVoice('توقف الاستماع عند إغلاق السبحة.');
    panel.hidden=true;
    toggleButton.setAttribute('aria-expanded','false');
@@ -437,6 +445,8 @@
    themeToggle.setAttribute('aria-expanded',themePicker.hidden?'false':'true');
   });
   themeButtons.forEach(item=>item.button.addEventListener('click',()=>chooseTheme(item.name)));
+  dhikrToggle.addEventListener('click',()=>setDhikrListOpen(dhikrList.hidden));
+  setDhikrListOpen(false);
   // The circular number itself is an accessible tap target as well as the dedicated button.
   counterControl.setAttribute('role','button');
   counterControl.setAttribute('tabindex','0');
@@ -460,6 +470,7 @@
    count=0;
    saveAndUpdate();
    setVoiceTranscript('');
+   setDhikrListOpen(false);
   });
   removeButton.addEventListener('click',()=>{
    const selected=Array.from(select.options).find(option=>option.value===select.value);
