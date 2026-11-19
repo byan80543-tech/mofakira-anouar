@@ -55,16 +55,16 @@ jobs:
           node-version: 22
       - name: Test radio continuity across in-app audio and foreground interruptions
         run: node scripts/test-radio-interruptions.mjs
+      - name: Test direct tasbih icon opens its dialog
+        run: node scripts/test-tasbih-open.mjs
+      - name: Test tasbih counter, voice capture and dhikr management
+        run: node scripts/test-tasbih-behavior.mjs
       - name: Validate manifest, icons, HTML IDs and JavaScript syntax
         run: node scripts/validate.mjs
       - name: Verify Content Security Policy and inline script hashes
         run: node scripts/test-csp.mjs
       - name: Test click-burst protection and cooldown
         run: node scripts/test-click-guard.mjs
-      - name: Test direct tasbih icon opens its dialog
-        run: node scripts/test-tasbih-open.mjs
-      - name: Test tasbih counter, voice capture and dhikr management
-        run: node scripts/test-tasbih-behavior.mjs
       - name: Validate Cloudflare Worker bundle and Wrangler bindings
         run: npx --yes wrangler@4.164.0 deploy --dry-run --config workers/anwar-api-gateway/wrangler.toml
       - name: Test API gateway allowlist, cache and IP rate limiting
