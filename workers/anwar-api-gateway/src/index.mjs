@@ -468,13 +468,14 @@ async function transcribeAudio(request, env, origin) {
       audio: bytesToBase64(audioBytes),
       task: "transcribe"
     });
-    const text = typeof result?.text === "string" ? result.text.trim() : "";
+    const transcriptionInfo = result?.transcription_info;
+    const text = typeof transcriptionInfo?.text === "string" ? transcriptionInfo.text.trim() : "";
     if (!text || text.length > 250_000) {
       return errorResponse("لم يُنتج محرك التفريغ نصًا صالحًا. جرّب ملفًا أوضح وأقصر.", 502, origin);
     }
-    const detectedLanguage = String(result?.transcription_info?.language || "").slice(0, 24);
-    const wordCount = Number.isFinite(Number(result?.word_count))
-      ? Math.max(0, Number(result.word_count))
+    const detectedLanguage = String(transcriptionInfo?.language || "").slice(0, 24);
+    const wordCount = Number.isFinite(Number(transcriptionInfo?.word_count))
+      ? Math.max(0, Number(transcriptionInfo.word_count))
       : text.split(/\s+/).filter(Boolean).length;
     return withCors(json({ text, language: detectedLanguage, wordCount }, 200), origin);
   } catch {
