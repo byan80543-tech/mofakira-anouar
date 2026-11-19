@@ -84,9 +84,14 @@ function buildApp(options={}){
  const groupPattern=/<optgroup label="([^"]*)">([\s\S]*?)<\/optgroup>/g;
  for(const groupMatch of selectMatch[1].matchAll(groupPattern)){
   const group=new FakeElement('', 'OPTGROUP');group.label=groupMatch[1];
-  const optionPattern=/<option(\s+selected)?>([\s\S]*?)<\/option>/g;
+  const optionPattern=/<option([^>]*)>([\s\S]*?)<\/option>/g;
   for(const optionMatch of groupMatch[2].matchAll(optionPattern)){
-   const option=new FakeElement('', 'OPTION');option.value=optionMatch[2];option.textContent=optionMatch[2];option.selected=!!optionMatch[1];
+   const attrs=optionMatch[1]||'';
+   const option=new FakeElement('', 'OPTION');
+   option.value=optionMatch[2].trim();option.textContent=optionMatch[2].trim();
+   option.selected=/\bselected\b/.test(attrs);
+   const meta=attrs.match(/data-meta="([^"]*)"/);if(meta)option.dataset.meta=meta[1];
+   const repeat=attrs.match(/data-repeat="([^"]*)"/);if(repeat)option.dataset.repeat=repeat[1];
    group.appendChild(option);
   }
   nodes.tasbihDhikr.appendChild(group);
@@ -122,6 +127,24 @@ function buildApp(options={}){
  return {nodes,preferences,get state(){return clone(state)},recognitions,sandbox};
 }
 function count(app){return app.state.tasbih.count}
+
+const officialCatalog=buildApp();
+const officialOptions=officialCatalog.nodes.tasbihDhikr.options;
+const officialValues=officialOptions.map(option=>option.value);
+assert.ok(officialValues.includes('قل هو الله أحد الله الصمد لم يلد ولم يولد ولم يكن له كفوا أحد'),'the full official morning/evening Surah Al-Ikhlas is included');
+assert.ok(officialValues.includes('اللهم أنت ربي لا إله إلا أنت خلقتني وأنا عبدك وأنا على عهدك ووعدك ما استطعت أعوذ بك من شر ما صنعت أبوء لك بنعمتك علي وأبوء بذنبي فاغفر لي فإنه لا يغفر الذنوب إلا أنت'),'the complete Sayyid al-Istighfar wording is included');
+assert.ok(officialValues.includes('باسمك اللهم أموت وأحيا'),'the authentic bedtime dhikr is included');
+assert.ok(officialValues.includes('لا إله إلا الله وحده لا شريك له له الملك وله الحمد وهو على كل شيء قدير اللهم لا مانع لما أعطيت ولا معطي لما منعت ولا ينفع ذا الجد منك الجد'),'the full post-prayer tahlil wording is included');
+assert.ok(officialOptions.some(option=>option.dataset.meta&&option.dataset.meta.includes('مسلم')),'official dhikrs show their source and repetition details');
+assert.equal(officialValues.length,new Set(officialValues).size,'official dhikr phrases do not contain duplicate values');
+assert.equal(officialCatalog.nodes.tasbihPanel.counter.dataset.targetComplete,'false','counter starts in a non-complete state');
+officialCatalog.nodes.tasbihDhikr.value='سبحان الله';
+officialCatalog.nodes.tasbihDhikr.dispatch('change');
+for(let i=0;i<33;i++)officialCatalog.nodes.tasbihTap.click();
+assert.equal(officialCatalog.nodes.tasbihPanel.counter.dataset.targetComplete,'true','the counter visibly marks a fixed-count dhikr complete');
+officialCatalog.nodes.tasbihDhikr.value='أستغفر الله العظيم وأتوب إليه';
+officialCatalog.nodes.tasbihDhikr.dispatch('change');
+assert.equal(officialCatalog.nodes.tasbihPanel.counter.dataset.targetComplete,'false','unbounded dhikr does not show a false completion state');
 
 const counterInput=buildApp();
 counterInput.nodes.tasbihCounterControl.click();

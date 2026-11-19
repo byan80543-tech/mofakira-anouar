@@ -1881,6 +1881,14 @@ dialog[open]>.float-head{display:none!important}
 #tasbihPanel .anwar-tasbih-counter:active{transform:scale(.97)}
 #tasbihPanel .anwar-tasbih-counter span{font-size:10px}
 </style>
+<style id="anwar-tasbih-dhikr-metadata-v1">
+.tasbih-dhikr-card{min-height:58px}
+.tasbih-dhikr-card-copy{display:grid;gap:2px;min-width:0;justify-items:center}
+.tasbih-dhikr-card-meta{display:block;max-width:100%;color:var(--mu);font:500 9px/1.45 Cairo,Tahoma,sans-serif;overflow-wrap:anywhere}
+.tasbih-dhikr-card[aria-pressed="true"] .tasbih-dhikr-card-meta{color:#735f42}
+#tasbihPanel .anwar-tasbih-counter[data-target-complete="true"]{border-color:#3b926c;box-shadow:0 0 0 3px #3b926c28,inset 0 0 0 4px #3b926c1f}
+@media(max-width:360px){.tasbih-dhikr-card-meta{font-size:8px}}
+</style>
 </head>
 <body>
 <div class="app" id="app">
@@ -2145,7 +2153,7 @@ dialog[open]>.float-head{display:none!important}
   </button></div>
   <section id="tasbihPanel" class="anwar-tasbih-inline" hidden aria-labelledby="tasbihTitle">
    <header class="anwar-tasbih-inline-head">
-    <div><strong id="tasbihTitle">سبحة الأذكار</strong><small>تسبيحك وعدّادك في مكان واحد</small></div>
+    <div><strong id="tasbihTitle">سبحة الأذكار</strong></div>
     <button type="button" id="tasbihThemeToggle" class="anwar-tasbih-theme-toggle" aria-controls="tasbihThemePicker" aria-expanded="false" title="تغيير مظهر السبحة"><span aria-hidden="true">🎨</span><span>المظهر</span></button>
     <button type="button" id="tasbihClose" aria-label="إغلاق السبحة">إغلاق</button>
    </header>
@@ -2161,7 +2169,7 @@ dialog[open]>.float-head{display:none!important}
     </div>
    </div>
    <div class="anwar-tasbih-content">
-    <p class="anwar-tasbih-intro">اذكر الله بقلب حاضر</p><div class="anwar-tasbih-phrase" id="tasbihPhrase">أستغفر الله العظيم وأتوب إليه</div>
+    <div class="anwar-tasbih-phrase" id="tasbihPhrase">أستغفر الله العظيم وأتوب إليه</div>
     <div class="anwar-tasbih-label" id="tasbihDhikrLabel">اختر الذكر</div>
     <div id="tasbihDhikrCards" class="tasbih-dhikr-cards" role="group" aria-labelledby="tasbihDhikrLabel"></div>
     <div class="tasbih-dhikr-management">
@@ -2170,9 +2178,58 @@ dialog[open]>.float-head{display:none!important}
     </div>
     <small class="tasbih-dhikr-note">الإزالة تخص قائمتك على هذا الجهاز فقط، ويمكنك استعادة الأذكار الرسمية متى شئت.</small>
     <select id="tasbihDhikr" class="anwar-tasbih-select" aria-hidden="true" tabindex="-1" hidden>
-     <optgroup label="التسبيح والتحميد"><option>سبحان الله</option><option>الحمد لله</option><option>الله أكبر</option><option>لا إله إلا الله</option><option>سبحان الله وبحمده</option><option>سبحان الله العظيم</option><option>سبحان الله والحمد لله ولا إله إلا الله والله أكبر</option><option>لا حول ولا قوة إلا بالله</option></optgroup>
-     <optgroup label="الاستغفار والتوبة"><option>أستغفر الله</option><option selected>أستغفر الله العظيم وأتوب إليه</option><option>أستغفر الله العظيم الذي لا إله إلا هو الحي القيوم وأتوب إليه</option><option>رب اغفر لي وتب علي إنك أنت التواب الرحيم</option><option>اللهم إنك عفو تحب العفو فاعف عني</option></optgroup>
-     <optgroup label="أذكار وأدعية جامعة"><option>اللهم صل وسلم على نبينا محمد</option><option>اللهم أعني على ذكرك وشكرك وحسن عبادتك</option><option>لا إله إلا أنت سبحانك إني كنت من الظالمين</option><option>حسبي الله لا إله إلا هو عليه توكلت وهو رب العرش العظيم</option><option>رضيت بالله ربا وبالإسلام دينا وبمحمد نبيا</option><option>يا حي يا قيوم برحمتك أستغيث</option><option>ربنا آتنا في الدنيا حسنة وفي الآخرة حسنة وقنا عذاب النار</option><option>اللهم اكفني بحلالك عن حرامك وأغنني بفضلك عمن سواك</option></optgroup>
+     <optgroup label="التسبيح والتحميد">
+      <option data-repeat="33" data-meta="٣٣ بعد الصلاة · مسلم ٥٩٧؛ وترد كذلك ٣٣ قبل النوم · مسلم ٢٧٢٧">سبحان الله</option>
+      <option data-repeat="33" data-meta="٣٣ بعد الصلاة · مسلم ٥٩٧؛ وترد كذلك ٣٣ قبل النوم · مسلم ٢٧٢٧">الحمد لله</option>
+      <option data-meta="٣٣ بعد الصلاة في إحدى الصيغ · مسلم ٥٩٧؛ و٣٤ في صيغة أخرى · مسلم ٥٩٦؛ و٣٤ قبل النوم · مسلم ٢٧٢٧">الله أكبر</option>
+      <option data-meta="ذكر مطلق · لا يلزم له عدد ثابت">لا إله إلا الله</option>
+      <option data-repeat="100" data-meta="١٠٠ مرة في اليوم · البخاري ٦٤٠٥ ومسلم ٢٦٩٢">سبحان الله وبحمده</option>
+      <option data-meta="مع سبحان الله وبحمده · البخاري ٦٤٠٦">سبحان الله العظيم</option>
+      <option data-meta="من أحب الكلام إلى الله · صحيح مسلم ٢١٣٧">سبحان الله والحمد لله ولا إله إلا الله والله أكبر</option>
+      <option data-meta="كنز من كنوز الجنة · البخاري ٦٣٨٤ ومسلم ٢٧٠٤">لا حول ولا قوة إلا بالله</option>
+     </optgroup>
+     <optgroup label="الاستغفار والتوبة">
+      <option data-repeat="3" data-meta="٣ مرات عقب الصلاة · صحيح مسلم ٥٩١">أستغفر الله</option>
+      <option selected data-meta="استغفار مطلق · لا عدد لازم">أستغفر الله العظيم وأتوب إليه</option>
+      <option data-meta="ورد في الاستغفار · أبو داود ١٥١٧ والترمذي ٣٥٧٧">أستغفر الله العظيم الذي لا إله إلا هو الحي القيوم وأتوب إليه</option>
+      <option data-repeat="100" data-meta="١٠٠ مرة في المجلس · أبو داود ١٥١٦ والترمذي ٣٤٣٤">رب اغفر لي وتب علي إنك أنت التواب الرحيم</option>
+      <option data-meta="دعاء ليلة القدر · الترمذي ٣٥١٣، حسن صحيح">اللهم إنك عفو تحب العفو فاعف عني</option>
+     </optgroup>
+     <optgroup label="أذكار وأدعية جامعة">
+      <option data-meta="صيغة للصلاة على النبي ﷺ · لا عدد محدد في هذا النص">اللهم صل وسلم على نبينا محمد</option>
+      <option data-repeat="1" data-meta="يقال دبر كل صلاة · أبو داود ١٥٢٢، صحيح">اللهم أعني على ذكرك وشكرك وحسن عبادتك</option>
+      <option data-meta="دعاء يونس عليه السلام · القرآن، الأنبياء ٨٧">لا إله إلا أنت سبحانك إني كنت من الظالمين</option>
+      <option data-meta="من القرآن الكريم · التوبة ١٢٩؛ لا يثبت لهذا الموضع عدد مخصوص">حسبي الله لا إله إلا هو عليه توكلت وهو رب العرش العظيم</option>
+      <option data-repeat="3" data-meta="٣ مرات صباحاً ومساءً · أبو داود ٥٠٧٢ والترمذي ٣٣٨٩">رضيت بالله ربا وبالإسلام دينا وبمحمد نبيا</option>
+      <option data-meta="عند الكرب · الترمذي ٣٥٢٤، حسن">يا حي يا قيوم برحمتك أستغيث</option>
+      <option data-meta="دعاء قرآني جامع · البقرة ٢٠١">ربنا آتنا في الدنيا حسنة وفي الآخرة حسنة وقنا عذاب النار</option>
+      <option data-meta="دعاء في قضاء الدين · الترمذي ٣٥٦٣، حسن">اللهم اكفني بحلالك عن حرامك وأغنني بفضلك عمن سواك</option>
+     </optgroup>
+     <optgroup label="أذكار الصباح والمساء">
+      <option data-repeat="3" data-meta="٣ مرات صباحاً ومساءً · أبو داود ٥٠٨٢، حسن">قل هو الله أحد الله الصمد لم يلد ولم يولد ولم يكن له كفوا أحد</option>
+      <option data-repeat="3" data-meta="٣ مرات صباحاً ومساءً · أبو داود ٥٠٨٢، حسن">قل أعوذ برب الفلق من شر ما خلق ومن شر غاسق إذا وقب ومن شر النفاثات في العقد ومن شر حاسد إذا حسد</option>
+      <option data-repeat="3" data-meta="٣ مرات صباحاً ومساءً · أبو داود ٥٠٨٢، حسن">قل أعوذ برب الناس ملك الناس إله الناس من شر الوسواس الخناس الذي يوسوس في صدور الناس من الجنة والناس</option>
+      <option data-repeat="1" data-meta="مرة واحدة صباحاً · صحيح مسلم ٢٧٢٣">أصبحنا وأصبح الملك لله والحمد لله لا إله إلا الله وحده لا شريك له له الملك وله الحمد وهو على كل شيء قدير رب أسألك خير ما في هذا اليوم وخير ما بعده وأعوذ بك من شر ما في هذا اليوم وشر ما بعده رب أعوذ بك من الكسل وسوء الكبر رب أعوذ بك من عذاب في النار وعذاب في القبر</option>
+      <option data-repeat="1" data-meta="مرة واحدة مساءً · صحيح مسلم ٢٧٢٣">أمسينا وأمسى الملك لله والحمد لله لا إله إلا الله وحده لا شريك له له الملك وله الحمد وهو على كل شيء قدير رب أسألك خير ما في هذه الليلة وخير ما بعدها وأعوذ بك من شر ما في هذه الليلة وشر ما بعدها رب أعوذ بك من الكسل وسوء الكبر رب أعوذ بك من عذاب في النار وعذاب في القبر</option>
+      <option data-repeat="1" data-meta="مرة واحدة صباحاً · الترمذي ٣٣٩١، صحيح">اللهم بك أصبحنا وبك أمسينا وبك نحيا وبك نموت وإليك المصير</option>
+      <option data-repeat="1" data-meta="مرة واحدة مساءً · الترمذي ٣٣٩١، صحيح">اللهم بك أمسينا وبك أصبحنا وبك نحيا وبك نموت وإليك النشور</option>
+      <option data-repeat="1" data-meta="مرة واحدة صباحاً ومساءً · صحيح البخاري ٦٣٠٦">اللهم أنت ربي لا إله إلا أنت خلقتني وأنا عبدك وأنا على عهدك ووعدك ما استطعت أعوذ بك من شر ما صنعت أبوء لك بنعمتك علي وأبوء بذنبي فاغفر لي فإنه لا يغفر الذنوب إلا أنت</option>
+      <option data-repeat="3" data-meta="٣ مرات صباحاً ومساءً · أبو داود ٥٠٨٨ والترمذي ٣٣٨٨">بسم الله الذي لا يضر مع اسمه شيء في الأرض ولا في السماء وهو السميع العليم</option>
+      <option data-repeat="3" data-meta="٣ مرات صباحاً ومساءً · أبو داود ٥٠٩٠">اللهم عافني في بدني اللهم عافني في سمعي اللهم عافني في بصري لا إله إلا أنت</option>
+      <option data-repeat="1" data-meta="مرة واحدة صباحاً ومساءً · ابن ماجه ٣٨٧١">اللهم إني أسألك العافية في الدنيا والآخرة اللهم أسألك العفو والعافية في ديني ودنياي وأهلي ومالي اللهم استر عوراتي وآمن روعاتي واحفظني من بين يدي ومن خلفي وعن يميني وعن شمالي ومن فوقي وأعوذ بك أن أغتال من تحتي</option>
+      <option data-repeat="1" data-meta="مرة واحدة صباحاً ومساءً · الترمذي ٣٣٩٢، حسن صحيح">اللهم عالم الغيب والشهادة فاطر السماوات والأرض رب كل شيء ومليكه أشهد أن لا إله إلا أنت أعوذ بك من شر نفسي ومن شر الشيطان وشركه</option>
+      <option data-repeat="3" data-meta="٣ مرات بعد صلاة الصبح · صحيح مسلم ٢٧٢٦">سبحان الله وبحمده عدد خلقه ورضا نفسه وزنة عرشه ومداد كلماته</option>
+      <option data-repeat="1" data-meta="مرة واحدة عقب صلاة الصبح · ابن ماجه ٩٢٥، صحيح">اللهم إني أسألك علماً نافعاً ورزقاً طيباً وعملاً متقبلاً</option>
+      <option data-repeat="100" data-meta="١٠٠ مرة خلال اليوم · صحيح مسلم ٢٦٩١">لا إله إلا الله وحده لا شريك له له الملك وله الحمد وهو على كل شيء قدير</option>
+     </optgroup>
+     <optgroup label="أذكار بعد الصلاة">
+      <option data-repeat="1" data-meta="مرة واحدة عقب الصلاة بعد الاستغفار ثلاثاً · صحيح مسلم ٥٩١">اللهم أنت السلام ومنك السلام تباركت يا ذا الجلال والإكرام</option>
+      <option data-repeat="1" data-meta="مرة واحدة عقب كل صلاة مكتوبة · صحيح البخاري ٨٤٤">لا إله إلا الله وحده لا شريك له له الملك وله الحمد وهو على كل شيء قدير اللهم لا مانع لما أعطيت ولا معطي لما منعت ولا ينفع ذا الجد منك الجد</option>
+     </optgroup>
+     <optgroup label="أذكار النوم">
+      <option data-repeat="1" data-meta="مرة واحدة عند النوم · صحيح البخاري ٦٣٢٤">باسمك اللهم أموت وأحيا</option>
+      <option data-repeat="1" data-meta="مرة واحدة عند النوم · البخاري ٢٤٧ ومسلم ٢٧١٠">اللهم أسلمت نفسي إليك وفوضت أمري إليك وألجأت ظهري إليك رغبة ورهبة إليك لا ملجأ ولا منجى منك إلا إليك آمنت بكتابك الذي أنزلت ونبيك الذي أرسلت</option>
+     </optgroup>
     </select>
     <div class="anwar-custom-dhikr">
      <label for="tasbihCustomDhikrInput">أضف ذكراً من اختيارك</label>
@@ -2182,7 +2239,7 @@ dialog[open]>.float-head{display:none!important}
      </div>
      <small id="tasbihCustomDhikrStatus" role="status" aria-live="polite">تُحفظ أذكارك المضافة على هذا الجهاز لتختارها لاحقاً.</small>
     </div>
-    <div class="anwar-tasbih-counter" id="tasbihCounterControl" role="button" tabindex="0" aria-label="اضغط هنا لتسجيل تسبيحة واحدة" title="اضغط على العداد لزيادة التسبيحات" aria-live="polite"><strong id="tasbihCount">0</strong><span>عدد التسبيحات · اضغط للزيادة</span></div>
+    <div class="anwar-tasbih-counter" id="tasbihCounterControl" role="button" tabindex="0" aria-label="اضغط هنا لتسجيل تسبيحة واحدة" title="اضغط على العداد لزيادة التسبيحات" aria-live="polite"><strong id="tasbihCount">0</strong><span>عدد التسبيحات</span></div>
     <div class="anwar-tasbih-actions"><button type="button" id="tasbihMinus" class="anwar-tasbih-small" aria-label="إنقاص العدد">−</button><button type="button" id="tasbihTap" class="anwar-tasbih-tap" aria-label="سجل تسبيحة واحدة">سبّح</button><button type="button" id="tasbihReset" class="anwar-tasbih-small" aria-label="تصفير العداد">↺</button></div>
     <section class="anwar-tasbih-voice" id="tasbihVoicePanel" data-state="idle" aria-label="التسجيل الصوتي للسبحة">
      <div class="anwar-tasbih-voice-head">
@@ -2280,7 +2337,7 @@ dialog[open]>.float-head{display:none!important}
 <script src="./vault-crypto.js?v=20261118-2"></script>
 <script src="./vault-device-unlock.js?v=20261118-1"></script>
 <script src="./app-core.js?v=20261119-8" defer></script>
-<script src="./tasbih-controller.js?v=20261119-6" defer></script>
+<script src="./tasbih-controller.js?v=20261119-7" defer></script>
 
 
 

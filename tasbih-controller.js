@@ -107,11 +107,22 @@
      image.alt='';
      image.decoding='async';
      flower.appendChild(image);
+     const copy=document.createElement('span');
+     copy.className='tasbih-dhikr-card-copy';
      const name=document.createElement('span');
      name.className='tasbih-dhikr-card-name';
      name.textContent=option.textContent;
+     copy.appendChild(name);
+     const metaText=option.dataset&&typeof option.dataset.meta==='string'?option.dataset.meta:'';
+     if(metaText){
+      const meta=document.createElement('small');
+      meta.className='tasbih-dhikr-card-meta';
+      meta.textContent=metaText;
+      copy.appendChild(meta);
+     }
+     button.setAttribute('aria-label','اختيار الذكر: '+option.textContent+(metaText?'، '+metaText:''));
      button.appendChild(flower);
-     button.appendChild(name);
+     button.appendChild(copy);
      const secondFlower=flower.cloneNode(true);
      button.appendChild(secondFlower);
      button.addEventListener('click',()=>chooseDhikr(option.value,true));
@@ -133,6 +144,8 @@
    phraseNode.textContent=select.value||'لم يتم اختيار ذكر بعد';
    renderCards();
    const selected=Array.from(select.options).find(option=>option.value===select.value);
+   const targetCount=Number(selected&&selected.dataset&&selected.dataset.repeat)||0;
+   counterControl.dataset.targetComplete=targetCount>0&&count>=targetCount?'true':'false';
    removeButton.disabled=!selected;
    removeButton.textContent=selected&&isCustomOption(selected)?'حذف الذكر المضاف':'إزالة الذكر الرسمي من قائمتي';
    restoreButton.hidden=removedOfficialDhikrs.length===0;
