@@ -135,7 +135,7 @@ assert.equal(app.state.tasbih.theme,'pink','the selected appearance is persisted
 assert.equal(app.nodes.tasbihThemePink.getAttribute('aria-pressed'),'true','the chosen theme is marked as selected');
 assert.equal(app.nodes.tasbihThemePicker.hidden,true,'the appearance selector closes after choosing a theme');
 assert.equal(app.nodes.tasbihThemeToggle.getAttribute('aria-expanded'),'false','the palette button returns to its collapsed state');
-app.nodes.tasbihTap.click();
+app.nodes.tasbihReset.click();
 assert.equal(app.state.tasbih.theme,'pink','ordinary counter actions preserve the selected appearance');
 const restoredTheme=buildApp({initialTheme:'pink'});
 assert.equal(restoredTheme.nodes.tasbihPanel.dataset.tasbihTheme,'pink','the chosen appearance is restored on the next visit');
