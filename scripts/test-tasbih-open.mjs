@@ -95,7 +95,51 @@ assert.equal(fallbackSandbox.nodes.ownerPanel.hidden,true,'fallback hides the ow
 assert.ok(fallbackSandbox.calls.some(item=>item[0]==='render'&&item[1]==='morning'),'fallback restores the morning list');
 assert.equal(fallbackSandbox.panel.hidden,false,'fallback still opens the tasbih panel');
 
-assert.ok(controller.includes("toggleButton.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();openPanel()})"),'tasbih launcher has its own direct click listener');
+assert.ok(controller.includes('window.AnwarTasbihController=Object.freeze({')&&controller.includes('toggle(){'),'tasbih controller exposes its launch action to the notebook click delegate');
+assert.ok(!controller.includes("toggleButton.addEventListener('click'"),'tasbih controller does not swallow the parent delegated click event');
+assert.ok(appCore.includes("else if(id==='adhkarTasbihToggle')toggleTasbihFromToolbar(t);"),'main click delegate explicitly routes taps on the tasbih icon');
+const helperStart=appCore.indexOf('function toggleTasbihFromToolbar(button){');
+const helperEnd=appCore.indexOf("\ndocument.addEventListener('click'",helperStart);
+assert.ok(helperStart>=0&&helperEnd>helperStart,'main delegated tasbih launcher helper exists');
+const helperSource=appCore.slice(helperStart,helperEnd);
+const delegatedButton={attributes:{},setAttribute(name,value){this.attributes[name]=String(value)}};
+const delegatedCalls=[];
+const delegatedPanel={hidden:true,scrollIntoView(options){delegatedCalls.push(['scroll',options])}};
+const delegatedDialog={open:false,showModal(){this.open=true;delegatedCalls.push(['showModal'])}};
+const delegatedAdhkar={hidden:true};
+const delegatedSandbox={
+ window:{AnwarTasbihController:{toggle(){delegatedCalls.push(['controller-toggle']);return true}}},
+ $:id=>id==='tasbihPanel'?delegatedPanel:id==='ownerDialog'?delegatedDialog:id==='adhkarPanel'?delegatedAdhkar:null,
+ showOwnerPanel(which){delegatedCalls.push(['show-owner',which]);delegatedAdhkar.hidden=which!=='adhkar'},
+ requestAnimationFrame(fn){fn()},
+ toast(message){delegatedCalls.push(['toast',message])},
+ console:{error(){}},
+ button:delegatedButton
+};
+vm.runInNewContext(helperSource+'\\ntoggleTasbihFromToolbar(button);',delegatedSandbox,{timeout:2000});
+assert.ok(delegatedCalls.some(call=>call[0]==='controller-toggle'),'the shared click route delegates to the standalone tasbih controller');
+
+const fallbackButton={attributes:{},setAttribute(name,value){this.attributes[name]=String(value)}};
+const fallbackCalls=[];
+const fallbackPanel={hidden:true,scrollIntoView(options){fallbackCalls.push(['scroll',options])}};
+const fallbackDialog={open:false,showModal(){this.open=true;fallbackCalls.push(['showModal'])}};
+const fallbackAdhkar={hidden:true};
+const fallbackSandbox={
+ window:{},
+ $:id=>id==='tasbihPanel'?fallbackPanel:id==='ownerDialog'?fallbackDialog:id==='adhkarPanel'?fallbackAdhkar:null,
+ showOwnerPanel(which){fallbackCalls.push(['show-owner',which]);fallbackAdhkar.hidden=which!=='adhkar'},
+ requestAnimationFrame(fn){fn()},
+ toast(message){fallbackCalls.push(['toast',message])},
+ console:{error(){}},
+ button:fallbackButton
+};
+vm.runInNewContext(helperSource+'\\ntoggleTasbihFromToolbar(button);',fallbackSandbox,{timeout:2000});
+assert.equal(fallbackDialog.open,true,'delegated fallback opens the parent dialog');
+assert.equal(fallbackAdhkar.hidden,false,'delegated fallback opens the adhkar view');
+assert.equal(fallbackPanel.hidden,false,'delegated fallback opens the tasbih panel even if its controller is unavailable');
+assert.equal(fallbackButton.attributes['aria-expanded'],'true','delegated fallback updates the visible toggle state');
+assert.ok(fallbackCalls.some(call=>call[0]==='scroll'),'delegated fallback scrolls the opened tasbih into view');
+
 assert.ok(controller.includes("morningTab.addEventListener('click'")&&controller.includes("eveningTab.addEventListener('click'"),'morning and evening tab actions are bound');
 assert.ok(controller.includes("tap.addEventListener('click',()=>add(1))")&&controller.includes("minus.addEventListener('click',()=>add(-1))")&&controller.includes("reset.addEventListener('click'"),'counter increment, decrement and reset remain wired');
 assert.ok(controller.includes("preferences.set('tasbih'")&&controller.includes("preferences.subscribe(saved=>"),'counter and dhikr preferences use the encrypted preference adapter');
