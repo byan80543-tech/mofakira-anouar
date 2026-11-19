@@ -56,7 +56,7 @@
 
 بعد إضافة الأسرار، افتح Actions وشغّل `Deploy Anwar API Gateway`. سيرفع GitHub Actions العامل وإعدادات Durable Object وRate Limiting، ويضبط سر HMAC من GitHub Secrets دون طباعته في سجل التشغيل.
 
-بعد النشر، انسخ عنوان `workers.dev` الذي يظهر في سجل العملية. ضع العنوان في `api-gateway-config.js` تحت `ANWAR_API_GATEWAY_BASE`، ثم غيّر `CACHE_NAME` في `service-worker.js` من `v56` إلى `v57` حتى يحصل الزوار على عنوان البوابة بدل الإعداد الفارغ المخزن.
+بعد النشر، انسخ عنوان `workers.dev` الذي يظهر في سجل العملية. ضع العنوان في `api-gateway-config.js` تحت `ANWAR_API_GATEWAY_BASE`، ثم ارفع قيمة `CACHE_NAME` في `service-worker.js` إلى إصدار جديد حتى يحصل الزوار على الإعداد المحدّث.
 
 القيمة الفارغة في ملف الإعداد تعني أن التطبيق يظل على نمط الاتصال المباشر بالمصادر؛ **لا تصبح البوابة نشطة للزوار قبل نشر Worker وضبط عنوانه في ملف الإعداد**.
 ## الاختبار بعد النشر
