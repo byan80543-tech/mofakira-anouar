@@ -2140,13 +2140,13 @@ async function transcribeAudioFile(){
   transcriptFormatIndex=0;
   const formatted=formatTranscriptText(text,0);
   transcriptLastRendered=formatted;
-  $('transcriptTitle').value=(file.name||'تفريغ صوتي').replace(/\\.[^.]+$/,'').replace(/[_-]+/g,' ').slice(0,100)||'تفريغ صوتي';
+  $('transcriptTitle').value=(file.name||'تفريغ صوتي').replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').slice(0,100)||'تفريغ صوتي';
   $('transcriptText').value=formatted;
   $('transcriptText').spellcheck=false;
   $('transcriptSpellcheck').setAttribute('aria-pressed','false');
   $('transcriptFormatLabel').textContent=TRANSCRIPT_FORMATS[0];
   $('transcriptEditorPanel').hidden=false;
-  const words=Number(result.wordCount)||text.split(/\\s+/).filter(Boolean).length;
+  const words=Number(result.wordCount)||text.split(/\s+/).filter(Boolean).length;
   const language=result.language?' · اللغة المكتشفة: '+result.language:'';
   transcriptStatus('اكتمل التفريغ بنجاح · '+words+' كلمة'+language,false);
   transcriptEditorStatus('راجع الأسماء والمصطلحات والنص الديني أو الشعري يدويًا قبل اعتماده.');
