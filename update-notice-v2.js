@@ -83,13 +83,10 @@
       let releasePage = null;
       try {
         const bridge = window.AnouarUpdateBridge;
-        if (bridge && typeof bridge.prepareForReload === 'function') {
-          releasePage = await bridge.prepareForReload();
-        } else {
-          // Recovery path: an earlier page script may have been blocked by a
-          // stale CSP hash. In that case no editor session was initialized.
-          description.textContent = 'نعالج تشغيل التطبيق ثم نعيد تحميله دون حذف بياناته المحلية…';
+        if (!bridge || typeof bridge.prepareForReload !== 'function') {
+          throw new Error('تعذّر التحقق من حفظ المفكرة. لم نبدأ التحديث؛ أعد تحميل الصفحة ثم حاول مجدداً.');
         }
+        releasePage = await bridge.prepareForReload();
 
         const targetWorker = getWaitingWorker() || worker;
         if (!targetWorker || !['installed', 'activating', 'activated'].includes(targetWorker.state)) {
@@ -105,7 +102,7 @@
             if (settled) return;
             settled = true;
             serviceWorker.removeEventListener('controllerchange', onControllerChange);
-            targetWorker.removeEventListener('statechange', onWorkerStateChange);
+            targetWorker.removeEventListener?.('statechange', onWorkerStateChange);
             if (timeoutId !== null) window.clearTimeout(timeoutId);
             if (error) reject(error);
             else resolve();
@@ -124,7 +121,7 @@
           targetWorker.addEventListener('statechange', onWorkerStateChange);
           timeoutId = window.setTimeout(() => {
             finish(new Error('تأخر تفعيل الإصدار الجديد. لم نحذف بياناتك؛ أُعيد فتح الصفحة ويمكنك المحاولة مجدداً.'));
-          }, 15000);
+          }, 20000);
           try {
             // Handle the narrow race where activation completed before the
             // controllerchange listener was attached.
