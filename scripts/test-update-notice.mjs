@@ -77,7 +77,7 @@ class FakeWorker {
   }
 }
 
-function createHarness({ controller = true, bridge = null } = {}) {
+function createHarness({ controller = true, bridge = null, confirmUpdate = false } = {}) {
   const serviceWorkerListeners = new Map();
   const documentListeners = new Map();
   const windowListeners = new Map();
@@ -126,6 +126,7 @@ function createHarness({ controller = true, bridge = null } = {}) {
   };
   const window = {
     AnouarUpdateBridge: bridge,
+    confirm(message) { window.confirmMessage = message; return confirmUpdate; },
     location: { reload() { reloadCalls++; } },
     requestIdleCallback(handler, options) {
       window.idleHandler = handler;
@@ -253,8 +254,24 @@ noBridgeVisit.triggerVisibilityChange();
 const noBridgeBanner = noBridgeVisit.body.find(node => node.id === 'anouarUpdateNotice');
 const noBridgeButton = noBridgeBanner.find(node => node.textContent === 'تحديث الآن');
 await noBridgeButton.click();
-assert.equal(noBridgeVisit.registration.waiting.messages.length, 0, 'missing save bridge never activates a worker or bypasses the save boundary');
-assert.equal(noBridgeButton.disabled, false, 'missing save bridge restores the update action');
+assert.ok(noBridgeVisit.window.confirmMessage.includes('قد تفقد أي كتابة لم تُحفظ بعد'), 'missing save bridge displays an explicit data-loss warning');
+assert.equal(noBridgeVisit.registration.waiting.messages.length, 0, 'declining emergency update never activates a worker');
+assert.equal(noBridgeButton.disabled, false, 'declining emergency update restores the update action');
+
+const emergencyVisit = createHarness({ controller: true, bridge: null, confirmUpdate: true });
+await new Promise(resolve => setImmediate(resolve));
+const emergencyWorker = new FakeWorker('installed');
+emergencyVisit.registration.waiting = emergencyWorker;
+emergencyVisit.triggerVisibilityChange();
+const emergencyBanner = emergencyVisit.body.find(node => node.id === 'anouarUpdateNotice');
+const emergencyButton = emergencyBanner.find(node => node.textContent === 'تحديث الآن');
+const emergencyAction = emergencyButton.click();
+await Promise.resolve();
+assert.equal(emergencyWorker.messages[0].type, 'ANOUAR_ACTIVATE_UPDATE', 'explicitly approved recovery activates the waiting worker');
+emergencyVisit.serviceWorker.controller = emergencyWorker;
+emergencyVisit.triggerControllerChange();
+await emergencyAction;
+assert.equal(emergencyVisit.reloadCount(), 1, 'approved recovery reloads after the new worker takes control');
 
 const inlineScripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)].filter(match => !/\bsrc\s*=/.test(match[1]));
 const appScript = inlineScripts.find(match => match[2].includes('function save(){') && match[2].includes('window.AnouarUpdateBridge'));
