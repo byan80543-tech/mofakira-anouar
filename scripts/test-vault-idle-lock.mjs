@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
-const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
+const html=fs.readFileSync(new URL('../app-core.js',import.meta.url),'utf8');
 const start=html.indexOf('const VAULT_IDLE_LOCK_MS=0;');
 const end=html.indexOf('function showVaultGate(mode,message){',start);
 assert.ok(start>=0&&end>start,'vault inactivity lock helpers are present');
