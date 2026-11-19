@@ -2132,6 +2132,7 @@ async function transcribeAudioFile(){
  try{
   const form=new FormData();
   form.append('audio',file,file.name||'recording.webm');
+  form.append('consent','true');
   const response=await fetch(endpoint,{
    method:'POST',
    body:form,
