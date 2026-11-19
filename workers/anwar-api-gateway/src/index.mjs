@@ -28,7 +28,7 @@ const UPSTREAM_TIMEOUT_MS = 7_000;
 const TRANSCRIPTION_MODEL = "@cf/openai/whisper-large-v3-turbo";
 const AUDIO_EXTENSIONS = new Set([
   "aac", "amr", "flac", "m4a", "m4b", "mp3", "mpga", "mpeg",
-  "oga", "ogg", "opus", "wav", "wave", "webm", "3gp", "mp4"
+  "oga", "ogg", "opus", "wav", "wave", "webm"
 ]);
 const AUDIO_MIME_TYPES = new Set([
   "audio/aac", "audio/amr", "audio/flac", "audio/mp3", "audio/mpeg",
@@ -425,6 +425,8 @@ function bytesToBase64(bytes) {
 function isSupportedAudioFile(file) {
   const extension = String(file.name || "").split(".").pop().toLowerCase();
   const mime = String(file.type || "").toLowerCase();
+  if (mime.startsWith("video/")) return false;
+  if (mime && !mime.startsWith("audio/") && mime !== "application/ogg") return false;
   return AUDIO_EXTENSIONS.has(extension) || AUDIO_MIME_TYPES.has(mime);
 }
 
