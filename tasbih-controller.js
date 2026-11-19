@@ -11,6 +11,9 @@
   const ownerDialog=$('ownerDialog'),ownerPanel=$('ownerPanel'),adhkarPanel=$('adhkarPanel'),sharePanel=$('sharePanel');
   const ownerTab=$('ownerTab'),adhkarTab=$('adhkarTab'),shareTab=$('shareTab');
   const countNode=$('tasbihCount'),phraseNode=$('tasbihPhrase'),select=$('tasbihDhikr');
+  const themeToggle=$('tasbihThemeToggle'),themePicker=$('tasbihThemePicker');
+  const themeIds=['emerald','dark','pink','night','heritage','glass'];
+  const themeButtons=themeIds.map(name=>({name,button:$('tasbihTheme'+name[0].toUpperCase()+name.slice(1))}));
   const tap=$('tasbihTap'),minus=$('tasbihMinus'),reset=$('tasbihReset');
   const cards=$('tasbihDhikrCards'),customInput=$('tasbihCustomDhikrInput');
   const customAdd=$('tasbihAddCustomDhikr'),customStatus=$('tasbihCustomDhikrStatus');
@@ -18,7 +21,7 @@
   const voicePanel=$('tasbihVoicePanel'),voiceButton=$('tasbihVoice');
   const voiceState=$('tasbihVoiceState'),voiceStatus=$('tasbihVoiceStatus');
   const voiceButtonLabel=$('tasbihVoiceButtonLabel'),voiceTranscript=$('tasbihVoiceTranscript');
-  const required={panel,toggleButton,closeButton,ownerDialog,adhkarPanel,select,countNode,phraseNode,tap,minus,reset,cards,customInput,customAdd,customStatus,removeButton,restoreButton,voicePanel,voiceButton,voiceState,voiceStatus,voiceButtonLabel,voiceTranscript};
+  const required={panel,toggleButton,closeButton,ownerDialog,adhkarPanel,select,countNode,phraseNode,tap,minus,reset,cards,customInput,customAdd,customStatus,removeButton,restoreButton,voicePanel,voiceButton,voiceState,voiceStatus,voiceButtonLabel,voiceTranscript,themeToggle,themePicker,...Object.fromEntries(themeButtons.map(item=>['theme'+item.name,item.button]))};
   const missing=Object.keys(required).filter(key=>!required[key]);
   if(missing.length){
    console.error('تعذر تهيئة السبحة؛ عناصر الواجهة الناقصة:',missing);
@@ -27,7 +30,7 @@
   }
   const preferences=globalThis.AnwarPrivatePreferences;
   // لا نفترض أن الخزنة تحتوي tasbih؛ قد تكون أول زيارة أو بيانات قديمة.
-  const defaultTasbih={count:0,dhikr:select.value,customDhikrs:[],removedOfficialDhikrs:[]};
+  const defaultTasbih={count:0,dhikr:select.value,customDhikrs:[],removedOfficialDhikrs:[],theme:'emerald'};
   let initial=defaultTasbih;
   try{
    const stored=preferences&&typeof preferences.get==='function'?preferences.get():null;
@@ -38,6 +41,8 @@
    ?[...new Set(items.filter(item=>typeof item==='string').map(item=>item.trim().replace(/\s+/g,' ').slice(0,200)).filter(Boolean))].slice(0,limit)
    :[];
   let count=Number.isSafeInteger(initial.count)?Math.max(0,Math.min(MAX_COUNT,initial.count)):0;
+  const allowedThemes=new Set(themeIds);
+  let theme=allowedThemes.has(initial.theme)?initial.theme:'emerald';
   let customDhikrs=cleanDhikrList(initial.customDhikrs,30);
   let removedOfficialDhikrs=cleanDhikrList(initial.removedOfficialDhikrs,60);
   let recognition=null,voiceActive=false,writingPreferences=false,voiceTargetPhrase='';
@@ -53,7 +58,7 @@
    if(!preferences||typeof preferences.set!=='function')return;
    writingPreferences=true;
    try{
-    preferences.set('tasbih',{count:count,dhikr:select.value,customDhikrs:customDhikrs,removedOfficialDhikrs:removedOfficialDhikrs});
+    preferences.set('tasbih',{count:count,dhikr:select.value,customDhikrs:customDhikrs,removedOfficialDhikrs:removedOfficialDhikrs,theme:theme});
    }catch(error){
     console.warn('تعذر حفظ إعدادات السبحة المشفرة',error);
     customStatus.textContent='تعذر حفظ التغيير في الخزنة المشفرة. تحقق من فتح المفكرة ثم أعد المحاولة.';
@@ -121,6 +126,8 @@
    }
   }
   function update(){
+   panel.dataset.tasbihTheme=theme;
+   themeButtons.forEach(item=>item.button.setAttribute('aria-pressed',item.name===theme?'true':'false'));
    countNode.textContent=count.toLocaleString('ar');
    phraseNode.textContent=select.value||'لم يتم اختيار ذكر بعد';
    renderCards();
@@ -136,6 +143,13 @@
   function saveAndUpdate(){
    update();
    persist();
+  }
+  function chooseTheme(nextTheme){
+   if(!allowedThemes.has(nextTheme))return;
+   theme=nextTheme;
+   themePicker.hidden=true;
+   themeToggle.setAttribute('aria-expanded','false');
+   saveAndUpdate();
   }
   function chooseDhikr(value,resetCount){
    const option=Array.from(select.options).find(item=>item.value===value&&(isCustomOption(item)||!removedOfficialDhikrs.includes(item.value)));
@@ -277,6 +291,11 @@
   // Keep the counter controller independent, but expose one explicit toggle API.
 
   closeButton.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();closePanel()});
+  themeToggle.addEventListener('click',()=>{
+   themePicker.hidden=!themePicker.hidden;
+   themeToggle.setAttribute('aria-expanded',themePicker.hidden?'false':'true');
+  });
+  themeButtons.forEach(item=>item.button.addEventListener('click',()=>chooseTheme(item.name)));
   tap.addEventListener('click',()=>add(1));
   minus.addEventListener('click',()=>add(-1));
   reset.addEventListener('click',()=>{count=0;saveAndUpdate()});
@@ -424,6 +443,7 @@
     count=Number.isSafeInteger(value.count)?Math.max(0,value.count):0;
     customDhikrs=Array.isArray(value.customDhikrs)?value.customDhikrs.slice():[];
     removedOfficialDhikrs=Array.isArray(value.removedOfficialDhikrs)?value.removedOfficialDhikrs.slice():[];
+    theme=allowedThemes.has(value.theme)?value.theme:'emerald';
     renderCustomOptions();
     const option=Array.from(select.options).find(item=>item.value===value.dhikr&&(isCustomOption(item)||!removedOfficialDhikrs.includes(item.value)));
     if(option)select.value=option.value;
