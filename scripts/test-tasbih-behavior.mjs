@@ -72,9 +72,12 @@ function buildApp(options={}){
   'ownerTab','adhkarTab','shareTab','tasbihCount','tasbihPhrase','tasbihDhikr','tasbihTap','tasbihMinus',
   'tasbihReset','tasbihDhikrCards','tasbihCustomDhikrInput','tasbihAddCustomDhikr','tasbihCustomDhikrStatus',
   'tasbihRemoveDhikr','tasbihRestoreOfficial','tasbihVoicePanel','tasbihVoice','tasbihVoiceState',
-  'tasbihVoiceStatus','tasbihVoiceButtonLabel','tasbihVoiceTranscript','morningTab','eveningTab'
+  'tasbihVoiceStatus','tasbihVoiceButtonLabel','tasbihVoiceTranscript','morningTab','eveningTab',
+  'tasbihThemeToggle','tasbihThemePicker','tasbihThemeEmerald','tasbihThemeDark','tasbihThemePink','tasbihThemeNight','tasbihThemeHeritage','tasbihThemeGlass'
  ];
  for(const id of ids)nodes[id]=id==='tasbihDhikr'?new FakeSelect(id):new FakeElement(id,id==='ownerDialog'?'DIALOG':'DIV');
+ const themeNames=['emerald','dark','pink','night','heritage','glass'];
+ themeNames.forEach(name=>{nodes['tasbihTheme'+name[0].toUpperCase()+name.slice(1)].dataset.tasbihThemeOption=name});
  const counter=new FakeElement('counter','DIV');nodes.tasbihPanel.counter=counter;
  nodes.ownerDialog.showModal=function(){this.open=true};
  const groupPattern=/<optgroup label="([^"]*)">([\s\S]*?)<\/optgroup>/g;
@@ -88,7 +91,7 @@ function buildApp(options={}){
   nodes.tasbihDhikr.appendChild(group);
  }
  const listeners=new Set();
- let state={tasbih:{count:options.initialCount??0,dhikr:nodes.tasbihDhikr.value,customDhikrs:[],removedOfficialDhikrs:[]}};
+ let state={tasbih:{count:options.initialCount??0,dhikr:nodes.tasbihDhikr.value,customDhikrs:[],removedOfficialDhikrs:[],theme:options.initialTheme??'emerald'}};
  const preferences={
   get(){return clone(state)},
   set(section,value){state={...state,[section]:clone(value)};for(const listener of listeners)listener(clone(state));return clone(state)},
@@ -121,6 +124,22 @@ function count(app){return app.state.tasbih.count}
 
 const app=buildApp();
 assert.equal(app.sandbox.__ANWAR_TASBIH_CONTROLLER_READY__,true,'the controller initializes when the required UI is present');
+assert.equal(app.nodes.tasbihPanel.dataset.tasbihTheme,'emerald','the classic emerald theme is the safe default');
+app.nodes.tasbihThemeToggle.click();
+assert.equal(app.nodes.tasbihThemePicker.hidden,false,'the appearance selector opens from its palette button');
+assert.equal(app.nodes.tasbihThemeToggle.getAttribute('aria-expanded'),'true','the palette button exposes its expanded state');
+app.nodes.tasbihThemePink.click();
+assert.equal(app.nodes.tasbihPanel.dataset.tasbihTheme,'pink','selecting the tulip theme updates the panel appearance');
+assert.equal(app.state.tasbih.theme,'pink','the selected appearance is persisted with private preferences');
+assert.equal(app.nodes.tasbihThemePink.getAttribute('aria-pressed'),'true','the chosen theme is marked as selected');
+assert.equal(app.nodes.tasbihThemePicker.hidden,true,'the appearance selector closes after choosing a theme');
+assert.equal(app.nodes.tasbihThemeToggle.getAttribute('aria-expanded'),'false','the palette button returns to its collapsed state');
+app.nodes.tasbihTap.click();
+assert.equal(app.state.tasbih.theme,'pink','ordinary counter actions preserve the selected appearance');
+const restoredTheme=buildApp({initialTheme:'pink'});
+assert.equal(restoredTheme.nodes.tasbihPanel.dataset.tasbihTheme,'pink','the chosen appearance is restored on the next visit');
+const invalidTheme=buildApp({initialTheme:'unknown'});
+assert.equal(invalidTheme.nodes.tasbihPanel.dataset.tasbihTheme,'emerald','unknown saved appearance values safely fall back to the default');
 
 // Manual counter: increment, decrement with a zero floor, reset, and persistence.
 app.nodes.tasbihTap.click();
