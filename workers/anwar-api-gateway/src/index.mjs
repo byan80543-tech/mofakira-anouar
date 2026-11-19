@@ -475,7 +475,7 @@ async function transcribeAudio(request, env, origin) {
     const detectedLanguage = String(result?.transcription_info?.language || "").slice(0, 24);
     const wordCount = Number.isFinite(Number(result?.word_count))
       ? Math.max(0, Number(result.word_count))
-      : text.split(/\\s+/).filter(Boolean).length;
+      : text.split(/\s+/).filter(Boolean).length;
     return withCors(json({ text, language: detectedLanguage, wordCount }, 200), origin);
   } catch {
     // Never log or persist audio bytes or transcription contents.
