@@ -107,6 +107,7 @@
   function startSession(){
    if(!requested||!Recognition)return;
    clearRestart();
+   committed=[];
    const currentGeneration=++generation;
    let session;
    try{session=new Recognition()}
