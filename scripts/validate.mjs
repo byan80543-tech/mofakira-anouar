@@ -18,6 +18,11 @@ const clickGuard=fs.readFileSync(path.join(root,'click-guard.js'),'utf8');
 const iconGenerator=fs.readFileSync(path.join(root,'scripts/generate-pwa-icons.py'),'utf8');
 const failures=[];
 const ok=(condition,message)=>{if(!condition)failures.push(message);else console.log('PASS',message)};
+const tasbihLogicStart=appCore.indexOf("const $=id=>document.getElementById(id),panel=$('tasbihPanel');");
+const tasbihLogicEnd=appCore.indexOf("const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;",tasbihLogicStart);
+const tasbihLogic=appCore.slice(tasbihLogicStart,tasbihLogicEnd);
+ok(tasbihLogic.includes("let renderedCustomDhikrsKey='',renderedDhikrCardsKey=''") && tasbihLogic.includes("if(dhikrCardsKey()!==renderedDhikrCardsKey)renderDhikrCards()"),'tasbih cards redraw only when the selection or dhikr list changes, not on counter-only updates');
+ok(tasbihLogic.includes("if(renderedCustomDhikrsKey!==customDhikrsKey())renderCustomOptions()"),'custom dhikr option elements are rebuilt only when the custom list changes');
 
 ok(manifest.name==='مفكرة أنوار' && manifest.short_name==='مفكرة أنوار','PWA name and short_name');
 ok(manifest.start_url==='/mofakira-anouar/' && manifest.scope==='/mofakira-anouar/','GitHub Pages start_url and scope');

@@ -3855,6 +3855,9 @@ window.AnouarUpdateBridge = Object.freeze({
  const initialTasbih=privatePreferences.get().tasbih;
  let customDhikrs=initialTasbih.customDhikrs.slice();
  let removedOfficialDhikrs=initialTasbih.removedOfficialDhikrs.slice();
+ let renderedCustomDhikrsKey='',renderedDhikrCardsKey='';
+ function customDhikrsKey(){return JSON.stringify(customDhikrs)}
+ function dhikrCardsKey(){return JSON.stringify([customDhikrs,removedOfficialDhikrs,select.value])}
  function isCustomOption(option){
   return !!(option&&option.parentElement&&option.parentElement.dataset.anwarCustomDhikrs==='true');
  }
@@ -3915,8 +3918,9 @@ window.AnouarUpdateBridge = Object.freeze({
   removeDhikrButton.textContent=selected&&isCustomOption(selected)?'حذف الذكر المضاف':'إزالة الذكر الرسمي من قائمتي';
   restoreOfficialButton.hidden=removedOfficialDhikrs.length===0;
   restoreOfficialButton.textContent='استعادة الأذكار الرسمية ('+removedOfficialDhikrs.length+')';
+  renderedDhikrCardsKey=dhikrCardsKey();
  }
- function renderCustomDhikrs(){
+ function renderCustomOptions(){
   const previous=select.querySelector('optgroup[data-anwar-custom-dhikrs]');
   if(previous)previous.remove();
   if(customDhikrs.length){
@@ -3931,6 +3935,10 @@ window.AnouarUpdateBridge = Object.freeze({
    });
    select.appendChild(group);
   }
+  renderedCustomDhikrsKey=customDhikrsKey();
+ }
+ function renderCustomDhikrs(){
+  renderCustomOptions();
   renderDhikrCards();
  }
  function firstVisibleDhikr(){
@@ -3951,12 +3959,12 @@ window.AnouarUpdateBridge = Object.freeze({
   count=saved.count;
   customDhikrs=saved.customDhikrs.slice();
   removedOfficialDhikrs=saved.removedOfficialDhikrs.slice();
-  renderCustomDhikrs();
+  if(renderedCustomDhikrsKey!==customDhikrsKey())renderCustomOptions();
   const savedOption=[...select.options].find(option=>option.value===saved.dhikr&&(isCustomOption(option)||!removedOfficialDhikrs.includes(option.value)));
   select.value=savedOption?saved.dhikr:(firstVisibleDhikr()?.value||'');
   phraseNode.textContent=select.value||'لم يتم اختيار ذكر بعد';
   countNode.textContent=count.toLocaleString('ar');
-  renderDhikrCards();
+  if(dhikrCardsKey()!==renderedDhikrCardsKey)renderDhikrCards();
  });
  function add(n=1){
   count=Math.max(0,count+n);paint();
@@ -3977,7 +3985,6 @@ window.AnouarUpdateBridge = Object.freeze({
   }
   if(removedOfficialDhikrs.includes(value)){
    removedOfficialDhikrs=removedOfficialDhikrs.filter(item=>item!==value);
-   renderCustomDhikrs();
    select.value=value;
    phraseNode.textContent=value;
    count=0;paint();
@@ -3999,7 +4006,7 @@ window.AnouarUpdateBridge = Object.freeze({
    return;
   }
   customDhikrs.push(value);
-  renderCustomDhikrs();
+  renderCustomOptions();
   select.value=value;
   phraseNode.textContent=value;
   count=0;paint();
@@ -4067,7 +4074,6 @@ window.AnouarUpdateBridge = Object.freeze({
  ownerDialog.addEventListener('close',()=>closePanel(false));
  select.addEventListener('change',()=>{
   phraseNode.textContent=select.value||'لم يتم اختيار ذكر بعد';count=0;paint();
-  renderDhikrCards();
   voiceTranscript.textContent='بانتظار نطق الذكر المختار.';
   setVoiceState(voiceActive?'listening':'idle','تم اختيار الذكر الجديد. سيُحسب عند نطقه كاملاً.');
  });
@@ -4080,9 +4086,10 @@ window.AnouarUpdateBridge = Object.freeze({
    :'هل تريد إزالة هذا الذكر الرسمي من قائمتك على هذا الجهاز؟ لن يُحذف من القائمة الأصلية، ويمكنك استعادته لاحقاً.';
   if(!window.confirm(prompt))return;
   if(voiceActive)stopVoice('توقف الاستماع بسبب تعديل قائمة الأذكار.');
-  if(custom)customDhikrs=customDhikrs.filter(item=>item!==selected.value);
-  else if(!removedOfficialDhikrs.includes(selected.value))removedOfficialDhikrs.push(selected.value);
-  renderCustomDhikrs();
+  if(custom){
+   customDhikrs=customDhikrs.filter(item=>item!==selected.value);
+   renderCustomOptions();
+  }else if(!removedOfficialDhikrs.includes(selected.value))removedOfficialDhikrs.push(selected.value);
   const next=firstVisibleDhikr();
   select.value=next?next.value:'';
   phraseNode.textContent=select.value||'لم يتم اختيار ذكر بعد';
@@ -4094,7 +4101,6 @@ window.AnouarUpdateBridge = Object.freeze({
  restoreOfficialButton.addEventListener('click',()=>{
   if(!removedOfficialDhikrs.length)return;
   removedOfficialDhikrs=[];
-  renderCustomDhikrs();
   if(!select.value)select.value=firstVisibleDhikr()?.value||'';
   phraseNode.textContent=select.value||'لم يتم اختيار ذكر بعد';
   paint();
