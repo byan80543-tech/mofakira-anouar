@@ -30,10 +30,18 @@ export async function onRequest(context) {
   // Add social metadata only to the homepage HTML; leave app assets untouched.
   if (!contentType.toLowerCase().includes("text/html")) return response;
 
+  // App HTML already carries its own canonical and social cards. Only inject
+  // the fallback metadata on HTML pages that do not define an Open Graph title.
+  let hasSocialTitle = false;
   return new HTMLRewriter()
+    .on('meta[property="og:title"]', {
+      element() { hasSocialTitle = true; },
+    })
     .on("head", {
       element(head) {
-        head.append(SOCIAL_META, { html: true });
+        head.onEndTag(endTag => {
+          if (!hasSocialTitle) endTag.append(SOCIAL_META, { html: true });
+        });
       },
     })
     .transform(response);
