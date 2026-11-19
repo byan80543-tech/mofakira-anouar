@@ -107,7 +107,9 @@
             if (error) reject(error);
             else resolve();
           };
-          const onControllerChange = () => finish();
+          const onControllerChange = () => {
+            if (serviceWorker.controller === targetWorker) finish();
+          };
           const onWorkerStateChange = () => {
             if (targetWorker.state === 'redundant') {
               finish(new Error('تعذّر تفعيل النسخة الجديدة. بقيت بياناتك كما هي؛ حاول مجدداً.'));
