@@ -137,22 +137,22 @@ assert.equal(count(counterInput),3,'the circular counter supports Space from the
 const officialApp=buildApp();
 const officialOptions=officialApp.nodes.tasbihDhikr.options.filter(option=>option.dataset.anwarOfficialDhikr==='true');
 assert.ok(officialOptions.length>=35,'morning and evening official adhkar are both loaded');
-assert.ok(officialOptions.some(option=>option.textContent==='آية الكرسي'&&option.value.includes('الْحَيُّ الْقَيُّومُ')),'the full Ayat al-Kursi text is available');
+assert.ok(officialOptions.some(option=>option.textContent==='آية الكرسي'&&option.dataset.dhikrText.includes('الْحَيُّ الْقَيُّومُ')),'the full Ayat al-Kursi text is available');
 assert.ok(officialOptions.some(option=>option.textContent==='سور الإخلاص والفلق والناس'&&option.dataset.repeat==='3'),'the three Quls are complete and marked three times');
 assert.ok(officialOptions.some(option=>option.textContent==='سبحان الله وبحمده'&&option.dataset.repeat==='100'),'the hundred-repetition dhikr includes its count');
 assert.ok(officialOptions.every(option=>option.dataset.source&&option.value.length>5),'official adhkar include full text and source metadata');
 const officialCard=officialApp.nodes.tasbihDhikrCards.children.flatMap(group=>group.children).find(card=>card.className==='tasbih-dhikr-card'&&card.children.some(child=>child.className==='tasbih-dhikr-card-meta'));
 assert.ok(officialCard,'official adhkar render as designed cards with details');
 assert.ok(officialCard.children.some(child=>child.className==='tasbih-dhikr-card-text'),'official cards display the full dhikr text');
-const longOfficial=officialOptions.find(option=>option.value.length>200);
+const longOfficial=officialOptions.find(option=>option.dataset.dhikrText.length>200);
 assert.ok(longOfficial,'a long official dhikr is present for persistence-boundary testing');
 officialApp.nodes.tasbihDhikr.value=longOfficial.value;
 officialApp.nodes.tasbihRemoveDhikr.click();
 assert.ok(officialApp.state.tasbih.removedOfficialDhikrs.includes(longOfficial.dataset.anwarOfficialId),'removing an official dhikr stores its stable identifier');
 const restoredRemoved=buildApp({initialRemoved:officialApp.state.tasbih.removedOfficialDhikrs});
-assert.ok(!restoredRemoved.nodes.tasbihDhikr.options.some(option=>option.value===longOfficial.value),'a removed long official dhikr stays hidden after reload');
+assert.ok(!restoredRemoved.nodes.tasbihDhikr.options.some(option=>option.dataset.anwarOfficialId===longOfficial.dataset.anwarOfficialId),'a removed official dhikr stays hidden after reload by its unique ID');
 restoredRemoved.nodes.tasbihRestoreOfficial.click();
-assert.ok(restoredRemoved.nodes.tasbihDhikr.options.some(option=>option.value===longOfficial.value),'the full official dhikr can be restored after reload');
+assert.ok(restoredRemoved.nodes.tasbihDhikr.options.some(option=>option.dataset.anwarOfficialId===longOfficial.dataset.anwarOfficialId),'the official dhikr can be restored after reload');
 
 const app=buildApp();
 assert.equal(app.sandbox.__ANWAR_TASBIH_CONTROLLER_READY__,true,'the controller initializes when the required UI is present');
