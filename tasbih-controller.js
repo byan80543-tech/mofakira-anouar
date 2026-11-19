@@ -275,6 +275,8 @@
    closeButton.focus()
   }
   function closePanel(restoreFocus){
+   themePicker.hidden=true;
+   themeToggle.setAttribute('aria-expanded','false');
    if(voiceActive)stopVoice('توقف الاستماع عند إغلاق السبحة.');
    panel.hidden=true;
    toggleButton.setAttribute('aria-expanded','false');
