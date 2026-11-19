@@ -3113,11 +3113,11 @@ function plainNote(n){
  const value=plain(html);notePlainTextCache.set(n,{html,text:value});return value;
 }
 function renderList(){
- const q=$('q').value.trim(),items=[];
+ const q=$('q').value.trim().toLocaleLowerCase(),items=[];
  for(const n of S.notes){
   if(flt!=='all'&&(flt==='pin'?!n.pin:n.type!==flt))continue;
   const body=plainNote(n);
-  if(q&&!(String(n.title||'')+' '+body).includes(q))continue;
+  if(q&&!(String(n.title||'')+' '+body).toLocaleLowerCase().includes(q))continue;
   items.push({note:n,body});
  }
  items.sort((a,b)=>(b.note.pin?1:0)-(a.note.pin?1:0)||b.note.ts-a.note.ts);
@@ -4038,10 +4038,16 @@ async function renderPaPdf(filename){
   if(saved)toast('تم حفظ ملف PDF على جهازك ✓',3500);return saved;
  }catch(error){console.warn('تعذّر تصدير PDF',error);toast('تعذّر إنشاء PDF. تحقق من الاتصال ثم أعد المحاولة؛ لم يُحذف أي عمل.',5500);return false}
 }
+function openSafeBlobTab(url){
+ const opened=window.open(url,'_blank');
+ if(!opened)return false;
+ try{opened.opener=null}catch(error){}
+ return true;
+}
 function openDocumentBlob(blob,filename){
  try{
   const url=URL.createObjectURL(blob);
-  const opened=window.open(url,'_blank','noopener');
+  const opened=openSafeBlobTab(url);
   if(opened){
    toast('فُتح المستند في علامة جديدة. يمكنك قراءته أو حفظه من قائمة المتصفح.',4500);
    setTimeout(()=>URL.revokeObjectURL(url),10*60*1000);
@@ -4154,7 +4160,7 @@ async function handleBookFile(file){
   console.warn('تعذّرت مشاركة الملف من الهاتف',error);
  }
  if(['pdf','png','jpg','jpeg','webp','gif'].includes(ext)){
-  const url=URL.createObjectURL(file),opened=window.open(url,'_blank','noopener');
+  const url=URL.createObjectURL(file),opened=openSafeBlobTab(url);
   if(opened){$('bookFileStatus').textContent='فُتح الملف في علامة جديدة للقراءة.';setTimeout(()=>URL.revokeObjectURL(url),120000);return}
  }
  await downloadBlob(file,name);
