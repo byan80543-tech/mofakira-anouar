@@ -3242,7 +3242,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
   const doc=new DOMParser().parseFromString(html,'text/html'),rows=[];
   doc.querySelectorAll('a[href]').forEach(a=>{
    let u;try{u=new URL(a.getAttribute('href'),COUNTRY_BASE)}catch(_e){return}
-   if(u.protocol!=='https:'||u.username||u.password||!['way2quran.com','www.way2quran.com'].includes(u.hostname.toLowerCase()))return;
+   if(u.protocol!=='https:'||u.username||u.password||u.port||u.hash||u.search||!['way2quran.com','www.way2quran.com'].includes(u.hostname.toLowerCase()))return;
    const match=u.pathname.match(/^\/ar\/reciters\/([^/]+)\/?$/);
    if(!match)return;
    const raw=(a.textContent||a.getAttribute('aria-label')||a.getAttribute('title')||'').replace(/[\u064B-\u065F\u0670]/g,'').replace(/\s+/g,' ').trim();
