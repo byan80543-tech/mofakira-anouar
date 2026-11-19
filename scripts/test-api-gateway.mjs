@@ -142,6 +142,24 @@ try {
   }), env, context);
   assert.equal(response.status, 405);
 
+  // A redirect may only stay on explicitly approved upstream hosts.
+  let redirectCalls = 0;
+  globalThis.fetch = async () => {
+    redirectCalls += 1;
+    if (redirectCalls === 1) {
+      return new Response(null, {
+        status: 302,
+        headers: { Location: "https://attacker.way2quran.com/ar/reciters/reader-one" }
+      });
+    }
+    return new Response("<html>" + "x".repeat(400) + "/ar/reciters</html>", {
+      headers: { "Content-Type": "text/html; charset=utf-8" }
+    });
+  };
+  response = await worker.fetch(request("/v1/country/profile?slug=reader-one"), baseEnv(), context);
+  assert.equal(response.status, 502, "redirect to an unapproved nested subdomain is rejected");
+  assert.equal(redirectCalls, 1, "unapproved redirect is rejected before the second network request");
+
   // A route-specific 429 blocks before contacting a provider.
   const deniedEnv = { ...baseEnv(), IP_LIMITER: makeLimiter({ denyBucket: "country-list" }) };
   response = await worker.fetch(request("/v1/country/list?nationality=MA&page=1"), deniedEnv, context);
