@@ -53,11 +53,11 @@
   function renderOfficialOptions(){
    const existing=Array.from(select.querySelectorAll('optgroup')).filter(group=>group.dataset.anwarOfficialDhikrs==='true');
    existing.forEach(group=>group.remove());
-   ['morning','evening'].forEach(period=>{
+   ['morning','evening','daily'].forEach(period=>{
     const items=officialAdhkar.filter(item=>item&&item.period===period&&typeof item.text==='string'&&item.text.trim());
     if(!items.length)return;
     const group=document.createElement('optgroup');
-    group.label=period==='morning'?'أذكار الصباح الرسمية':'أذكار المساء الرسمية';
+    group.label=period==='morning'?'أذكار الصباح الرسمية':period==='evening'?'أذكار المساء الرسمية':'أذكار يومية';
     group.dataset.anwarOfficialDhikrs='true';
     items.forEach(item=>{
      const option=document.createElement('option');
