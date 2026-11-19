@@ -2138,6 +2138,37 @@ function speak(){
   next();
  }
 $('rib').addEventListener('mousedown',e=>{if(e.target.closest('button'))e.preventDefault()});
+function toggleTasbihFromToolbar(button){
+ const controller=window.AnwarTasbihController;
+ if(controller&&typeof controller.toggle==='function'){
+  try{if(controller.toggle()===true)return true}
+  catch(error){console.error('تعذر فتح السبحة عبر متحكمها المستقل؛ ستتم محاولة العرض المباشر.',error)}
+ }
+ const panel=$('tasbihPanel'),dialog=$('ownerDialog'),adhkar=$('adhkarPanel');
+ if(!panel||!dialog||!adhkar){
+  toast('تعذّر العثور على لوحة السبحة. أعد تحميل المفكرة وحاول مجدداً.');
+  return false;
+ }
+ try{
+  if(!panel.hidden){
+   panel.hidden=true;
+   if(button)button.setAttribute('aria-expanded','false');
+   return true;
+  }
+  if(!dialog.open)dialog.showModal();
+  showOwnerPanel('adhkar');
+  panel.hidden=false;
+  if(button)button.setAttribute('aria-expanded','true');
+  requestAnimationFrame(()=>{
+   try{panel.scrollIntoView({behavior:'smooth',block:'nearest'})}catch(error){}
+  });
+  return true;
+ }catch(error){
+  console.error('تعذّر فتح السبحة عبر المسار الاحتياطي',error);
+  toast('تعذّر فتح السبحة. أغلق نافذة الملكية وحاول مرة أخرى.');
+  return false;
+ }
+}
 document.addEventListener('click',e=>{
  const t=e.target.closest('button,.card,#fl div,.archive-card');
  if(!e.target.closest('#fm')&&t?.id!=='fb')$('fm').classList.remove('o');
@@ -2198,6 +2229,7 @@ document.addEventListener('click',e=>{
  else if(id==='shareTab')showOwnerPanel('share');
  else if(id==='morningTab')renderAdhkar('morning');
  else if(id==='eveningTab')renderAdhkar('evening');
+ else if(id==='adhkarTasbihToggle')toggleTasbihFromToolbar(t);
 });
 
 const ADHKAR={
