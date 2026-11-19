@@ -2098,6 +2098,7 @@ async function importTranscriptCaption(file){
   transcriptLastRendered=formatted;
   $('transcriptTitle').value=(file.name||'تفريغ فيديو').replace(/\.(srt|vtt|txt)$/i,'').replace(/[_-]+/g,' ').slice(0,100)||'تفريغ فيديو';
   $('transcriptText').value=formatted;
+  refreshTranscriptTablePreview();
   $('transcriptText').spellcheck=false;
   $('transcriptSpellcheck').setAttribute('aria-pressed','false');
   $('transcriptFormatLabel').textContent=TRANSCRIPT_FORMATS[0];
@@ -2164,6 +2165,7 @@ async function transcribeYouTubeLink(){
   transcriptLastRendered=formatTranscriptText(text,0);
   $('transcriptTitle').value=title;
   $('transcriptText').value=transcriptLastRendered;
+  refreshTranscriptTablePreview();
   $('transcriptText').spellcheck=false;
   $('transcriptSpellcheck').setAttribute('aria-pressed','false');
   $('transcriptFormatLabel').textContent=TRANSCRIPT_FORMATS[0];
@@ -2228,6 +2230,7 @@ async function transcribeAudioFile(){
   transcriptLastRendered=formatted;
   $('transcriptTitle').value=(file.name||'تفريغ صوتي').replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').slice(0,100)||'تفريغ صوتي';
   $('transcriptText').value=formatted;
+  refreshTranscriptTablePreview();
   $('transcriptText').spellcheck=false;
   $('transcriptSpellcheck').setAttribute('aria-pressed','false');
   $('transcriptFormatLabel').textContent=TRANSCRIPT_FORMATS[0];
@@ -2264,9 +2267,24 @@ function applyTranscriptFormat(index){
  const formatted=index<0?transcriptBaseText:formatTranscriptText(transcriptBaseText,index);
  transcriptLastRendered=formatted;
  area.value=formatted;
+ refreshTranscriptTablePreview();
  $('transcriptFormatLabel').textContent=index<0?'النص الأصلي':TRANSCRIPT_FORMATS[index];
  transcriptEditorStatus(index<0?'أُعيد النص إلى ترتيبه الأصلي.':'تم ترتيب النص بصيغة: '+TRANSCRIPT_FORMATS[index]+' · بقي المحتوى الأصلي محفوظًا للعودة إليه.');
  closeTranscriptFormatMenu();
+}
+function refreshTranscriptTablePreview(){
+ const preview=$('transcriptTablePreview'),area=$('transcriptText');
+ if(!preview)return;
+ if(transcriptFormatIndex!==5||!area||!area.value.trim()){
+  preview.hidden=true;preview.innerHTML='';return;
+ }
+ const rows=area.value.split(/\r?\n/).filter(Boolean).map(line=>{
+  const cells=line.split('\t');
+  return [cells[0]||'',cells[1]||'',cells[2]||''];
+ });
+ if(!rows.length){preview.hidden=true;preview.innerHTML='';return}
+ preview.innerHTML='<div class="transcript-table-caption">معاينة جدول المذاكرة · يمكنك تنزيله بصيغة PDF أو Word</div>'+transcriptTableHtml(rows);
+ preview.hidden=false;
 }
 function transcriptTableHtml(rows){
  const cellStyle='border:1px solid #b9ad98;padding:9px 8px;vertical-align:top;text-align:right;line-height:1.8;';
@@ -2660,6 +2678,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeTranscriptForma
 $('transcriptText').addEventListener('input',()=>{
  const value=$('transcriptText').value;
  if(value!==transcriptLastRendered)transcriptBaseText=value;
+ if(transcriptFormatIndex===5)refreshTranscriptTablePreview();
 });
 $('bookFormat').addEventListener('change',e=>{
  const hints={pdf:'ينشئ ملف PDF جاهزاً للقراءة والطباعة ويحفظه مباشرة على الجهاز.',docx:'ينشئ مستند Word قابلاً للتحرير.',txt:'يحفظ النص العربي في ملف بسيط.',html:'ينشئ صفحة ويب مستقلة من أعمال الكتاب.'};
