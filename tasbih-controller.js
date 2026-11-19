@@ -38,22 +38,53 @@
    if(stored&&stored.tasbih&&typeof stored.tasbih==='object')initial=stored.tasbih;
   }catch(error){console.warn('تعذر قراءة إعدادات السبحة؛ سيبدأ العداد بإعداداته الافتراضية.',error)}
   const MAX_COUNT=1000000000;
-  const cleanDhikrList=(items,limit)=>Array.isArray(items)
-   ?[...new Set(items.filter(item=>typeof item==='string').map(item=>item.trim().replace(/\s+/g,' ').slice(0,200)).filter(Boolean))].slice(0,limit)
+  const cleanDhikrList=(items,limit,maxLength=200)=>Array.isArray(items)
+   ?[...new Set(items.filter(item=>typeof item==='string').map(item=>item.trim().slice(0,maxLength)).filter(Boolean))].slice(0,limit)
    :[];
   let count=Number.isSafeInteger(initial.count)?Math.max(0,Math.min(MAX_COUNT,initial.count)):0;
   const allowedThemes=new Set(themeIds);
   let theme=allowedThemes.has(initial.theme)?initial.theme:'emerald';
-  let customDhikrs=cleanDhikrList(initial.customDhikrs,30);
-  let removedOfficialDhikrs=cleanDhikrList(initial.removedOfficialDhikrs,60);
+  let customDhikrs=cleanDhikrList(initial.customDhikrs,30,200);
+  let removedOfficialDhikrs=cleanDhikrList(initial.removedOfficialDhikrs,60,4000);
   let recognition=null,voiceActive=false,writingPreferences=false,voiceTargetPhrase='';
   let processedFinalIndexes=new Set();
 
+  const officialAdhkar=Array.isArray(window.ANWAR_OFFICIAL_ADHKAR)?window.ANWAR_OFFICIAL_ADHKAR:[];
+  function renderOfficialOptions(){
+   const existing=Array.from(select.querySelectorAll('optgroup')).filter(group=>group.dataset.anwarOfficialDhikrs==='true');
+   existing.forEach(group=>group.remove());
+   ['morning','evening','daily'].forEach(period=>{
+    const items=officialAdhkar.filter(item=>item&&item.period===period&&typeof item.text==='string'&&item.text.trim());
+    if(!items.length)return;
+    const group=document.createElement('optgroup');
+    group.label=period==='morning'?'أذكار الصباح الرسمية':period==='evening'?'أذكار المساء الرسمية':'أذكار يومية';
+    group.dataset.anwarOfficialDhikrs='true';
+    items.forEach(item=>{
+     const option=document.createElement('option');
+     option.value='official:'+item.id;
+     option.dataset.dhikrText=item.text;
+     option.textContent=item.title;
+     option.dataset.anwarOfficialDhikr='true';
+     option.dataset.anwarOfficialId=item.id;
+     option.dataset.repeat=String(item.count||1);
+     option.dataset.source=item.source||'حصن المسلم';
+     option.dataset.period=period;
+     group.appendChild(option);
+    });
+    select.appendChild(group);
+   });
+  }
+  function optionText(option){return option&&option.dataset&&option.dataset.dhikrText?option.dataset.dhikrText:(option?option.value:'')}
+  function isRemovedOfficial(option){
+   if(!option)return false;
+   const officialId=option.dataset&&option.dataset.anwarOfficialId;
+   return removedOfficialDhikrs.includes(option.value)||(officialId&&removedOfficialDhikrs.includes(officialId));
+  }
   function isCustomOption(option){
    return !!(option&&option.parentElement&&option.parentElement.dataset.anwarCustomDhikrs==='true');
   }
   function visibleOptions(){
-   return Array.from(select.options).filter(option=>isCustomOption(option)||!removedOfficialDhikrs.includes(option.value));
+   return Array.from(select.options).filter(option=>isCustomOption(option)||!isRemovedOfficial(option));
   }
   function persist(){
    if(!preferences||typeof preferences.set!=='function')return;
@@ -85,7 +116,7 @@
   function renderCards(){
    cards.replaceChildren();
    Array.from(select.querySelectorAll('optgroup')).forEach(group=>{
-    const options=Array.from(group.options).filter(option=>isCustomOption(option)||!removedOfficialDhikrs.includes(option.value));
+    const options=Array.from(group.options).filter(option=>isCustomOption(option)||!isRemovedOfficial(option));
     if(!options.length)return;
     const section=document.createElement('section');
     section.className='tasbih-dhikr-group';
@@ -97,6 +128,7 @@
      const button=document.createElement('button');
      button.type='button';
      button.className='tasbih-dhikr-card';
+     if(option.dataset.anwarOfficialId)button.dataset.anwarOfficialId=option.dataset.anwarOfficialId;
      button.setAttribute('aria-pressed',option.value===select.value?'true':'false');
      button.setAttribute('aria-label','اختيار الذكر: '+option.textContent);
      const flower=document.createElement('span');
@@ -114,6 +146,21 @@
      button.appendChild(name);
      const secondFlower=flower.cloneNode(true);
      button.appendChild(secondFlower);
+     if(option.dataset.anwarOfficialDhikr==='true'){
+      const fullText=document.createElement('span');
+      fullText.className='tasbih-dhikr-card-text';
+      fullText.textContent=optionText(option);
+      button.appendChild(fullText);
+      const meta=document.createElement('span');
+      meta.className='tasbih-dhikr-card-meta';
+      const repeat=document.createElement('span');
+      repeat.textContent='التكرار: '+(option.dataset.repeat||'1')+' '+(Number(option.dataset.repeat)===1?'مرة':'مرات');
+      const source=document.createElement('span');
+      source.textContent='المصدر: '+(option.dataset.source||'حصن المسلم');
+      meta.appendChild(repeat);
+      meta.appendChild(source);
+      button.appendChild(meta);
+     }
      button.addEventListener('click',()=>chooseDhikr(option.value,true));
      section.appendChild(button);
     });
@@ -130,7 +177,8 @@
    panel.dataset.tasbihTheme=theme;
    themeButtons.forEach(item=>item.button.setAttribute('aria-pressed',item.name===theme?'true':'false'));
    countNode.textContent=count.toLocaleString('ar');
-   phraseNode.textContent=select.value||'لم يتم اختيار ذكر بعد';
+   const selectedOption=Array.from(select.options).find(option=>option.value===select.value);
+   phraseNode.textContent=selectedOption?optionText(selectedOption):'لم يتم اختيار ذكر بعد';
    renderCards();
    const selected=Array.from(select.options).find(option=>option.value===select.value);
    removeButton.disabled=!selected;
@@ -153,11 +201,11 @@
    saveAndUpdate();
   }
   function chooseDhikr(value,resetCount){
-   const option=Array.from(select.options).find(item=>item.value===value&&(isCustomOption(item)||!removedOfficialDhikrs.includes(item.value)));
+   const option=Array.from(select.options).find(item=>item.value===value&&(isCustomOption(item)||!isRemovedOfficial(item)));
    if(!option)return;
    if(voiceActive)stopVoice('توقف التسجيل لأن الذكر المختار تغيّر.');
    select.value=option.value;
-   voiceTargetPhrase=option.value;
+   voiceTargetPhrase=optionText(option);
    processedFinalIndexes=new Set();
    if(resetCount)count=0;
    if(voiceTranscript)voiceTranscript.textContent='بانتظار نطق الذكر المختار.';
@@ -210,15 +258,17 @@
    const value=String(customInput.value||'').replace(/\s+/g,' ').trim();
    if(!value){customStatus.textContent='اكتب الذكر أولاً ثم اضغط إضافة.';customInput.focus();return}
    if(value.length>200){customStatus.textContent='الحد الأقصى لطول الذكر هو 200 حرف.';customInput.focus();return}
-   if(removedOfficialDhikrs.includes(value)){
-    removedOfficialDhikrs=removedOfficialDhikrs.filter(item=>item!==value);
+   const removedOfficial=Array.from(select.options).find(option=>!isCustomOption(option)&&optionText(option)===value&&isRemovedOfficial(option));
+   if(removedOfficial){
+    const removalKey=removedOfficial.dataset.anwarOfficialId||removedOfficial.value;
+    removedOfficialDhikrs=removedOfficialDhikrs.filter(item=>item!==removalKey);
     customInput.value='';
-    chooseDhikr(value,true);
+    chooseDhikr(removedOfficial.value,true);
     customStatus.textContent='أُعيد الذكر الرسمي إلى قائمتك واختير للسبحة.';
     return;
    }
-   const existing=Array.from(select.options).find(option=>option.value===value);
-   if(existing){customInput.value='';chooseDhikr(value,true);customStatus.textContent='هذا الذكر موجود في القائمة، وقد تم اختياره.';return}
+   const existing=Array.from(select.options).find(option=>optionText(option)===value&&(isCustomOption(option)||!isRemovedOfficial(option)));
+   if(existing){customInput.value='';chooseDhikr(existing.value,true);customStatus.textContent='هذا الذكر موجود في القائمة، وقد تم اختياره.';return}
    if(customDhikrs.length>=30){customStatus.textContent='وصلت إلى الحد الأقصى وهو 30 ذكراً مضافاً.';return}
    customDhikrs.push(value);
    renderCustomOptions();
@@ -284,8 +334,9 @@
    if(restoreFocus!==false&&ownerDialog.open)toggleButton.focus();
   }
 
+  renderOfficialOptions();
   renderCustomOptions();
-  const savedOption=Array.from(select.options).find(option=>option.value===initial.dhikr&&(isCustomOption(option)||!removedOfficialDhikrs.includes(option.value)));
+  const savedOption=Array.from(select.options).find(option=>option.value===initial.dhikr&&(isCustomOption(option)||!isRemovedOfficial(option)));
   if(savedOption)select.value=savedOption.value;
   else if(!visibleOptions().some(option=>option.value===select.value))select.value=firstVisible()?firstVisible().value:'';
   update();
@@ -317,7 +368,7 @@
   customInput.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();addCustomDhikr()}});
   select.addEventListener('change',()=>{
    if(voiceActive)stopVoice('توقف التسجيل لأن الذكر المختار تغيّر.');
-   voiceTargetPhrase=select.value||'';
+   voiceTargetPhrase=optionText(Array.from(select.options).find(option=>option.value===select.value))||'';
    processedFinalIndexes=new Set();
    count=0;
    saveAndUpdate();
@@ -331,7 +382,7 @@
    if(!window.confirm(message))return;
    if(voiceActive)stopVoice('توقف التسجيل بسبب تعديل قائمة الأذكار.');
    if(custom)customDhikrs=customDhikrs.filter(item=>item!==selected.value);
-   else if(!removedOfficialDhikrs.includes(selected.value))removedOfficialDhikrs.push(selected.value);
+   else {const officialId=selected.dataset&&selected.dataset.anwarOfficialId;const removalKey=officialId||selected.value;if(!removedOfficialDhikrs.includes(removalKey))removedOfficialDhikrs.push(removalKey)}
    renderCustomOptions();
    const next=firstVisible();
    select.value=next?next.value:'';
@@ -427,7 +478,7 @@
      if(voiceActive){stopVoice('تم إيقاف التسجيل.');return}
      try{
       processedFinalIndexes=new Set();
-      voiceTargetPhrase=String(select.value||'').trim();
+      voiceTargetPhrase=String(optionText(Array.from(select.options).find(option=>option.value===select.value))||'').trim();
       if(!voiceTargetPhrase){
        setVoiceState('error','اختر ذكراً قبل بدء التسجيل.');
        return;
@@ -455,11 +506,11 @@
     if(writingPreferences)return;
     const value=saved&&saved.tasbih?saved.tasbih:{};
     count=Number.isSafeInteger(value.count)?Math.max(0,value.count):0;
-    customDhikrs=Array.isArray(value.customDhikrs)?value.customDhikrs.slice():[];
-    removedOfficialDhikrs=Array.isArray(value.removedOfficialDhikrs)?value.removedOfficialDhikrs.slice():[];
+    customDhikrs=cleanDhikrList(value.customDhikrs,30,200);
+    removedOfficialDhikrs=cleanDhikrList(value.removedOfficialDhikrs,60,4000);
     theme=allowedThemes.has(value.theme)?value.theme:'emerald';
     renderCustomOptions();
-    const option=Array.from(select.options).find(item=>item.value===value.dhikr&&(isCustomOption(item)||!removedOfficialDhikrs.includes(item.value)));
+    const option=Array.from(select.options).find(item=>item.value===value.dhikr&&(isCustomOption(item)||!isRemovedOfficial(item)));
     if(option)select.value=option.value;
     else if(!visibleOptions().some(item=>item.value===select.value))select.value=firstVisible()?firstVisible().value:'';
     update();
