@@ -98,4 +98,20 @@ vm.runInNewContext(openFunction+'\nopenPanel();',missingSandbox,{timeout:2000});
 assert.equal(missingSandbox.panel.hidden,true,'panel remains closed when initialization is missing');
 assert.equal(missingBridgeCalls.length,1,'missing bridge produces a visible recovery message');
 
+
+const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
+const outerTabsStart=html.indexOf('<div class="owner-tabs">',html.indexOf('<dialog id="ownerDialog">'));
+const ownerPanelStart=html.indexOf('<section id="ownerPanel"',outerTabsStart);
+const adhkarPanelStart=html.indexOf('<section id="adhkarPanel"',ownerPanelStart);
+const innerTabsStart=html.indexOf('<div class="owner-tabs adhkar-tabs"',adhkarPanelStart);
+const tasbihPanelStart=html.indexOf('<section id="tasbihPanel"',innerTabsStart);
+assert.ok(outerTabsStart>=0&&ownerPanelStart>outerTabsStart&&adhkarPanelStart>ownerPanelStart&&innerTabsStart>adhkarPanelStart&&tasbihPanelStart>innerTabsStart,'both tab rows exist in expected dialog sections');
+const outerTabs=html.slice(outerTabsStart,ownerPanelStart);
+const innerTabs=html.slice(innerTabsStart,tasbihPanelStart);
+assert.ok(outerTabs.includes('id="adhkarTasbihToggle"')&&outerTabs.includes('aria-controls="tasbihPanel"'),'tasbih launcher occupies the former top-level adhkar-tab position');
+assert.ok(innerTabs.includes('id="adhkarTab"'),'adhkar tab occupies the former tasbih-button position');
+assert.ok(!outerTabs.includes('id="adhkarTab"')&&!innerTabs.includes('id="adhkarTasbihToggle"'),'swapped IDs occur only in their new positions');
+assert.equal((html.match(/id="adhkarTasbihToggle"/g)||[]).length,1,'tasbih launcher ID remains unique');
+assert.equal((html.match(/id="adhkarTab"/g)||[]).length,1,'adhkar tab ID remains unique');
+
 console.log('Tasbih launch tests passed: real scoped owner bridge, tab state, opening, focus, scrolling, toggle-close and missing-bridge failure path.');
