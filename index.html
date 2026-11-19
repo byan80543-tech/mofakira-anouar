@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="preload" href="./app-core.js?v=20261119-2" as="script">
+<link rel="preload" href="./app-core.js?v=20261119-3" as="script">
 <script src="api-gateway-config.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>مفكرة أنوار | Anouar Oumlili</title>
@@ -1767,6 +1767,47 @@ dialog[open]>.float-head{display:none!important}
 @media(prefers-reduced-motion:reduce){.tb #bk{transition:none!important}}
 </style>
 
+<style id="tasbih-dhikr-cards-v1">
+.tasbih-dhikr-cards{
+ width:min(100%,460px);max-height:265px;overflow:auto;overscroll-behavior:contain;
+ display:grid;gap:11px;padding:3px 3px 5px;scrollbar-width:thin
+}
+.tasbih-dhikr-group{display:grid;gap:6px;min-width:0}
+.tasbih-dhikr-category{
+ padding:2px 5px 5px;border-bottom:1px solid #d9c59a;
+ color:#8a7048;text-align:right;font:700 11px Cairo,Tahoma,sans-serif
+}
+.tasbih-dhikr-card{
+ width:100%;min-width:0;min-height:49px;padding:7px 9px;
+ display:grid;grid-template-columns:30px minmax(0,1fr) 30px;align-items:center;gap:8px;
+ direction:rtl;text-align:center;border:1px solid var(--bd);border-radius:11px;
+ background:linear-gradient(110deg,var(--sf),var(--bg));color:var(--tx);
+ box-shadow:0 2px 6px rgba(30,45,60,.06);
+ font:700 12px/1.75 Cairo,Tahoma,sans-serif;transition:border-color .18s ease,background .18s ease,box-shadow .18s ease
+}
+.tasbih-dhikr-card[aria-pressed="true"]{
+ border-color:#b58a42;background:linear-gradient(110deg,#fff7e4,#f0dfb9);
+ color:#173d5c;box-shadow:inset 0 0 0 1px #d8bd7c,0 3px 8px rgba(70,50,20,.09)
+}
+.tasbih-dhikr-card:focus-visible{outline:3px solid #d8b96e;outline-offset:2px}
+.tasbih-dhikr-card-name{min-width:0;overflow-wrap:anywhere}
+.tasbih-dhikr-tulip{display:grid;place-items:center;width:28px;height:34px;overflow:hidden}
+.tasbih-dhikr-tulip img{display:block;width:26px;height:33px;object-fit:contain;object-position:center}
+.tasbih-dhikr-management{width:min(100%,460px);display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.tasbih-dhikr-management button{
+ min-height:34px;padding:6px 11px;border:1px solid var(--bd);border-radius:9px;
+ background:var(--sf);color:var(--mu);font:600 10px Cairo,Tahoma,sans-serif
+}
+.tasbih-dhikr-management button:disabled{opacity:.45;cursor:not-allowed}
+#tasbihRestoreOfficial:not([hidden]){border-color:#c9ad78;background:#fff7e7;color:#71552d}
+.tasbih-dhikr-note{width:min(100%,460px);color:var(--mu);text-align:center;font:9px/1.7 Cairo,Tahoma,sans-serif}
+.tasbih-dhikr-empty{padding:14px 10px;border:1px dashed var(--bd);border-radius:10px;color:var(--mu);text-align:center;font:11px/1.8 Cairo,Tahoma,sans-serif}
+@media(max-width:360px){
+ .tasbih-dhikr-card{grid-template-columns:24px minmax(0,1fr) 24px;gap:5px;padding-inline:6px;font-size:11px}
+ .tasbih-dhikr-tulip,.tasbih-dhikr-tulip img{width:23px;height:30px}
+}
+@media(prefers-reduced-motion:reduce){.tasbih-dhikr-card{transition:none}}
+</style>
 </head>
 <body>
 <div class="app" id="app">
@@ -2033,8 +2074,14 @@ dialog[open]>.float-head{display:none!important}
    <header class="anwar-tasbih-inline-head"><div><strong id="tasbihTitle">سبحة الأذكار</strong><small>تسبيحك وعدّادك في مكان واحد</small></div><button type="button" id="tasbihClose" aria-label="إغلاق السبحة">إغلاق</button></header>
    <div class="anwar-tasbih-content">
     <p class="anwar-tasbih-intro">اذكر الله بقلب حاضر</p><div class="anwar-tasbih-phrase" id="tasbihPhrase">أستغفر الله العظيم وأتوب إليه</div>
-    <label class="anwar-tasbih-label" for="tasbihDhikr">اختر الذكر</label>
-    <select id="tasbihDhikr" class="anwar-tasbih-select">
+    <div class="anwar-tasbih-label" id="tasbihDhikrLabel">اختر الذكر</div>
+    <div id="tasbihDhikrCards" class="tasbih-dhikr-cards" role="group" aria-labelledby="tasbihDhikrLabel"></div>
+    <div class="tasbih-dhikr-management">
+     <button type="button" id="tasbihRemoveDhikr" disabled>إزالة الذكر الرسمي من قائمتي</button>
+     <button type="button" id="tasbihRestoreOfficial" hidden>استعادة الأذكار الرسمية</button>
+    </div>
+    <small class="tasbih-dhikr-note">الإزالة تخص قائمتك على هذا الجهاز فقط، ويمكنك استعادة الأذكار الرسمية متى شئت.</small>
+    <select id="tasbihDhikr" class="anwar-tasbih-select" aria-hidden="true" tabindex="-1" hidden>
      <optgroup label="التسبيح والتحميد"><option>سبحان الله</option><option>الحمد لله</option><option>الله أكبر</option><option>لا إله إلا الله</option><option>سبحان الله وبحمده</option><option>سبحان الله العظيم</option><option>سبحان الله والحمد لله ولا إله إلا الله والله أكبر</option><option>لا حول ولا قوة إلا بالله</option></optgroup>
      <optgroup label="الاستغفار والتوبة"><option>أستغفر الله</option><option selected>أستغفر الله العظيم وأتوب إليه</option><option>أستغفر الله العظيم الذي لا إله إلا هو الحي القيوم وأتوب إليه</option><option>رب اغفر لي وتب علي إنك أنت التواب الرحيم</option><option>اللهم إنك عفو تحب العفو فاعف عني</option></optgroup>
      <optgroup label="أذكار وأدعية جامعة"><option>اللهم صل وسلم على نبينا محمد</option><option>اللهم أعني على ذكرك وشكرك وحسن عبادتك</option><option>لا إله إلا أنت سبحانك إني كنت من الظالمين</option><option>حسبي الله لا إله إلا هو عليه توكلت وهو رب العرش العظيم</option><option>رضيت بالله ربا وبالإسلام دينا وبمحمد نبيا</option><option>يا حي يا قيوم برحمتك أستغيث</option><option>ربنا آتنا في الدنيا حسنة وفي الآخرة حسنة وقنا عذاب النار</option><option>اللهم اكفني بحلالك عن حرامك وأغنني بفضلك عمن سواك</option></optgroup>
@@ -2144,7 +2191,7 @@ dialog[open]>.float-head{display:none!important}
 <div id="toast"></div>
 <script src="./vault-crypto.js?v=20261118-2"></script>
 <script src="./vault-device-unlock.js?v=20261118-1"></script>
-<script src="./app-core.js?v=20261119-2" defer></script>
+<script src="./app-core.js?v=20261119-3" defer></script>
 
 
 

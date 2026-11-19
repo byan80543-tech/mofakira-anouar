@@ -17,7 +17,8 @@
    tasbih:{
     count:Number.isSafeInteger(count)?Math.max(0,Math.min(1000000000,count)):0,
     dhikr:typeof tasbih.dhikr==='string'&&tasbih.dhikr.trim()?tasbih.dhikr.trim().slice(0,200):DEFAULT_DHIKR,
-    customDhikrs:Array.isArray(tasbih.customDhikrs)?[...new Set(tasbih.customDhikrs.filter(item=>typeof item==='string').map(item=>item.trim().replace(/\s+/g,' ').slice(0,200)).filter(Boolean))].slice(0,30):[]
+    customDhikrs:Array.isArray(tasbih.customDhikrs)?[...new Set(tasbih.customDhikrs.filter(item=>typeof item==='string').map(item=>item.trim().replace(/\s+/g,' ').slice(0,200)).filter(Boolean))].slice(0,30):[],
+    removedOfficialDhikrs:Array.isArray(tasbih.removedOfficialDhikrs)?[...new Set(tasbih.removedOfficialDhikrs.filter(item=>typeof item==='string').map(item=>item.trim().replace(/\s+/g,' ').slice(0,200)).filter(Boolean))].slice(0,60):[]
    }
   };
  }
@@ -3843,45 +3844,119 @@ window.AnouarUpdateBridge = Object.freeze({
  const ownerDialog=$('ownerDialog'),countNode=$('tasbihCount'),phraseNode=$('tasbihPhrase');
  const select=$('tasbihDhikr'),tap=$('tasbihTap'),minus=$('tasbihMinus'),reset=$('tasbihReset');
  const customInput=$('tasbihCustomDhikrInput'),customAdd=$('tasbihAddCustomDhikr'),customStatus=$('tasbihCustomDhikrStatus');
+ const dhikrCards=$('tasbihDhikrCards'),removeDhikrButton=$('tasbihRemoveDhikr'),restoreOfficialButton=$('tasbihRestoreOfficial');
  const voicePanel=$('tasbihVoicePanel'),voiceButton=$('tasbihVoice');
  const voiceState=$('tasbihVoiceState'),voiceButtonLabel=$('tasbihVoiceButtonLabel');
  const voiceStatus=$('tasbihVoiceStatus'),voiceTranscript=$('tasbihVoiceTranscript');
- if(!panel||!toggleButton||!closeButton||!ownerDialog||!select||!voicePanel||!voiceButton||!customInput||!customAdd||!customStatus)return;
+ if(!panel||!toggleButton||!closeButton||!ownerDialog||!select||!voicePanel||!voiceButton||!customInput||!customAdd||!customStatus||!dhikrCards||!removeDhikrButton||!restoreOfficialButton)return;
  const privatePreferences=globalThis.AnwarPrivatePreferences;
  let count=0,recognition=null,voiceActive=false;
  let processedFinalIndexes=new Set();
  const initialTasbih=privatePreferences.get().tasbih;
  let customDhikrs=initialTasbih.customDhikrs.slice();
+ let removedOfficialDhikrs=initialTasbih.removedOfficialDhikrs.slice();
+ function isCustomOption(option){
+  return !!(option&&option.parentElement&&option.parentElement.dataset.anwarCustomDhikrs==='true');
+ }
+ function getVisibleDhikrOptions(){
+  return [...select.options].filter(option=>isCustomOption(option)||!removedOfficialDhikrs.includes(option.value));
+ }
+ function renderDhikrCards(){
+  dhikrCards.replaceChildren();
+  [...select.querySelectorAll('optgroup')].forEach(group=>{
+   const options=[...group.options].filter(option=>isCustomOption(option)||!removedOfficialDhikrs.includes(option.value));
+   if(!options.length)return;
+   const section=document.createElement('section');
+   section.className='tasbih-dhikr-group';
+   const heading=document.createElement('div');
+   heading.className='tasbih-dhikr-category';
+   heading.textContent=group.label||'أذكار';
+   section.appendChild(heading);
+   options.forEach(option=>{
+    const card=document.createElement('button');
+    card.type='button';
+    card.className='tasbih-dhikr-card';
+    card.setAttribute('aria-pressed',option.value===select.value?'true':'false');
+    card.setAttribute('aria-label','اختيار الذكر: '+option.textContent);
+    const makeTulip=()=>{
+     const wrap=document.createElement('span');
+     wrap.className='tasbih-dhikr-tulip';
+     wrap.setAttribute('aria-hidden','true');
+     const img=document.createElement('img');
+     img.src='assets/tulip-cutout.svg';
+     img.alt='';
+     img.decoding='async';
+     wrap.appendChild(img);
+     return wrap;
+    };
+    card.appendChild(makeTulip());
+    const name=document.createElement('span');
+    name.className='tasbih-dhikr-card-name';
+    name.textContent=option.textContent;
+    card.appendChild(name);
+    card.appendChild(makeTulip());
+    card.addEventListener('click',()=>{
+     if(select.value===option.value)return;
+     select.value=option.value;
+     select.dispatchEvent(new Event('change',{bubbles:true}));
+    });
+    section.appendChild(card);
+   });
+   dhikrCards.appendChild(section);
+  });
+  if(!dhikrCards.children.length){
+   const empty=document.createElement('div');
+   empty.className='tasbih-dhikr-empty';
+   empty.textContent='لا توجد أذكار ظاهرة في قائمتك. أضف ذكراً جديداً أو استعد الأذكار الرسمية.';
+   dhikrCards.appendChild(empty);
+  }
+  const selected=[...select.options].find(option=>option.value===select.value);
+  removeDhikrButton.disabled=!selected;
+  removeDhikrButton.textContent=selected&&isCustomOption(selected)?'حذف الذكر المضاف':'إزالة الذكر الرسمي من قائمتي';
+  restoreOfficialButton.hidden=removedOfficialDhikrs.length===0;
+  restoreOfficialButton.textContent='استعادة الأذكار الرسمية ('+removedOfficialDhikrs.length+')';
+ }
  function renderCustomDhikrs(){
   const previous=select.querySelector('optgroup[data-anwar-custom-dhikrs]');
   if(previous)previous.remove();
-  if(!customDhikrs.length)return;
-  const group=document.createElement('optgroup');
-  group.label='أذكاري المضافة';
-  group.dataset.anwarCustomDhikrs='true';
-  customDhikrs.forEach(dhikr=>{
-   const option=document.createElement('option');
-   option.value=dhikr;
-   option.textContent=dhikr;
-   group.appendChild(option);
-  });
-  select.appendChild(group);
+  if(customDhikrs.length){
+   const group=document.createElement('optgroup');
+   group.label='أذكاري المضافة';
+   group.dataset.anwarCustomDhikrs='true';
+   customDhikrs.forEach(dhikr=>{
+    const option=document.createElement('option');
+    option.value=dhikr;
+    option.textContent=dhikr;
+    group.appendChild(option);
+   });
+   select.appendChild(group);
+  }
+  renderDhikrCards();
+ }
+ function firstVisibleDhikr(){
+  return getVisibleDhikrOptions()[0]||null;
  }
  renderCustomDhikrs();
  count=initialTasbih.count;
- if([...select.options].some(option=>option.value===initialTasbih.dhikr))select.value=initialTasbih.dhikr;
+ const initialOption=[...select.options].find(option=>option.value===initialTasbih.dhikr&&(isCustomOption(option)||!removedOfficialDhikrs.includes(option.value)));
+ if(initialOption)select.value=initialTasbih.dhikr;
+ else select.value=firstVisibleDhikr()?.value||'';
+ renderDhikrCards();
  function paint(persist=true){
   countNode.textContent=count.toLocaleString('ar');
-  if(persist)privatePreferences.set('tasbih',{count,dhikr:select.value,customDhikrs});
+  if(persist)privatePreferences.set('tasbih',{count,dhikr:select.value,customDhikrs,removedOfficialDhikrs});
  }
  privatePreferences.subscribe(preferences=>{
   const saved=preferences.tasbih;
   count=saved.count;
   customDhikrs=saved.customDhikrs.slice();
+  removedOfficialDhikrs=saved.removedOfficialDhikrs.slice();
   renderCustomDhikrs();
-  if([...select.options].some(option=>option.value===saved.dhikr))select.value=saved.dhikr;
-  phraseNode.textContent=select.value;
+  const savedOption=[...select.options].find(option=>option.value===saved.dhikr&&(isCustomOption(option)||!removedOfficialDhikrs.includes(option.value)));
+  select.value=savedOption?saved.dhikr:(firstVisibleDhikr()?.value||'');
+  phraseNode.textContent=select.value||'لم يتم اختيار ذكر بعد';
   countNode.textContent=count.toLocaleString('ar');
+  renderDhikrCards();
  });
  function add(n=1){
   count=Math.max(0,count+n);paint();
@@ -3898,6 +3973,16 @@ window.AnouarUpdateBridge = Object.freeze({
   if(value.length>200){
    customStatus.textContent='الحد الأقصى لطول الذكر هو 200 حرف.';
    customInput.focus();
+   return;
+  }
+  if(removedOfficialDhikrs.includes(value)){
+   removedOfficialDhikrs=removedOfficialDhikrs.filter(item=>item!==value);
+   renderCustomDhikrs();
+   select.value=value;
+   phraseNode.textContent=value;
+   count=0;paint();
+   customInput.value='';
+   customStatus.textContent='هذا الذكر موجود ضمن الأذكار الرسمية التي أزلتها، وقد أُعيد إلى قائمتك.';
    return;
   }
   const existing=[...select.options].find(option=>option.value===value);
@@ -3981,9 +4066,39 @@ window.AnouarUpdateBridge = Object.freeze({
  $('shareTab').addEventListener('click',()=>closePanel(false));
  ownerDialog.addEventListener('close',()=>closePanel(false));
  select.addEventListener('change',()=>{
-  phraseNode.textContent=select.value;count=0;paint();
+  phraseNode.textContent=select.value||'لم يتم اختيار ذكر بعد';count=0;paint();
+  renderDhikrCards();
   voiceTranscript.textContent='بانتظار نطق الذكر المختار.';
   setVoiceState(voiceActive?'listening':'idle','تم اختيار الذكر الجديد. سيُحسب عند نطقه كاملاً.');
+ });
+ removeDhikrButton.addEventListener('click',()=>{
+  const selected=[...select.options].find(option=>option.value===select.value);
+  if(!selected)return;
+  const custom=isCustomOption(selected);
+  const prompt=custom
+   ?'هل تريد حذف هذا الذكر المضاف من قائمتك على هذا الجهاز؟'
+   :'هل تريد إزالة هذا الذكر الرسمي من قائمتك على هذا الجهاز؟ لن يُحذف من القائمة الأصلية، ويمكنك استعادته لاحقاً.';
+  if(!window.confirm(prompt))return;
+  if(voiceActive)stopVoice('توقف الاستماع بسبب تعديل قائمة الأذكار.');
+  if(custom)customDhikrs=customDhikrs.filter(item=>item!==selected.value);
+  else if(!removedOfficialDhikrs.includes(selected.value))removedOfficialDhikrs.push(selected.value);
+  renderCustomDhikrs();
+  const next=firstVisibleDhikr();
+  select.value=next?next.value:'';
+  phraseNode.textContent=select.value||'لم يتم اختيار ذكر بعد';
+  count=0;paint();
+  voiceTranscript.textContent='تم تحديث القائمة. اختر ذكراً للمتابعة.';
+  setVoiceState('idle',custom?'تم حذف الذكر المضاف من قائمتك.':'تمت إزالة الذكر الرسمي من قائمتك فقط.');
+  customStatus.textContent='يمكنك استعادة الأذكار الرسمية من زر الاستعادة متى شئت.';
+ });
+ restoreOfficialButton.addEventListener('click',()=>{
+  if(!removedOfficialDhikrs.length)return;
+  removedOfficialDhikrs=[];
+  renderCustomDhikrs();
+  if(!select.value)select.value=firstVisibleDhikr()?.value||'';
+  phraseNode.textContent=select.value||'لم يتم اختيار ذكر بعد';
+  paint();
+  customStatus.textContent='تمت استعادة جميع الأذكار الرسمية إلى قائمتك.';
  });
  tap.addEventListener('click',()=>add(1));
  minus.addEventListener('click',()=>add(-1));

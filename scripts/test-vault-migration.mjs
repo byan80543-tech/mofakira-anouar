@@ -95,7 +95,7 @@ assert.equal(data.has('anwar_rd'),false,'legacy radio preference is removed afte
 assert.equal(data.has('anwar_reader_advance'),false,'legacy reader preference is removed after encrypted verification');
 assert.equal(data.has('anwar_tasbih_count_v1'),false,'legacy tasbih count is removed after encrypted verification');
 assert.equal(data.has('anwar_tasbih_dhikr_v1'),false,'legacy tasbih choice is removed after encrypted verification');
-assert.deepEqual(JSON.parse(await sandbox.AnwarVaultCrypto.decryptWithKey(sandbox.vaultKey,primary)).preferences,{radio:{reciter:'قارئ قديم',surah:55},readerAdvance:'s',tasbih:{count:144,dhikr:'الحمد لله',customDhikrs:[]}},'legacy settings and the empty custom dhikr list are included in the encrypted snapshot');
+assert.deepEqual(JSON.parse(await sandbox.AnwarVaultCrypto.decryptWithKey(sandbox.vaultKey,primary)).preferences,{radio:{reciter:'قارئ قديم',surah:55},readerAdvance:'s',tasbih:{count:144,dhikr:'الحمد لله',customDhikrs:[],removedOfficialDhikrs:[]}},'legacy settings and the empty custom dhikr list are included in the encrypted snapshot');
 assert.equal(elements.vaultPassword.value,'','password field is cleared after success');
 assert.equal(elements.vaultPasswordConfirm.value,'','password confirmation field is cleared after success');
 assert.ok(operations.indexOf('remove:anwar_v1')>operations.indexOf('get:anwar_vault_backup_v1'),'legacy cleanup occurs after encrypted backup verification');
