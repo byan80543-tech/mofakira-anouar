@@ -103,7 +103,7 @@ ok(apiGatewayDeployWorkflow.includes('CLOUDFLARE_API_TOKEN') && apiGatewayDeploy
 
 ok(apiGatewayWorker.includes('ALLOWED_COUNTRY_CODES') && !apiGatewayWorker.includes('searchParams.get("url")'),'API gateway restricts country parameters and does not expose an open URL proxy');
 ok(apiGatewayWorker.includes('TRANSCRIPTION_MODEL = "@cf/openai/whisper-large-v3-turbo"') && apiGatewayWorker.includes('url.pathname !== "/v1/transcribe"') && apiGatewayWorker.includes('env.AI.run(TRANSCRIPTION_MODEL') && apiGatewayWorker.includes('MAX_AUDIO_BYTES = 8 * 1024 * 1024'),'API gateway exposes a fixed-size, fixed-model speech transcription route only');
-ok(apiGatewayWorker.includes('transcribe-global') && apiGatewayWorker.includes('transcription:[]') && apiGatewayWorker.includes('RATE_POLICIES.transcribe'),'transcription requests have durable daily global and per-client limits');
+ok(apiGatewayWorker.includes('transcribe-global') && apiGatewayWorker.includes('state.transcription = Array.isArray(state.transcription)') && apiGatewayWorker.includes('RATE_POLICIES.transcribe'),'transcription requests have durable daily global and per-client limits');
 ok(apiGatewayWorker.includes('!allowedOrigins.includes(origin)') && apiGatewayWorker.includes('ALLOWED_ORIGINS'),'API gateway reflects CORS only for exact configured production origins');
 
 ok(appSource.includes('<script src="click-guard.js" defer></script>'),'click-burst guard is loaded as a same-origin deferred script');
