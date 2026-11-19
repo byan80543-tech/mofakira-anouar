@@ -496,14 +496,13 @@
      // بعض المتصفحات تقسّم الجملة إلى نتائج نهائية متعددة؛ نجمعها قبل المطابقة.
      if(!voiceActive||!event||!event.results)return;
      const results=event.results;
-     const finalParts=[],interimParts=[],latestParts=[];
+     const finalParts=[],latestParts=[];
      const resultStart=Number.isInteger(event.resultIndex)?Math.max(0,Math.min(results.length,event.resultIndex)):Math.max(0,results.length-1);
      for(let i=0;i<results.length;i++){
       const result=results[i];
       const said=bestSpeechText(result,voiceTargetPhrase);
       if(!said)continue;
       if(result.isFinal)finalParts.push(said);
-      else interimParts.push(said);
       if(i>=resultStart)latestParts.push(said);
      }
      // Keep the complete internal transcript for reliable counting, but show
