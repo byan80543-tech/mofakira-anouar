@@ -248,7 +248,7 @@
    requestAnimationFrame(()=>{
     try{panel.scrollIntoView({behavior:'smooth',block:'nearest'})}catch(error){}
    });
-   try{closeButton.focus()}catch(error){}
+   closeButton.focus()
   }
   function closePanel(restoreFocus){
    if(voiceActive)stopVoice('توقف الاستماع عند إغلاق السبحة.');
