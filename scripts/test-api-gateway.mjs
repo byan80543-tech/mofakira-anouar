@@ -160,6 +160,19 @@ try {
   assert.equal(response.status, 502, "redirect to an unapproved nested subdomain is rejected");
   assert.equal(redirectCalls, 1, "unapproved redirect is rejected before the second network request");
 
+  // Approved host names are still rejected when a redirect embeds user credentials.
+  redirectCalls = 0;
+  globalThis.fetch = async () => {
+    redirectCalls += 1;
+    return new Response(null, {
+      status: 302,
+      headers: { Location: "https://user:secret@way2quran.com/ar/reciters/reader-one" }
+    });
+  };
+  response = await worker.fetch(request("/v1/country/profile?slug=reader-one"), baseEnv(), context);
+  assert.equal(response.status, 502, "credentialed redirect URLs are rejected");
+  assert.equal(redirectCalls, 1, "credentialed redirect is blocked before a follow-up request");
+
   // A route-specific 429 blocks before contacting a provider.
   const deniedEnv = { ...baseEnv(), IP_LIMITER: makeLimiter({ denyBucket: "country-list" }) };
   response = await worker.fetch(request("/v1/country/list?nationality=MA&page=1"), deniedEnv, context);
