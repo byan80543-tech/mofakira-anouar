@@ -38,8 +38,8 @@
    if(stored&&stored.tasbih&&typeof stored.tasbih==='object')initial=stored.tasbih;
   }catch(error){console.warn('تعذر قراءة إعدادات السبحة؛ سيبدأ العداد بإعداداته الافتراضية.',error)}
   const MAX_COUNT=1000000000;
-  const cleanDhikrList=(items,limit)=>Array.isArray(items)
-   ?[...new Set(items.filter(item=>typeof item==='string').map(item=>item.trim().replace(/\s+/g,' ').slice(0,200)).filter(Boolean))].slice(0,limit)
+  const cleanDhikrList=(items,limit,maxLength=200)=>Array.isArray(items)
+   ?[...new Set(items.filter(item=>typeof item==='string').map(item=>item.trim().slice(0,maxLength)).filter(Boolean))].slice(0,limit)
    :[];
   let count=Number.isSafeInteger(initial.count)?Math.max(0,Math.min(MAX_COUNT,initial.count)):0;
   const allowedThemes=new Set(themeIds);
