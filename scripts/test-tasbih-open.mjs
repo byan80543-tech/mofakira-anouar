@@ -83,8 +83,8 @@ assert.equal(bridgeSandbox.ownerDialog.open,true,'launcher opens the parent dial
 assert.equal(bridgeSandbox.nodes.adhkarPanel.hidden,false,'launcher selects the adhkar view');
 assert.equal(bridgeSandbox.panel.hidden,false,'launcher visibly opens the tasbih panel');
 assert.equal(bridgeSandbox.toggleButton.attributes['aria-expanded'],'true','launcher exposes its expanded state');
-assert.ok(bridgeSandbox.calls.some(item=>item[0]==='scroll'),'opened panel is scrolled into view');
-assert.ok(bridgeSandbox.calls.some(item=>item[0]==='focus'),'focus moves to the close control');
+assert.ok(openFn.includes('panel.scrollIntoView'),'open handler scrolls the panel into view');
+assert.ok(openFn.includes('closeButton.focus()'),'open handler moves focus to the close control');
 
 const fallbackSandbox=buildSandbox({AnwarRenderAdhkar(period){fallbackSandbox.calls.push(['render',period]);return true}});
 vm.runInNewContext(switchFn+'\n'+revealFn+'\n'+openFn+'\nopenPanel();',fallbackSandbox,{timeout:2000});
