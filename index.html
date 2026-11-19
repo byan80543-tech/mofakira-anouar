@@ -2016,6 +2016,16 @@ dialog[open]>.float-head{display:none!important}
  .transcript-focus-open,.transcript-focus-close{display:grid;place-items:center;flex:none;width:36px;height:36px;padding:0;border:1px solid #c9a96a;border-radius:50%;background:linear-gradient(135deg,#f8efd9,#fffaf0);color:#725323;font:700 24px/1 Arial,sans-serif;cursor:pointer}
  .transcript-focus-open:focus-visible,.transcript-focus-close:focus-visible{outline:2px solid var(--ac);outline-offset:3px}
  .transcript-focus-close{display:none}
+ #transcriptTool.transcript-focus-mode .transcript-focus-open{display:none}
+ #transcriptTool.transcript-focus-mode .transcript-focus-close{display:grid}
+ html.anwar-transcript-focus,body.anwar-transcript-focus{overflow:hidden!important;overscroll-behavior:none}
+ #transcriptTool.transcript-focus-mode{position:fixed!important;inset:0!important;z-index:50000!important;box-sizing:border-box;width:100vw!important;max-width:none!important;height:100vh!important;height:100dvh!important;max-height:100dvh!important;overflow-y:auto!important;overscroll-behavior:contain;margin:0!important;border:0!important;border-radius:0!important;padding:calc(14px + env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-left,0px)) calc(18px + env(safe-area-inset-bottom,0px))!important;background:var(--bg)!important;box-shadow:none!important;align-content:start;gap:14px}
+ #transcriptTool.transcript-focus-mode>*{width:100%;max-width:980px;margin-inline:auto}
+ #transcriptTool.transcript-focus-mode .transcript-tool-head{position:sticky;top:0;z-index:3;padding:7px 0;background:var(--bg)}
+ #transcriptTool.transcript-focus-mode .transcript-tool-head strong{font-size:21px}
+ #transcriptTool.transcript-focus-mode .transcript-editor-panel{gap:12px;padding-top:14px}
+ #transcriptTool.transcript-focus-mode .transcript-table-preview{max-height:35dvh}
+ #transcriptTool.transcript-focus-mode .transcript-status{font-size:11px}
  html.anwar-transcript-focus,body.anwar-transcript-focus{overflow:hidden!important;overscroll-behavior:none}
  .transcript-alternates{border:1px solid var(--bd);border-radius:10px;background:var(--sf);padding:9px 11px}
  .transcript-alternates summary{color:var(--ac);font:700 11px Cairo,Tahoma,sans-serif;cursor:pointer}
@@ -2173,7 +2183,7 @@ dialog[open]>.float-head{display:none!important}
      <button type="button" id="transcriptFocusClose" class="transcript-focus-close" aria-label="إغلاق مساحة التفريغ" title="إغلاق مساحة التفريغ">×</button>
     </div>
    </header>
-    <details class="transcript-alternates">
+    <details class="transcript-alternates" id="transcriptSourceOptions">
     <summary>لدي ملف صوتي أو ترجمة محفوظة</summary>
     <div class="transcript-alternates-body">
      <label class="transcript-field" for="transcriptAudioFile">اختر ملفًا صوتيًا من جهازك
