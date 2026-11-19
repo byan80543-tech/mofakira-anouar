@@ -261,6 +261,7 @@ try {
   };
   const audioForm = new FormData();
   audioForm.append("audio", new Blob([new Uint8Array([1,2,3,4])], { type: "audio/mpeg" }), "sample.mp3");
+  audioForm.append("consent", "true");
   response = await worker.fetch(new Request("https://gateway.example.workers.dev/v1/transcribe", {
     method: "POST",
     headers: { Origin: "https://byan80543-tech.github.io", "CF-Connecting-IP": "192.0.2.50" },
@@ -275,22 +276,31 @@ try {
 
   // Transcription rejects missing files, unsupported formats, untrusted origins and disabled AI.
   const missingForm = new FormData();
+  missingForm.append("consent", "true");
   response = await worker.fetch(new Request("https://gateway.example.workers.dev/v1/transcribe", {
     method: "POST", headers: { Origin: "https://byan80543-tech.github.io", "CF-Connecting-IP": "192.0.2.51" }, body: missingForm
   }), aiEnv, context);
   assert.equal(response.status, 400);
   const unsupportedForm = new FormData();
   unsupportedForm.append("audio", new Blob(["not audio"], { type: "text/plain" }), "notes.txt");
+  unsupportedForm.append("consent", "true");
   response = await worker.fetch(new Request("https://gateway.example.workers.dev/v1/transcribe", {
     method: "POST", headers: { Origin: "https://byan80543-tech.github.io", "CF-Connecting-IP": "192.0.2.52" }, body: unsupportedForm
   }), aiEnv, context);
   assert.equal(response.status, 415);
   const videoForm = new FormData();
   videoForm.append("audio", new Blob([new Uint8Array([1])], { type: "video/mp4" }), "video.mp4");
+  videoForm.append("consent", "true");
   response = await worker.fetch(new Request("https://gateway.example.workers.dev/v1/transcribe", {
     method: "POST", headers: { Origin: "https://byan80543-tech.github.io", "CF-Connecting-IP": "192.0.2.55" }, body: videoForm
   }), aiEnv, context);
   assert.equal(response.status, 415, "video containers are rejected even when they may contain audio");
+  const noConsentForm = new FormData();
+  noConsentForm.append("audio", new Blob([new Uint8Array([1])], { type: "audio/mpeg" }), "a.mp3");
+  response = await worker.fetch(new Request("https://gateway.example.workers.dev/v1/transcribe", {
+    method: "POST", headers: { Origin: "https://byan80543-tech.github.io", "CF-Connecting-IP": "192.0.2.56" }, body: noConsentForm
+  }), aiEnv, context);
+  assert.equal(response.status, 400, "server rejects transcription without explicit consent");
   const blockedOriginForm = new FormData();
   blockedOriginForm.append("audio", new Blob([new Uint8Array([1])], { type: "audio/mpeg" }), "a.mp3");
   response = await worker.fetch(new Request("https://gateway.example.workers.dev/v1/transcribe", {
