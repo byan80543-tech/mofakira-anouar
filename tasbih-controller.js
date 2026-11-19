@@ -67,7 +67,8 @@
      option.textContent=item.title;
      option.dataset.anwarOfficialDhikr='true';
      option.dataset.anwarOfficialId=item.id;
-     option.dataset.repeat=String(item.count||1);
+     option.dataset.repeat=item.count==null?'غير محدد':String(item.count||1);
+     option.dataset.occasion=item.occasion||'';
      option.dataset.source=item.source||'حصن المسلم';
      option.dataset.period=period;
      group.appendChild(option);
