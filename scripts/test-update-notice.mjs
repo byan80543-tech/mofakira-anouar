@@ -3,7 +3,7 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
 const source = fs.readFileSync(new URL('../update-notice-v2.js', import.meta.url), 'utf8');
-const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+const appCore = fs.readFileSync(new URL('../app-core.js', import.meta.url), 'utf8');
 
 class FakeElement {
   constructor(tagName) {
@@ -273,13 +273,12 @@ emergencyVisit.triggerControllerChange();
 await emergencyAction;
 assert.equal(emergencyVisit.reloadCount(), 1, 'approved recovery reloads after the new worker takes control');
 
-const inlineScripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)].filter(match => !/\bsrc\s*=/.test(match[1]));
-const appScript = inlineScripts.find(match => match[2].includes('function save(){') && match[2].includes('window.AnouarUpdateBridge'));
-assert.ok(appScript, 'the main application script exposes its encrypted-save bridge');
-const bridgeStart = appScript[2].indexOf('window.AnouarUpdateBridge');
-const bridgeEnd = appScript[2].indexOf('\n});', bridgeStart);
-const bridgeSource = appScript[2].slice(bridgeStart, bridgeEnd);
-const initClose = appScript[2].indexOf('},0));', bridgeStart);
+const appScript = appCore;
+assert.ok(appScript.includes('function save(){') && appScript.includes('window.AnouarUpdateBridge'), 'the external application bundle exposes its encrypted-save bridge');
+const bridgeStart = appScript.indexOf('window.AnouarUpdateBridge');
+const bridgeEnd = appScript.indexOf('\n});', bridgeStart);
+const bridgeSource = appScript.slice(bridgeStart, bridgeEnd);
+const initClose = appScript.indexOf('},0));', bridgeStart);
 assert.ok(initClose > bridgeStart, 'the update bridge remains inside the notebook initialization scope');
 assert.ok(bridgeSource.includes('storageRecoveryBlocked'), 'the update bridge refuses to reload during storage recovery');
 assert.ok(bridgeSource.includes('await vaultSaveQueue'), 'the update bridge waits for the encrypted save queue');
