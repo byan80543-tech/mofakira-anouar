@@ -88,4 +88,4 @@ const unavailable=unsupported.AnwarPoetryDictation.create({onStatus:(state)=>uns
 assert.equal(unavailable.start(),false,'unsupported browsers must not pretend to start');
 assert.equal(unsupportedStatus,'error','unsupported browser state is reported');
 
-console.log('PASS Arabic poetry dictation: fresh Android batches, repeated phrases, cumulative results, interim filtering, Arabic-only language enforcement, bounded reconnect and stop');
+console.log('PASS Arabic-only poetry dictation: standard Arabic, fresh Android batches, repeated phrases, cumulative results, interim filtering, bounded reconnect and stop');
