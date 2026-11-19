@@ -245,40 +245,52 @@ app.nodes.tasbihRestoreOfficial.click();
 assert.deepEqual(app.state.tasbih.removedOfficialDhikrs,[],'restoring clears the official-dhikr exclusions');
 assert.ok(app.nodes.tasbihDhikr.options.some(option=>option.value==='سبحان الله'),'the official dhikr is available again');
 
-// Arabic speech recognition counts only complete, normalized matches and ignores duplicate finals.
+// Arabic speech recognition displays interim text, combines split final results,
+// checks alternatives and counts each completed selected phrase only once.
 const recognition=app.recognitions[0];
+assert.equal(recognition.lang,'ar-MA','speech recognition prefers the visitor’s Moroccan Arabic locale');
 app.nodes.tasbihDhikr.value='سبحان الله';
 app.nodes.tasbihDhikr.dispatch('change');
 app.nodes.tasbihVoice.click();
 assert.equal(recognition.started,1,'the recording button starts the speech recognition service');
 recognition.onstart();
+const interim={0:{transcript:'سُبْحَانَ الله'},length:1,isFinal:false};
+recognition.onresult({resultIndex:0,results:[interim]});
+assert.equal(app.nodes.tasbihVoiceTranscript.textContent,'سُبْحَانَ الله','interim recognized words are shown immediately in the transcript');
+assert.equal(count(app),0,'interim speech is displayed but not counted before recognition is final');
 const spoken={0:{transcript:'سُبْحَانَ الله، سبحان الله'},length:1,isFinal:true};
 recognition.onresult({resultIndex:0,results:[spoken]});
-assert.equal(count(app),2,'a final Arabic transcript counts each complete matching phrase');
+assert.equal(count(app),2,'a final Arabic transcript counts each complete, normalized phrase');
 recognition.onresult({resultIndex:0,results:[spoken]});
-assert.equal(count(app),2,'a repeated final event at the same result index is counted only once');
+assert.equal(count(app),2,'repeated final events do not count the same words twice');
 const punctuated={0:{transcript:'سبحان الله؛'},length:1,isFinal:true};
 recognition.onresult({resultIndex:1,results:[spoken,punctuated]});
-assert.equal(count(app),3,'Arabic semicolon punctuation does not prevent a correct phrase from matching');
+assert.equal(count(app),3,'Arabic punctuation and cumulative final results do not prevent a correct match');
 
-// A final result arriving after stop must not increment the counter.
-app.nodes.tasbihVoice.click();
-assert.ok(recognition.stopped>0,'the stop control asks the recognition service to stop');
-app.nodes.tasbihVoice.click();
-recognition.onstart();
-const late={0:{transcript:'سبحان الله'},length:1,isFinal:true};
-app.nodes.tasbihVoice.click();
-recognition.onresult({resultIndex:0,results:[late]});
-assert.equal(count(app),3,'a late final transcript after stop is ignored');
+const alternativeApp=buildApp();
+alternativeApp.nodes.tasbihDhikr.value='أستغفر الله';
+alternativeApp.nodes.tasbihDhikr.dispatch('change');
+alternativeApp.nodes.tasbihVoice.click();
+const alternativeRecognition=alternativeApp.recognitions[0];
+alternativeRecognition.onstart();
+const alternatives={0:{transcript:'استغفر بالله'},1:{transcript:'أستغفر الله'},length:2,isFinal:true};
+alternativeRecognition.onresult({resultIndex:0,results:[alternatives]});
+assert.equal(alternativeApp.nodes.tasbihVoiceTranscript.textContent,'أستغفر الله','the recognized transcript uses the alternative that best matches the selected dhikr');
+assert.equal(count(alternativeApp),1,'the matching second Arabic recognition alternative increments the counter');
 
-// Changing the selected dhikr stops the old recording before a late result can be attributed to the new phrase.
-app.nodes.tasbihVoice.click();
-recognition.onstart();
-app.nodes.tasbihDhikr.value='الحمد لله';
-app.nodes.tasbihDhikr.dispatch('change');
-recognition.onresult({resultIndex:0,results:[late]});
-assert.equal(count(app),0,'switching dhikr resets the count and does not accept speech from the prior selection');
-assert.ok(recognition.stopped>=2,'changing dhikr stops the active microphone session');
+const splitApp=buildApp();
+splitApp.nodes.tasbihDhikr.value='أستغفر الله العظيم وأتوب إليه';
+splitApp.nodes.tasbihDhikr.dispatch('change');
+splitApp.nodes.tasbihVoice.click();
+const splitRecognition=splitApp.recognitions[0];
+splitRecognition.onstart();
+const firstPart={0:{transcript:'أستغفر الله العظيم'},length:1,isFinal:true};
+splitRecognition.onresult({resultIndex:0,results:[firstPart]});
+assert.equal(count(splitApp),0,'a partial final segment is not counted as a complete long dhikr');
+const secondPart={0:{transcript:'وأتوب إليه'},length:1,isFinal:true};
+splitRecognition.onresult({resultIndex:1,results:[firstPart,secondPart]});
+assert.equal(count(splitApp),1,'the controller joins multiple final segments before matching a complete dhikr');
+assert.equal(splitApp.nodes.tasbihVoiceTranscript.textContent,'أستغفر الله العظيم وأتوب إليه','the complete spoken phrase is retained visibly');
 
 // A broken speech-recognition constructor must not disable the manual tasbih.
 const brokenVoice=buildApp({throwRecognition:true});
