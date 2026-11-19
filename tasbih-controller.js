@@ -64,6 +64,7 @@
      option.value=item.text;
      option.textContent=item.title;
      option.dataset.anwarOfficialDhikr='true';
+     option.dataset.anwarOfficialId=item.id;
      option.dataset.repeat=String(item.count||1);
      option.dataset.source=item.source||'حصن المسلم';
      option.dataset.period=period;
@@ -72,11 +73,16 @@
     select.appendChild(group);
    });
   }
+  function isRemovedOfficial(option){
+   if(!option)return false;
+   const officialId=option.dataset&&option.dataset.anwarOfficialId;
+   return removedOfficialDhikrs.includes(option.value)||(officialId&&removedOfficialDhikrs.includes(officialId));
+  }
   function isCustomOption(option){
    return !!(option&&option.parentElement&&option.parentElement.dataset.anwarCustomDhikrs==='true');
   }
   function visibleOptions(){
-   return Array.from(select.options).filter(option=>isCustomOption(option)||!removedOfficialDhikrs.includes(option.value));
+   return Array.from(select.options).filter(option=>isCustomOption(option)||!isRemovedOfficial(option));
   }
   function persist(){
    if(!preferences||typeof preferences.set!=='function')return;
@@ -108,7 +114,7 @@
   function renderCards(){
    cards.replaceChildren();
    Array.from(select.querySelectorAll('optgroup')).forEach(group=>{
-    const options=Array.from(group.options).filter(option=>isCustomOption(option)||!removedOfficialDhikrs.includes(option.value));
+    const options=Array.from(group.options).filter(option=>isCustomOption(option)||!isRemovedOfficial(option));
     if(!options.length)return;
     const section=document.createElement('section');
     section.className='tasbih-dhikr-group';
@@ -325,7 +331,7 @@
 
   renderOfficialOptions();
   renderCustomOptions();
-  const savedOption=Array.from(select.options).find(option=>option.value===initial.dhikr&&(isCustomOption(option)||!removedOfficialDhikrs.includes(option.value)));
+  const savedOption=Array.from(select.options).find(option=>option.value===initial.dhikr&&(isCustomOption(option)||!isRemovedOfficial(option)));
   if(savedOption)select.value=savedOption.value;
   else if(!visibleOptions().some(option=>option.value===select.value))select.value=firstVisible()?firstVisible().value:'';
   update();
@@ -371,7 +377,7 @@
    if(!window.confirm(message))return;
    if(voiceActive)stopVoice('توقف التسجيل بسبب تعديل قائمة الأذكار.');
    if(custom)customDhikrs=customDhikrs.filter(item=>item!==selected.value);
-   else if(!removedOfficialDhikrs.includes(selected.value))removedOfficialDhikrs.push(selected.value);
+   else {const officialId=selected.dataset&&selected.dataset.anwarOfficialId;const removalKey=officialId||selected.value;if(!removedOfficialDhikrs.includes(removalKey))removedOfficialDhikrs.push(removalKey)}
    renderCustomOptions();
    const next=firstVisible();
    select.value=next?next.value:'';
@@ -499,7 +505,7 @@
     removedOfficialDhikrs=cleanDhikrList(value.removedOfficialDhikrs,60,4000);
     theme=allowedThemes.has(value.theme)?value.theme:'emerald';
     renderCustomOptions();
-    const option=Array.from(select.options).find(item=>item.value===value.dhikr&&(isCustomOption(item)||!removedOfficialDhikrs.includes(item.value)));
+    const option=Array.from(select.options).find(item=>item.value===value.dhikr&&(isCustomOption(item)||!isRemovedOfficial(item)));
     if(option)select.value=option.value;
     else if(!visibleOptions().some(item=>item.value===select.value))select.value=firstVisible()?firstVisible().value:'';
     update();
