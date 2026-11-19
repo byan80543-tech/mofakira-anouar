@@ -144,7 +144,8 @@ const iconPolishEnd=html.indexOf('</style>',iconPolishStart);
 const iconPolish=html.slice(iconPolishStart,iconPolishEnd);
 ok(iconPolish.includes('.tb #vaultLockBtn') && !iconPolish.includes('#bkp'),'top toolbar icon polish includes the lock and excludes the relocated backup control');
 ok(appSource.includes('#rib .bkp-tool svg') && appSource.includes('#rib .bkp-tool:focus-visible'),'relocated backup control has a consistent in-panel icon and keyboard focus treatment');
-ok(['prn','pdf','vs','sp','fo','ip','pn','cy','hist','dl'].every(id=>new RegExp('id="'+id+'"[^>]*(?:aria-label|title)=').test(html)),'editor action icons have readable accessible names or titles');
+const accessibleControlIds=['prn','pdf','vs','sp','fo','ip','pn','cy','hist','dl'];
+ok(accessibleControlIds.every(id=>htmlAudit.elements.some(element=>element.attrs.id===id&&(element.attrs['aria-label']||element.attrs.title))),'editor action icons have readable accessible names or titles');
 ok(toolbarBackNavigation.includes("paletteButton.setAttribute('aria-expanded'") && toolbarBackNavigation.includes("radioButton.setAttribute('aria-pressed'") && toolbarBackNavigation.includes('إيقاف إذاعة القرآن مؤقتًا'),'toolbar controls keep palette and Quran playback states accessible');
 
 try{new vm.Script(toolbarBackNavigation,{filename:'toolbar-back-navigation.js'});ok(true,'contextual back-navigation helper JavaScript syntax is valid')}catch(error){failures.push('toolbar-back-navigation.js: '+error.message)}
@@ -205,9 +206,9 @@ ok(socialFunction.includes(".on('meta[property=\"og:title\"]'") && socialFunctio
 const qualityWorkflow=fs.readFileSync(path.join(root,'.github/workflows/quality.yml'),'utf8');
 ok(qualityWorkflow.includes('wrangler@4.164.0') && !qualityWorkflow.includes('wrangler@latest'),'quality dry-run pins the Wrangler version used by deployment');
 ok(appSource.includes("content-visibility:auto;contain-intrinsic-size:auto 76px"),'off-screen note cards skip unnecessary painting');
-const appCorePreload=html.match(new RegExp('<link rel="preload" href="([^"]*app-core[.]js[?]v=[^"]+)" as="script">'));
-const appCoreScript=html.match(new RegExp('<script src="([^"]*app-core[.]js[?]v=[^"]+)" defer></script>'));
-ok(!!appCorePreload && !!appCoreScript && appCorePreload[1].includes('app-core.js?v=') && appCorePreload[1]===appCoreScript[1] && appCore.length>200000,'main application bundle is externally loaded and preload/script cache versions match');
+const appCorePreload=htmlAudit.preload_scripts.find(href=>href.includes('app-core.js?v='));
+const appCoreScript=htmlAudit.script_sources.find(src=>src.includes('app-core.js?v='));
+ok(!!appCorePreload && !!appCoreScript && appCorePreload===appCoreScript && appCore.length>200000,'main application bundle is externally loaded and preload/script cache versions match');
 ok(!appSource.includes('id="youtubeTranscriptTool"') && !appSource.includes('id="transcriptYoutubeUrl"') && !appCore.includes('function parseYouTubeVideoId') && appSource.includes('id="transcriptAudioFile"') && appSource.includes('id="transcriptGenerate"') && appSource.includes('id="transcriptText"') && appSource.includes('id="transcriptExportPdf"'),'YouTube URL transcription stays removed while local audio-file transcription and transcript editing remain available');
 ok(appCore.includes('async function transcribeAudioFile()') && appCore.includes("else if(id==='transcriptGenerate')transcribeAudioFile()") && appCore.includes("window.confirm('سيُرسل الملف الصوتي الذي اخترته") && appCore.includes("form.append('audio',file,file.name||'recording.webm')") && appCore.includes("form.append('consent','true')") && appCore.indexOf("window.confirm('سيُرسل الملف الصوتي الذي اخترته") < appCore.indexOf("form.append('consent','true')") && apiGatewayWorker.includes('key !== "audio" && key !== "consent"') && apiGatewayWorker.includes('consentValues.length !== 1 || consentValues[0] !== "true"'),'local audio transcription requires confirmation before sending audio and the explicit consent field');
 ok(!appCore.includes('function parseYouTubeVideoId') && appCore.includes('function parseCaptionFile') && appCore.includes("else if(id==='transcriptExportPdf')exportTranscript('pdf')") && appCore.includes("else if(id==='transcriptInsertBook')insertTranscriptIntoBook()"),'YouTube URL parsing is absent while local caption import, PDF export and book insertion remain wired');
