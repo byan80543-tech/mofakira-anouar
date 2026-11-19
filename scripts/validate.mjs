@@ -61,9 +61,9 @@ ok(appSource.includes('id="vaultGate"') && appSource.includes('id="vaultLockBtn"
 ok(appSource.includes('id="anwar-toolbar-spacing-and-palette-cycle-v2"') && appSource.includes('.tb{gap:4px!important}'),'toolbar icons keep a small, consistent gap');
 ok(appSource.includes("const palettes=[") && appSource.includes("button.addEventListener('click',()=>{") && appSource.includes("S.palette=palettes[(index+1+palettes.length)%palettes.length][0]"),'palette icon cycles directly through the six saved interface colors on every click');
 ok(appSource.includes("#palettePanel{display:none!important}") && !appSource.includes('setPaletteOpen(open,returnFocus=false)'),'palette cycle does not open a color selection panel');
-const paletteCycleStart=html.indexOf("(function(){\n const button=$('paletteBtn')");
-const paletteCycleEnd=html.indexOf("})();",paletteCycleStart);
-const paletteCycleCode=html.slice(paletteCycleStart,paletteCycleEnd);
+const paletteCycleStart=appCore.indexOf("(function(){\n const button=$('paletteBtn')");
+const paletteCycleEnd=appCore.indexOf("})();",paletteCycleStart);
+const paletteCycleCode=appCore.slice(paletteCycleStart,paletteCycleEnd);
 ok(paletteCycleStart>=0 && paletteCycleCode.includes("S.palette=palettes[(index+1+palettes.length)%palettes.length][0]") && !paletteCycleCode.includes("panel.classList.toggle('open')") && appSource.includes("#palettePanel{display:none!important}"),'palette icon cycles colors directly without opening the former popup');
 
 ok(appSource.includes('src="toolbar-back-navigation.js"'),'contextual back-navigation helper is loaded by the notebook');
@@ -126,7 +126,7 @@ ok(appSource.includes('function importLegacyPrivatePreferences(base)') && appSou
 ok(!appSource.includes("localStorage.setItem('anwar_reader_advance'") && !appSource.includes("localStorage.setItem(countKey") && !appSource.includes("localStorage.setItem(dhikrKey"),'active reader and tasbih controls do not write plaintext preferences');
 ok(appSource.includes("AnwarPrivatePreferences.set('readerAdvance'") && appSource.includes("AnwarPrivatePreferences.set('radio'") && appSource.includes("privatePreferences.set('tasbih'"),'radio, reader and tasbih changes are routed into encrypted preference state');
 ok(/if\(savedVault!==null\|\|savedBackup!==null\)/.test(appSource),'startup can unlock from an encrypted backup when the primary vault is missing');
-ok(/function save\(\)\s*\{[\s\S]*?persistVaultSnapshot\(snapshot\)/.test(html) && /async function persistVaultSnapshot\(plaintext\)\s*\{[\s\S]*?AnwarVaultCrypto\.encryptWithKey/.test(appSource),'notebook saves queue snapshots through encrypted vault persistence');
+ok(/function save\(\)\s*\{[\s\S]*?persistVaultSnapshot\(snapshot\)/.test(appSource) && /async function persistVaultSnapshot\(plaintext\)\s*\{[\s\S]*?AnwarVaultCrypto\.encryptWithKey/.test(appSource),'notebook saves queue snapshots through encrypted vault persistence');
 ok(appSource.includes('snapshot.notes.length>2500') && appSource.includes('(typeof note.html===\'string\'?note.html:note.text).length>450000'),'encrypted saves enforce the same note-count and note-size limits as startup restore');
 ok(appSource.includes("if(S.notes.length>=2500){toast("),'the UI blocks creation beyond the restore-supported 2500-note limit');
 ok(vaultCrypto.includes("CIPHER='AES-256-GCM'") && vaultCrypto.includes("ITERATIONS=600000"),'vault helper pins AES-GCM and the approved PBKDF2 work factor');
