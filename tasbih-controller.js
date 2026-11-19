@@ -128,6 +128,7 @@
      const button=document.createElement('button');
      button.type='button';
      button.className='tasbih-dhikr-card';
+     if(option.dataset.anwarOfficialId)button.dataset.anwarOfficialId=option.dataset.anwarOfficialId;
      button.setAttribute('aria-pressed',option.value===select.value?'true':'false');
      button.setAttribute('aria-label','اختيار الذكر: '+option.textContent);
      const flower=document.createElement('span');
