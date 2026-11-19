@@ -144,21 +144,10 @@
      if(option.dataset.anwarOfficialId)button.dataset.anwarOfficialId=option.dataset.anwarOfficialId;
      button.setAttribute('aria-pressed',option.value===select.value?'true':'false');
      button.setAttribute('aria-label','اختيار الذكر: '+option.textContent);
-     const flower=document.createElement('span');
-     flower.className='tasbih-dhikr-tulip';
-     flower.setAttribute('aria-hidden','true');
-     const image=document.createElement('img');
-     image.src='assets/tulip-cutout.svg';
-     image.alt='';
-     image.decoding='async';
-     flower.appendChild(image);
      const name=document.createElement('span');
      name.className='tasbih-dhikr-card-name';
      name.textContent=option.textContent;
-     button.appendChild(flower);
      button.appendChild(name);
-     const secondFlower=flower.cloneNode(true);
-     button.appendChild(secondFlower);
      if(option.dataset.anwarOfficialDhikr==='true'){
       const fullText=document.createElement('span');
       fullText.className='tasbih-dhikr-card-text';
