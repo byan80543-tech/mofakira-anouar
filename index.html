@@ -2005,7 +2005,7 @@ dialog[open]>.float-head{display:none!important}
 }
 </style>
 
-<style id="anwar-youtube-transcript-tool-v1">
+<style id="anwar-transcript-editor-v1">
  .anwar-transcript-tool{display:grid;gap:9px;margin:13px 0;padding:12px;border:1px solid var(--bd);border-radius:12px;background:var(--bg);box-shadow:0 2px 9px rgba(20,35,50,.045)}
  .transcript-tool-head{display:flex;align-items:center;gap:9px;color:var(--ac)}
  .transcript-tool-head>span{display:grid;place-items:center;flex:none;width:34px;height:34px;border:1px solid var(--bd);border-radius:10px;background:var(--sf);font-size:18px}
@@ -2016,27 +2016,23 @@ dialog[open]>.float-head{display:none!important}
  .transcript-focus-open,.transcript-focus-close{display:grid;place-items:center;flex:none;width:36px;height:36px;padding:0;border:1px solid #c9a96a;border-radius:50%;background:linear-gradient(135deg,#f8efd9,#fffaf0);color:#725323;font:700 24px/1 Arial,sans-serif;cursor:pointer}
  .transcript-focus-open:focus-visible,.transcript-focus-close:focus-visible{outline:2px solid var(--ac);outline-offset:3px}
  .transcript-focus-close{display:none}
- #youtubeTranscriptTool.transcript-focus-mode .transcript-focus-open{display:none}
- #youtubeTranscriptTool.transcript-focus-mode .transcript-focus-close{display:grid}
+ #transcriptTool.transcript-focus-mode .transcript-focus-open{display:none}
+ #transcriptTool.transcript-focus-mode .transcript-focus-close{display:grid}
  html.anwar-transcript-focus,body.anwar-transcript-focus{overflow:hidden!important;overscroll-behavior:none}
- #youtubeTranscriptTool.transcript-focus-mode{position:fixed!important;inset:0!important;z-index:50000!important;box-sizing:border-box;width:100vw!important;max-width:none!important;height:100vh!important;height:100dvh!important;max-height:100dvh!important;overflow-y:auto!important;overscroll-behavior:contain;margin:0!important;border:0!important;border-radius:0!important;padding:calc(14px + env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-left,0px)) calc(18px + env(safe-area-inset-bottom,0px))!important;background:var(--bg)!important;box-shadow:none!important;align-content:start;gap:14px}
- #youtubeTranscriptTool.transcript-focus-mode>*{width:100%;max-width:980px;margin-inline:auto}
- #youtubeTranscriptTool.transcript-focus-mode .transcript-tool-head{position:sticky;top:0;z-index:3;padding:7px 0;background:var(--bg)}
- #youtubeTranscriptTool.transcript-focus-mode .transcript-tool-head strong{font-size:21px}
- #youtubeTranscriptTool.transcript-focus-mode .transcript-tool-head small{font-size:11px}
- #youtubeTranscriptTool.transcript-focus-mode #transcriptYoutubeUrl{min-height:50px;font-size:16px;padding:12px}
- #youtubeTranscriptTool.transcript-focus-mode #transcriptGenerateYoutube{min-height:48px;font-size:14px}
- #youtubeTranscriptTool.transcript-focus-mode #transcriptText{min-height:280px;height:42dvh;font-size:17px;line-height:2.1}
- #youtubeTranscriptTool.transcript-focus-mode .transcript-editor-panel{gap:12px;padding-top:14px}
- #youtubeTranscriptTool.transcript-focus-mode .transcript-table-preview{max-height:35dvh}
- #youtubeTranscriptTool.transcript-focus-mode .transcript-status{font-size:11px}
+ #transcriptTool.transcript-focus-mode{position:fixed!important;inset:0!important;z-index:50000!important;box-sizing:border-box;width:100vw!important;max-width:none!important;height:100vh!important;height:100dvh!important;max-height:100dvh!important;overflow-y:auto!important;overscroll-behavior:contain;margin:0!important;border:0!important;border-radius:0!important;padding:calc(14px + env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-left,0px)) calc(18px + env(safe-area-inset-bottom,0px))!important;background:var(--bg)!important;box-shadow:none!important;align-content:start;gap:14px}
+ #transcriptTool.transcript-focus-mode>*{width:100%;max-width:980px;margin-inline:auto}
+ #transcriptTool.transcript-focus-mode .transcript-tool-head{position:sticky;top:0;z-index:3;padding:7px 0;background:var(--bg)}
+ #transcriptTool.transcript-focus-mode .transcript-tool-head strong{font-size:21px}
+ #transcriptTool.transcript-focus-mode .transcript-editor-panel{gap:12px;padding-top:14px}
+ #transcriptTool.transcript-focus-mode .transcript-table-preview{max-height:35dvh}
+ #transcriptTool.transcript-focus-mode .transcript-status{font-size:11px}
+ html.anwar-transcript-focus,body.anwar-transcript-focus{overflow:hidden!important;overscroll-behavior:none}
  .transcript-alternates{border:1px solid var(--bd);border-radius:10px;background:var(--sf);padding:9px 11px}
  .transcript-alternates summary{color:var(--ac);font:700 11px Cairo,Tahoma,sans-serif;cursor:pointer}
  .transcript-alternates-body{display:grid;gap:9px;padding-top:10px}
  .transcript-alternates[open] summary{margin-bottom:2px}
  .transcript-field{display:grid;gap:5px;color:var(--tx);font:700 11px Cairo,Tahoma,sans-serif}
  #bookToolContent .transcript-field input,#bookToolContent .transcript-field textarea{box-sizing:border-box;width:100%;margin:0;border:1px solid var(--bd);border-radius:9px;padding:10px;background:var(--sf);color:var(--tx);font:12px/1.9 Cairo,Tahoma,sans-serif}
- #bookToolContent #transcriptYoutubeUrl{text-align:left;direction:ltr}
  .transcript-format-wrap{position:relative;display:inline-flex;align-items:center}
  .transcript-format-menu{position:absolute;z-index:30;top:calc(100% + 6px);right:0;min-width:190px;max-width:min(260px,85vw);padding:6px;border:1px solid var(--bd);border-radius:10px;background:var(--sf);box-shadow:0 8px 22px rgba(20,35,50,.16);display:grid;gap:3px}
  .transcript-format-menu[hidden]{display:none!important}
@@ -2178,20 +2174,16 @@ dialog[open]>.float-head{display:none!important}
   </label>
   <button type="button" id="addBookFile" class="book-import-link" aria-label="إضافة مستند من الهاتف">📎 إضافة مستند من الهاتف</button>
 
-  <section class="anwar-transcript-tool" id="youtubeTranscriptTool" aria-labelledby="transcriptToolTitle">
+  <section class="anwar-transcript-tool" id="transcriptTool" aria-labelledby="transcriptToolTitle">
    <header class="transcript-tool-head">
     <span aria-hidden="true">🎙️</span>
-    <div><strong id="transcriptToolTitle">من المسموع إلى المكتوب</strong><small>الصق رابط الدرس، ثم راجع النص ونظّمه للمذاكرة</small></div>
+    <div><strong id="transcriptToolTitle">تفريغ الصوت وتنظيم النص</strong><small>حوّل ملفًا صوتيًا تملكه إلى نص، أو استورد ملف ترجمة محفوظًا، ثم راجعه ونظّمه</small></div>
     <div class="transcript-focus-actions">
      <button type="button" id="transcriptFocusOpen" class="transcript-focus-open" aria-label="فتح مساحة التفريغ بملء الشاشة" title="فتح مساحة مركزة بملء الشاشة">＋</button>
      <button type="button" id="transcriptFocusClose" class="transcript-focus-close" aria-label="إغلاق مساحة التفريغ" title="إغلاق مساحة التفريغ">×</button>
     </div>
    </header>
-   <label class="transcript-field" for="transcriptYoutubeUrl">رابط فيديو YouTube
-    <input id="transcriptYoutubeUrl" type="url" inputmode="url" autocomplete="url" placeholder="ألصق رابط الفيديو هنا" dir="ltr">
-   </label>
-   <button type="button" id="transcriptGenerateYoutube" class="transcript-generate-button">🎬 توليد النص من رابط YouTube</button>
-   <details class="transcript-alternates">
+    <details class="transcript-alternates" id="transcriptSourceOptions">
     <summary>لدي ملف صوتي أو ترجمة محفوظة</summary>
     <div class="transcript-alternates-body">
      <label class="transcript-field" for="transcriptAudioFile">اختر ملفًا صوتيًا من جهازك
@@ -2203,7 +2195,7 @@ dialog[open]>.float-head{display:none!important}
      <small class="transcript-upload-note">يدعم الصوت حتى 8 ميغابايت. استخدم ملفًا يحق لك معالجته؛ تتم معالجته مؤقتًا ولا تُحفظ نسخة منه في المفكرة.</small>
     </div>
    </details>
-   <p id="transcriptSourceStatus" class="transcript-status" role="status" aria-live="polite">ألصق رابط الفيديو واضغط «توليد النص من رابط YouTube». إذا لم تكن هناك ترجمة متاحة، ستظهر لك طريقة بديلة واضحة.</p>
+   <p id="transcriptSourceStatus" class="transcript-status" role="status" aria-live="polite">اختر ملفًا صوتيًا من جهازك أو استورد ملف ترجمة محفوظًا لبدء العمل.</p>
 
    <div id="transcriptEditorPanel" class="transcript-editor-panel" hidden>
     <label class="transcript-field" for="transcriptTitle">عنوان التفريغ
