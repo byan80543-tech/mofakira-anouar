@@ -47,9 +47,12 @@
   let theme=allowedThemes.has(initial.theme)?initial.theme:'emerald';
   let customDhikrs=cleanDhikrList(initial.customDhikrs,30,200);
   let removedOfficialDhikrs=cleanDhikrList(initial.removedOfficialDhikrs,60,4000);
-  let recognition=null,voiceActive=false,writingPreferences=false,voiceTargetPhrase='';
+  let recognition=null,voiceActive=false,voiceRequested=false,writingPreferences=false,voiceTargetPhrase='';
   let voiceTranscriptTimer=null,voiceSpeechInProgress=false,voicePausePending=false;
-  let voiceMatchCount=0,speechLanguage='ar-MA';
+  let voiceMatchCount=0,voiceResultSegments=[],lastRecognitionEvent=null,voiceFallbackPending=false;
+  let voiceRestartTimer=null,voiceRestartCount=0;
+  const speechLanguages=['ar-MA','ar-SA','ar'];
+  let speechLanguageIndex=0,speechLanguage=speechLanguages[speechLanguageIndex];
 
   const officialAdhkar=Array.isArray(window.ANWAR_OFFICIAL_ADHKAR)?window.ANWAR_OFFICIAL_ADHKAR:[];
   function renderOfficialOptions(){
@@ -220,10 +223,11 @@
   function chooseDhikr(value,resetCount){
    const option=Array.from(select.options).find(item=>item.value===value&&(isCustomOption(item)||!isRemovedOfficial(item)));
    if(!option)return;
-   if(voiceActive)stopVoice('توقف التسجيل لأن الذكر المختار تغيّر.');
+   if(voiceRequested)stopVoice('توقف التسجيل لأن الذكر المختار تغيّر.');
    select.value=option.value;
    voiceTargetPhrase=optionText(option);
    voiceMatchCount=0;
+   voiceResultSegments=[];lastRecognitionEvent=null;
    if(resetCount)count=0;
    setDhikrListOpen(false);
    setVoiceTranscript('');
@@ -247,11 +251,15 @@
   }
   function stopVoice(message){
    const wasActive=voiceActive;
+   voiceRequested=false;
    voiceActive=false;
    voiceSpeechInProgress=false;
    voicePausePending=true;
+   voiceFallbackPending=false;
+   if(voiceRestartTimer!==null){window.clearTimeout(voiceRestartTimer);voiceRestartTimer=null}
    voiceTargetPhrase='';
    voiceMatchCount=0;
+   voiceResultSegments=[];lastRecognitionEvent=null;voiceRestartCount=0;
    if(wasActive&&recognition){try{recognition.stop()}catch(error){}}
    scheduleVoiceTranscriptFade(500);
    setVoiceState('idle',message||'تم إيقاف التسجيل.');
@@ -512,6 +520,29 @@
    if(event.key==='Escape'&&!panel.hidden){event.preventDefault();event.stopImmediatePropagation();closePanel(false)}
   },true);
 
+  function scheduleVoiceRestart(message,delay){
+   if(!voiceRequested||voiceRestartTimer!==null)return;
+   if(voiceRestartCount>=4){
+    voiceRequested=false;voiceActive=false;voiceTargetPhrase='';
+    setVoiceState('error','انقطع التعرف الصوتي عدة مرات. اضغط إعادة المحاولة لبدء جلسة جديدة.');
+    return;
+   }
+   voiceRestartCount++;
+   voiceActive=false;
+   setVoiceState('starting',message);
+   voiceRestartTimer=window.setTimeout(()=>{
+    voiceRestartTimer=null;
+    if(!voiceRequested)return;
+    try{
+     voiceActive=true;
+     recognition.start();
+    }catch(error){
+     voiceActive=false;voiceRequested=false;voiceTargetPhrase='';
+     setVoiceState('error','تعذر استئناف التعرف الصوتي. أوقف التسجيل واسمح بالميكروفون ثم أعد المحاولة.');
+    }
+   },delay);
+  }
+
   const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(typeof SpeechRecognition!=='function'){
    voiceButton.disabled=true;
@@ -528,6 +559,7 @@
     recognition.interimResults=true;
     recognition.maxAlternatives=3;
     recognition.onstart=()=>{
+     if(!voiceRequested)return;
      voiceActive=true;
      voiceSpeechInProgress=false;
      voicePausePending=false;
@@ -536,6 +568,7 @@
     };
     recognition.onspeechstart=()=>{
      if(!voiceActive)return;
+     voiceRestartCount=0;
      voiceSpeechInProgress=true;
      voicePausePending=false;
      clearVoiceTranscriptTimer();
@@ -550,23 +583,33 @@
      scheduleVoiceTranscriptFade(650);
     };
     recognition.onresult=event=>{
-     // بعض المتصفحات تقسّم الجملة إلى نتائج نهائية متعددة؛ نجمعها قبل المطابقة.
-     if(!voiceActive||!event||!event.results)return;
-     const results=event.results;
-     const finalParts=[],interimParts=[],latestParts=[];
+     // تختلف بعض خدمات أندرويد في إعادة قائمة النتائج كاملة أو إرسال دفعة جديدة تبدأ من الصفر.
+     if(!voiceActive||!event||!event.results||event===lastRecognitionEvent)return;
+     lastRecognitionEvent=event;
+     const results=event.results,incoming=[],latestParts=[];
      const resultStart=Number.isInteger(event.resultIndex)?Math.max(0,Math.min(results.length,event.resultIndex)):Math.max(0,results.length-1);
      for(let i=0;i<results.length;i++){
       const result=results[i];
-      const said=bestSpeechText(result,voiceTargetPhrase);
-      if(!said)continue;
-      if(result.isFinal)finalParts.push(said);
-      else interimParts.push(said);
-      if(i>=resultStart)latestParts.push(said);
+      incoming.push({text:bestSpeechText(result,voiceTargetPhrase),isFinal:!!result.isFinal,source:result});
+      if(i>=resultStart&&incoming[i].text)latestParts.push(incoming[i].text);
      }
-     // Count from finalized speech plus the current live interim segment.
-     // When interim becomes final, voiceMatchCount prevents counting it twice.
-     const finalText=finalParts.join(' ').trim();
-     const liveText=[finalText,interimParts.join(' ').trim()].filter(Boolean).join(' ').trim();
+     const previousAllFinal=voiceResultSegments.length>0&&voiceResultSegments.every(item=>item&&item.isFinal);
+     const matchingPrefix=incoming.length>=voiceResultSegments.length&&voiceResultSegments.every((old,index)=>
+      old&&incoming[index]&&old.isFinal&&incoming[index].isFinal&&normalizeSpeech(old.text)===normalizeSpeech(incoming[index].text)
+     );
+     const repeatedSingleBatch=resultStart===0&&previousAllFinal&&incoming.length===1&&voiceResultSegments.length===1&&
+      incoming[0].isFinal&&incoming[0].source!==voiceResultSegments[0].source;
+     const freshBatch=resultStart===0&&previousAllFinal&&incoming.length>0&&
+      (incoming.length<voiceResultSegments.length||(!matchingPrefix&&incoming.length>=voiceResultSegments.length)||repeatedSingleBatch);
+     if(freshBatch){
+      voiceResultSegments.push(...incoming);
+     }else{
+      for(let i=resultStart;i<incoming.length;i++)voiceResultSegments[i]=incoming[i];
+      voiceResultSegments.length=incoming.length;
+     }
+     const finalText=voiceResultSegments.filter(item=>item&&item.isFinal&&item.text).map(item=>item.text).join(' ').trim();
+     const interimText=voiceResultSegments.filter(item=>item&&!item.isFinal&&item.text).map(item=>item.text).join(' ').trim();
+     const liveText=[finalText,interimText].filter(Boolean).join(' ').trim();
      const latestText=latestParts.length?latestParts[latestParts.length-1]:'';
      if(latestText)showVoiceTranscript(latestText);
      if(!liveText)return;
@@ -578,7 +621,7 @@
       showVoiceTranscript(lastMatchedPhraseText(liveText,voiceTargetPhrase)||latestText||voiceTargetPhrase);
       setVoiceState('listening','تم الاحتساب: '+newMatches.toLocaleString('ar'));
      }else if(totalMatches===0&&finalText){
-      setVoiceState('listening','لم يطابق الذكر المختار.');
+      setVoiceState('listening','سمع المتصفح الكلام، لكنه لم يطابق الذكر المختار. راجع النص الظاهر.');
      }
     };
     recognition.onnomatch=()=>{
@@ -586,15 +629,31 @@
     };
     recognition.onerror=event=>{
      const code=event&&event.error;
-     if(code==='language-not-supported'&&speechLanguage!=='ar-SA'){
-      speechLanguage='ar-SA';
+     if(code==='language-not-supported'&&speechLanguageIndex<speechLanguages.length-1){
+      speechLanguageIndex++;
+      speechLanguage=speechLanguages[speechLanguageIndex];
       recognition.lang=speechLanguage;
+      voiceActive=false;
+      voiceSpeechInProgress=false;
+      voicePausePending=true;
+      voiceFallbackPending=true;
+      setVoiceState('starting','لغة التعرف الأولى غير متاحة على هذا الجهاز؛ نجرب إعداداً عربياً آخر تلقائياً.');
+      return;
      }
      voiceActive=false;
      voiceSpeechInProgress=false;
      voicePausePending=true;
-     voiceTargetPhrase='';
      scheduleVoiceTranscriptFade(400);
+     if(code==='no-speech'){
+      setVoiceState('starting','لم يلتقط المتصفح كلاماً واضحاً؛ سنعيد الاستماع تلقائياً.');
+      return;
+     }
+     if(code==='network'){
+      setVoiceState('starting','انقطع اتصال خدمة التعرف الصوتي؛ سنحاول الاتصال مجدداً.');
+      return;
+     }
+     voiceRequested=false;
+     voiceTargetPhrase='';
      const messages={
       'not-allowed':'لم يُسمح بالميكروفون. افتح إعدادات الموقع واسمح باستخدامه.',
       'service-not-allowed':'خدمة التعرف الصوتي محجوبة من المتصفح أو الجهاز.',
@@ -602,13 +661,22 @@
       'no-speech':'لم يلتقط المتصفح كلاماً. تأكد من إذن الميكروفون وحاول التحدث فور بدء التسجيل.',
       'network':'تعذر الاتصال بخدمة التعرف الصوتي. تحقق من اتصال الإنترنت.',
       'aborted':'أُوقف التسجيل.',
-      'language-not-supported':'لغة التعرف غير مدعومة على هذا الجهاز. تم اختيار العربية العامة؛ ابدأ التسجيل مجدداً.',
+      'language-not-supported':'العربية غير مدعومة من خدمة التعرف الصوتي على هذا الجهاز.',
       'bad-grammar':'تعذر تحليل العبارة المنطوقة؛ حاول مرة أخرى.'
      };
      if(code==='no-speech'&&!voiceTranscript.textContent.includes('لم يبدأ'))setVoiceTranscript('لم يلتقط المتصفح كلاماً واضحاً.');
      setVoiceState('error',messages[code]||'حدث خطأ في التعرف الصوتي. حاول التسجيل مرة أخرى.');
     };
     recognition.onend=()=>{
+     if(voiceFallbackPending){
+      voiceFallbackPending=false;
+      scheduleVoiceRestart('تم تبديل لغة التعرف؛ جار إعادة تشغيل الميكروفون.',250);
+      return;
+     }
+     if(voiceRequested){
+      scheduleVoiceRestart('انتهت جلسة الاستماع المؤقتة؛ جار إعادة تشغيلها تلقائياً.',350);
+      return;
+     }
      if(voiceActive){
       voiceActive=false;
       voiceTargetPhrase='';
@@ -616,9 +684,11 @@
      }
     };
     voiceButton.addEventListener('click',()=>{
-     if(voiceActive){stopVoice('تم إيقاف التسجيل.');return}
+     if(voiceRequested){stopVoice('تم إيقاف التسجيل.');return}
      try{
       voiceMatchCount=0;
+      voiceResultSegments=[];lastRecognitionEvent=null;voiceFallbackPending=false;voiceRestartCount=0;
+      speechLanguageIndex=0;speechLanguage=speechLanguages[speechLanguageIndex];recognition.lang=speechLanguage;
       voiceTargetPhrase=String(optionText(Array.from(select.options).find(option=>option.value===select.value))||'').trim();
       if(!voiceTargetPhrase){
        setVoiceState('error','اختر ذكراً قبل بدء التسجيل.');
@@ -626,9 +696,11 @@
       }
       setVoiceTranscript('');
       setVoiceState('starting','');
+      voiceRequested=true;
       voiceActive=true;
       recognition.start();
      }catch(error){
+      voiceRequested=false;
       voiceActive=false;
       voiceTargetPhrase='';
       setVoiceState('error','تعذر بدء التسجيل. تحقق من إذن الميكروفون ثم حاول مرة أخرى.');
