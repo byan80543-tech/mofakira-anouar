@@ -2414,7 +2414,7 @@ function poetryDictationPreviousCharacter(range){
  }catch(error){return ''}
 }
 function appendPoetryDictationText(value){
- const text=String(value||'').replace(/\\u200b/g,' ').replace(/\\s+/g,' ').trim();
+ const text=String(value||'').replace(/\u200b/g,' ').replace(/\s+/g,' ').trim();
  if(!text||!cur||storageRecoveryBlocked)return;
  try{
   const range=poetryDictationRange&&pg.contains(poetryDictationRange.startContainer)
@@ -2480,7 +2480,7 @@ function togglePoetryDictation(){
  }
  poetryDictationRange=capturePoetryDictationRange();
  const previous=poetryDictationPreviousCharacter(poetryDictationRange);
- poetryDictationNeedsSpace=Boolean(previous&&!/\\s/.test(previous));
+ poetryDictationNeedsSpace=Boolean(previous&&!/\s/.test(previous));
  poetryDictationController=api.create({
   onText:text=>appendPoetryDictationText(text),
   onStatus:(state,detail)=>{
