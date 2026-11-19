@@ -53,6 +53,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Test radio continuity across in-app audio and foreground interruptions
+        run: node scripts/test-radio-interruptions.mjs
       - name: Validate manifest, icons, HTML IDs and JavaScript syntax
         run: node scripts/validate.mjs
       - name: Verify Content Security Policy and inline script hashes

@@ -2657,6 +2657,44 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  X.forEach(x=>{if(!R.some(r=>r[0]===x[0]))R.push(x)});
  const rr=$('rr'),rsu=$('rsu'),st=$('rst'),pp=$('rpp'),rb=$('rb'),au=new Audio();let n=1,started=false,wd,cr=0,sl,playRequestId=0;
  au.preload='metadata';au.volume=.8;$('ro').hidden=true;window.__anwarRadioAudio=au;
+ // Keep the radio's requested volume separate from temporary ducking.
+ let radioBaseVolume=au.volume,radioShouldPlay=false,radioResumePending=false,radioLastResumeAttempt=0;
+ function syncRadioDucking(){
+  const anotherAudioIsPlaying=Array.from(document.querySelectorAll('audio,video')).some(element=>
+   element!==au&&!element.paused&&!element.ended&&!element.muted&&element.volume>0&&element.readyState>=2
+  );
+  const nextVolume=radioBaseVolume*(anotherAudioIsPlaying?0.28:1);
+  if(Math.abs(au.volume-nextVolume)>.005)au.volume=nextVolume;
+ }
+ function resumeRadioAfterReturn(){
+  if(!radioShouldPlay||!au.src||au.ended||!au.paused||radioResumePending)return;
+  const now=Date.now();
+  if(now-radioLastResumeAttempt<1200)return;
+  radioLastResumeAttempt=now;radioResumePending=true;
+  let attempt;
+  try{attempt=au.play()}catch(error){
+   radioResumePending=false;
+   st.textContent='توقفت الإذاعة مؤقتًا؛ اضغط زر التشغيل لاستئنافها.';
+   ui();return;
+  }
+  if(attempt&&typeof attempt.then==='function'){
+   attempt.then(()=>{
+    radioResumePending=false;syncRadioDucking();ui();
+   }).catch(error=>{
+    radioResumePending=false;
+    if(error?.name==='NotAllowedError')st.textContent='اضغط زر التشغيل لاستئناف الإذاعة بعد المقاطعة.';
+    else st.textContent='تعذّر استئناف الإذاعة تلقائيًا؛ اضغط زر التشغيل للمحاولة مجددًا.';
+    ui();
+   });
+  }else{radioResumePending=false;syncRadioDucking();ui()}
+ }
+ // Capture media events from in-app audio players without pausing the radio.
+ ['play','playing','pause','ended','emptied'].forEach(type=>
+  document.addEventListener(type,syncRadioDucking,true)
+ );
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)resumeRadioAfterReturn()});
+ window.addEventListener('focus',resumeRadioAfterReturn);
+ window.addEventListener('pageshow',resumeRadioAfterReturn);
  rr.innerHTML=R.map((r,i)=>`<option value="${i}">${esc(r[0])}</option>`).join('');
  rsu.innerHTML=SU.map((s,i)=>`<option value="${i+1}">${i+1}. ${esc(s)}</option>`).join('');
  const surahPicker=$('surahPicker');surahPicker.innerHTML=rsu.innerHTML;surahPicker.value=String(n);
@@ -2735,8 +2773,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  function moveSurah(step){const a=availableSurahs(),i=a.indexOf(n),next=i<0?0:(i+step+a.length)%a.length;n=a[next];rsu.value=String(n);play()}
  function play(){
   const requestId=++playRequestId;
-  const lesson=$('lessonAudio');if(lesson&&!lesson.paused)lesson.pause();
-  if(typeof window.__anwarStopCountryAudio==='function')window.__anwarStopCountryAudio();
+  radioShouldPlay=true;
   started=true;
   const available=availableSurahs();
   if(!available.includes(n))n=available[0]||1;
@@ -2747,7 +2784,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
   const fileName=String(n).padStart(3,'0')+'.mp3';
   const u=station?safeHttpsURL($('rl').value):(base?base+fileName:'');
   if(!u){
-   started=false;st.textContent='لا يتوفر رابط صوت صالح لهذا الاختيار.';ui();return;
+   radioShouldPlay=false;started=false;st.textContent='لا يتوفر رابط صوت صالح لهذا الاختيار.';ui();return;
   }
   // ابدأ التشغيل من البيانات التي جُهّزت مسبقًا إن كان المصدر هو نفسه، ولا تُعد تحميله من الصفر.
   au.preload='auto';
@@ -2774,9 +2811,9 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
   ui();
  }
  function toggle(){
-  if(typeof window.__anwarStopCountryAudio==='function')window.__anwarStopCountryAudio();
   if(started&&au.src){
    if(au.paused){
+    radioShouldPlay=true;
     const requestId=++playRequestId;
     st.textContent='جارٍ استئناف التلاوة…';
     const attempt=au.play();
@@ -2788,6 +2825,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
      ui();
     });
    }else{
+    radioShouldPlay=false;
     ++playRequestId;clearTimeout(wd);au.pause();st.textContent='متوقف مؤقتًا';
    }
   }else{
@@ -2799,7 +2837,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
   }
   ui();
  }
- au.addEventListener('playing',()=>{clearTimeout(wd);ui()});
+ au.addEventListener('playing',()=>{clearTimeout(wd);syncRadioDucking();ui()});
  au.addEventListener('waiting',()=>{if(started&&!au.paused)st.textContent='جارٍ تحميل التلاوة…'});
  au.addEventListener('stalled',()=>{if(started&&!au.paused)st.textContent='الاتصال بخادم الصوت بطيء؛ جارٍ انتظار التلاوة…'});
  au.addEventListener('pause',ui);
@@ -2812,12 +2850,12 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
    moveSurah(1);
   }else{
    // في قوائم القراء، يحترم الوضع اليدوي اختيار الزائر ويتوقف عند نهاية السورة.
-   started=false;ui();st.textContent='انتهت السورة؛ اختر سورة أخرى ثم اضغط تشغيل القارئ للمتابعة.';
+   started=false;radioShouldPlay=false;ui();st.textContent='انتهت السورة؛ اختر سورة أخرى ثم اضغط تشغيل القارئ للمتابعة.';
   }
  });
  au.addEventListener('error',()=>{
   if(!au.src)return;
-  ++playRequestId;clearTimeout(wd);started=false;ui();
+  ++playRequestId;clearTimeout(wd);started=false;radioShouldPlay=false;ui();
   st.textContent='تعذّر تحميل ملف الصوت داخل المشغّل. لم يتم فتح أي موقع خارجي؛ جرّب قارئًا آخر أو أعد المحاولة.';
   $('ro').hidden=false;$('ro').textContent='↗ فتح رابط الملف الأصلي (اختياري)';
   toast('تعذّر تحميل التلاوة',3000);
@@ -3368,15 +3406,13 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
   if(countryActiveAudio)stopCountryAudio();
  };
  function mountCountryAudio(card,button,name,urls,sourceLabel){
-  const mainRadio=window.__anwarRadioAudio,lessonAudio=$('lessonAudio');
-  if(mainRadio&&!mainRadio.paused)mainRadio.pause();
-  started=false;ui();
+  const lessonAudio=$('lessonAudio');
   if(lessonAudio&&!lessonAudio.paused)lessonAudio.pause();
   stopCountryAudio();
   const tracks=countryTrackOptions(urls);
   if(!tracks.length)throw new Error('لم توجد ملفات صوت صالحة');
   const wrap=document.createElement('div');wrap.className='country-reader-audio-wrap';
-  const audio=document.createElement('audio');audio.className='country-reader-audio';audio.controls=true;audio.preload='none';audio.volume=au.volume;audio.setAttribute('playsinline','');audio.setAttribute('aria-label','تلاوة '+name);
+  const audio=document.createElement('audio');audio.className='country-reader-audio';audio.controls=true;audio.preload='none';audio.volume=radioBaseVolume;audio.setAttribute('playsinline','');audio.setAttribute('aria-label','تلاوة '+name);
   audio.src=tracks[0].url;
   if(tracks.length>1){
    const label=document.createElement('label');label.className='country-reader-track-label';label.textContent='اختر السورة';
@@ -3567,7 +3603,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
   const menu=b.closest('details.reciter-variants-menu');if(menu)menu.open=false;
   const i=+b.dataset.reciterPlay;
   if(started&&!au.paused&&activePlaybackKind==='reader'&&cr===i){
-   au.pause();st.textContent='أوقفت التلاوة مؤقتاً';ui();return;
+   radioShouldPlay=false;au.pause();st.textContent='أوقفت التلاوة مؤقتاً';ui();return;
   }
   activePlaybackKind='reader';
   cr=i;rr.value=String(i);
@@ -3593,7 +3629,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
    sl=setTimeout(()=>{
     if(typeof window.__anwarStopCountryAudio==='function')window.__anwarStopCountryAudio();
     const lesson=$('lessonAudio');if(lesson&&!lesson.paused)lesson.pause();
-    au.pause();started=false;ui();$('rtm').value='0';toast('انتهى مؤقت النوم');
+    radioShouldPlay=false;au.pause();started=false;ui();$('rtm').value='0';toast('انتهى مؤقت النوم');
    },m*60000);
    toast('سيتوقف الصوت بعد '+m+' دقيقة');
   }
@@ -3608,8 +3644,8 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
      });
      navigator.mediaSession.playbackState='playing';
     }catch(e){}
-    [['play',()=>{if(!au.src){cr=+rr.value||0;play()}else au.play().catch(()=>{})}],
-     ['pause',()=>au.pause()],['nexttrack',()=>$('rnx').click()],
+    [['play',()=>{radioShouldPlay=true;if(!au.src){cr=+rr.value||0;play()}else au.play().catch(()=>{})}],
+     ['pause',()=>{radioShouldPlay=false;au.pause()}],['nexttrack',()=>$('rnx').click()],
      ['previoustrack',()=>$('rpv').click()]].forEach(([action,handler])=>{
       try{navigator.mediaSession.setActionHandler(action,handler)}catch(e){}
      });
@@ -3691,8 +3727,10 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  rsu.addEventListener('change',()=>{n=+rsu.value;if(!availableSurahs().includes(n)){st.textContent='هذه السورة غير متاحة ضمن مصحف القارئ المختار.';return;}play()});
  $('rv').addEventListener('input',e=>{
   const volume=Math.max(0,Math.min(1,+e.target.value||0));
+  radioBaseVolume=volume;
   au.volume=volume;
   if(countryActiveAudio)countryActiveAudio.volume=volume;
+  syncRadioDucking();
  });
 })();
 
@@ -3923,14 +3961,12 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  function markLessonPlaying(){if(!lessonList)return;lessonList.querySelectorAll('[data-lesson-index]').forEach(btn=>{const active=+btn.dataset.lessonIndex===current&&!!audio.src;btn.setAttribute('aria-current',String(active));});}
  if(lessonList)lessonList.addEventListener('click',e=>{const btn=e.target.closest('[data-lesson-index]');if(!btn)return;current=+btn.dataset.lessonIndex;track.value=String(current);loadTrack(true);markLessonPlaying();});
  audio.addEventListener('play',()=>{
-  const radio=window.__anwarRadioAudio;if(radio&&!radio.paused)radio.pause();
   if(typeof window.__anwarStopCountryAudio==='function')window.__anwarStopCountryAudio();
   markLessonPlaying();
  });
  audio.addEventListener('pause',markLessonPlaying);
  audio.addEventListener('playing',markLessonPlaying);
  play.addEventListener('click',()=>{
-  const radio=window.__anwarRadioAudio;if(radio&&!radio.paused)radio.pause();
   const c=catalog[series.value];
   if(!c||!c.direct){renderSource(c||catalog.allAqidah);status.textContent='هذا فهرس للسلاسل وليس درسًا صوتيًا مباشرًا؛ افتح رابط المصدر أدناه.';return;}
   if(!audio.src)loadTrack(false);
