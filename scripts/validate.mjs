@@ -6,6 +6,7 @@ const root=process.cwd();
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const appCore=fs.readFileSync(path.join(root,'app-core.js'),'utf8');
 const appSource=html+String.fromCharCode(10)+appCore;
+const serviceWorker=fs.readFileSync(path.join(root,'service-worker.js'),'utf8');
 const manifest=JSON.parse(fs.readFileSync(path.join(root,'manifest.webmanifest'),'utf8'));
 const vaultCrypto=fs.readFileSync(path.join(root,'vault-crypto.js'),'utf8');
 const vaultDeviceUnlock=fs.readFileSync(path.join(root,'vault-device-unlock.js'),'utf8');
@@ -162,15 +163,15 @@ ok(appCore.includes('const LIST_PAGE_SIZE=50;') && appCore.includes('listRenderL
 ok(iconGenerator.includes("ImageFilter.UnsharpMask") && iconGenerator.includes("radius=0.7, percent=125, threshold=2"),'192px launcher icon receives a controlled sharpening pass after downsampling');
 ok(appSource.includes("icon-192.png?v=20261118-clarity1") && appSource.includes("type:'image/png'"),'media artwork uses the crisp PNG icon instead of the compressed JPEG');
 ok(appSource.includes("function scheduleRadioWarmup()") && appSource.includes("scheduleRadioWarmup();\n   if(!reciterUiReady)") && !appSource.includes(" scheduleRadioWarmup();\n rb.addEventListener"),'radio metadata warmup starts only after the visitor opens the radio panel');
-ok(appSource.includes("setTimeout(renderList,90)") && appSource.includes("setTimeout(renderArchive,120)"),'note and archive searches are lightly debounced to reduce repeated rendering');
-ok(appSource.includes("const q=$('q').value.trim().toLocaleLowerCase(),items=[];") && appSource.includes("String(n.title||'')+' '+body).toLocaleLowerCase().includes(q)"),'main note search is case-insensitive for Latin titles and body text');
-ok(appSource.includes("function openSafeBlobTab(url){") && appSource.includes("try{opened.opener=null}catch(error){}") && !appSource.includes("window.open(url,'_blank','noopener')"),'blob documents use a safe popup flow without a null-return false negative');
+ok(appSource.includes("setTimeout(()=>renderList(true),90)") && appSource.includes("setTimeout(()=>renderArchive(true),120)"),'note and archive searches are lightly debounced to reduce repeated rendering');
+ok(appSource.includes("const matching=q?candidates.filter(n=>") && appSource.includes("matching.slice(0,listRenderLimit)"),'main note search uses bounded list rendering and only extracts text when searching');ok(appSource.includes("function openSafeBlobTab(url){") && appSource.includes("try{opened.opener=null}catch(error){}") && !appSource.includes("window.open(url,'_blank','noopener')"),'blob documents use a safe popup flow without a null-return false negative');
 const socialFunction=fs.readFileSync(path.join(root,'functions/index.js'),'utf8');
 ok(socialFunction.includes(".on('meta[property=\"og:title\"]'") && socialFunction.includes('head.onEndTag(endTag =>') && socialFunction.includes('endTag.before(SOCIAL_META, { html: true })'),'Cloudflare social metadata is injected only when a page has no Open Graph title');
 const qualityWorkflow=fs.readFileSync(path.join(root,'.github/workflows/quality.yml'),'utf8');
 ok(qualityWorkflow.includes('wrangler@4.164.0') && !qualityWorkflow.includes('wrangler@latest'),'quality dry-run pins the Wrangler version used by deployment');
 ok(appSource.includes("content-visibility:auto;contain-intrinsic-size:auto 76px"),'off-screen note cards skip unnecessary painting');
 ok(html.includes('src="./app-core.js?v=20261119-1"') && appCore.length>200000,'main application bundle is external and cacheable');
+ok(serviceWorker.includes("'./app-core.js'") && serviceWorker.includes('anwar-shell-2026-11-19-v65'),'service worker precaches the extracted main bundle under a new shell version');
 ok(appSource.includes("backdrop-filter:none;-webkit-backdrop-filter:none"),'vault startup overlay avoids an expensive full-screen blur');
 
 
