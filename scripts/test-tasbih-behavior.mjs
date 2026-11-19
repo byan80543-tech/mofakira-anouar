@@ -28,6 +28,7 @@ class FakeElement {
  appendChild(child){child.parentElement=this;this.children.push(child);return child}
  replaceChildren(...items){for(const child of this.children)child.parentElement=null;this.children=[];for(const item of items)this.appendChild(item)}
  remove(){if(this.parentElement){const list=this.parentElement.children;const index=list.indexOf(this);if(index>=0)list.splice(index,1);this.parentElement=null}}
+ get options(){return this.tagName==='OPTGROUP'?this.children:undefined}
  querySelector(selector){
   if(selector==='.anwar-tasbih-counter')return this.counter||null;
   if(selector==='optgroup[data-anwar-custom-dhikrs]')return this.children.find(x=>x.tagName==='OPTGROUP'&&x.dataset.anwarCustomDhikrs!==undefined)||null;
