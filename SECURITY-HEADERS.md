@@ -13,7 +13,7 @@
 
 يحتوي `_headers` على سياسة CSP ورؤوس HTTP التالية:
 
-- `Content-Security-Policy`: سياسة المصادر المسموحة مع بصمات SHA-256 الدقيقة للكتل البرمجية المضمنة، وإضافة `frame-ancestors 'none'` لمنع تضمين الصفحة في إطارات مواقع أخرى.
+- `Content-Security-Policy`: سياسة المصادر المسموحة، ولا تسمح بتنفيذ JavaScript مضمن أو `eval`، مع إضافة `frame-ancestors 'none'` لمنع تضمين الصفحة في إطارات مواقع أخرى.
 - `X-Frame-Options: DENY`: طبقة توافق إضافية لمنع التأطير.
 - `X-Content-Type-Options: nosniff`: منع تخمين نوع المحتوى.
 - `Referrer-Policy: strict-origin-when-cross-origin`: تقليل المعلومات المرسلة في Referer.
@@ -30,14 +30,9 @@
 - تقييد الصور والخطوط والاتصالات والوسائط والإطارات والعاملات إلى المصادر اللازمة لوظائف التطبيق الحالية.
 - `upgrade-insecure-requests` لترقية الموارد غير الآمنة إلى HTTPS.
 
-كلما تغير نص أي كتلة JavaScript مضمنة يجب تحديث بصمتها في CSP. يفحص `scripts/test-csp.mjs` البصمات في CI، وتتحقق `scripts/validate.mjs` من وجود الرؤوس المطلوبة وموضع نشرها.
+تُحمّل الشيفرة البرمجية من ملفات JavaScript مستقلة على النطاق نفسه، وتُحمّل حزمة التطبيق الرئيسية بصفة مؤجلة وتُخزّن داخل عامل الخدمة. يفرض `scripts/test-csp.mjs` خلو HTML من كتل JavaScript المضمنة، وتتحقق `scripts/validate.mjs` من سلامة الحزمة وسياسة النشر.
 
-البصمات الحالية للكتل البرمجية المضمنة الثلاث، ويجب أن تبقى متطابقة في `index.html` و`_headers` وهذا الدليل:
-
-- 'sha256-4giI+ESUJtIatupQ0GRa19vnQYslezSh4XuPQ1lOMX8='
-- 'sha256-8YkHgI92MLtaZEym4Zs2fhcBnrUqCXMnywRd2wUa99U='
-- 'sha256-QYwkkTcnQ+I/GO9GzNxZiLL3+C66HISY56P+LRrjBz0='
-
+لا توجد بصمات JavaScript مضمنة مطلوبة حاليًا؛ فكل الشيفرة تُحمّل من ملفات مستقلة وتُمنع الكتل المضمنة بواسطة CSP.
 
 ## ما لم نفعّله عمداً
 
