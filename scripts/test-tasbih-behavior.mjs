@@ -30,7 +30,6 @@ class FakeElement {
  appendChild(child){child.parentElement=this;this.children.push(child);return child}
  replaceChildren(...items){for(const child of this.children)child.parentElement=null;this.children=[];for(const item of items)this.appendChild(item)}
  remove(){if(this.parentElement){const list=this.parentElement.children;const index=list.indexOf(this);if(index>=0)list.splice(index,1);this.parentElement=null}}
- get options(){return this.tagName==='OPTGROUP'?this.children:undefined}
  querySelector(selector){
   if(selector==='.anwar-tasbih-counter')return this.counter||null;
   if(selector==='optgroup[data-anwar-custom-dhikrs]')return this.children.find(x=>x.tagName==='OPTGROUP'&&x.dataset.anwarCustomDhikrs!==undefined)||null;
@@ -138,6 +137,9 @@ assert.equal(count(counterInput),3,'the circular counter supports Space from the
 const officialApp=buildApp();
 const officialOptions=officialApp.nodes.tasbihDhikr.options.filter(option=>option.dataset.anwarOfficialDhikr==='true');
 assert.ok(officialOptions.length>=35,'morning and evening official adhkar are both loaded');
+const renderedOfficialCards=officialApp.nodes.tasbihDhikrCards.children.flatMap(group=>group.children).filter(card=>card.dataset.anwarOfficialId);
+assert.ok(renderedOfficialCards.length>=35,'official morning/evening/daily adhkar render visibly in tasbih cards using native DOM children');
+assert.ok(officialApp.nodes.tasbihDhikrCards.children.some(group=>group.children.some(card=>card.className==='tasbih-dhikr-card'&&card.children.some(child=>child.className==='tasbih-dhikr-card-name'&&child.textContent==='سبحان الله'))),'the original basic tasbih adhkar remain alongside the new official morning/evening sections');
 assert.ok(officialOptions.some(option=>option.textContent==='آية الكرسي'&&option.dataset.dhikrText.includes('الْحَيُّ الْقَيُّومُ')),'the full Ayat al-Kursi text is available');
 assert.ok(officialOptions.some(option=>option.textContent==='سور الإخلاص والفلق والناس'&&option.dataset.repeat==='3'),'the three Quls are complete and marked three times');
 assert.ok(officialOptions.some(option=>option.textContent==='سبحان الله وبحمده'&&option.dataset.repeat==='100'),'the hundred-repetition dhikr includes its count');

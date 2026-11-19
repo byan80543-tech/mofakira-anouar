@@ -116,7 +116,7 @@
   function renderCards(){
    cards.replaceChildren();
    Array.from(select.querySelectorAll('optgroup')).forEach(group=>{
-    const options=Array.from(group.options).filter(option=>isCustomOption(option)||!isRemovedOfficial(option));
+    const options=Array.from(group.children).filter(option=>option.tagName==='OPTION'&&(isCustomOption(option)||!isRemovedOfficial(option)));
     if(!options.length)return;
     const section=document.createElement('section');
     section.className='tasbih-dhikr-group';
