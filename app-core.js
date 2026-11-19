@@ -1978,6 +1978,174 @@ function openBookDialog(){
  if(cur)flushPendingEdit(false);
  setBookToolExpanded(true,true);
 }
+
+let transcriptBaseText='',transcriptLastRendered='',transcriptFormatIndex=0,transcriptSourceName='تفريغ فيديو';
+const TRANSCRIPT_FORMATS=['فقرات','جمل','قائمة'];
+function transcriptStatus(message,error){
+ const status=$('transcriptSourceStatus');
+ if(status){status.textContent=message;status.dataset.state=error?'error':'ready'}
+}
+function transcriptEditorStatus(message){
+ const status=$('transcriptEditorStatus');
+ if(status)status.textContent=message||'';
+}
+function parseYouTubeVideoId(value){
+ try{
+  const url=new URL(String(value||'').trim());
+  if(url.protocol!=='https:')return '';
+  const host=url.hostname.toLowerCase().replace(/^www\./,'');
+  let id='';
+  if(host==='youtu.be')id=url.pathname.split('/').filter(Boolean)[0]||'';
+  else if(['youtube.com','m.youtube.com','music.youtube.com','youtube-nocookie.com'].includes(host)){
+   if(url.pathname==='/watch')id=url.searchParams.get('v')||'';
+   else{
+    const match=url.pathname.match(/^\/(?:embed|shorts|live)\/([A-Za-z0-9_-]{11})(?:\/|$)/);
+    if(match)id=match[1];
+   }
+  }
+  return /^[A-Za-z0-9_-]{11}$/.test(id)?id:'';
+ }catch(error){return ''}
+}
+function decodeCaptionEntities(value){
+ return String(value||'').replace(/&amp;/gi,'&').replace(/&lt;/gi,'<').replace(/&gt;/gi,'>')
+  .replace(/&quot;/gi,'"').replace(/&#39;|&apos;/gi,"'").replace(/&nbsp;/gi,' ')
+  .replace(/&#(\d+);/g,(match,number)=>{
+   const code=Number(number);
+   return Number.isInteger(code)&&code>0&&code<=0x10ffff?String.fromCodePoint(code):' ';
+  });
+}
+function parseCaptionFile(source,extension){
+ const raw=String(source||'').replace(/^\uFEFF/,'').replace(/\r\n?/g,'\n').slice(0,500000);
+ if(extension==='txt')return raw.trim();
+ const blocks=raw.split(/\n\s*\n/),captions=[];
+ blocks.forEach(block=>{
+  let lines=block.split('\n').map(line=>line.trim()).filter(Boolean);
+  if(!lines.length)return;
+  lines=lines.filter(line=>!/^WEBVTT(?:\s|$)/i.test(line)&&!/^NOTE(?:\s|$)/i.test(line)&&!/^(STYLE|REGION)(?:\s|$)/i.test(line)&&!/^(Kind|Language):/i.test(line));
+  const timeIndex=lines.findIndex(line=>line.includes('-->'));
+  if(timeIndex>=0)lines=lines.slice(timeIndex+1);
+  lines=lines.filter(line=>!/^(\d+|X-TIMESTAMP-MAP=.*)$/.test(line));
+  const caption=decodeCaptionEntities(lines.join(' ')).replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
+  if(caption)captions.push(caption);
+ });
+ return captions.join('\n').trim();
+}
+function formatTranscriptText(value,formatIndex){
+ const lines=String(value||'').replace(/\r\n?/g,'\n').split('\n').map(line=>line.trim()).filter(Boolean);
+ if(!lines.length)return '';
+ if(formatIndex===1){
+  const sentences=[];
+  lines.forEach(line=>{
+   const parts=line.match(/[^.!?؟؛]+[.!?؟؛]?/g)||[line];
+   parts.map(part=>part.trim()).filter(Boolean).forEach(part=>sentences.push(part));
+  });
+  return sentences.join('\n');
+ }
+ if(formatIndex===2)return lines.map((line,index)=>(index+1)+'. '+line).join('\n');
+ const paragraphs=[];
+ for(let i=0;i<lines.length;i+=3)paragraphs.push(lines.slice(i,i+3).join(' '));
+ return paragraphs.join('\n\n');
+}
+function transcriptChooseCaption(){
+ const input=$('transcriptYoutubeUrl');
+ const videoId=parseYouTubeVideoId(input&&input.value);
+ if(!videoId){transcriptStatus('أدخل رابط YouTube صحيحًا أولًا.',true);if(input)input.focus();return}
+ transcriptStatus('الرابط صحيح. اختر ملف ترجمة SRT أو VTT لديك حق استخدامه؛ لا يمكن استخراج نص أي فيديو عام من الرابط وحده.',false);
+ $('transcriptCaptionFile').click();
+}
+async function importTranscriptCaption(file){
+ if(!file)return;
+ const videoId=parseYouTubeVideoId($('transcriptYoutubeUrl').value);
+ if(!videoId){transcriptStatus('الرابط غير صالح. أدخل رابط YouTube صحيحًا ثم أعد الاختيار.',true);return}
+ const extension=(file.name.split('.').pop()||'').toLowerCase();
+ if(!['srt','vtt','txt'].includes(extension)){transcriptStatus('الصيغ المدعومة: SRT وVTT وTXT.',true);return}
+ if(file.size>2*1024*1024){transcriptStatus('حجم ملف الترجمة أكبر من 2 ميغابايت.',true);return}
+ try{
+  transcriptStatus('جارٍ قراءة ملف الترجمة…',false);
+  const text=parseCaptionFile(await file.text(),extension);
+  if(!text){transcriptStatus('لم أعثر على نص قابل للقراءة في الملف. تحقق من صيغة الترجمة.',true);return}
+  transcriptSourceName=file.name||'ترجمة فيديو';
+  transcriptBaseText=text;
+  transcriptFormatIndex=0;
+  const formatted=formatTranscriptText(transcriptBaseText,transcriptFormatIndex);
+  transcriptLastRendered=formatted;
+  $('transcriptTitle').value=(file.name||'تفريغ فيديو').replace(/\.(srt|vtt|txt)$/i,'').replace(/[_-]+/g,' ').slice(0,100)||'تفريغ فيديو';
+  $('transcriptText').value=formatted;
+  $('transcriptText').spellcheck=false;
+  $('transcriptSpellcheck').setAttribute('aria-pressed','false');
+  $('transcriptFormatLabel').textContent=TRANSCRIPT_FORMATS[0];
+  $('transcriptEditorPanel').hidden=false;
+  const words=text.trim().split(/\s+/).filter(Boolean).length;
+  transcriptStatus('تم استيراد الترجمة بنجاح · '+words+' كلمة',false);
+  transcriptEditorStatus('راجع النص قبل إدراجه أو تنزيله؛ قد تحتوي الترجمة الأصلية على أخطاء.');
+ }catch(error){
+  console.warn('تعذّر استيراد ملف الترجمة',error);
+  transcriptStatus('تعذّرت قراءة ملف الترجمة. لم يتغير أي عمل محفوظ.',true);
+ }
+}
+function cycleTranscriptFormat(){
+ const area=$('transcriptText');
+ if(!area||!area.value.trim()){transcriptEditorStatus('استورد ملف ترجمة أولًا.');return}
+ if(area.value!==transcriptLastRendered)transcriptBaseText=area.value;
+ transcriptFormatIndex=(transcriptFormatIndex+1)%TRANSCRIPT_FORMATS.length;
+ const formatted=formatTranscriptText(transcriptBaseText,transcriptFormatIndex);
+ transcriptLastRendered=formatted;
+ area.value=formatted;
+ $('transcriptFormatLabel').textContent=TRANSCRIPT_FORMATS[transcriptFormatIndex];
+ transcriptEditorStatus('تغيّر ترتيب العرض إلى: '+TRANSCRIPT_FORMATS[transcriptFormatIndex]+' · يمكنك متابعة التحرير.');
+}
+function getTranscriptRecord(){
+ const title=$('transcriptTitle').value.trim()||'تفريغ فيديو';
+ const text=$('transcriptText').value.trim();
+ if(!text){transcriptEditorStatus('لا يوجد نص لتصديره.');return null}
+ const html=text.split(/\n/).map(line=>'<div>'+esc(line||'')+'</div>').join('');
+ return {title,text,html,record:{title,type:'text',ts:Date.now(),html,paper:'plain'}};
+}
+async function exportTranscript(format){
+ const item=getTranscriptRecord();if(!item)return false;
+ const base=safeFileName(item.title,'تفريغ-فيديو');
+ try{
+  if(format==='pdf'){
+   $('pa').style.cssText='position:fixed;left:-10000px;top:0;width:794px;padding:48px 58px;background:#fff;color:#111;font-family:Amiri,serif;font-size:20px;line-height:2;direction:rtl';
+   $('pa').innerHTML='<h1>'+esc(item.title)+'</h1><div class="m">تفريغ نصي من مفكرة أنوار</div><hr><section style="font:20px/2 Amiri,serif;text-align:right">'+item.html+'</section><div class="f">مفكرة أنوار · © 2026 Anouar Oumlili</div>';
+   const saved=await renderPaPdf(base+'.pdf');
+   if(saved)transcriptEditorStatus('تم تنزيل ملف PDF.');
+   return saved;
+  }
+  if(format==='docx'){
+   const saved=await downloadBlob(recordsDocx([item.record],item.title),base+'.docx',{direct:true});
+   if(saved)transcriptEditorStatus('تم تنزيل مستند Word.');
+   return saved;
+  }
+  if(format==='txt'){
+   const saved=await downloadBlob(new Blob([item.title+'\n\n'+item.text],{type:'text/plain;charset=utf-8'}),base+'.txt',{direct:true});
+   if(saved)transcriptEditorStatus('تم تنزيل ملف TXT.');
+   return saved;
+  }
+ }catch(error){
+  console.warn('تعذّر تصدير التفريغ',error);
+  transcriptEditorStatus('تعذّر التصدير. بقي النص محفوظًا داخل المحرر.');
+ }
+ return false;
+}
+function insertTranscriptIntoBook(){
+ const item=getTranscriptRecord();if(!item)return;
+ insertImportedText(item.text,transcriptSourceName||'تفريغ فيديو');
+ transcriptEditorStatus('أُدرج النص في العمل المفتوح.');
+}
+function toggleTranscriptSpellcheck(){
+ const area=$('transcriptText'),button=$('transcriptSpellcheck');
+ if(!area||!button)return;
+ const enabled=!area.spellcheck;
+ area.spellcheck=enabled;
+ area.setAttribute('lang','ar');
+ button.setAttribute('aria-pressed',String(enabled));
+ area.focus();
+ transcriptEditorStatus(enabled
+  ?'فُعّل التدقيق المتاح في المتصفح. ظهور الاقتراحات يعتمد على قاموس العربية في جهازك؛ راجع التصحيحات قبل اعتمادها.'
+  :'أُوقف التدقيق الإملائي.');
+}
+
 async function createBook(){
  if(cur)flushPendingEdit(false);
  const scope=$('bookScope').value,title=$('bookTitle').value.trim()||'مختارات من مفكرة أنوار';
@@ -2191,6 +2359,13 @@ document.addEventListener('click',e=>{
  else if(id==='newBook')openBookDialog();
  else if(id==='createBook')createBook();
  else if(id==='addBookFile')$('bookFilePicker').click();
+  else if(id==='transcriptChooseCaption')transcriptChooseCaption();
+  else if(id==='transcriptSpellcheck')toggleTranscriptSpellcheck();
+  else if(id==='transcriptFormat')cycleTranscriptFormat();
+  else if(id==='transcriptExportPdf')exportTranscript('pdf');
+  else if(id==='transcriptExportDocx')exportTranscript('docx');
+  else if(id==='transcriptExportTxt')exportTranscript('txt');
+  else if(id==='transcriptInsertBook')insertTranscriptIntoBook();
  else if(id==='hist')openHistory();
  else if(id==='closeHistory')$('historyDialog').close();
  else if(t.dataset.ver!==undefined)restoreHistory(+t.dataset.ver);
@@ -2288,6 +2463,15 @@ $('bookFilePicker').addEventListener('change',e=>{
  const file=e.target.files&&e.target.files[0];
  if(file)handleBookFile(file);
  e.target.value='';
+});
+$('transcriptCaptionFile').addEventListener('change',e=>{
+ const file=e.target.files&&e.target.files[0];
+ if(file)importTranscriptCaption(file);
+ e.target.value='';
+});
+$('transcriptText').addEventListener('input',()=>{
+ const value=$('transcriptText').value;
+ if(value!==transcriptLastRendered)transcriptBaseText=value;
 });
 $('bookFormat').addEventListener('change',e=>{
  const hints={pdf:'ينشئ ملف PDF جاهزاً للقراءة والطباعة ويحفظه مباشرة على الجهاز.',docx:'ينشئ مستند Word قابلاً للتحرير.',txt:'يحفظ النص العربي في ملف بسيط.',html:'ينشئ صفحة ويب مستقلة من أعمال الكتاب.'};
