@@ -2172,6 +2172,8 @@ function openTranscriptFocus(){
  const tool=$('transcriptTool');
  if(!tool)return;
  closeTranscriptFormatMenu();
+ const sourceOptions=$('transcriptSourceOptions');
+ if(sourceOptions)sourceOptions.open=true;
  tool.classList.add('transcript-focus-mode');
  document.documentElement.classList.add('anwar-transcript-focus');
  document.body.classList.add('anwar-transcript-focus');
