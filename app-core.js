@@ -2112,16 +2112,6 @@ async function importTranscriptCaption(file){
  }
 }
 
-function transcriptWorkerEndpoint(){
- const raw=String(globalThis.ANWAR_API_GATEWAY_BASE||'').trim();
- if(!raw)return '';
- try{
-  const base=new URL(raw);
-  if(base.protocol!=='https:'||!base.hostname.endsWith('.workers.dev')||base.username||base.password)return '';
-  return base.origin+'/v1/transcribe';
- }catch(error){return ''}
-}
-
 function transcriptYoutubeEndpoint(videoId){
  const raw=String(globalThis.ANWAR_API_GATEWAY_BASE||'').trim();
  if(!raw)return '';
@@ -2149,9 +2139,9 @@ async function transcribeYouTubeLink(){
   let result={};
   try{result=await response.json()}catch(error){}
   if(!response.ok){
-   const message=response.status===429?'وصلت إلى حد الاستخدام اليومي لاستخراج الترجمات؛ أعد المحاولة لاحقًا.':
+   const message=response.status===429?'وصلت إلى حد الطلبات لاستخراج الترجمات؛ أعد المحاولة بعد قليل.':
     response.status===403?'الفيديو يتطلب تسجيل الدخول أو صلاحية وصول غير متاحة للعامل.':
-    response.status===404?'لم يعثر YouTube على ترجمة نصية متاحة لهذا الفيديو. جرّب استيراد ملف ترجمة أو رفع ملف صوتي تملك حق استخدامه.':
+    response.status===404?'لم يعثر YouTube على ترجمة نصية متاحة لهذا الفيديو. يمكنك استيراد ملف ترجمة محفوظ بصيغة SRT أو VTT أو TXT.':
     String(result.error||'تعذّر استخراج الترجمة من هذا الرابط.');
    transcriptStatus(message,true);
    return;
@@ -2179,95 +2169,9 @@ async function transcribeYouTubeLink(){
   transcriptStatus(error&&error.name==='AbortError'?'انتهت مهلة فحص الترجمة. أعد المحاولة أو استورد ملف ترجمة.':'تعذّر الاتصال ببوابة أنوار. تحقق من الاتصال ثم أعد المحاولة.',true);
  }finally{
   clearTimeout(timeout);
-  if(button){button.disabled=false;button.textContent=oldLabel||'🎬 توليد النص من رابط YouTube';button.removeAttribute('aria-busy')}
+  if(button){button.disabled=false;button.textContent=oldLabel||'🎬 استخراج الترجمة المتاحة من YouTube';button.removeAttribute('aria-busy')}
  }
 }
-function transcriptLanguageLabel(value){
- const raw=String(value||'').trim();
- const tag=raw.replace(/^\[|\]$/g,'').toUpperCase();
- const labels={
-  MA:'العربية المغربية',MSA:'العربية الفصحى',FR:'الفرنسية',EN:'الإنجليزية',
-  DZ:'العربية الجزائرية',TN:'العربية التونسية',EG:'العربية المصرية',
-  MR:'العربية الموريتانية',ES:'الإسبانية',IT:'الإيطالية'
- };
- return labels[tag]||raw;
-}
-async function transcribeAudioFile(){
- const file=$('transcriptAudioFile')?.files?.[0];
- const button=$('transcriptGenerate');
- if(!file){transcriptStatus('اختر ملفًا صوتيًا أولًا.',true);return}
- if(file.size<=0){transcriptStatus('الملف الصوتي فارغ.',true);return}
- if(file.size>8*1024*1024){transcriptStatus('حجم الملف أكبر من 8 ميغابايت. اختر ملفًا أصغر.',true);return}
- const endpoint=transcriptWorkerEndpoint();
- if(!endpoint){
-  transcriptStatus('خدمة التفريغ لم تُفعّل بعد: يلزم نشر عامل Cloudflare ثم ضبط عنوانه في api-gateway-config.js.',true);
-  return;
- }
- const oldLabel=button?.textContent;
- if(button){button.disabled=true;button.textContent='جارٍ الاستماع إلى الصوت…';button.setAttribute('aria-busy','true')}
- transcriptStatus('يجري التعرف على الكلام والدارجة واللغات المختلطة تلقائيًا. لا يترجم الكلام؛ يحافظ على الفرنسية بلغتها الأصلية عند استخدام Jais-ASR…',false);
- const controller=new AbortController();
- const timeout=setTimeout(()=>controller.abort(),180000);
- try{
-  const form=new FormData();
-  form.append('audio',file,file.name||'recording.webm');
-  const response=await fetch(endpoint,{
-   method:'POST',
-   body:form,
-   signal:controller.signal,
-   credentials:'omit',
-   referrerPolicy:'no-referrer'
-  });
-  let result={};
-  try{result=await response.json()}catch(error){}
-  if(!response.ok){
-   const message=response.status===429?'بلغت حد التفريغ اليومي المسموح؛ حاول لاحقًا.':
-    response.status===413?'الملف أكبر من الحد المسموح.':
-    response.status===415?'صيغة الملف غير مدعومة.':
-    response.status===422?'لم يُكتشف كلام واضح في التسجيل. جرّب ملفًا أوضح.':
-    response.status===503?'تعذّر تشغيل خدمة التفريغ الآن؛ راجع إعدادات الخدمة أو أعد المحاولة لاحقًا.':
-    String(result.error||'تعذّر تفريغ الملف الصوتي.');
-   transcriptStatus(message,true);
-   return;
-  }
-  const text=String(result.text||'').trim();
-  if(!text){transcriptStatus('لم يُرجع محرك التفريغ نصًا. جرّب تسجيلًا أوضح.',true);return}
-  transcriptSourceName=file.name||'تفريغ صوتي';
-  transcriptBaseText=text;
-  transcriptFormatIndex=0;
-  const formatted=formatTranscriptText(text,0);
-  transcriptLastRendered=formatted;
-  $('transcriptTitle').value=(file.name||'تفريغ صوتي').replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').slice(0,100)||'تفريغ صوتي';
-  $('transcriptText').value=formatted;
-  $('transcriptText').dir='auto';
-  refreshTranscriptTablePreview();
-  $('transcriptText').spellcheck=false;
-  $('transcriptSpellcheck').setAttribute('aria-pressed','false');
-  $('transcriptFormatLabel').textContent=TRANSCRIPT_FORMATS[0];
-  $('transcriptEditorPanel').hidden=false;
-  const words=Number(result.wordCount)||text.split(/\s+/).filter(Boolean).length;
-  const detected=Array.isArray(result.languages)&&result.languages.length
-   ?result.languages.map(transcriptLanguageLabel).filter(Boolean)
-   :(result.language?[transcriptLanguageLabel(result.language)]:[]);
-  const uniqueLanguages=[...new Set(detected)];
-  const language=uniqueLanguages.length?' · اللغات/اللهجات المكتشفة: '+uniqueLanguages.join('، '):'';
-  const provider=String(result.provider||'Whisper');
-  const engineNote=provider==='Jais-ASR'
-   ?' · حُفظت الكلمات الفرنسية بلغتها الأصلية'
-   :' · استُخدم محرك التفريغ الاحتياطي';
-  const truncation=result.truncated?' · تنبيه: قد يكون آخر جزء من النص غير مكتمل':'';
-  transcriptStatus('اكتمل التفريغ بواسطة '+provider+' · '+words+' كلمة'+language+engineNote+truncation,false);
-  transcriptEditorStatus(result.truncated
-   ?'التسجيل أطول من حد التفريغ في جزء منه؛ راجع نهاية النص أو قسّم الملف ثم أعد المحاولة.'
-   :'راجع الكلمات والأسماء، خصوصًا الدارجة والفرنسية والمصطلحات الدينية أو الشعرية، قبل اعتماد النص.');
- }catch(error){
-  transcriptStatus(error&&error.name==='AbortError'?'انتهت مهلة الاتصال قبل اكتمال التفريغ. جرّب ملفًا أقصر.':'تعذّر الاتصال بخدمة التفريغ. تحقق من الإنترنت ثم أعد المحاولة.',true);
- }finally{
-  clearTimeout(timeout);
-  if(button){button.disabled=false;button.textContent=oldLabel||'🎙️ توليد النص من الصوت';button.removeAttribute('aria-busy')}
- }
-}
-
 function openTranscriptFocus(){
  const tool=$('youtubeTranscriptTool');
  if(!tool)return;
@@ -2608,7 +2512,6 @@ document.addEventListener('click',e=>{
  else if(id==='newBook')openBookDialog();
  else if(id==='createBook')createBook();
  else if(id==='addBookFile')$('bookFilePicker').click();
-  else if(id==='transcriptGenerate')transcribeAudioFile();
   else if(id==='transcriptGenerateYoutube')transcribeYouTubeLink();
   else if(id==='transcriptChooseCaption')transcriptChooseCaption();
   else if(id==='transcriptSpellcheck')toggleTranscriptSpellcheck();
