@@ -26,7 +26,7 @@ ok(tasbihController.includes('window.AnwarTasbihController=Object.freeze({') && 
 ok(appCore.includes('function toggleTasbihFromToolbar(button)') && appCore.includes("else if(id==='adhkarTasbihToggle')toggleTasbihFromToolbar(t);"), 'tasbih launcher follows the same delegated click path as adjacent notebook tabs');
 ok(tasbihController.includes("preferences.set('tasbih'") && tasbihController.includes("preferences.subscribe(saved=>"), 'tasbih settings remain integrated with encrypted private preferences');
 ok(tasbihController.includes("removeButton.addEventListener('click'") && tasbihController.includes("restoreButton.addEventListener('click'") && tasbihController.includes("customAdd.addEventListener('click'"), 'custom dhikr add, remove and official restore actions are wired');
-ok(tasbihController.includes("voiceButton.addEventListener('click'") && tasbihController.includes('countPhraseMatches(said,select.value)'), 'Arabic voice recognition counts only exact matches of the selected dhikr');
+ok(tasbihController.includes("voiceButton.addEventListener('click'") && tasbihController.includes('countPhraseMatches(said,voiceTargetPhrase)') && tasbihController.includes('if(!voiceActive||!event||!event.results)return;'), 'Arabic speech recognition counts the captured dhikr and ignores results after stopping');
 const ownerDialogStart=html.indexOf('<dialog id="ownerDialog">');
 const outerTabsStart=html.indexOf('<div class="owner-tabs">',ownerDialogStart);
 const ownerPanelStart=html.indexOf('<section id="ownerPanel"',outerTabsStart);
