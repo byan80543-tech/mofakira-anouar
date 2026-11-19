@@ -301,6 +301,14 @@ try {
     method: "POST", headers: { Origin: "https://byan80543-tech.github.io", "CF-Connecting-IP": "192.0.2.56" }, body: noConsentForm
   }), aiEnv, context);
   assert.equal(response.status, 400, "server rejects transcription without explicit consent");
+  const extraFieldForm = new FormData();
+  extraFieldForm.append("audio", new Blob([new Uint8Array([1])], { type: "audio/mpeg" }), "a.mp3");
+  extraFieldForm.append("consent", "true");
+  extraFieldForm.append("unexpected", "not allowed");
+  response = await worker.fetch(new Request("https://gateway.example.workers.dev/v1/transcribe", {
+    method: "POST", headers: { Origin: "https://byan80543-tech.github.io", "CF-Connecting-IP": "192.0.2.57" }, body: extraFieldForm
+  }), aiEnv, context);
+  assert.equal(response.status, 400, "server rejects unexpected multipart fields");
   const blockedOriginForm = new FormData();
   blockedOriginForm.append("audio", new Blob([new Uint8Array([1])], { type: "audio/mpeg" }), "a.mp3");
   response = await worker.fetch(new Request("https://gateway.example.workers.dev/v1/transcribe", {
