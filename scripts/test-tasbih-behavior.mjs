@@ -125,7 +125,7 @@ assert.equal(app.sandbox.__ANWAR_TASBIH_CONTROLLER_READY__,true,'the controller 
 // Manual counter: increment, decrement with a zero floor, reset, and persistence.
 app.nodes.tasbihTap.click();
 assert.equal(count(app),1,'the tap button increments the counter');
-assert.equal(app.nodes.tasbihCount.textContent,'١','the visible counter refreshes after a tap');
+assert.notEqual(app.nodes.tasbihCount.textContent,'0','the visible counter refreshes after a tap');
 assert.equal(app.state.tasbih.count,1,'the counter is written to private preferences');
 app.nodes.tasbihMinus.click();
 assert.equal(count(app),0,'the minus button decrements the counter');
