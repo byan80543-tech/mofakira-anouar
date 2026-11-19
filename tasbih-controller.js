@@ -613,7 +613,7 @@
        setVoiceState('error','اختر ذكراً قبل بدء التسجيل.');
        return;
       }
-      setVoiceTranscript('بانتظار العبارة…');
+      setVoiceTranscript('');
       setVoiceState('starting','');
       voiceActive=true;
       recognition.start();
