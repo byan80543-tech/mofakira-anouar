@@ -63,6 +63,10 @@ jobs:
         run: node scripts/test-tasbih-behavior.mjs
       - name: Test Arabic poetry voice dictation across Android result batches
         run: node scripts/test-poetry-dictation.mjs
+      - name: Test shared HTML inspector
+        run: python3 scripts/test_html_inspector.py
+      - name: Test HTML and URL safety regression cases
+        run: node scripts/test-html-safety.mjs
       - name: Validate manifest, icons, HTML IDs and JavaScript syntax
         run: node scripts/validate.mjs
       - name: Verify Content Security Policy and inline script hashes
