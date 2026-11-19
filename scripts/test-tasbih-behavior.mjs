@@ -160,9 +160,9 @@ assert.ok(officialApp.state.tasbih.removedOfficialDhikrs.includes(longOfficial.d
 const restoredRemoved=buildApp({initialRemoved:officialApp.state.tasbih.removedOfficialDhikrs});
 assert.ok(restoredRemoved.state.tasbih.removedOfficialDhikrs.includes(longOfficial.dataset.anwarOfficialId),'reload receives the stored official ID');
 assert.ok(restoredRemoved.nodes.tasbihDhikr.options.some(option=>option.dataset.anwarOfficialId===longOfficial.dataset.anwarOfficialId),'the test fixture recreates the same official ID');
-assert.ok(!restoredRemoved.nodes.tasbihDhikr.options.some(option=>option.dataset.anwarOfficialId===longOfficial.dataset.anwarOfficialId),'a removed official dhikr stays hidden after reload by its unique ID');
+assert.ok(!restoredRemoved.nodes.tasbihDhikrCards.children.flatMap(group=>group.children).some(card=>card.dataset.anwarOfficialId===longOfficial.dataset.anwarOfficialId),'a removed official dhikr stays out of the visible cards after reload');
 restoredRemoved.nodes.tasbihRestoreOfficial.click();
-assert.ok(restoredRemoved.nodes.tasbihDhikr.options.some(option=>option.dataset.anwarOfficialId===longOfficial.dataset.anwarOfficialId),'the official dhikr can be restored after reload');
+assert.ok(restoredRemoved.nodes.tasbihDhikrCards.children.flatMap(group=>group.children).some(card=>card.dataset.anwarOfficialId===longOfficial.dataset.anwarOfficialId),'the official dhikr returns to the visible cards after restoration');
 
 const app=buildApp();
 assert.equal(app.sandbox.__ANWAR_TASBIH_CONTROLLER_READY__,true,'the controller initializes when the required UI is present');
