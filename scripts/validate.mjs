@@ -23,7 +23,7 @@ const ok=(condition,message)=>{if(!condition)failures.push(message);else console
 try{new vm.Script(tasbihController,{filename:'tasbih-controller.js'});ok(true,'standalone tasbih controller JavaScript syntax is valid')}catch(error){failures.push('tasbih-controller.js: '+error.message)}
 try{new vm.Script(poetryDictation,{filename:'poetry-dictation.js'});ok(true,'standalone poetry dictation controller JavaScript syntax is valid')}catch(error){failures.push('poetry-dictation.js: '+error.message)}
 ok(html.includes('id="sp"')&&html.includes('id="speakRead"'),'poetry dictation and spoken reading have separate toolbar controls');
-ok(html.indexOf('poetry-dictation.js')<html.indexOf('app-core.js?v='),'poetry dictation controller loads before the notebook application');
+ok(html.indexOf('<script src="./poetry-dictation.js')<html.indexOf('<script src="./app-core.js'),'poetry dictation controller loads before the notebook application');
 ok(appCore.includes("else if(id==='sp')togglePoetryDictation()")&&appCore.includes("else if(id==='speakRead')speakText()"),'dictation and speech playback are routed to their own actions');
 ok(appCore.includes('function appendPoetryDictationText')&&appCore.includes('touch();'),'dictated final speech is inserted into the current editable note and triggers persistence');
 ok(serviceWorker.includes("'./poetry-dictation.js'")&&serviceWorker.includes('v95'),'poetry dictation is part of the versioned offline app shell');
