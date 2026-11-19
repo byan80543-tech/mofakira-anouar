@@ -60,6 +60,8 @@ function buildSandbox(bridge){
  const toggleButton={attributes:{},setAttribute(name,value){this.attributes[name]=String(value)}};
  const sandbox={
   panel,ownerDialog,nodes,toggleButton,
+  ownerPanel:nodes.ownerPanel,adhkarPanel:nodes.adhkarPanel,sharePanel:nodes.sharePanel,
+  ownerTab:nodes.ownerTab,adhkarTab:nodes.adhkarTab,shareTab:nodes.shareTab,
   closeButton:{focus(){calls.push(['focus'])}},
   closePanel(){calls.push(['close'])},
   window:bridge||{},
