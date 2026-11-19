@@ -2451,7 +2451,7 @@ function updatePoetryDictationButton(state){
   button.textContent='⏹️ إيقاف';
   button.title='إيقاف الإلقاء الصوتي وإبقاء النص في المفكرة';
   button.setAttribute('aria-pressed','true');
- }else if(state==='requesting'||state==='restarting'||state==='language-fallback'){
+ }else if(state==='requesting'||state==='restarting'){
   button.textContent='⏳ جارٍ الاستماع';
   button.title='جارٍ تشغيل التعرف الصوتي؛ اضغط لإيقافه';
   button.setAttribute('aria-pressed','true');
@@ -2486,8 +2486,7 @@ function togglePoetryDictation(){
   onStatus:(state,detail)=>{
    updatePoetryDictationButton(state);
    if(state==='error')toast(detail||'تعذّر تشغيل التعرف الصوتي.',5000);
-   else if(state==='language-fallback')toast(detail||'نجرب إعدادًا عربيًا بديلًا.');
-  }
+}
  });
  const started=poetryDictationController.start();
  if(!started){
@@ -2495,7 +2494,7 @@ function togglePoetryDictation(){
   updatePoetryDictationButton('stopped');
   return;
  }
- toast('ألقِ القصيدة الآن؛ سيظهر الكلام المكتمل داخل صفحة المفكرة. قد يعالج المتصفح الصوت عبر خدمة التعرف لديه.',4500);
+ toast('ألقِ نصك بالعربية؛ سيظهر الكلام المكتمل داخل صفحة المفكرة. قد يعالج المتصفح الصوت عبر خدمة التعرف لديه.',4500);
 }
 window.addEventListener('pagehide',()=>stopPoetryDictation(false));
 function speakText(){
