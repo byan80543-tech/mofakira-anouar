@@ -61,7 +61,8 @@
     group.dataset.anwarOfficialDhikrs='true';
     items.forEach(item=>{
      const option=document.createElement('option');
-     option.value=item.text;
+     option.value='official:'+item.id;
+     option.dataset.dhikrText=item.text;
      option.textContent=item.title;
      option.dataset.anwarOfficialDhikr='true';
      option.dataset.anwarOfficialId=item.id;
@@ -73,6 +74,7 @@
     select.appendChild(group);
    });
   }
+  function optionText(option){return option&&option.dataset&&option.dataset.dhikrText?option.dataset.dhikrText:(option?option.value:'')}
   function isRemovedOfficial(option){
    if(!option)return false;
    const officialId=option.dataset&&option.dataset.anwarOfficialId;
@@ -146,7 +148,7 @@
      if(option.dataset.anwarOfficialDhikr==='true'){
       const fullText=document.createElement('span');
       fullText.className='tasbih-dhikr-card-text';
-      fullText.textContent=option.value;
+      fullText.textContent=optionText(option);
       button.appendChild(fullText);
       const meta=document.createElement('span');
       meta.className='tasbih-dhikr-card-meta';
@@ -175,7 +177,7 @@
    themeButtons.forEach(item=>item.button.setAttribute('aria-pressed',item.name===theme?'true':'false'));
    countNode.textContent=count.toLocaleString('ar');
    const selectedOption=Array.from(select.options).find(option=>option.value===select.value);
-   phraseNode.textContent=selectedOption?selectedOption.value:'لم يتم اختيار ذكر بعد';
+   phraseNode.textContent=selectedOption?optionText(selectedOption):'لم يتم اختيار ذكر بعد';
    renderCards();
    const selected=Array.from(select.options).find(option=>option.value===select.value);
    removeButton.disabled=!selected;
@@ -202,7 +204,7 @@
    if(!option)return;
    if(voiceActive)stopVoice('توقف التسجيل لأن الذكر المختار تغيّر.');
    select.value=option.value;
-   voiceTargetPhrase=option.value;
+   voiceTargetPhrase=optionText(option);
    processedFinalIndexes=new Set();
    if(resetCount)count=0;
    if(voiceTranscript)voiceTranscript.textContent='بانتظار نطق الذكر المختار.';
@@ -262,7 +264,7 @@
     customStatus.textContent='أُعيد الذكر الرسمي إلى قائمتك واختير للسبحة.';
     return;
    }
-   const existing=Array.from(select.options).find(option=>option.value===value);
+   const existing=Array.from(select.options).find(option=>optionText(option)===value);
    if(existing){customInput.value='';chooseDhikr(value,true);customStatus.textContent='هذا الذكر موجود في القائمة، وقد تم اختياره.';return}
    if(customDhikrs.length>=30){customStatus.textContent='وصلت إلى الحد الأقصى وهو 30 ذكراً مضافاً.';return}
    customDhikrs.push(value);
@@ -363,7 +365,7 @@
   customInput.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();addCustomDhikr()}});
   select.addEventListener('change',()=>{
    if(voiceActive)stopVoice('توقف التسجيل لأن الذكر المختار تغيّر.');
-   voiceTargetPhrase=select.value||'';
+   voiceTargetPhrase=optionText(Array.from(select.options).find(option=>option.value===select.value))||'';
    processedFinalIndexes=new Set();
    count=0;
    saveAndUpdate();
@@ -473,7 +475,7 @@
      if(voiceActive){stopVoice('تم إيقاف التسجيل.');return}
      try{
       processedFinalIndexes=new Set();
-      voiceTargetPhrase=String(select.value||'').trim();
+      voiceTargetPhrase=String(optionText(Array.from(select.options).find(option=>option.value===select.value))||'').trim();
       if(!voiceTargetPhrase){
        setVoiceState('error','اختر ذكراً قبل بدء التسجيل.');
        return;
