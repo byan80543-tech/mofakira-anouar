@@ -124,6 +124,8 @@ ok(!html.includes("localStorage.setItem('anwar_reader_advance'") && !html.includ
 ok(html.includes("AnwarPrivatePreferences.set('readerAdvance'") && html.includes("AnwarPrivatePreferences.set('radio'") && html.includes("privatePreferences.set('tasbih'"),'radio, reader and tasbih changes are routed into encrypted preference state');
 ok(/if\(savedVault!==null\|\|savedBackup!==null\)/.test(html),'startup can unlock from an encrypted backup when the primary vault is missing');
 ok(/function save\(\)\s*\{[\s\S]*?persistVaultSnapshot\(snapshot\)/.test(html) && /async function persistVaultSnapshot\(plaintext\)\s*\{[\s\S]*?AnwarVaultCrypto\.encryptWithKey/.test(html),'notebook saves queue snapshots through encrypted vault persistence');
+ok(html.includes('snapshot.notes.length>2500') && html.includes('(typeof note.html===\'string\'?note.html:note.text).length>450000'),'encrypted saves enforce the same note-count and note-size limits as startup restore');
+ok(html.includes("if(S.notes.length>=2500){toast("),'the UI blocks creation beyond the restore-supported 2500-note limit');
 ok(vaultCrypto.includes("CIPHER='AES-256-GCM'") && vaultCrypto.includes("ITERATIONS=600000"),'vault helper pins AES-GCM and the approved PBKDF2 work factor');
 ok(html.includes('vault-device-unlock.js?v=20261118-1') && html.includes('id="vaultDeviceUnlock"') && html.includes('id="vaultDeviceSetupDialog"'),'platform-authenticator quick unlock is wired into the encrypted vault gate');
 ok(vaultDeviceUnlock.includes("HKDF") && vaultDeviceUnlock.includes("AES-GCM") && vaultDeviceUnlock.includes("extensions:{prf:{eval:{first:salt}}}"),'device helper derives an authenticated wrapping key from the WebAuthn PRF extension');
