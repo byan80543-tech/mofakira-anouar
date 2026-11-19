@@ -69,7 +69,7 @@ function buildApp(options={}){
  assert.ok(selectMatch,'the tasbih select exists in the real HTML');
  const nodes={};
  const ids=[
-  'tasbihPanel','adhkarTasbihToggle','tasbihClose','ownerDialog','ownerPanel','adhkarPanel','sharePanel',
+  'tasbihPanel','adhkarTasbihToggle','tasbihClose','tasbihDhikrToggle','tasbihDhikrListPanel','ownerDialog','ownerPanel','adhkarPanel','sharePanel',
   'ownerTab','adhkarTab','shareTab','tasbihCount','tasbihPhrase','tasbihDhikr','tasbihTap','tasbihMinus',
   'tasbihReset','tasbihDhikrCards','tasbihCustomDhikrInput','tasbihAddCustomDhikr','tasbihCustomDhikrStatus',
   'tasbihRemoveDhikr','tasbihRestoreOfficial','tasbihVoicePanel','tasbihVoice','tasbihVoiceState',
