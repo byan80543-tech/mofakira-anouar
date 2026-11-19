@@ -588,9 +588,10 @@ async function transcribeWithJais(file, apiKey) {
     try { payload = raw ? JSON.parse(raw) : {}; } catch {}
     if (!response.ok) return { ok: false, status: response.status };
     const text = typeof payload.text === "string" ? payload.text.trim() : "";
-    if (payload.no_speech === true || !text) {
-      return { ok: false, status: 422 };
+    if (payload.no_speech === true) {
+      return { ok: false, noSpeech: true };
     }
+    if (!text) return { ok: false, status: 502 };
     if (text.length > 250_000) return { ok: false, status: 502 };
 
     const segments = Array.isArray(payload.segments)
@@ -707,16 +708,14 @@ async function transcribeAudio(request, env, origin) {
     if (attempt.ok) {
       return withCors(json(attempt.result, 200), origin);
     }
-    if (attempt.status === 422) {
+    if (attempt.noSpeech) {
       return errorResponse("لم يُكتشف كلام واضح في التسجيل. جرّب ملفًا أوضح.", 422, origin);
     }
     if (attempt.status === 401 || attempt.status === 403) {
       return errorResponse("تعذّر التحقق من مفتاح خدمة Jais-ASR. راجع سر IFM_API_KEY في إعدادات النشر.", 503, origin);
     }
-    if (attempt.status !== 429 && attempt.status < 500) {
-      return errorResponse("رفضت خدمة Jais-ASR الملف أو إعدادات الطلب. تحقق من الصيغة ثم أعد المحاولة.", 502, origin);
-    }
-    // 429 and upstream/network failures fall through to the configured Whisper backup.
+    // Unsupported IFM formats (for example M4A/AAC/AMR) and transient upstream
+    // errors fall through to Whisper, preserving the app's earlier accepted formats.
   }
 
   return transcribeWithWhisper(file, env, origin);
