@@ -292,7 +292,7 @@ recognition.onspeechend();
 assert.equal(app.pendingTimers[0].delay,650,'a real speech pause starts the short fade delay');
 recognition.onspeechstart();
 assert.equal(app.pendingTimers.length,0,'resuming speech cancels a pending fade so rapid repetition stays visible');
-assert.equal(app.nodes.tasbihVoiceTranscript.textContent,'سبحان الله','the phrase remains visible when speech resumes before the pause delay ends');
+assert.equal(app.nodes.tasbihVoiceTranscript.textContent,'سبحان الله؛','the last recognized phrase and its punctuation remain visible when speech resumes before the pause delay ends');
 recognition.onspeechend();
 app.flushTimers();
 assert.equal(app.nodes.tasbihVoiceTranscript.textContent,'','the recognized phrase clears after its fade-out interval');
