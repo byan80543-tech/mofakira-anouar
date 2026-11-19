@@ -44,11 +44,34 @@
   let count=Number.isSafeInteger(initial.count)?Math.max(0,Math.min(MAX_COUNT,initial.count)):0;
   const allowedThemes=new Set(themeIds);
   let theme=allowedThemes.has(initial.theme)?initial.theme:'emerald';
-  let customDhikrs=cleanDhikrList(initial.customDhikrs,30);
-  let removedOfficialDhikrs=cleanDhikrList(initial.removedOfficialDhikrs,60);
+  let customDhikrs=cleanDhikrList(initial.customDhikrs,30,200);
+  let removedOfficialDhikrs=cleanDhikrList(initial.removedOfficialDhikrs,60,4000);
   let recognition=null,voiceActive=false,writingPreferences=false,voiceTargetPhrase='';
   let processedFinalIndexes=new Set();
 
+  const officialAdhkar=Array.isArray(window.ANWAR_OFFICIAL_ADHKAR)?window.ANWAR_OFFICIAL_ADHKAR:[];
+  function renderOfficialOptions(){
+   const existing=Array.from(select.querySelectorAll('optgroup')).filter(group=>group.dataset.anwarOfficialDhikrs==='true');
+   existing.forEach(group=>group.remove());
+   ['morning','evening'].forEach(period=>{
+    const items=officialAdhkar.filter(item=>item&&item.period===period&&typeof item.text==='string'&&item.text.trim());
+    if(!items.length)return;
+    const group=document.createElement('optgroup');
+    group.label=period==='morning'?'أذكار الصباح الرسمية':'أذكار المساء الرسمية';
+    group.dataset.anwarOfficialDhikrs='true';
+    items.forEach(item=>{
+     const option=document.createElement('option');
+     option.value=item.text;
+     option.textContent=item.title;
+     option.dataset.anwarOfficialDhikr='true';
+     option.dataset.repeat=String(item.count||1);
+     option.dataset.source=item.source||'حصن المسلم';
+     option.dataset.period=period;
+     group.appendChild(option);
+    });
+    select.appendChild(group);
+   });
+  }
   function isCustomOption(option){
    return !!(option&&option.parentElement&&option.parentElement.dataset.anwarCustomDhikrs==='true');
   }
@@ -114,6 +137,21 @@
      button.appendChild(name);
      const secondFlower=flower.cloneNode(true);
      button.appendChild(secondFlower);
+     if(option.dataset.anwarOfficialDhikr==='true'){
+      const fullText=document.createElement('span');
+      fullText.className='tasbih-dhikr-card-text';
+      fullText.textContent=option.value;
+      button.appendChild(fullText);
+      const meta=document.createElement('span');
+      meta.className='tasbih-dhikr-card-meta';
+      const repeat=document.createElement('span');
+      repeat.textContent='التكرار: '+(option.dataset.repeat||'1')+' '+(Number(option.dataset.repeat)===1?'مرة':'مرات');
+      const source=document.createElement('span');
+      source.textContent='المصدر: '+(option.dataset.source||'حصن المسلم');
+      meta.appendChild(repeat);
+      meta.appendChild(source);
+      button.appendChild(meta);
+     }
      button.addEventListener('click',()=>chooseDhikr(option.value,true));
      section.appendChild(button);
     });
@@ -130,7 +168,8 @@
    panel.dataset.tasbihTheme=theme;
    themeButtons.forEach(item=>item.button.setAttribute('aria-pressed',item.name===theme?'true':'false'));
    countNode.textContent=count.toLocaleString('ar');
-   phraseNode.textContent=select.value||'لم يتم اختيار ذكر بعد';
+   const selectedOption=Array.from(select.options).find(option=>option.value===select.value);
+   phraseNode.textContent=selectedOption?selectedOption.value:'لم يتم اختيار ذكر بعد';
    renderCards();
    const selected=Array.from(select.options).find(option=>option.value===select.value);
    removeButton.disabled=!selected;
@@ -284,6 +323,7 @@
    if(restoreFocus!==false&&ownerDialog.open)toggleButton.focus();
   }
 
+  renderOfficialOptions();
   renderCustomOptions();
   const savedOption=Array.from(select.options).find(option=>option.value===initial.dhikr&&(isCustomOption(option)||!removedOfficialDhikrs.includes(option.value)));
   if(savedOption)select.value=savedOption.value;
@@ -455,8 +495,8 @@
     if(writingPreferences)return;
     const value=saved&&saved.tasbih?saved.tasbih:{};
     count=Number.isSafeInteger(value.count)?Math.max(0,value.count):0;
-    customDhikrs=Array.isArray(value.customDhikrs)?value.customDhikrs.slice():[];
-    removedOfficialDhikrs=Array.isArray(value.removedOfficialDhikrs)?value.removedOfficialDhikrs.slice():[];
+    customDhikrs=cleanDhikrList(value.customDhikrs,30,200);
+    removedOfficialDhikrs=cleanDhikrList(value.removedOfficialDhikrs,60,4000);
     theme=allowedThemes.has(value.theme)?value.theme:'emerald';
     renderCustomOptions();
     const option=Array.from(select.options).find(item=>item.value===value.dhikr&&(isCustomOption(item)||!removedOfficialDhikrs.includes(item.value)));
