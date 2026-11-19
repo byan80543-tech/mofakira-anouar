@@ -2200,7 +2200,7 @@ dialog[open]>.float-head{display:none!important}
      <button type="button" id="transcriptGenerate" class="transcript-import-button">🎙️ توليد النص من الملف الصوتي</button>
      <button type="button" id="transcriptChooseCaption" class="transcript-import-button">استيراد ملف ترجمة SRT / VTT / TXT</button>
      <input type="file" id="transcriptCaptionFile" hidden accept=".srt,.vtt,.txt,text/plain,text/vtt">
-     <small class="transcript-upload-note">يدعم الصوت حتى 8 ميغابايت. يتعرف Jais-ASR تلقائيًا على الدارجة والفصحى والفرنسية ويحافظ على الكلمات الفرنسية بلغتها الأصلية. يُرسل الملف إلى خدمة IFM للمعالجة؛ لا تحفظ المفكرة نسخة محلية منه.</small>
+     <small class="transcript-upload-note">يدعم الصوت حتى 8 ميغابايت. يتعرف Jais-ASR تلقائيًا على الدارجة والفصحى والفرنسية ويحافظ على الكلمات الفرنسية بلغتها الأصلية. يُرسل الملف مؤقتًا إلى IFM أولًا، وWhisper من Cloudflare احتياطيًا عند الحاجة؛ لا تحفظ المفكرة نسخة محلية منه.</small>
     </div>
    </details>
    <p id="transcriptSourceStatus" class="transcript-status" role="status" aria-live="polite">ألصق رابط الفيديو واضغط «توليد النص من رابط YouTube». إذا لم تكن هناك ترجمة متاحة، ستظهر لك طريقة بديلة واضحة.</p>
