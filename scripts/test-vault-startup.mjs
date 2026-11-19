@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
-const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
+const html=fs.readFileSync(new URL('../app-core.js',import.meta.url),'utf8');
 const extract=(start,end)=>{
   const a=html.indexOf(start),b=html.indexOf(end,a);
   assert.ok(a>=0&&b>a,'source block exists: '+start);
