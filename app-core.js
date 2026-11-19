@@ -2121,7 +2121,7 @@ function transcriptYoutubeEndpoint(videoId){
   return base.origin+'/v1/youtube-transcript?videoId='+encodeURIComponent(videoId)+'&lang=ar';
  }catch(error){return ''}
 }
-async function transcribeYouTubeLink(){
+async function extractYouTubeCaptions(){
  const url=String($('transcriptYoutubeUrl')?.value||'').trim();
  const videoId=parseYouTubeVideoId(url);
  const button=$('transcriptGenerateYoutube');
@@ -2512,7 +2512,7 @@ document.addEventListener('click',e=>{
  else if(id==='newBook')openBookDialog();
  else if(id==='createBook')createBook();
  else if(id==='addBookFile')$('bookFilePicker').click();
-  else if(id==='transcriptGenerateYoutube')transcribeYouTubeLink();
+  else if(id==='transcriptGenerateYoutube')extractYouTubeCaptions();
   else if(id==='transcriptChooseCaption')transcriptChooseCaption();
   else if(id==='transcriptSpellcheck')toggleTranscriptSpellcheck();
   else if(id==='transcriptFormat')toggleTranscriptFormatMenu();
