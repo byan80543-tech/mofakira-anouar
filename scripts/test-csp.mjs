@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 
 const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const securityHeaders=fs.readFileSync(new URL('../SECURITY-HEADERS.md',import.meta.url),'utf8');
+const deployedHeaders=fs.readFileSync(new URL('../_headers',import.meta.url),'utf8');
 const cspTag=html.match(/<meta\s+http-equiv="Content-Security-Policy"\s+content="([^"]+)">/i);
 assert.ok(cspTag,'an enforced document CSP meta policy is present');
 const directives=new Map(cspTag[1].split(';').map(part=>{
@@ -31,6 +32,7 @@ for(let i=0;i<inlineScripts.length;i++){
  const source="'sha256-"+digest+"'";
  assert.ok(hashSources.includes(source),'inline script '+(i+1)+' matches its CSP hash');
  assert.ok(securityHeaders.includes(source),'security header deployment guide contains the current inline script hash '+(i+1));
+ assert.ok(deployedHeaders.includes(source),'deployed Cloudflare _headers contains the current inline script hash '+(i+1));
 }
 const styleSources=requireDirective('style-src',"'self'","'unsafe-inline'",'https://fonts.googleapis.com');
 assert.ok(styleSources.includes("'unsafe-inline'"),'inline styles remain supported intentionally');
@@ -51,4 +53,7 @@ const firstResource=Math.min(...['<link ','<script','<style'].map(token=>{
 assert.ok(cspIndex>=0&&cspIndex<firstResource,'CSP appears before the first resource-bearing element');
 assert.ok(/<meta\s+name="referrer"\s+content="strict-origin-when-cross-origin"\s*>/i.test(html),'a conservative referrer policy is declared');
 assert.ok(!/frame-ancestors|report-uri|report-to/i.test(cspTag[1]),'header-only CSP directives are not presented as active meta controls');
-console.log('CSP checks passed: '+inlineScripts.length+' inline scripts are hash-pinned; script-src has no unsafe-inline or unsafe-eval.');
+const deployedCsp=deployedHeaders.match(/Content-Security-Policy:\s*([^\n]+)/);
+assert.ok(deployedCsp,'Cloudflare _headers includes a CSP response header');
+for(const item of hashSources)assert.ok(deployedCsp[1].includes(item),'Cloudflare response CSP includes '+item);
+console.log('CSP checks passed: '+inlineScripts.length+' inline scripts are hash-pinned in HTML, Cloudflare headers and documentation; script-src has no unsafe-inline or unsafe-eval.');
