@@ -84,9 +84,16 @@
       try {
         const bridge = window.AnouarUpdateBridge;
         if (!bridge || typeof bridge.prepareForReload !== 'function') {
-          throw new Error('تعذّر التحقق من حفظ المفكرة. لم نبدأ التحديث؛ أعد تحميل الصفحة ثم حاول مجدداً.');
+          const approved = typeof window.confirm === 'function' && window.confirm(
+            'تعذّر التحقق من الحفظ لأن جزءاً من المفكرة لم يبدأ بصورة صحيحة.\n\nلن نمسح بياناتك المحفوظة، لكن قد تفقد أي كتابة لم تُحفظ بعد. هل تريد متابعة التحديث الاضطراري؟'
+          );
+          if (!approved) {
+            throw new Error('أُلغي التحديث الاضطراري. أعد تحميل الصفحة أو حاول مرة أخرى بعد التأكد من حفظ أعمالك.');
+          }
+          description.textContent = 'وافقت على التحديث الاضطراري. يجري تفعيل الإصدار الجديد…';
+        } else {
+          releasePage = await bridge.prepareForReload();
         }
-        releasePage = await bridge.prepareForReload();
 
         const targetWorker = getWaitingWorker() || worker;
         if (!targetWorker || !['installed', 'activating', 'activated'].includes(targetWorker.state)) {
