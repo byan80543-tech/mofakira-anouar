@@ -1,9 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
+import { execFileSync } from 'node:child_process';
 
 const root=process.cwd();
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+const htmlAudit=JSON.parse(execFileSync('python3',[path.join(root,'scripts/html_inspector.py'),path.join(root,'index.html')],{encoding:'utf8'}));
 const appCore=fs.readFileSync(path.join(root,'app-core.js'),'utf8');
 const tasbihController=fs.readFileSync(path.join(root,'tasbih-controller.js'),'utf8');
 const poetryDictation=fs.readFileSync(path.join(root,'poetry-dictation.js'),'utf8');
@@ -181,16 +183,14 @@ for(const icon of manifest.icons??[]){
   ok(!!iconPath&&fs.existsSync(path.join(root,iconPath)),`manifest icon exists: ${iconPath}`);
 }
 
-const ids=[...html.matchAll(/(?:^|\s)id\s*=\s*["']([^"']+)["']/gim)].map(m=>m[1]);
-const duplicateIds=ids.filter((id,i)=>ids.indexOf(id)!==i);
+const duplicateIds=htmlAudit.ids.filter((id,i)=>htmlAudit.ids.indexOf(id)!==i);
 ok(duplicateIds.length===0,'HTML IDs are unique');
 
-let scriptCount=0;
-for(const match of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)){
-  if(/\bsrc\s*=/.test(match[1]))continue;
-  scriptCount++;
-  try{new vm.Script(match[2],{filename:`inline-script-${scriptCount}.js`})}
-  catch(error){failures.push(`inline script ${scriptCount}: ${error.message}`)}
+const inlineScripts=htmlAudit.inline_scripts;
+const scriptCount=inlineScripts.length;
+for(let i=0;i<inlineScripts.length;i++){
+  try{new vm.Script(inlineScripts[i],{filename:`inline-script-${i+1}.js`})}
+  catch(error){failures.push(`inline script ${i+1}: ${error.message}`)}
 }
 ok(scriptCount===0,'application HTML contains no inline JavaScript');
 try{new vm.Script(appCore,{filename:'app-core.js'});ok(true,'extracted application bundle syntax is valid')}catch(error){failures.push('app-core.js: '+error.message+' '+String(error.stack||'').split('\\n').slice(0,3).join(' '))}
