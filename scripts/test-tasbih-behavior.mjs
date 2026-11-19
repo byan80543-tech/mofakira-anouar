@@ -141,6 +141,14 @@ assert.ok(officialOptions.some(option=>option.textContent==='آية الكرسي
 assert.ok(officialOptions.some(option=>option.textContent==='سور الإخلاص والفلق والناس'&&option.dataset.repeat==='3'),'the three Quls are complete and marked three times');
 assert.ok(officialOptions.some(option=>option.textContent==='سبحان الله وبحمده'&&option.dataset.repeat==='100'),'the hundred-repetition dhikr includes its count');
 assert.ok(officialOptions.every(option=>option.dataset.source&&option.value.length>5),'official adhkar include full text and source metadata');
+assert.equal(new Set(officialOptions.map(option=>option.value)).size,officialOptions.length,'each morning/evening entry has a unique selection value even when its text is identical');
+const kursiOptions=officialOptions.filter(option=>option.textContent==='آية الكرسي');
+assert.equal(kursiOptions.length,2,'the same Quranic text is independently available in morning and evening');
+const eveningKursiCard=officialApp.nodes.tasbihDhikrCards.children.flatMap(group=>group.children).find(card=>card.dataset.anwarOfficialId===kursiOptions[1].dataset.anwarOfficialId);
+eveningKursiCard.click();
+assert.equal(officialApp.nodes.tasbihDhikr.value,kursiOptions[1].value,'selecting the evening card selects its own entry, not the morning duplicate');
+assert.equal(officialApp.nodes.tasbihPhrase.textContent,kursiOptions[1].dataset.dhikrText,'the selected card exposes the full text to the counter and voice matcher');
+
 const officialCard=officialApp.nodes.tasbihDhikrCards.children.flatMap(group=>group.children).find(card=>card.className==='tasbih-dhikr-card'&&card.children.some(child=>child.className==='tasbih-dhikr-card-meta'));
 assert.ok(officialCard,'official adhkar render as designed cards with details');
 assert.ok(officialCard.children.some(child=>child.className==='tasbih-dhikr-card-text'),'official cards display the full dhikr text');
