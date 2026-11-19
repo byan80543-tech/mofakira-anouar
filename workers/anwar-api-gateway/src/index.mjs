@@ -447,8 +447,12 @@ async function transcribeAudio(request, env, origin) {
     return errorResponse("تعذّرت قراءة الملف المرفوع. أعد اختيار الملف وحاول مجددًا.", 400, origin);
   }
 
-  if ([...form.keys()].some(key => key !== "audio")) {
-    return errorResponse("أرفق ملفًا صوتيًا واحدًا فقط.", 400, origin);
+  if ([...form.keys()].some(key => key !== "audio" && key !== "consent")) {
+    return errorResponse("حقول طلب التفريغ غير مسموحة.", 400, origin);
+  }
+  const consentValues = form.getAll("consent");
+  if (consentValues.length !== 1 || consentValues[0] !== "true") {
+    return errorResponse("يجب تأكيد الموافقة على إرسال الملف الصوتي لمعالجته.", 400, origin);
   }
   const audioFiles = form.getAll("audio");
   const file = audioFiles.length === 1 ? audioFiles[0] : null;
