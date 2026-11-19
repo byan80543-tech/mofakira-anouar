@@ -114,7 +114,9 @@ ok(html.includes("if(!vaultKey||!vaultTemplate){") && html.includes("showVaultGa
 ok(html.includes('function persistPlainSnapshot(plaintext)') && html.includes("localStorage.setItem(VAULT_MODE_KEY,'plain')") && html.includes("localStorage.setItem(VAULT_MODE_KEY,'encrypted')"),'free and encrypted modes are explicitly persisted after verified storage writes');
 ok(html.includes('flushPrivatePreferenceSave();') && html.includes("if(typeof flushPendingEdit==='function')flushPendingEdit(false);") && html.includes('await vaultSaveQueue;') && html.includes("showVaultGate('setup'"),'manual encryption setup flushes pending edits and waits for the save queue before closing free mode');
 ok(/async function cancelVaultSetup\(\)[\s\S]*?await persistPlainSnapshot\(JSON\.stringify\(S\)\)/.test(html),'continuing without encryption verifies and persists the plaintext snapshot before reopening');
-ok(fs.readFileSync(path.join(root,'service-worker.js'),'utf8').includes("const CACHE_NAME='anwar-shell-2026-11-18-v58';"),'service worker shell version advances after the response security headers update');
+const workerSource=fs.readFileSync(path.join(root,'service-worker.js'),'utf8');
+const workerCacheName=workerSource.match(/const CACHE_NAME='(anwar-shell-\d{4}-\d{2}-\d{2}-v\d+)';/);
+ok(!!workerCacheName && workerCacheName[1].endsWith('-v61'),'service worker uses a dated, explicitly versioned app-shell cache');
 ok(html.includes('id="vaultCancelSetupBtn"') && html.includes('id="vaultDisableEncryptionBtn"'),'the gate offers continue-free and disable-encryption actions');
 ok(html.includes('AnwarPrivatePreferences.normalize(d.preferences)') && html.includes('preferences:globalThis.AnwarPrivatePreferences.normalize({})'),'radio, reader and tasbih preferences are part of the encrypted vault state');
 ok(html.includes('function importLegacyPrivatePreferences(base)') && html.includes('function clearLegacyPrivatePreferences()'),'legacy plaintext preferences have explicit migration and cleanup paths');
