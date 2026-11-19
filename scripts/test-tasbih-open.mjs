@@ -88,14 +88,58 @@ assert.equal(bridgeSandbox.toggleButton.attributes['aria-expanded'],'true','laun
 assert.ok(openFn.includes('panel.scrollIntoView'),'open handler scrolls the panel into view');
 assert.ok(openFn.includes('closeButton.focus()'),'open handler moves focus to the close control');
 
-const fallbackSandbox=buildSandbox({AnwarRenderAdhkar(period){fallbackSandbox.calls.push(['render',period]);return true}});
-vm.runInNewContext(switchFn+'\n'+revealFn+'\n'+openFn+'\nopenPanel();',fallbackSandbox,{timeout:2000});
-assert.equal(fallbackSandbox.nodes.adhkarPanel.hidden,false,'fallback opens the adhkar view when the old bridge is absent');
-assert.equal(fallbackSandbox.nodes.ownerPanel.hidden,true,'fallback hides the owner view');
-assert.ok(fallbackSandbox.calls.some(item=>item[0]==='render'&&item[1]==='morning'),'fallback restores the morning list');
-assert.equal(fallbackSandbox.panel.hidden,false,'fallback still opens the tasbih panel');
+const routeFallbackSandbox=buildSandbox({AnwarRenderAdhkar(period){routeFallbackSandbox.calls.push(['render',period]);return true}});
+vm.runInNewContext(switchFn+'\n'+revealFn+'\n'+openFn+'\nopenPanel();',routeFallbackSandbox,{timeout:2000});
+assert.equal(routeFallbackSandbox.nodes.adhkarPanel.hidden,false,'fallback opens the adhkar view when the old bridge is absent');
+assert.equal(routeFallbackSandbox.nodes.ownerPanel.hidden,true,'fallback hides the owner view');
+assert.ok(routeFallbackSandbox.calls.some(item=>item[0]==='render'&&item[1]==='morning'),'fallback restores the morning list');
+assert.equal(routeFallbackSandbox.panel.hidden,false,'fallback still opens the tasbih panel');
 
-assert.ok(controller.includes("toggleButton.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();openPanel()})"),'tasbih launcher has its own direct click listener');
+assert.ok(controller.includes('window.AnwarTasbihController=Object.freeze({')&&controller.includes('toggle(){'),'tasbih controller exposes its launch action to the notebook click delegate');
+assert.ok(!controller.includes("toggleButton.addEventListener('click'"),'tasbih controller does not swallow the parent delegated click event');
+assert.ok(appCore.includes("else if(id==='adhkarTasbihToggle')toggleTasbihFromToolbar(t);"),'main click delegate explicitly routes taps on the tasbih icon');
+const helperStart=appCore.indexOf('function toggleTasbihFromToolbar(button){');
+const helperEnd=appCore.indexOf("\ndocument.addEventListener('click'",helperStart);
+assert.ok(helperStart>=0&&helperEnd>helperStart,'main delegated tasbih launcher helper exists');
+const helperSource=appCore.slice(helperStart,helperEnd);
+const delegatedButton={attributes:{},setAttribute(name,value){this.attributes[name]=String(value)}};
+const delegatedCalls=[];
+const delegatedPanel={hidden:true,scrollIntoView(options){delegatedCalls.push(['scroll',options])}};
+const delegatedDialog={open:false,showModal(){this.open=true;delegatedCalls.push(['showModal'])}};
+const delegatedAdhkar={hidden:true};
+const delegatedSandbox={
+ window:{AnwarTasbihController:{toggle(){delegatedCalls.push(['controller-toggle']);return true}}},
+ $:id=>id==='tasbihPanel'?delegatedPanel:id==='ownerDialog'?delegatedDialog:id==='adhkarPanel'?delegatedAdhkar:null,
+ showOwnerPanel(which){delegatedCalls.push(['show-owner',which]);delegatedAdhkar.hidden=which!=='adhkar'},
+ requestAnimationFrame(fn){fn()},
+ toast(message){delegatedCalls.push(['toast',message])},
+ console:{error(){}},
+ button:delegatedButton
+};
+vm.runInNewContext(helperSource+'\ntoggleTasbihFromToolbar(button);',delegatedSandbox,{timeout:2000});
+assert.ok(delegatedCalls.some(call=>call[0]==='controller-toggle'),'the shared click route delegates to the standalone tasbih controller');
+
+const delegatedFallbackButton={attributes:{},setAttribute(name,value){this.attributes[name]=String(value)}};
+const delegatedFallbackCalls=[];
+const delegatedFallbackPanel={hidden:true,scrollIntoView(options){delegatedFallbackCalls.push(['scroll',options])}};
+const delegatedFallbackDialog={open:false,showModal(){this.open=true;delegatedFallbackCalls.push(['showModal'])}};
+const delegatedFallbackAdhkar={hidden:true};
+const delegatedFallbackSandbox={
+ window:{},
+ $:id=>id==='tasbihPanel'?delegatedFallbackPanel:id==='ownerDialog'?delegatedFallbackDialog:id==='adhkarPanel'?delegatedFallbackAdhkar:null,
+ showOwnerPanel(which){delegatedFallbackCalls.push(['show-owner',which]);delegatedFallbackAdhkar.hidden=which!=='adhkar'},
+ requestAnimationFrame(fn){fn()},
+ toast(message){delegatedFallbackCalls.push(['toast',message])},
+ console:{error(){}},
+ button:delegatedFallbackButton
+};
+vm.runInNewContext(helperSource+'\ntoggleTasbihFromToolbar(button);',delegatedFallbackSandbox,{timeout:2000});
+assert.equal(delegatedFallbackDialog.open,true,'delegated fallback opens the parent dialog');
+assert.equal(delegatedFallbackAdhkar.hidden,false,'delegated fallback opens the adhkar view');
+assert.equal(delegatedFallbackPanel.hidden,false,'delegated fallback opens the tasbih panel even if its controller is unavailable');
+assert.equal(delegatedFallbackButton.attributes['aria-expanded'],'true','delegated fallback updates the visible toggle state');
+assert.ok(delegatedFallbackCalls.some(call=>call[0]==='scroll'),'delegated fallback scrolls the opened tasbih into view');
+
 assert.ok(controller.includes("morningTab.addEventListener('click'")&&controller.includes("eveningTab.addEventListener('click'"),'morning and evening tab actions are bound');
 assert.ok(controller.includes("tap.addEventListener('click',()=>add(1))")&&controller.includes("minus.addEventListener('click',()=>add(-1))")&&controller.includes("reset.addEventListener('click'"),'counter increment, decrement and reset remain wired');
 assert.ok(controller.includes("preferences.set('tasbih'")&&controller.includes("preferences.subscribe(saved=>"),'counter and dhikr preferences use the encrypted preference adapter');
