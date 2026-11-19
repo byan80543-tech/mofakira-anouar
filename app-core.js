@@ -2182,6 +2182,16 @@ async function transcribeYouTubeLink(){
   if(button){button.disabled=false;button.textContent=oldLabel||'🎬 توليد النص من رابط YouTube';button.removeAttribute('aria-busy')}
  }
 }
+function transcriptLanguageLabel(value){
+ const raw=String(value||'').trim();
+ const tag=raw.replace(/^\[|\]$/g,'').toUpperCase();
+ const labels={
+  MA:'العربية المغربية',MSA:'العربية الفصحى',FR:'الفرنسية',EN:'الإنجليزية',
+  DZ:'العربية الجزائرية',TN:'العربية التونسية',EG:'العربية المصرية',
+  MR:'العربية الموريتانية',ES:'الإسبانية',IT:'الإيطالية'
+ };
+ return labels[tag]||raw;
+}
 async function transcribeAudioFile(){
  const file=$('transcriptAudioFile')?.files?.[0];
  const button=$('transcriptGenerate');
@@ -2194,8 +2204,8 @@ async function transcribeAudioFile(){
   return;
  }
  const oldLabel=button?.textContent;
- if(button){button.disabled=true;button.textContent='جارٍ تحويل الصوت…';button.setAttribute('aria-busy','true')}
- transcriptStatus('يجري إرسال الصوت بأمان إلى محرك Whisper لمعالجته. قد يستغرق ذلك بعض الوقت…',false);
+ if(button){button.disabled=true;button.textContent='جارٍ الاستماع إلى الصوت…';button.setAttribute('aria-busy','true')}
+ transcriptStatus('يجري التعرف على الكلام والدارجة واللغات المختلطة تلقائيًا. لا يترجم الكلام؛ يحافظ على الفرنسية بلغتها الأصلية عند استخدام Jais-ASR…',false);
  const controller=new AbortController();
  const timeout=setTimeout(()=>controller.abort(),180000);
  try{
@@ -2211,10 +2221,11 @@ async function transcribeAudioFile(){
   let result={};
   try{result=await response.json()}catch(error){}
   if(!response.ok){
-   const message=response.status===429?'بلغت حد التفريغ اليومي المسموح؛ حاول غدًا.':
+   const message=response.status===429?'بلغت حد التفريغ اليومي المسموح؛ حاول لاحقًا.':
     response.status===413?'الملف أكبر من الحد المسموح.':
     response.status===415?'صيغة الملف غير مدعومة.':
-    response.status===503?'خدمة التفريغ غير مفعّلة أو متوقفة مؤقتًا.':
+    response.status===422?'لم يُكتشف كلام واضح في التسجيل. جرّب ملفًا أوضح.':
+    response.status===503?'تعذّر تشغيل خدمة التفريغ الآن؛ راجع إعدادات الخدمة أو أعد المحاولة لاحقًا.':
     String(result.error||'تعذّر تفريغ الملف الصوتي.');
    transcriptStatus(message,true);
    return;
@@ -2228,15 +2239,27 @@ async function transcribeAudioFile(){
   transcriptLastRendered=formatted;
   $('transcriptTitle').value=(file.name||'تفريغ صوتي').replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').slice(0,100)||'تفريغ صوتي';
   $('transcriptText').value=formatted;
+  $('transcriptText').dir='auto';
   refreshTranscriptTablePreview();
   $('transcriptText').spellcheck=false;
   $('transcriptSpellcheck').setAttribute('aria-pressed','false');
   $('transcriptFormatLabel').textContent=TRANSCRIPT_FORMATS[0];
   $('transcriptEditorPanel').hidden=false;
   const words=Number(result.wordCount)||text.split(/\s+/).filter(Boolean).length;
-  const language=result.language?' · اللغة المكتشفة: '+result.language:'';
-  transcriptStatus('اكتمل التفريغ بنجاح · '+words+' كلمة'+language,false);
-  transcriptEditorStatus('راجع الأسماء والمصطلحات والنص الديني أو الشعري يدويًا قبل اعتماده.');
+  const detected=Array.isArray(result.languages)&&result.languages.length
+   ?result.languages.map(transcriptLanguageLabel).filter(Boolean)
+   :(result.language?[transcriptLanguageLabel(result.language)]:[]);
+  const uniqueLanguages=[...new Set(detected)];
+  const language=uniqueLanguages.length?' · اللغات/اللهجات المكتشفة: '+uniqueLanguages.join('، '):'';
+  const provider=String(result.provider||'Whisper');
+  const engineNote=provider==='Jais-ASR'
+   ?' · حُفظت الكلمات الفرنسية بلغتها الأصلية'
+   :' · استُخدم محرك التفريغ الاحتياطي';
+  const truncation=result.truncated?' · تنبيه: قد يكون آخر جزء من النص غير مكتمل':'';
+  transcriptStatus('اكتمل التفريغ بواسطة '+provider+' · '+words+' كلمة'+language+engineNote+truncation,false);
+  transcriptEditorStatus(result.truncated
+   ?'التسجيل أطول من حد التفريغ في جزء منه؛ راجع نهاية النص أو قسّم الملف ثم أعد المحاولة.'
+   :'راجع الكلمات والأسماء، خصوصًا الدارجة والفرنسية والمصطلحات الدينية أو الشعرية، قبل اعتماد النص.');
  }catch(error){
   transcriptStatus(error&&error.name==='AbortError'?'انتهت مهلة الاتصال قبل اكتمال التفريغ. جرّب ملفًا أقصر.':'تعذّر الاتصال بخدمة التفريغ. تحقق من الإنترنت ثم أعد المحاولة.',true);
  }finally{
