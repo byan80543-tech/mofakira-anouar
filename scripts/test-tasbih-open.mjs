@@ -52,7 +52,7 @@ const openEnd=source.indexOf("\n toggleButton.addEventListener('click',openPanel
 assert.ok(openStart>tasbihStart&&openEnd>openStart,'tasbih open handler can be extracted');
 const openFunction=source.slice(openStart,openEnd).trim();
 assert.ok(openFunction.includes("window.AnwarShowOwnerPanel('adhkar')"),'tasbih uses the explicit cross-IIFE bridge');
-assert.ok(!/(?<![.\\w])showOwnerPanel\\s*\\(/.test(openFunction),'tasbih does not call the out-of-scope function directly');
+assert.equal(openFunction.replaceAll('window.AnwarShowOwnerPanel','').includes('showOwnerPanel('),false,'tasbih does not call the out-of-scope function directly');
 
 const calls=[];
 const panel={hidden:true,scrollIntoView(options){calls.push(['scroll',options])}};
