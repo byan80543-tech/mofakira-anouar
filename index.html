@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="preload" href="./app-core.js?v=20261119-11" as="script">
+<link rel="preload" href="./app-core.js?v=20261119-12" as="script">
 <script src="api-gateway-config.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>مفكرة أنوار | Anouar Oumlili</title>
@@ -2181,7 +2181,7 @@ dialog[open]>.float-head{display:none!important}
   <section class="anwar-transcript-tool" id="youtubeTranscriptTool" aria-labelledby="transcriptToolTitle">
    <header class="transcript-tool-head">
     <span aria-hidden="true">🎙️</span>
-    <div><strong id="transcriptToolTitle">من المسموع إلى المكتوب</strong><small>رابط YouTube للترجمة المتاحة؛ والملف الصوتي للتفريغ الذكي متعدد اللغات</small></div>
+    <div><strong id="transcriptToolTitle">استخراج النصوص وتنظيمها</strong><small>الصق رابط YouTube أو استورد ملف ترجمة، ثم راجع النص ونظّمه للمذاكرة</small></div>
     <div class="transcript-focus-actions">
      <button type="button" id="transcriptFocusOpen" class="transcript-focus-open" aria-label="فتح مساحة التفريغ بملء الشاشة" title="فتح مساحة مركزة بملء الشاشة">＋</button>
      <button type="button" id="transcriptFocusClose" class="transcript-focus-close" aria-label="إغلاق مساحة التفريغ" title="إغلاق مساحة التفريغ">×</button>
@@ -2192,25 +2192,21 @@ dialog[open]>.float-head{display:none!important}
    </label>
    <button type="button" id="transcriptGenerateYoutube" class="transcript-generate-button">🎬 استخراج الترجمة المتاحة من YouTube</button>
    <details class="transcript-alternates">
-    <summary>تفريغ صوتي ذكي أو استيراد ترجمة محفوظة</summary>
+    <summary>لدي ملف ترجمة محفوظ</summary>
     <div class="transcript-alternates-body">
-     <label class="transcript-field" for="transcriptAudioFile">اختر ملفًا صوتيًا من جهازك
-      <input id="transcriptAudioFile" type="file" accept="audio/*,.mp3,.m4a,.wav,.ogg,.webm,.flac,.aac">
-     </label>
-     <button type="button" id="transcriptGenerate" class="transcript-import-button">🎙️ توليد النص من الملف الصوتي</button>
      <button type="button" id="transcriptChooseCaption" class="transcript-import-button">استيراد ملف ترجمة SRT / VTT / TXT</button>
      <input type="file" id="transcriptCaptionFile" hidden accept=".srt,.vtt,.txt,text/plain,text/vtt">
-     <small class="transcript-upload-note">يدعم الصوت حتى 8 ميغابايت. يتعرف Jais-ASR تلقائيًا على الدارجة والفصحى والفرنسية ويحافظ على الكلمات الفرنسية بلغتها الأصلية. يُرسل الملف مؤقتًا إلى IFM أولًا، وWhisper من Cloudflare احتياطيًا عند الحاجة؛ لا تحفظ المفكرة نسخة محلية منه.</small>
+     <small class="transcript-upload-note">استورد ملف الترجمة، ثم راجع النص والأسماء قبل اعتماده.</small>
     </div>
-   </details>
-   <p id="transcriptSourceStatus" class="transcript-status" role="status" aria-live="polite">ألصق رابط الفيديو واضغط «توليد النص من رابط YouTube». إذا لم تكن هناك ترجمة متاحة، ستظهر لك طريقة بديلة واضحة.</p>
+   </details>   </details>
+   <p id="transcriptSourceStatus" class="transcript-status" role="status" aria-live="polite">ألصق رابط فيديو YouTube لاستخراج الترجمة المتاحة، أو استورد ملف SRT أو VTT أو TXT محفوظًا لديك.</p>
 
    <div id="transcriptEditorPanel" class="transcript-editor-panel" hidden>
     <label class="transcript-field" for="transcriptTitle">عنوان التفريغ
      <input id="transcriptTitle" type="text" maxlength="100" value="تفريغ فيديو">
     </label>
     <label class="transcript-field" for="transcriptText">النص المستخرج والقابل للتحرير
-     <textarea id="transcriptText" rows="9" dir="auto" spellcheck="false" placeholder="سيظهر النص هنا بعد التفريغ الصوتي أو استيراد الترجمة..."></textarea>
+     <textarea id="transcriptText" rows="9" dir="auto" spellcheck="false" placeholder="سيظهر النص هنا بعد استخراج الترجمة أو استيرادها..."></textarea>
     </label>
     <div id="transcriptTablePreview" class="transcript-table-preview" hidden aria-live="polite"></div>
     <div class="transcript-toolbar" aria-label="أدوات مراجعة النص">
@@ -2536,7 +2532,7 @@ dialog[open]>.float-head{display:none!important}
 <div id="toast"></div>
 <script src="./vault-crypto.js?v=20261118-2"></script>
 <script src="./vault-device-unlock.js?v=20261118-1"></script>
-<script src="./app-core.js?v=20261119-11" defer></script>
+<script src="./app-core.js?v=20261119-12" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
 <script src="./tasbih-controller.js?v=20261119-17" defer></script>
 
