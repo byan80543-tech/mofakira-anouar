@@ -2008,12 +2008,16 @@ function transcriptEditorStatus(message){
  if(status)status.textContent=message||'';
 }
 function decodeCaptionEntities(value){
- return String(value||'').replace(/&amp;/gi,'&').replace(/&lt;/gi,'<').replace(/&gt;/gi,'>')
-  .replace(/&quot;/gi,'"').replace(/&#39;|&apos;/gi,"'").replace(/&nbsp;/gi,' ')
-  .replace(/&#(\d+);/g,(match,number)=>{
-   const code=Number(number);
+ const namedEntities={amp:'&',lt:'<',gt:'>',quot:'"',apos:"'",nbsp:' '};
+ return String(value||'').replace(/&(?:amp|lt|gt|quot|apos|nbsp);|&#\\d+;/gi,(entity)=>{
+  const numeric=/^&#(\\d+);$/i.exec(entity);
+  if(numeric){
+   const code=Number(numeric[1]);
    return Number.isInteger(code)&&code>0&&code<=0x10ffff?String.fromCodePoint(code):' ';
-  });
+  }
+  const named=/^&([a-z]+);$/i.exec(entity);
+  return named?namedEntities[named[1].toLowerCase()]:entity;
+ });
 }
 function parseCaptionFile(source,extension){
  const raw=String(source||'').replace(/^\uFEFF/,'').replace(/\r\n?/g,'\n').slice(0,500000);
