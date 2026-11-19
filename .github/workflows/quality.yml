@@ -59,6 +59,8 @@ jobs:
         run: node scripts/test-tasbih-open.mjs
       - name: Test tasbih counter, voice capture and dhikr management
         run: node scripts/test-tasbih-behavior.mjs
+      - name: Test Arabic poetry voice dictation across Android result batches
+        run: node scripts/test-poetry-dictation.mjs
       - name: Validate manifest, icons, HTML IDs and JavaScript syntax
         run: node scripts/validate.mjs
       - name: Verify Content Security Policy and inline script hashes
