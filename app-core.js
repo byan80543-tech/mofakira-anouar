@@ -2188,7 +2188,6 @@ async function transcribeAudioFile(){
  if(!file){transcriptStatus('اختر ملفًا صوتيًا أولًا.',true);return}
  if(file.size<=0){transcriptStatus('الملف الصوتي فارغ.',true);return}
  if(file.size>8*1024*1024){transcriptStatus('حجم الملف أكبر من 8 ميغابايت. اختر ملفًا أصغر.',true);return}
- if(!$('transcriptConsent')?.checked){transcriptStatus('يرجى تأكيد حقك في استخدام التسجيل قبل رفعه للمعالجة السحابية.',true);return}
  const endpoint=transcriptWorkerEndpoint();
  if(!endpoint){
   transcriptStatus('خدمة التفريغ لم تُفعّل بعد: يلزم نشر عامل Cloudflare ثم ضبط عنوانه في api-gateway-config.js.',true);
@@ -2202,7 +2201,6 @@ async function transcribeAudioFile(){
  try{
   const form=new FormData();
   form.append('audio',file,file.name||'recording.webm');
-  form.append('consent','true');
   const response=await fetch(endpoint,{
    method:'POST',
    body:form,
@@ -2247,6 +2245,29 @@ async function transcribeAudioFile(){
  }
 }
 
+function openTranscriptFocus(){
+ const tool=$('youtubeTranscriptTool');
+ if(!tool)return;
+ closeTranscriptFormatMenu();
+ tool.classList.add('transcript-focus-mode');
+ document.documentElement.classList.add('anwar-transcript-focus');
+ document.body.classList.add('anwar-transcript-focus');
+ $('transcriptFocusOpen')?.setAttribute('aria-expanded','true');
+ tool.scrollTop=0;
+ requestAnimationFrame(()=>{
+  const target=$('transcriptEditorPanel')?.hidden?$('transcriptYoutubeUrl'):$('transcriptText');
+  target?.focus({preventScroll:true});
+ });
+}
+function closeTranscriptFocus(){
+ const tool=$('youtubeTranscriptTool');
+ if(!tool)return;
+ tool.classList.remove('transcript-focus-mode');
+ document.documentElement.classList.remove('anwar-transcript-focus');
+ document.body.classList.remove('anwar-transcript-focus');
+ $('transcriptFocusOpen')?.setAttribute('aria-expanded','false');
+ requestAnimationFrame(()=>$('transcriptFocusOpen')?.focus({preventScroll:true}));
+}
 function closeTranscriptFormatMenu(){
  const menu=$('transcriptFormatMenu'),button=$('transcriptFormat');
  if(menu)menu.hidden=true;
@@ -2544,6 +2565,8 @@ document.addEventListener('click',e=>{
  if(!e.target.closest('#paperStylePanel')&&t?.id!=='paperStyleBtn'){$('paperStylePanel').hidden=true;$('paperStyleBtn').setAttribute('aria-expanded','false')}
  if(!e.target.closest('.transcript-format-wrap'))closeTranscriptFormatMenu();
  if(!t)return;
+ if(t.id==='transcriptFocusOpen'){openTranscriptFocus();return}
+ if(t.id==='transcriptFocusClose'){closeTranscriptFocus();return}
  if(t.dataset.transcriptFormat!==undefined){applyTranscriptFormat(Number(t.dataset.transcriptFormat));return;}
  if(t.dataset.archiveFilter!==undefined){archiveFilter=t.dataset.archiveFilter;renderArchive(true);return}
  if(t.dataset.archiveId){const selected=S.notes.find(n=>n.id===t.dataset.archiveId);if(selected){openNote(selected);$('archiveDialog').close()}return}
@@ -2674,7 +2697,11 @@ $('transcriptCaptionFile').addEventListener('change',e=>{
  if(file)importTranscriptCaption(file);
  e.target.value='';
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeTranscriptFormatMenu()});
+document.addEventListener('keydown',e=>{
+ if(e.key!=='Escape')return;
+ closeTranscriptFormatMenu();
+ if($('youtubeTranscriptTool')?.classList.contains('transcript-focus-mode'))closeTranscriptFocus();
+});
 $('transcriptText').addEventListener('input',()=>{
  const value=$('transcriptText').value;
  if(value!==transcriptLastRendered)transcriptBaseText=value;
