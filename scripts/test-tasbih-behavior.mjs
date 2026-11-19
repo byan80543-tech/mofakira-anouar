@@ -81,6 +81,7 @@ function buildApp(options={}){
  const themeNames=['emerald','dark','pink','night','heritage','glass'];
  themeNames.forEach(name=>{nodes['tasbihTheme'+name[0].toUpperCase()+name.slice(1)].dataset.tasbihThemeOption=name});
  nodes.tasbihThemePicker.hidden=true;
+ nodes.tasbihPanel.hidden=true;
  const counter=new FakeElement('tasbihCounterControl','DIV');nodes.tasbihPanel.counter=counter;nodes.tasbihCounterControl=counter;
  nodes.ownerDialog.showModal=function(){this.open=true};
  const groupPattern=/<optgroup label="([^"]*)">([\s\S]*?)<\/optgroup>/g;
