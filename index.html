@@ -2459,6 +2459,12 @@ function clearLegacyPrivatePreferences(){
 }
 async function persistVaultSnapshot(plaintext){
  if(!vaultUnlocked||!vaultKey||!vaultTemplate)throw new Error('خزنة المفكرة مقفلة.');
+ // Match the restore limits before writing: never save a vault the next startup
+ // would reject as oversized or structurally invalid.
+ const snapshot=JSON.parse(plaintext);
+ if(!snapshot||typeof snapshot!=='object'||Array.isArray(snapshot)||!Array.isArray(snapshot.notes))throw new Error('بنية بيانات المفكرة غير صالحة؛ لم نغيّر الخزنة المحفوظة.');
+ if(snapshot.notes.length>2500)throw new Error('بلغت المفكرة الحد الأقصى وهو 2500 عمل. صدّر نسخة احتياطية قبل إنشاء أعمال إضافية.');
+ if(snapshot.notes.some(note=>note&&typeof note==='object'&&!Array.isArray(note)&&(typeof note.html==='string'?note.html:note.text).length>450000))throw new Error('أحد الأعمال تجاوز الحد الآمن وهو 450 ألف حرف. قسّمه إلى أعمال أصغر قبل الحفظ.');
  const mainEnvelope=await AnwarVaultCrypto.encryptWithKey(vaultKey,vaultTemplate,plaintext);
  const mainText=JSON.stringify(mainEnvelope);
  localStorage.setItem(VAULT_STORAGE_KEY,mainText);
@@ -3160,6 +3166,7 @@ function openNote(n){
 function newNote(){
  if(storageRecoveryBlocked){toast('أنزل ملف الاسترداد أولاً، ثم استعد نسخة سليمة قبل إنشاء أعمال جديدة.',6000);return}
  if(cur)flushPendingEdit(false);
+ if(S.notes.length>=2500){toast('بلغت المفكرة الحد الأقصى وهو 2500 عمل. صدّر نسخة احتياطية قبل إنشاء أعمال إضافية.',6500);return}
  if(draftNote===cur)draftNote=null;
  cur=null;
  const n={id:createNoteId(),title:'',type:'poem',html:'',pin:false,ts:Date.now(),font:'Amiri',size:20,paper:'plain'};
