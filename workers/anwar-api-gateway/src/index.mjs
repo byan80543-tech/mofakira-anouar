@@ -13,8 +13,7 @@ const RATE_POLICIES = Object.freeze({
   "country-profile": { limit: 12, windowMs: 60_000 },
   "transcribe-global": { limit: 10, windowMs: 86_400_000 },
   transcribe: { limit: 3, windowMs: 86_400_000 },
-  "youtube-transcript-global": { limit: 1000, windowMs: 86_400_000 },
-  "youtube-transcript": { limit: 30, windowMs: 86_400_000 }
+  "youtube-transcript": { limit: 30, windowMs: 60_000 }
 });
 
 const CACHE_TTLS = Object.freeze({
@@ -164,9 +163,7 @@ async function checkLimits(namespace, clientKey, routeBucket) {
   const stub = namespace.get(id);
   const buckets = routeBucket === "transcribe"
     ? ["total", "client", "transcribe-global", "transcribe"]
-    : routeBucket === "youtube-transcript"
-      ? ["total", "client", "youtube-transcript-global", "youtube-transcript"]
-      : ["total", "client", routeBucket];
+    : ["total", "client", routeBucket];
   const response = await stub.fetch("https://rate-limit.internal/check", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -307,12 +304,10 @@ export class IpRateLimiter {
 
     const clientKey = payload && payload.clientKey;
     const buckets = payload && payload.buckets;
-      const validRouteBuckets = new Set(["catalog", "country-list", "country-profile"]);
+      const validRouteBuckets = new Set(["catalog", "country-list", "country-profile", "youtube-transcript"]);
     const validShape = Array.isArray(buckets) && (
       (buckets.length === 3 && buckets[0] === "total" && buckets[1] === "client" && validRouteBuckets.has(buckets[2])) ||
-      (buckets.length === 4 && buckets[0] === "total" && buckets[1] === "client" &&
-        ((buckets[2] === "transcribe-global" && buckets[3] === "transcribe") ||
-         (buckets[2] === "youtube-transcript-global" && buckets[3] === "youtube-transcript")))
+      (buckets.length === 4 && buckets[0] === "total" && buckets[1] === "client" && buckets[2] === "transcribe-global" && buckets[3] === "transcribe")
     );
     if (typeof clientKey !== "string" || !/^[a-f0-9]{64}$/.test(clientKey) || !validShape) {
       return json({ error: "Invalid rate-limit request" }, 400);
@@ -328,7 +323,7 @@ export class IpRateLimiter {
     ).toArray();
     let state;
     try {
-      state = JSON.parse(rows[0]?.data || '{"global":[],"transcription":[],"youtubeTranscripts":[],"clients":{}}');
+      state = JSON.parse(rows[0]?.data || '{"global":[],"transcription":[],"clients":{}}');
     } catch {
       throw new Error("Rate-limit state is corrupted");
     }
@@ -339,9 +334,6 @@ export class IpRateLimiter {
     const dailyCutoff = now - 86_400_000;
     state.transcription = Array.isArray(state.transcription)
       ? state.transcription.filter(timestamp => Number.isFinite(timestamp) && timestamp > dailyCutoff)
-      : [];
-    state.youtubeTranscripts = Array.isArray(state.youtubeTranscripts)
-      ? state.youtubeTranscripts.filter(timestamp => Number.isFinite(timestamp) && timestamp > dailyCutoff)
       : [];
     if (!state.clients || typeof state.clients !== "object" || Array.isArray(state.clients)) {
       state.clients = {};
@@ -376,25 +368,19 @@ export class IpRateLimiter {
     const isTranscription = buckets.length === 4 &&
       buckets[0] === "total" && buckets[1] === "client" &&
       buckets[2] === "transcribe-global" && buckets[3] === "transcribe";
-    const isYouTubeTranscript = buckets.length === 4 &&
-      buckets[0] === "total" && buckets[1] === "client" &&
-      buckets[2] === "youtube-transcript-global" && buckets[3] === "youtube-transcript";
     const validOrdinaryBuckets = buckets.length === 3 &&
       buckets[0] === "total" && buckets[1] === "client" &&
-      ["catalog", "country-list", "country-profile"].includes(buckets[2]);
-    if (!isTranscription && !isYouTubeTranscript && !validOrdinaryBuckets) {
+      ["catalog", "country-list", "country-profile", "youtube-transcript"].includes(buckets[2]);
+    if (!isTranscription && !validOrdinaryBuckets) {
       return json({ error: "Invalid rate-limit request" }, 400);
     }
-    const routeBucket = isTranscription ? "transcribe" : isYouTubeTranscript ? "youtube-transcript" : buckets[2];
+    const routeBucket = isTranscription ? "transcribe" : buckets[2];
     const checks = [
       { bucket: "total", timestamps: state.global, policy: RATE_POLICIES.total },
       { bucket: "client", timestamps: client.client, policy: RATE_POLICIES.client },
       ...(isTranscription ? [
         { bucket: "transcribe-global", timestamps: state.transcription, policy: RATE_POLICIES["transcribe-global"] },
         { bucket: "transcribe", timestamps: client.transcribe, policy: RATE_POLICIES.transcribe }
-      ] : isYouTubeTranscript ? [
-        { bucket: "youtube-transcript-global", timestamps: state.youtubeTranscripts, policy: RATE_POLICIES["youtube-transcript-global"] },
-        { bucket: "youtube-transcript", timestamps: client["youtube-transcript"], policy: RATE_POLICIES["youtube-transcript"] }
       ] : [
         { bucket: routeBucket, timestamps: client[routeBucket], policy: RATE_POLICIES[routeBucket] }
       ])
@@ -416,7 +402,6 @@ export class IpRateLimiter {
     client.client.push(now);
     client[routeBucket].push(now);
     if (isTranscription) state.transcription.push(now);
-    if (isYouTubeTranscript) state.youtubeTranscripts.push(now);
     state.clients[clientKey] = client;
     this.ctx.storage.sql.exec(
       "UPDATE rate_state SET data = ? WHERE id = 1",
