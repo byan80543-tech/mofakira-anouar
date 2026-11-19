@@ -7,6 +7,7 @@ let now=0,handler=null,nextTimer=0;
 const timers=new Map();
 const insideTarget={inside:true,closest(){return null}};
 const tasbihTarget={inside:true,closest(selector){return selector.includes('#tasbihTap')}};
+const tasbihToggleTarget={inside:true,closest(selector){return selector.includes('#adhkarTasbihToggle')}};
 const outsideTarget={inside:false,closest(){return null}};
 const body={
  children:[],
@@ -68,6 +69,13 @@ assert.equal(tap({trusted:false}).defaultPrevented,false,'script-generated click
 assert.equal(tap({detail:0}).defaultPrevented,false,'keyboard and assistive-technology activation is exempt');
 assert.equal(tap({target:outsideTarget}).defaultPrevented,false,'events outside the page body are ignored');
 
+// Opening the tasbih panel is navigation, not a counter tap. It must never be
+// swallowed by the global click-burst guard, even after repeated interactions.
+for(let i=0;i<15;i++){
+ now=i*40;
+ assert.equal(tap({target:tasbihToggleTarget}).defaultPrevented,false,'tasbih launch icon tap '+(i+1)+' is never blocked');
+}
+
 // Ten pointer taps in the rolling window are allowed.
 for(let i=0;i<10;i++){
  now=i*100;
@@ -87,6 +95,10 @@ const eleventh=tap();
 assert.equal(eleventh.defaultPrevented,true,'the 11th rapid tap is prevented');
 assert.equal(eleventh.stopped,true,'the 11th rapid tap cannot reach delegated or button click handlers');
 assert.equal(notice.style.opacity,'1','the anti-repeat warning becomes visible');
+
+// The launch icon remains usable even while ordinary burst clicks are cooling down.
+now=2500;
+assert.equal(tap({target:tasbihToggleTarget}).defaultPrevented,false,'tasbih launch icon remains usable during cooldown');
 
 // Further repeated taps are suppressed for the complete cooldown.
 now=2500;
