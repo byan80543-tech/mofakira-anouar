@@ -3812,3 +3812,249 @@ window.AnouarUpdateBridge = Object.freeze({
 });
 
 },0));
+
+;
+
+// Sync only changed radio controls; ignore editor mutations to keep typing responsive.
+(()=>{
+ const selector='#rb,#rpp,.reciter-play,.country-reader-play,#lessonPlay,.reciter-version';
+ const update=el=>{if(el&&!el.classList.contains('reciter-version'))el.dataset.playing=/[⏸Ⅱ]/.test(el.textContent)?'true':'false'};
+ const scanAdded=node=>{
+  if(!node||node.nodeType!==1||node.closest('#pg'))return;
+  if(node.matches(selector))update(node);
+  node.querySelectorAll(selector).forEach(update);
+ };
+ document.querySelectorAll(selector).forEach(update);
+ const observer=new MutationObserver(records=>{
+  records.forEach(record=>{
+   const target=record.target.nodeType===1?record.target:record.target.parentElement;
+   if(target&&!target.closest('#pg')){const control=target.closest(selector);if(control)update(control)}
+   record.addedNodes.forEach(scanAdded);
+  });
+ });
+ observer.observe(document.body,{subtree:true,childList:true,characterData:true});
+})();
+
+;
+
+(()=>{
+ const $=id=>document.getElementById(id),panel=$('tasbihPanel');
+ const toggleButton=$('adhkarTasbihToggle'),closeButton=$('tasbihClose');
+ const ownerDialog=$('ownerDialog'),countNode=$('tasbihCount'),phraseNode=$('tasbihPhrase');
+ const select=$('tasbihDhikr'),tap=$('tasbihTap'),minus=$('tasbihMinus'),reset=$('tasbihReset');
+ const customInput=$('tasbihCustomDhikrInput'),customAdd=$('tasbihAddCustomDhikr'),customStatus=$('tasbihCustomDhikrStatus');
+ const voicePanel=$('tasbihVoicePanel'),voiceButton=$('tasbihVoice');
+ const voiceState=$('tasbihVoiceState'),voiceButtonLabel=$('tasbihVoiceButtonLabel');
+ const voiceStatus=$('tasbihVoiceStatus'),voiceTranscript=$('tasbihVoiceTranscript');
+ if(!panel||!toggleButton||!closeButton||!ownerDialog||!select||!voicePanel||!voiceButton||!customInput||!customAdd||!customStatus)return;
+ const privatePreferences=globalThis.AnwarPrivatePreferences;
+ let count=0,recognition=null,voiceActive=false;
+ let processedFinalIndexes=new Set();
+ const initialTasbih=privatePreferences.get().tasbih;
+ let customDhikrs=initialTasbih.customDhikrs.slice();
+ function renderCustomDhikrs(){
+  const previous=select.querySelector('optgroup[data-anwar-custom-dhikrs]');
+  if(previous)previous.remove();
+  if(!customDhikrs.length)return;
+  const group=document.createElement('optgroup');
+  group.label='أذكاري المضافة';
+  group.dataset.anwarCustomDhikrs='true';
+  customDhikrs.forEach(dhikr=>{
+   const option=document.createElement('option');
+   option.value=dhikr;
+   option.textContent=dhikr;
+   group.appendChild(option);
+  });
+  select.appendChild(group);
+ }
+ renderCustomDhikrs();
+ count=initialTasbih.count;
+ if([...select.options].some(option=>option.value===initialTasbih.dhikr))select.value=initialTasbih.dhikr;
+ function paint(persist=true){
+  countNode.textContent=count.toLocaleString('ar');
+  if(persist)privatePreferences.set('tasbih',{count,dhikr:select.value,customDhikrs});
+ }
+ privatePreferences.subscribe(preferences=>{
+  const saved=preferences.tasbih;
+  count=saved.count;
+  customDhikrs=saved.customDhikrs.slice();
+  renderCustomDhikrs();
+  if([...select.options].some(option=>option.value===saved.dhikr))select.value=saved.dhikr;
+  phraseNode.textContent=select.value;
+  countNode.textContent=count.toLocaleString('ar');
+ });
+ function add(n=1){
+  count=Math.max(0,count+n);paint();
+  const el=panel.querySelector('.anwar-tasbih-counter');
+  if(el&&typeof el.animate==='function')el.animate([{transform:'scale(1)'},{transform:'scale(1.045)'},{transform:'scale(1)'}],{duration:220,easing:'ease-out'});
+ }
+ function addCustomDhikr(){
+  const value=String(customInput.value||'').replace(/\s+/g,' ').trim();
+  if(!value){
+   customStatus.textContent='اكتب الذكر أولاً ثم اضغط إضافة.';
+   customInput.focus();
+   return;
+  }
+  if(value.length>200){
+   customStatus.textContent='الحد الأقصى لطول الذكر هو 200 حرف.';
+   customInput.focus();
+   return;
+  }
+  const existing=[...select.options].find(option=>option.value===value);
+  if(existing){
+   select.value=value;
+   phraseNode.textContent=value;
+   count=0;paint();
+   customInput.value='';
+   customStatus.textContent='هذا الذكر موجود في القائمة، وقد تم اختياره.';
+   return;
+  }
+  if(customDhikrs.length>=30){
+   customStatus.textContent='وصلت إلى الحد الأقصى وهو 30 ذكراً مضافاً.';
+   return;
+  }
+  customDhikrs.push(value);
+  renderCustomDhikrs();
+  select.value=value;
+  phraseNode.textContent=value;
+  count=0;paint();
+  customInput.value='';
+  customStatus.textContent='تمت إضافة الذكر وحفظه على هذا الجهاز. يمكنك اختياره لاحقاً من القائمة.';
+  voiceTranscript.textContent='بانتظار نطق الذكر المختار.';
+  setVoiceState(voiceActive?'listening':'idle','تم اختيار الذكر الجديد. سيُحسب عند نطقه كاملاً.');
+ }
+ function setVoiceState(state,message){
+  voicePanel.dataset.state=state;
+  voiceState.textContent=state==='starting'?'جارٍ تشغيل الميكروفون':state==='listening'?'الميكروفون نشط':state==='error'?'تعذر التسجيل':'جاهز للتسجيل';
+  voiceStatus.textContent=message||'';
+  const active=state==='starting'||state==='listening';
+  voiceButton.setAttribute('aria-pressed',active?'true':'false');
+  voiceButtonLabel.textContent=active?'إيقاف التسجيل':state==='error'?'إعادة المحاولة':'ابدأ التسجيل';
+ }
+ function normalizeSpeech(value){
+  return String(value||'').toLocaleLowerCase('ar')
+   .normalize('NFD')
+   .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g,'')
+   .replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/ـ/g,'')
+   .replace(/[^\u0600-\u06FFa-z0-9\s]/gi,' ')
+   .replace(/\s+/g,' ').trim();
+ }
+ function countPhraseMatches(transcript,phrase){
+  const heard=normalizeSpeech(transcript).split(' ').filter(Boolean);
+  const target=normalizeSpeech(phrase).split(' ').filter(Boolean);
+  if(!target.length||heard.length<target.length)return 0;
+  let matches=0;
+  for(let i=0;i<=heard.length-target.length;i++){
+   let same=true;
+   for(let j=0;j<target.length;j++){if(heard[i+j]!==target[j]){same=false;break}}
+   if(same){matches++;i+=target.length-1}
+  }
+  return matches;
+ }
+ phraseNode.textContent=select.value;paint(false);
+ function stopVoice(message){
+  const wasActive=voiceActive;voiceActive=false;
+  if(wasActive&&recognition){try{recognition.stop()}catch(e){}}
+  setVoiceState('idle',message||'تم إيقاف التسجيل.');
+ }
+ function closePanel(restoreFocus=true){
+  if(panel.hidden)return;
+  stopVoice('توقف الاستماع عند إغلاق السبحة.');
+  panel.hidden=true;toggleButton.setAttribute('aria-expanded','false');
+  if(restoreFocus&&ownerDialog.open)toggleButton.focus();
+ }
+ function openPanel(){
+  if(!panel.hidden){closePanel();return}
+  if(!ownerDialog.open)ownerDialog.showModal();
+  if($('adhkarPanel').hidden)$('adhkarTab').click();
+  panel.hidden=false;toggleButton.setAttribute('aria-expanded','true');
+  requestAnimationFrame(()=>panel.scrollIntoView({behavior:'smooth',block:'nearest'}));
+  closeButton.focus();
+ }
+ toggleButton.addEventListener('click',openPanel);
+ customAdd.addEventListener('click',addCustomDhikr);
+ customInput.addEventListener('keydown',event=>{
+  if(event.key==='Enter'){event.preventDefault();addCustomDhikr()}
+ });
+ closeButton.addEventListener('click',()=>closePanel());
+ $('ownerTab').addEventListener('click',()=>closePanel(false));
+ $('shareTab').addEventListener('click',()=>closePanel(false));
+ ownerDialog.addEventListener('close',()=>closePanel(false));
+ select.addEventListener('change',()=>{
+  phraseNode.textContent=select.value;count=0;paint();
+  voiceTranscript.textContent='بانتظار نطق الذكر المختار.';
+  setVoiceState(voiceActive?'listening':'idle','تم اختيار الذكر الجديد. سيُحسب عند نطقه كاملاً.');
+ });
+ tap.addEventListener('click',()=>add(1));
+ minus.addEventListener('click',()=>add(-1));
+ reset.addEventListener('click',()=>{count=0;paint()});
+ document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&!panel.hidden){e.preventDefault();e.stopImmediatePropagation();closePanel()}
+ },true);
+ const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SpeechRecognition){
+  voiceButton.disabled=true;voiceButtonLabel.textContent='غير مدعوم';
+  setVoiceState('error','التعرف الصوتي غير متاح في هذا المتصفح. جرّب Chrome مع السماح باستخدام الميكروفون.');
+ }else{
+  recognition=new SpeechRecognition();
+  recognition.lang='ar-SA';recognition.continuous=true;recognition.interimResults=true;recognition.maxAlternatives=1;
+  recognition.onstart=()=>{
+   voiceActive=true;setVoiceState('listening','أستمع الآن. انطق الذكر المحدد كاملاً وبوضوح.');
+   if(voiceTranscript.textContent==='لم يبدأ التسجيل بعد')voiceTranscript.textContent='بانتظار العبارة…';
+  };
+  recognition.onresult=e=>{
+   for(let i=e.resultIndex;i<e.results.length;i++){
+    const result=e.results[i],said=result&&result[0]&&result[0].transcript?result[0].transcript.trim():'';
+    if(!said)continue;
+    voiceTranscript.textContent=said;
+    if(!result.isFinal||processedFinalIndexes.has(i))continue;
+    processedFinalIndexes.add(i);
+    const matches=countPhraseMatches(said,select.value);
+    if(matches>0){
+     add(matches);
+     setVoiceState('listening','تم التعرف على الذكر المختار وإضافة '+matches.toLocaleString('ar')+' إلى العداد.');
+    }else{
+     setVoiceState('listening','لم تطابق العبارة الذكر المحدد. كرر النص كاملاً: '+select.value);
+    }
+   }
+  };
+  recognition.onerror=e=>{
+   voiceActive=false;
+   const messages={
+    'not-allowed':'لم يُسمح بالميكروفون. افتح إعدادات الموقع واسمح باستخدامه.',
+    'service-not-allowed':'خدمة التعرف الصوتي محجوبة من المتصفح أو الجهاز.',
+    'audio-capture':'لم يتم العثور على ميكروفون صالح.',
+    'no-speech':'لم ألتقط كلاماً واضحاً. اضغط إعادة المحاولة وتحدث بوضوح.',
+    'network':'تعذر الاتصال بخدمة التعرف الصوتي. تحقق من اتصال الإنترنت.',
+    'aborted':'أُوقف التسجيل.'
+   };
+   setVoiceState('error',messages[e.error]||'حدث خطأ في التعرف الصوتي. حاول التسجيل مرة أخرى.');
+  };
+  recognition.onend=()=>{
+   if(voiceActive){
+    voiceActive=false;
+    setVoiceState('idle','انتهى الاستماع. ابدأ التسجيل مجدداً للمتابعة.');
+   }
+  };
+  voiceButton.addEventListener('click',()=>{
+   if(voiceActive){stopVoice('تم إيقاف التسجيل.');return}
+   try{
+    processedFinalIndexes=new Set();
+    voiceTranscript.textContent='بانتظار العبارة…';
+    setVoiceState('starting','جارٍ تفعيل الميكروفون…');
+    voiceActive=true;
+    recognition.start();
+   }catch(e){
+    voiceActive=false;
+    setVoiceState('error','تعذر بدء التسجيل. انتظر لحظة ثم حاول مرة أخرى.');
+   }
+  });
+ }
+})();;
+
+;
+
+// Cache the local application shell; external radio, APIs and fonts remain network-dependent.
+if('serviceWorker' in navigator&&location.protocol==='https:'){
+ window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js',{scope:'./'}).catch(error=>console.warn('تعذّر تسجيل عامل خدمة مفكرة أنوار',error)));
+}
