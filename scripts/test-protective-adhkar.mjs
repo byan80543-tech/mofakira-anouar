@@ -33,7 +33,7 @@ assert.match(html,/<button[^>]*id="protectionTab"[^>]*>التحصين<\/button>/
 assert.ok(html.indexOf('./protective-adhkar.js?v=20261120-1')<html.indexOf('./app-core.js'),'protective data loads before the application renderer');
 assert.match(app,/else if\(id==='protectionTab'\)renderAdhkar\('protection'\)/,'the protection tab is wired to the renderer');
 assert.match(app,/function renderProtectiveAdhkar\(\)/,'the dedicated protective renderer exists');
-assert.match(app,/data-protective-action='count'/,'the renderer exposes a per-entry repeat action');
+assert.match(app,/countButton\.dataset\.protectiveAction='count'/,'the renderer exposes a per-entry repeat action');
 assert.match(app,/protectiveProgress/,'per-entry progress is tracked independently');
 assert.match(app,/source\.rel='noopener noreferrer'/,'source links use safe new-tab attributes');
 assert.ok(worker.includes("'./protective-adhkar.js'"),'the protective data file is precached for offline use');
