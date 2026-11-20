@@ -59,6 +59,7 @@ const home=new FakeElement('service-home');
 const quranPage=new FakeElement('quran-page');
 const radioPage=new FakeElement('radio-page');
 const lessonsPage=new FakeElement('lessons-page');
+quranPage.hidden=true;radioPage.hidden=true;lessonsPage.hidden=true;
 const radioTitle=new FakeElement('radio-title','الإذاعات المباشرة');
 const quranTitle=new FakeElement('quran-title','القرآن الكريم · اختر صوتاً وابدأ فوراً');
 const liveStation=new FakeElement('live-station');
@@ -156,6 +157,8 @@ assert.equal(radioPage.hidden,false,'opening live radio shows its own page');
 assert.equal(quranPage.hidden,true,'opening live radio hides Quran content');
 assert.equal(radioTitle.parentNode,radioPage,'live-radio title is not displaced by navigation');
 radioBack.fire('click');
+assert.equal(home.hidden,false,'returning from live radio restores the dashboard');
+assert.equal(radioPage.hidden,true,'returning from live radio hides the live-radio page');
 
 services.lessons.fire('click');
 assert.equal(lessonsPage.hidden,false,'opening lessons shows the lesson page');
