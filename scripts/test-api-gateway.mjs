@@ -142,6 +142,15 @@ try {
   }), env, context);
   assert.equal(response.status, 405);
 
+  // A validated country route accepts HTML based on route and content type,
+  // without treating URL-looking substrings inside response text as host proof.
+  globalThis.fetch = async () => new Response("<html>" + "x".repeat(400) + "</html>", {
+    headers: { "Content-Type": "text/html; charset=utf-8" }
+  });
+  response = await worker.fetch(request("/v1/country/list?nationality=MA&page=1"), env, context);
+  assert.equal(response.status, 200, "valid country HTML response does not depend on URL substrings");
+  await Promise.all(context.waits.splice(0));
+
   // A redirect may only stay on explicitly approved upstream hosts.
   let redirectCalls = 0;
   globalThis.fetch = async () => {
