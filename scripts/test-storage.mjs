@@ -28,6 +28,7 @@ function makeHarness(initial={}){
       this.writeCount++;
       values.set(key,String(value));
     },
+    removeItem(key){values.delete(key)},
     values
   };
   const elements={
