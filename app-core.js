@@ -3390,7 +3390,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
   activeCountryKey=key;activeCountryRows=[];activeCountryPage=1;countryTotalPages=1;countryTotalCount=0;countrySearch.value='';countryLoadToken++;countryPlayToken++;countryPageBusy=false;
   countryPrev.disabled=true;countryNext.disabled=true;
   if(countryModal.hidden)countryPreviousOverflow=document.body.style.overflow;
-  countryModal.hidden=false;document.body.classList.add('country-reader-open');document.body.style.overflow='hidden';
+  countryModal.hidden=false;countryOpen.setAttribute('aria-expanded','true');document.body.classList.add('country-reader-open');document.body.style.overflow='hidden';
   const entry=countryDirectory[key];
   $('countryModalTitle').textContent='قرّاء '+(entry?entry.name:countrySelect.selectedOptions[0].textContent.split('·')[0].trim());
   $('countryModalSub').textContent=entry?'فهرس '+entry.name+' من الطريق إلى القرآن · تُحمّل صفحة واحدة في كل مرة':'لا توجد قائمة موثقة لهذه الدولة';
@@ -3410,7 +3410,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
   countryLoadToken++;countryPlayToken++;countryPageBusy=false;
   abortCountryPageRequest();abortCountryProfileRequest();
   if(countryActiveAudio)stopCountryAudio();
-  countryModal.hidden=true;document.body.classList.remove('country-reader-open');document.body.style.overflow=countryPreviousOverflow;
+  countryModal.hidden=true;countryOpen.setAttribute('aria-expanded','false');document.body.classList.remove('country-reader-open');document.body.style.overflow=countryPreviousOverflow;
   countryOpen.focus();
  }
  let countryActiveAudio=null,countryActiveButton=null,countryActiveCard=null;
