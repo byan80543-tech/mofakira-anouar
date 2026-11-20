@@ -198,8 +198,9 @@
  audio.id='anwarPrayerAdhanAudio';audio.preload='none';audio.hidden=true;audio.controls=false;audio.setAttribute('playsinline','');audio.setAttribute('aria-label','صوت الأذان');
  audio.src=(VOICES.find(item=>item.key===settings.voice)||VOICES[0]).url;audio.volume=settings.volume;
  card.append(head,nextBox,timesGrid,dateLine,privacyLine,details,audio);
- const insertBefore=panel.querySelector('.radio-section-title');
- if(insertBefore)panel.insertBefore(card,insertBefore);else panel.append(card);
+ const prayerMount=document.getElementById('anwarPrayerMount');
+ if(prayerMount)prayerMount.append(card);
+ else{const insertBefore=panel.querySelector('.radio-section-title');if(insertBefore)panel.insertBefore(card,insertBefore);else panel.append(card);}
 
  function persist(){
   try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings))}catch(_e){}
