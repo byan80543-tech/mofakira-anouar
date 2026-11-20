@@ -3004,7 +3004,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  }
  function ensureRadioCatalog(){
   const select=$('rl');
-  if(select.options.length)return Promise.resolve(select.options.length);
+  if(select.value)return Promise.resolve(select.options.length);
   if(radioApiPromise)return radioApiPromise;
   const button=$('liveRadioPlay'),status=$('liveRadioStatus');
   if(button){
