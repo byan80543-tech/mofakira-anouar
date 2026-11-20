@@ -13,6 +13,9 @@ assert.match(prayer,/const infoDetails=el\('details','anwar-prayer-info'\)/,'pri
 assert.match(prayer,/infoDetails\.append\(infoSummary,privacyLine\)/,'complete original privacy explanation remains inside the disclosure');
 assert.match(prayer,/card\.append\(head,nextBox,timesGrid,dateLine,infoDetails,details,audio\)/,'prayer card keeps all original sections and the privacy disclosure');
 assert.match(prayer,/nextBox\.hidden=true/,'countdown starts hidden while prayer data is unavailable');
+assert.doesNotMatch(prayer,/el\('strong','','—'\)/,'upcoming prayer name has no fake dash placeholder');
+assert.doesNotMatch(prayer,/el\('span','','--:--:--'\)/,'countdown has no fake zero-time placeholder');
+assert.match(prayer,/nextBox\.hidden=true/,'countdown starts hidden while prayer data is unavailable');
 assert.match(prayer,/nextBox\.hidden=false/,'countdown appears when a next prayer event is calculated');
 assert.match(prayer,/nextName\.textContent='';nextWhen\.textContent='';countdown\.textContent='';/,'unavailable countdown does not show placeholder dashes');
 assert.match(prayer,/جارٍ تحميل مواقيت الصلاة…/,'initial loading state is clear and visible');
