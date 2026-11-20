@@ -565,13 +565,18 @@ async function handleAdhkarApi(request, url, env, origin) {
   const adminSecret = String(env.ADHKAR_ADMIN_SECRET || "");
   if (!env.ADHKAR_STORE) return errorResponse("مخزن مكتبة الأذكار غير مهيأ.", 503, origin);
 
-  // Public reading uses one shared Cloudflare edge bucket. It does not derive,
-  // hash, or persist a visitor identifier or IP address.
+  // Public reads are rate-limited per network at Cloudflare's edge. The raw
+  // address is immediately HMAC-pseudonymized; the app stores no visitor profile,
+  // IP address, cookie, or per-visitor activity history.
   if (path === "/v1/adhkar" && method === "GET") {
     let edgeDecision;
     try {
-      if (!env.EDGE_LIMITER) throw new Error("Edge rate limiter binding missing");
-      edgeDecision = await env.EDGE_LIMITER.limit({ key: "anwar-adhkar-public-read" });
+      if (!env.EDGE_LIMITER || String(env.IP_HASH_SECRET || "").length < 32) {
+        throw new Error("Edge rate limiter or HMAC secret missing");
+      }
+      const clientAddress = request.headers.get("CF-Connecting-IP") || "unknown";
+      const edgeKey = await signAdminPayload("adhkar-public-read:" + clientAddress, env.IP_HASH_SECRET);
+      edgeDecision = await env.EDGE_LIMITER.limit({ key: edgeKey });
     } catch {
       return errorResponse("خدمة قراءة مكتبة الأذكار غير متاحة مؤقتًا.", 503, origin);
     }
