@@ -53,6 +53,8 @@ assert.doesNotMatch(prayer,/اختيرت الدولة\. حدّد مدينتك|ت
 assert.match(prayer,/\.anwar-prayer-status:empty\{display:none!important\}/,'empty status line does not create a blank gap');
 assert.match(prayer,/persist\(\);updateHeader\(\)[\s\S]*?refreshTimes\(false\)/,'country selection refreshes the default city automatically');
 assert.match(prayer,/\.anwar-prayer-next\{display:grid;grid-template-columns:1fr auto/,'original prominent next-prayer countdown design is preserved');
+assert.doesNotMatch(prayer,/el\('strong','','مواقيت الصلاة'\)/,'redundant prayer card title is removed');
+assert.match(prayer,/const refreshButton=el\('button','primary','تحديث'\)/,'refresh action uses a concise visible label');
 assert.match(prayer,/\.anwar-prayer-time\{display:grid;gap:3px;min-width:0;padding:8px 3px/,'original larger five prayer tiles are preserved');
 assert.doesNotMatch(prayer,/\.anwar-prayer-card\{gap:7px;padding:10px 11px\}/,'compact override that shrinks the original design is absent');
 assert.match(prayer,/\.anwar-prayer-next\[hidden\]\{display:none!important\}/,'hidden countdown is not forced visible by the grid rule');
