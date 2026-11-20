@@ -10,7 +10,10 @@ const RATE_POLICIES = Object.freeze({
   client: { limit: 30, windowMs: 60_000 },
   catalog: { limit: 20, windowMs: 60_000 },
   "country-list": { limit: 8, windowMs: 60_000 },
-  "country-profile": { limit: 12, windowMs: 60_000 }
+  "country-profile": { limit: 12, windowMs: 60_000 },
+  "adhkar-read": { limit: 50, windowMs: 60_000 },
+  "adhkar-suggestions": { limit: 3, windowMs: 60 * 60_000 },
+  "admin-login": { limit: 5, windowMs: 60 * 60_000 }
 });
 
 const CACHE_TTLS = Object.freeze({
@@ -307,7 +310,7 @@ export class IpRateLimiter {
 
     const clientKey = payload && payload.clientKey;
     const buckets = payload && payload.buckets;
-    const validRouteBuckets = new Set(["catalog", "country-list", "country-profile"]);
+    const validRouteBuckets = new Set(["catalog", "country-list", "country-profile", "adhkar-read", "adhkar-suggestions", "admin-login"]);
     const validShape = Array.isArray(buckets) &&
       buckets.length === 3 &&
       buckets[0] === "total" &&
@@ -348,7 +351,7 @@ export class IpRateLimiter {
         continue;
       }
       delete value.transcribe;
-      for (const bucket of ["client", "catalog", "country-list", "country-profile"]) {
+      for (const bucket of ["client", "catalog", "country-list", "country-profile", "adhkar-read", "adhkar-suggestions", "admin-login"]) {
         const windowMs = RATE_POLICIES[bucket]?.windowMs || 60_000;
         const bucketCutoff = now - windowMs;
         value[bucket] = Array.isArray(value[bucket])
@@ -365,6 +368,9 @@ export class IpRateLimiter {
       catalog: [],
       "country-list": [],
       "country-profile": [],
+      "adhkar-read": [],
+      "adhkar-suggestions": [],
+      "admin-login": [],
     };
     const routeBucket = buckets[2];
     const checks = [
@@ -402,6 +408,397 @@ export class IpRateLimiter {
 }
 
 
+
+
+const ADHKAR_STORE_NAME = "anwar-protective-adhkar-v1";
+const ADHKAR_SESSION_SECONDS = 20 * 60;
+const ADHKAR_BODY_LIMIT = 24 * 1024;
+
+function cleanText(value, maxLength, required = false) {
+  if (typeof value !== "string") return required ? null : "";
+  const cleaned = value.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "").trim();
+  if (required && !cleaned) return null;
+  return cleaned.length > maxLength ? null : cleaned;
+}
+
+function normalizeHttpsUrl(value) {
+  if (value == null || value === "") return "";
+  if (typeof value !== "string" || value.length > 500) return null;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:" || url.username || url.password || url.hash) return null;
+    return url.href;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeDhikr(value, options = {}) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const id = options.id || (options.keepId ? cleanText(value.id, 80, true) : crypto.randomUUID());
+  if (typeof id !== "string" || !/^[a-z0-9-]{1,80}$/i.test(id)) return null;
+  const group = cleanText(value.group, 80, true);
+  const title = cleanText(value.title, 120, true);
+  const text = cleanText(value.text, 5000, true);
+  const source = cleanText(value.source, 240, Boolean(options.requireSource));
+  const occasion = cleanText(value.occasion || "", 300, false);
+  const sourceUrl = normalizeHttpsUrl(value.sourceUrl || "");
+  const kind = value.kind === "note" ? "note" : "dhikr";
+  const count = value.count == null || value.count === "" ? null : Number(value.count);
+  if (!group || !title || !text || source === null || occasion === null || sourceUrl === null) return null;
+  if (count !== null && (!Number.isSafeInteger(count) || count < 1 || count > 100000)) return null;
+  return { id, group, title, text, count, occasion, source, sourceUrl, kind };
+}
+
+async function readJsonBody(request, limit = ADHKAR_BODY_LIMIT) {
+  const raw = await request.text();
+  if (new TextEncoder().encode(raw).byteLength > limit) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function encodeBase64Url(bytes) {
+  let binary = "";
+  for (const byte of new Uint8Array(bytes)) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+function decodeBase64Url(value) {
+  if (typeof value !== "string" || !/^[A-Za-z0-9_-]+$/.test(value)) return null;
+  const padded = value.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - value.length % 4) % 4);
+  try {
+    const binary = atob(padded);
+    return Uint8Array.from(binary, char => char.charCodeAt(0));
+  } catch {
+    return null;
+  }
+}
+
+async function signAdminPayload(payload, secret) {
+  const key = await crypto.subtle.importKey(
+    "raw", new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payload));
+  return encodeBase64Url(signature);
+}
+
+function constantTimeEqual(left, right) {
+  const a = new TextEncoder().encode(String(left));
+  const b = new TextEncoder().encode(String(right));
+  const length = Math.max(a.length, b.length);
+  let difference = a.length ^ b.length;
+  for (let index = 0; index < length; index += 1) difference |= (a[index] || 0) ^ (b[index] || 0);
+  return difference === 0;
+}
+
+async function issueAdminSession(secret) {
+  const payload = encodeBase64Url(new TextEncoder().encode(JSON.stringify({
+    v: 1, scope: "adhkar-admin",
+    exp: Math.floor(Date.now() / 1000) + ADHKAR_SESSION_SECONDS,
+    nonce: crypto.randomUUID()
+  })));
+  return payload + "." + await signAdminPayload(payload, secret);
+}
+
+async function verifyAdminSession(request, secret) {
+  if (!secret || secret.length < 32) return false;
+  const header = request.headers.get("Authorization") || "";
+  const match = /^Bearer ([A-Za-z0-9_.-]{20,2048})$/.exec(header);
+  if (!match) return false;
+  const [payload, signature, extra] = match[1].split(".");
+  if (!payload || !signature || extra !== undefined) return false;
+  const expected = await signAdminPayload(payload, secret);
+  if (!constantTimeEqual(expected, signature)) return false;
+  const bytes = decodeBase64Url(payload);
+  if (!bytes) return false;
+  try {
+    const data = JSON.parse(new TextDecoder().decode(bytes));
+    return data.v === 1 && data.scope === "adhkar-admin" &&
+      Number.isSafeInteger(data.exp) && data.exp > Math.floor(Date.now() / 1000);
+  } catch {
+    return false;
+  }
+}
+
+function adhkarStoreStub(env) {
+  if (!env.ADHKAR_STORE) throw new Error("ADHKAR_STORE binding missing");
+  return env.ADHKAR_STORE.get(env.ADHKAR_STORE.idFromName(ADHKAR_STORE_NAME));
+}
+
+async function callAdhkarStore(env, path, method = "GET", body = undefined) {
+  const init = { method, headers: { "Content-Type": "application/json" } };
+  if (body !== undefined) init.body = JSON.stringify(body);
+  return adhkarStoreStub(env).fetch(new Request("https://adhkar.internal" + path, init));
+}
+
+async function rateLimitedAdhkar(request, env, bucket, origin) {
+  try {
+    const result = await applyRateLimits(request, env, bucket);
+    if (result.blocked) return errorResponse("تم تجاوز الحد المسموح. حاول لاحقًا.", 429, origin, {
+      "Retry-After": String(result.retryAfter)
+    });
+    return null;
+  } catch {
+    return errorResponse("خدمة الحماية غير متاحة مؤقتًا.", 503, origin);
+  }
+}
+
+function isAdhkarApiPath(pathname) {
+  return pathname === "/v1/adhkar" ||
+    pathname === "/v1/adhkar/suggestions" ||
+    pathname === "/v1/admin/session" ||
+    pathname === "/v1/admin/adhkar" ||
+    pathname === "/v1/admin/adhkar/initialize" ||
+    pathname === "/v1/admin/suggestions" ||
+    /^\/v1\/admin\/adhkar\/[a-z0-9-]{1,80}$/i.test(pathname) ||
+    /^\/v1\/admin\/suggestions\/[a-f0-9-]{1,80}\/(approve|reject)$/i.test(pathname);
+}
+
+async function handleAdhkarApi(request, url, env, origin) {
+  if (!isAdhkarApiPath(url.pathname)) return null;
+  const method = request.method;
+  const path = url.pathname;
+  const adminSecret = String(env.ADHKAR_ADMIN_SECRET || "");
+  if (!env.ADHKAR_STORE) return errorResponse("مخزن مكتبة الأذكار غير مهيأ.", 503, origin);
+
+  if (path === "/v1/adhkar" && method === "GET") {
+    const limited = await rateLimitedAdhkar(request, env, "adhkar-read", origin);
+    if (limited) return limited;
+    try {
+      return withCors(await callAdhkarStore(env, "/entries"), origin);
+    } catch {
+      return errorResponse("تعذر تحميل مكتبة الأذكار.", 503, origin);
+    }
+  }
+
+  if (path === "/v1/adhkar/suggestions" && method === "POST") {
+    const limited = await rateLimitedAdhkar(request, env, "adhkar-suggestions", origin);
+    if (limited) return limited;
+    const body = await readJsonBody(request);
+    if (!body) return errorResponse("بيانات الاقتراح غير صالحة.", 400, origin);
+    if (typeof body.website === "string" && body.website.trim()) {
+      return withCors(json({ accepted: true }, 202), origin);
+    }
+    const suggestion = normalizeDhikr(body, { id: crypto.randomUUID() });
+    if (!suggestion) return errorResponse("أكمل عنوان الذكر ومجموعته ونصه، وتأكد من العدد والرابط.", 400, origin);
+    try {
+      const stored = await callAdhkarStore(env, "/suggestions", "POST", {
+        ...suggestion, createdAt: new Date().toISOString()
+      });
+      if (!stored.ok) return withCors(stored, origin);
+      return withCors(json({ accepted: true, message: "وصل اقتراحك للمراجعة." }, 202), origin);
+    } catch {
+      return errorResponse("تعذر حفظ الاقتراح الآن. حاول لاحقًا.", 503, origin);
+    }
+  }
+
+  if (path === "/v1/admin/session" && method === "POST") {
+    const limited = await rateLimitedAdhkar(request, env, "admin-login", origin);
+    if (limited) return limited;
+    if (adminSecret.length < 32) return errorResponse("دخول الإدارة غير مهيأ على الخادم.", 503, origin);
+    const body = await readJsonBody(request, 4096);
+    if (!body || typeof body.password !== "string" || body.password.length > 512 ||
+        !constantTimeEqual(body.password, adminSecret)) {
+      return errorResponse("تعذر التحقق من رمز الإدارة.", 401, origin);
+    }
+    try {
+      const token = await issueAdminSession(adminSecret);
+      return withCors(json({ token, expiresIn: ADHKAR_SESSION_SECONDS }), origin, { "Cache-Control": "no-store" });
+    } catch {
+      return errorResponse("تعذر إنشاء جلسة الإدارة.", 503, origin);
+    }
+  }
+
+  const authenticated = await verifyAdminSession(request, adminSecret);
+  if (!authenticated) return errorResponse("يلزم تسجيل دخول الإدارة أولًا.", 401, origin);
+
+  try {
+    if (path === "/v1/admin/adhkar" && method === "GET") {
+      return withCors(await callAdhkarStore(env, "/entries"), origin);
+    }
+    if (path === "/v1/admin/adhkar/initialize" && method === "POST") {
+      const body = await readJsonBody(request);
+      if (!body || !Array.isArray(body.entries) || body.entries.length < 1 || body.entries.length > 200) {
+        return errorResponse("القائمة الأولية غير صالحة.", 400, origin);
+      }
+      const entries = body.entries.map(item => normalizeDhikr(item, { keepId: true }));
+      if (entries.some(item => !item) || new Set(entries.map(item => item.id)).size !== entries.length) {
+        return errorResponse("تحتوي القائمة الأولية على ذكر غير صالح أو معرّف مكرر.", 400, origin);
+      }
+      return withCors(await callAdhkarStore(env, "/initialize", "POST", { entries }), origin);
+    }
+    if (path === "/v1/admin/adhkar" && method === "POST") {
+      const body = await readJsonBody(request);
+      const entry = normalizeDhikr(body, { requireSource: true });
+      if (!entry) return errorResponse("أدخل نص الذكر ومصدره الصحيح قبل النشر.", 400, origin);
+      return withCors(await callAdhkarStore(env, "/entry", "POST", entry), origin);
+    }
+    if (path === "/v1/admin/adhkar" && method === "PUT") {
+      const body = await readJsonBody(request);
+      const entry = body && normalizeDhikr(body, { id: body.id, keepId: true, requireSource: true });
+      if (!entry) return errorResponse("أدخل نص الذكر ومصدره الصحيح قبل الحفظ.", 400, origin);
+      return withCors(await callAdhkarStore(env, "/entry", "PUT", entry), origin);
+    }
+    if (path === "/v1/admin/suggestions" && method === "GET") {
+      return withCors(await callAdhkarStore(env, "/suggestions"), origin);
+    }
+    const entryDelete = /^\/v1\/admin\/adhkar\/([a-z0-9-]{1,80})$/i.exec(path);
+    if (entryDelete && method === "DELETE") {
+      return withCors(await callAdhkarStore(env, "/entry/" + encodeURIComponent(entryDelete[1]), "DELETE"), origin);
+    }
+    const suggestionAction = /^\/v1\/admin\/suggestions\/([a-f0-9-]{1,80})\/(approve|reject)$/i.exec(path);
+    if (suggestionAction && method === "POST") {
+      const action = suggestionAction[2];
+      if (action === "reject") {
+        return withCors(await callAdhkarStore(env, "/suggestion/" + suggestionAction[1] + "/reject", "POST", {}), origin);
+      }
+      return withCors(await callAdhkarStore(env, "/suggestion/" + suggestionAction[1] + "/approve", "POST", {
+        entryId: crypto.randomUUID()
+      }), origin);
+    }
+    return errorResponse("طريقة الطلب غير مسموحة لهذا المسار.", 405, origin);
+  } catch {
+    return errorResponse("تعذر إتمام عملية إدارة المكتبة.", 503, origin);
+  }
+}
+
+export class AdhkarStore {
+  constructor(ctx, env) {
+    this.ctx = ctx;
+    this.env = env;
+    ctx.blockConcurrencyWhile(() => {
+      ctx.storage.sql.exec(
+        "CREATE TABLE IF NOT EXISTS adhkar_entries (id TEXT PRIMARY KEY, group_name TEXT NOT NULL, title TEXT NOT NULL, text TEXT NOT NULL, count INTEGER, occasion TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT '', source_url TEXT NOT NULL DEFAULT '', kind TEXT NOT NULL DEFAULT 'dhikr', created_at TEXT NOT NULL, updated_at TEXT NOT NULL);" +
+        "CREATE TABLE IF NOT EXISTS adhkar_suggestions (id TEXT PRIMARY KEY, group_name TEXT NOT NULL, title TEXT NOT NULL, text TEXT NOT NULL, count INTEGER, occasion TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT '', source_url TEXT NOT NULL DEFAULT '', kind TEXT NOT NULL DEFAULT 'dhikr', created_at TEXT NOT NULL);" +
+        "CREATE TABLE IF NOT EXISTS adhkar_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);" +
+        "INSERT OR IGNORE INTO adhkar_meta(key, value) VALUES('initialized', '0');"
+      );
+    });
+  }
+
+  json(data, status = 200) {
+    return new Response(JSON.stringify(data), {
+      status,
+      headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }
+    });
+  }
+
+  initialized() {
+    const rows = this.ctx.storage.sql.exec("SELECT value FROM adhkar_meta WHERE key = 'initialized'").toArray();
+    return rows[0]?.value === "1";
+  }
+
+  mapEntry(row) {
+    return {
+      id: row.id, group: row.group_name, title: row.title, text: row.text,
+      count: row.count == null ? null : Number(row.count),
+      occasion: row.occasion || "", source: row.source || "",
+      sourceUrl: row.source_url || "", kind: row.kind === "note" ? "note" : "dhikr"
+    };
+  }
+
+  async fetch(request) {
+    const url = new URL(request.url);
+    const path = url.pathname;
+    const method = request.method;
+
+    if (path === "/entries" && method === "GET") {
+      const rows = this.ctx.storage.sql.exec(
+        "SELECT id, group_name, title, text, count, occasion, source, source_url, kind FROM adhkar_entries ORDER BY rowid ASC"
+      ).toArray();
+      return this.json({ initialized: this.initialized(), entries: rows.map(row => this.mapEntry(row)) });
+    }
+
+    if (path === "/initialize" && method === "POST") {
+      if (this.initialized()) return this.json({ error: "already_initialized" }, 409);
+      const body = await request.json();
+      if (!Array.isArray(body.entries) || body.entries.length < 1 || body.entries.length > 200) {
+        return this.json({ error: "invalid_initial_entries" }, 400);
+      }
+      const now = new Date().toISOString();
+      for (const item of body.entries) {
+        this.ctx.storage.sql.exec(
+          "INSERT INTO adhkar_entries (id, group_name, title, text, count, occasion, source, source_url, kind, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+          item.id, item.group, item.title, item.text, item.count, item.occasion,
+          item.source, item.sourceUrl, item.kind, now, now
+        );
+      }
+      this.ctx.storage.sql.exec("UPDATE adhkar_meta SET value = '1' WHERE key = 'initialized'");
+      return this.json({ initialized: true, count: body.entries.length });
+    }
+
+    if (path === "/entry" && (method === "POST" || method === "PUT")) {
+      if (!this.initialized()) return this.json({ error: "initialize_library_first" }, 409);
+      const item = await request.json();
+      const now = new Date().toISOString();
+      this.ctx.storage.sql.exec(
+        "INSERT INTO adhkar_entries (id, group_name, title, text, count, occasion, source, source_url, kind, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET group_name=excluded.group_name, title=excluded.title, text=excluded.text, count=excluded.count, occasion=excluded.occasion, source=excluded.source, source_url=excluded.source_url, kind=excluded.kind, updated_at=excluded.updated_at",
+        item.id, item.group, item.title, item.text, item.count, item.occasion,
+        item.source, item.sourceUrl, item.kind, now, now
+      );
+      this.ctx.storage.sql.exec("UPDATE adhkar_meta SET value = '1' WHERE key = 'initialized'");
+      return this.json({ saved: true, entry: item });
+    }
+
+    const deleteEntry = /^\/entry\/([a-z0-9-]{1,80})$/i.exec(path);
+    if (deleteEntry && method === "DELETE") {
+      this.ctx.storage.sql.exec("DELETE FROM adhkar_entries WHERE id = ?", deleteEntry[1]);
+      return this.json({ deleted: true });
+    }
+
+    if (path === "/suggestions" && method === "POST") {
+      const item = await request.json();
+      this.ctx.storage.sql.exec(
+        "INSERT INTO adhkar_suggestions (id, group_name, title, text, count, occasion, source, source_url, kind, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        item.id, item.group, item.title, item.text, item.count, item.occasion,
+        item.source, item.sourceUrl, item.kind, item.createdAt
+      );
+      return this.json({ accepted: true });
+    }
+
+    if (path === "/suggestions" && method === "GET") {
+      const rows = this.ctx.storage.sql.exec(
+        "SELECT id, group_name, title, text, count, occasion, source, source_url, kind, created_at FROM adhkar_suggestions ORDER BY created_at ASC"
+      ).toArray();
+      return this.json({ suggestions: rows.map(row => ({ ...this.mapEntry(row), createdAt: row.created_at })) });
+    }
+
+    const approve = /^\/suggestion\/([a-f0-9-]{1,80})\/approve$/i.exec(path);
+    if (approve && method === "POST") {
+      if (!this.initialized()) return this.json({ error: "initialize_library_first" }, 409);
+      const body = await request.json();
+      const rows = this.ctx.storage.sql.exec(
+        "SELECT id, group_name, title, text, count, occasion, source, source_url, kind FROM adhkar_suggestions WHERE id = ?",
+        approve[1]
+      ).toArray();
+      if (!rows.length) return this.json({ error: "suggestion_not_found" }, 404);
+      const item = this.mapEntry(rows[0]);
+      if (!item.source) return this.json({ error: "source_required_before_approval" }, 400);
+      const now = new Date().toISOString();
+      this.ctx.storage.sql.exec(
+        "INSERT INTO adhkar_entries (id, group_name, title, text, count, occasion, source, source_url, kind, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        body.entryId, item.group, item.title, item.text, item.count, item.occasion,
+        item.source, item.sourceUrl, item.kind, now, now
+      );
+      this.ctx.storage.sql.exec("DELETE FROM adhkar_suggestions WHERE id = ?", approve[1]);
+      return this.json({ approved: true, entry: { ...item, id: body.entryId } });
+    }
+
+    const reject = /^\/suggestion\/([a-f0-9-]{1,80})\/reject$/i.exec(path);
+    if (reject && method === "POST") {
+      this.ctx.storage.sql.exec("DELETE FROM adhkar_suggestions WHERE id = ?", reject[1]);
+      return this.json({ rejected: true });
+    }
+
+    return this.json({ error: "not_found" }, 404);
+  }
+}
+
 export default {
   async fetch(request, env, ctx) {
     const configuredOrigins = String(env.ALLOWED_ORIGINS || env.ALLOWED_ORIGIN || "");
@@ -416,19 +813,21 @@ export default {
       return withCors(new Response(null, {
         status: 204,
         headers: {
-          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type",
+          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
           "Access-Control-Max-Age": "600",
           "Cache-Control": "no-store"
         }
       }), origin, {
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
         "Access-Control-Max-Age": "600"
       });
     }
 
     const url = new URL(request.url);
+    const adhkarResponse = await handleAdhkarApi(request, url, env, origin);
+    if (adhkarResponse) return adhkarResponse;
 
     if (request.method === "POST") {
       if (!url.search && resolveRoute(url)) {
