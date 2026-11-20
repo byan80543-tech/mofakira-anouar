@@ -9,6 +9,7 @@ const htmlAudit=JSON.parse(execFileSync('python3',[path.join(root,'scripts/html_
 const appCore=fs.readFileSync(path.join(root,'app-core.js'),'utf8');
 const prayerTimes=fs.readFileSync(path.join(root,'prayer-times.js'),'utf8');
 const tasbihController=fs.readFileSync(path.join(root,'tasbih-controller.js'),'utf8');
+const protectiveAdhkar=fs.readFileSync(path.join(root,'protective-adhkar.js'),'utf8');
 const poetryDictation=fs.readFileSync(path.join(root,'poetry-dictation.js'),'utf8');
 const appSource=html+String.fromCharCode(10)+appCore;
 const serviceWorker=fs.readFileSync(path.join(root,'service-worker.js'),'utf8');
@@ -27,6 +28,7 @@ const failures=[];
 const ok=(condition,message)=>{if(!condition)failures.push(message);else console.log('PASS',message)};
 try{new vm.Script(tasbihController,{filename:'tasbih-controller.js'});ok(true,'standalone tasbih controller JavaScript syntax is valid')}catch(error){failures.push('tasbih-controller.js: '+error.message)}
 try{new vm.Script(poetryDictation,{filename:'poetry-dictation.js'});ok(true,'standalone poetry dictation controller JavaScript syntax is valid')}catch(error){failures.push('poetry-dictation.js: '+error.message)}
+try{new vm.Script(protectiveAdhkar,{filename:'protective-adhkar.js'});ok(true,'protective adhkar data JavaScript syntax is valid')}catch(error){failures.push('protective-adhkar.js: '+error.message)}
 ok(html.includes('id="sp"')&&html.includes('id="speakRead"'),'poetry dictation and spoken reading have separate toolbar controls');
 ok(html.indexOf('<script src="./poetry-dictation.js')<html.indexOf('<script src="./app-core.js'),'poetry dictation controller loads before the notebook application');
 ok(appCore.includes("else if(id==='sp')togglePoetryDictation()")&&appCore.includes("else if(id==='speakRead')speakText()"),'dictation and speech playback are routed to their own actions');
@@ -34,6 +36,12 @@ ok(appCore.includes('function appendPoetryDictationText')&&appCore.includes('tou
 ok(serviceWorker.includes("'./poetry-dictation.js'")&&/const CACHE_NAME='anwar-shell-[0-9]{4}-[0-9]{2}-[0-9]{2}-v[0-9]+';/.test(serviceWorker),'poetry dictation is part of the versioned offline app shell');
 
 ok(appCore.includes('window.AnwarRenderAdhkar=function(period)') && appCore.includes('window.AnwarShowOwnerPanel=function(which)'), 'notebook exposes narrow bridges for adhkar rendering and owner/publication selection');
+ok(html.includes('id="protectionTab"') && html.includes('aria-label="أقسام الأذكار"'), 'the adhkar page exposes a distinct protective adhkar tab');
+ok(appCore.includes("else if(id==='protectionTab')renderAdhkar('protection')") && appCore.includes('function renderProtectiveAdhkar()') && appCore.includes("period!=='protection'"), 'protective adhkar tab is connected to its own renderer');
+ok(appCore.includes('data-protective-action') && appCore.includes('protectiveProgress') && appCore.includes('item.count'), 'protective adhkar cards include per-item repeat tracking without inventing fixed counts');
+ok(protectiveAdhkar.includes('ANWAR_PROTECTIVE_ADHKAR') && protectiveAdhkar.includes('صحيح البخاري 3371') && protectiveAdhkar.includes('صحيح مسلم 2186'), 'protective adhkar data carries hadith text and source references');
+ok(html.includes('./protective-adhkar.js?v=20261120-1') && html.indexOf('./protective-adhkar.js')<html.indexOf('./app-core.js'), 'protective adhkar data loads before the renderer');
+ok(serviceWorker.includes("'./protective-adhkar.js'") && /const CACHE_NAME='anwar-shell-[0-9]{4}-[0-9]{2}-[0-9]{2}-v[0-9]+';/.test(serviceWorker), 'protective adhkar data is included in the versioned offline shell');
 ok(!appCore.includes("const $=id=>document.getElementById(id),panel=$('tasbihPanel')"), 'tasbih runtime is removed from the delayed notebook initializer');
 ok(tasbihController.includes('window.AnwarTasbihController=Object.freeze({') && tasbihController.includes('open(){') && tasbihController.includes('panel.hidden=false') && !tasbihController.includes('ownerDialog') && !tasbihController.includes('ownerPanel'), 'standalone tasbih controller opens directly without depending on ownership navigation');
 ok(appCore.includes("if(name==='tasbih')") && appCore.includes('controller.open()') && appCore.includes("if(name==='adhkar'&&typeof window.AnwarRenderAdhkar==='function')"), 'dedicated dashboard cards open tasbih directly and load morning adhkar');
