@@ -89,14 +89,26 @@ async function call(path, method = 'GET', body, token, origin, includeIp = true)
   return worker.fetch(request(path, method, body, token, origin, includeIp), env, {});
 }
 
-// Public reading requires no visitor identity, session, cookie, or IP header.
+// Public reading works without per-visitor IP hashing, cookies, or an owner session.
+const savedIpLimiter = env.IP_LIMITER;
+const savedIpSecret = env.IP_HASH_SECRET;
+env.IP_LIMITER = undefined;
+env.IP_HASH_SECRET = '';
 let response = await call('/v1/adhkar', 'GET', undefined, undefined, undefined, false);
-assert.equal(response.status, 200, 'public visitors can read the approved library without an IP identifier');
+env.IP_LIMITER = savedIpLimiter;
+env.IP_HASH_SECRET = savedIpSecret;
+assert.equal(response.status, 200, 'public visitors can read the official library without any per-IP service');
 let data = await response.json();
 assert.equal(data.initialized, false, 'an empty store is clearly marked');
 assert.deepEqual(data.entries, [], 'the public endpoint returns only official entries');
 assert.deepEqual(edgeKeys, ['anwar-adhkar-public-read'], 'public reads use one shared edge bucket');
 assert.equal(ownerRateBuckets.length, 0, 'public reads do not invoke per-visitor IP hashing or storage');
+
+edgeAllowed = false;
+response = await call('/v1/adhkar', 'GET', undefined, undefined, undefined, false);
+assert.equal(response.status, 429, 'the shared edge limit still protects the site from excessive public reads');
+assert.equal(response.headers.get('Retry-After'), '60', 'edge throttling gives a retry delay');
+edgeAllowed = true;
 
 // All visitor write attempts are rejected; the retired suggestion API is gone.
 response = await call('/v1/adhkar', 'POST', {
