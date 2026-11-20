@@ -2043,7 +2043,13 @@ dialog[open]>.float-head{display:none!important}
  #rib .rib-pop{width:min(280px,calc(100vw - 16px));max-height:58vh;padding:10px}
  #rib .rib-controls .b{min-height:36px}
 }
-</style></head>
+<style id="anwar-ribbon-compatibility">
+#rib .rib-pop .g{display:block;flex:none;min-width:0;width:100%;padding:0;border:0;background:transparent}
+#rib .rib-pop .g>div{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:5px}
+#rib .rib-pop .g>small{display:block;margin-top:5px;text-align:right;font:700 9px Cairo,Tahoma,sans-serif;color:var(--mu)}
+#rib .rib-pop .bkp-tool svg{width:18px;height:18px;vertical-align:middle;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}
+#rib .rib-pop .bkp-tool:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+</style></style></head>
 <body>
 <div class="app" id="app">
 <button type="button" id="exitFocus" class="focus-exit" aria-label="الخروج من وضع التركيز" title="الخروج من وضع التركيز">×</button>
@@ -2161,9 +2167,9 @@ dialog[open]>.float-head{display:none!important}
    </div>
   </div>
  </details>
- <details class="rib-menu" id="bookToolPanel" name="anwar-ribbon-menu">
-  <summary class="rib-trigger" id="bookToolToggle" aria-expanded="false" aria-controls="bookToolContent" title="الطباعة والتصدير والاستيراد"><span aria-hidden="true">⇧</span><small>الملف</small></summary>
-  <div class="rib-pop" id="bookToolContent">
+ <details class="rib-menu book-tool-card" id="bookToolPanel" name="anwar-ribbon-menu">
+  <summary class="rib-trigger book-tool-toggle" id="bookToolToggle" aria-expanded="false" aria-controls="bookToolContent" title="الطباعة والتصدير والاستيراد"><span aria-hidden="true">⇧</span><small>الملف</small></summary>
+  <div class="rib-pop" id="bookToolContent" hidden>
    <div class="rib-pop-title">العمل الحالي</div>
    <div class="rib-controls">
     <button class="b" id="prn" title="طباعة العمل الحالي" aria-label="طباعة العمل الحالي">🖨️ طباعة</button>
@@ -2198,15 +2204,15 @@ dialog[open]>.float-head{display:none!important}
  </details>
  <details class="rib-menu" name="anwar-ribbon-menu">
   <summary class="rib-trigger" aria-label="أدوات إضافية" title="التركيز والإلهام والنسخ والتثبيت"><span aria-hidden="true">⋯</span><small>المزيد</small></summary>
-  <div class="rib-pop"><div class="rib-controls">
+  <div class="rib-pop"><div class="g"><div class="rib-controls">
    <button class="b" id="fo" title="إخفاء الأدوات للتركيز على الكتابة" aria-label="تشغيل وضع التركيز">🎯 تركيز</button>
    <button class="b" id="ip" title="عرض فكرة تساعد على الكتابة" aria-label="عرض فكرة للكتابة">💡 إلهام</button>
    <button class="b" id="pn" title="تثبيت العمل أو إلغاء تثبيته" aria-label="تثبيت العمل أو إلغاء تثبيته">☆ تثبيت</button>
    <button class="b" id="cy" title="نسخ نص العمل" aria-label="نسخ نص العمل إلى الحافظة">📋 نسخ</button>
-   <button class="b bkp-tool" id="bkp" type="button" title="إنشاء نسخة احتياطية مشفرة أو استعادتها" aria-label="فتح النسخة الاحتياطية المشفرة" aria-haspopup="dialog" aria-controls="dg">🔐 نسخة مشفرة</button>
+   <button class="b bkp-tool" id="bkp" type="button" title="إنشاء نسخة احتياطية مشفرة أو استعادتها" aria-label="فتح النسخة الاحتياطية المشفرة" aria-haspopup="dialog" aria-controls="dg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h12l3.5 3.5v13.5H3.5V3.5H5Z"/><path d="M7 3.5v6h9v-6M8 20.5v-7h8v7"/></svg><span>نسخة مشفرة</span></button>
    <button class="b" id="hist" title="فتح سجل الإصدارات السابقة" aria-label="سجل إصدارات العمل">🕘 الإصدارات</button>
    <button class="b dn" id="dl" title="حذف العمل" aria-label="حذف العمل الحالي">🗑️ حذف العمل</button>
-  </div></div>
+  </div><small>أدوات أنوار</small></div></div>
  </details>
 </div>
 <div id="fm"><input id="fq" placeholder="ابحث عن خط…"><div id="fl"></div></div>
