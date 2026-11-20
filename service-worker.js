@@ -3,7 +3,7 @@
  * the matching HTML, update checker and local assets before activation.
  */
 'use strict';
-const CACHE_NAME='anwar-shell-2026-11-20-v118';
+const CACHE_NAME='anwar-shell-2026-11-20-v119';
 const APP_BASE=new URL('./',self.registration.scope);
 const SHELL_ASSETS=[
  './index.html',
@@ -13,6 +13,7 @@ const SHELL_ASSETS=[
  './poetry-dictation.js',
  './tasbih-controller.js',
  './official-adhkar.js',
+ './protection-adhkar.js',
  './vault-crypto.js',
  './vault-storage.js',
  './vault-device-unlock.js',
