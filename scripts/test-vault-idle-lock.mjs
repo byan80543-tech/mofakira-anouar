@@ -3,6 +3,9 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
 const html=fs.readFileSync(new URL('../app-core.js',import.meta.url),'utf8');
+const readme=fs.readFileSync(new URL('../README.md',import.meta.url),'utf8');
+assert.ok(readme.includes('القفل اليدوي هو المعتمد حالياً') && !readme.includes('التلقائي بعد خمس دقائق'),
+  'project documentation must describe the current manual-only vault lock policy');
 const start=html.indexOf('const VAULT_IDLE_LOCK_MS=0;');
 const end=html.indexOf('function showVaultGate(mode,message){',start);
 assert.ok(start>=0&&end>start,'vault inactivity lock helpers are present');

@@ -44,10 +44,12 @@ object PrayerAlarmScheduler {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val operation = createPendingIntent(context, eventId, prayerKey, prayerName, selectedTime)
         return try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && alarmManager.canScheduleExactAlarms()) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms()) {
+                // setExactAndAllowWhileIdle is available from minSdk 23.
+                // Android 12+ requires the special exact-alarm access check.
                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, selectedTime, operation)
             } else {
-                // Fallback only: Android may delay an inexact alarm while idle.
+                // Android 12+ without exact-alarm access: best-effort fallback.
                 alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, selectedTime, operation)
             }
             true
