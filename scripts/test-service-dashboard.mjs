@@ -190,7 +190,7 @@ lessonsBack.fire('click');
 services.adhkar.fire('click');
 assert.equal(home.hidden,true,'opening adhkar hides the dashboard');
 assert.equal(adhkarPage.hidden,false,'opening adhkar shows the dedicated adhkar page');
-assert.deepEqual(renderedAdhkar,['morning'],'opening adhkar starts with the morning list');
+assert.deepEqual(renderedAdhkar,['protection'],'opening the adhkar card opens the unified protection collection directly');
 adhkarBack.fire('click');
 assert.equal(home.hidden,false,'returning from adhkar restores the dashboard');
 assert.equal(adhkarPage.hidden,true,'returning from adhkar hides its page');
