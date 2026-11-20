@@ -1,0 +1,32 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+
+const read = (path) => fs.readFileSync(new URL('../' + path, import.meta.url), 'utf8');
+const manifest = read('android/app/src/main/AndroidManifest.xml');
+const activity = read('android/app/src/main/java/com/anwar/mofakira/MainActivity.kt');
+const scheduler = read('android/app/src/main/java/com/anwar/mofakira/alarm/PrayerAlarmScheduler.kt');
+const receiver = read('android/app/src/main/java/com/anwar/mofakira/alarm/PrayerAlarmReceiver.kt');
+const service = read('android/app/src/main/java/com/anwar/mofakira/playback/AdhanPlaybackService.kt');
+const calendar = read('android/app/src/main/java/com/anwar/mofakira/alarm/PrayerCalendarRepository.kt');
+const prayer = read('prayer-times.js');
+
+assert.match(manifest, /SCHEDULE_EXACT_ALARM/);
+assert.match(manifest, /FOREGROUND_SERVICE_MEDIA_PLAYBACK/);
+assert.match(manifest, /android:foregroundServiceType="mediaPlayback"/);
+assert.match(manifest, /RECEIVE_BOOT_COMPLETED/);
+assert.match(activity, /WEB_MESSAGE_LISTENER/);
+assert.match(activity, /setOf\(SITE_ORIGIN\)/);
+assert.match(activity, /isMainFrame/);
+assert.ok(activity.includes('feat-native-background-adhan.mofakira-anouar.pages.dev'),'Android test APK opens the same branch preview that contains the web bridge');
+assert.match(scheduler, /setExactAndAllowWhileIdle/);
+assert.match(scheduler, /setAndAllowWhileIdle/);
+assert.match(receiver, /PrayerAlarmScheduler.scheduleNext\(context\)/);
+assert.match(receiver, /startForegroundService/);
+assert.match(service, /ServiceCompat.startForeground/);
+assert.match(service, /MediaPlayer/);
+assert.ok(service.includes('media.setVolume(config.volume, config.volume)'),'native playback applies the selected adhan volume');
+assert.match(calendar, /calendarByCity/);
+assert.match(prayer, /function syncNativeBackground\(\)/);
+assert.match(prayer, /bridge\.postMessage\(JSON\.stringify\(payload\)\)/);
+assert.match(prayer, /enabledInput\.addEventListener/);
+console.log('Native background adhan bridge and scheduling tests passed.');

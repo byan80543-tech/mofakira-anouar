@@ -246,6 +246,21 @@
   testButton.textContent=voice.external?'استماع إلى الأذان المغربي':'تجربة الأذان';
  }
  updateVoiceSource();
+ function syncNativeBackground(){
+  const bridge=window.AnwarAdhanBridge;
+  if(!bridge||typeof bridge.postMessage!=='function')return false;
+  const payload={
+   enabled:settings.enabled,
+   city:settings.city,
+   country:settings.country,
+   method:settings.method,
+   school:settings.school,
+   timezone:timeZone,
+   voice:currentVoice().key,
+   volume:settings.volume
+  };
+  try{bridge.postMessage(JSON.stringify(payload));return true}catch(_e){return false}
+ }
  function countryForApi(value){
   const trimmed=String(value||'').trim();
   return COUNTRY_ALIASES[trimmed]||trimmed;
@@ -445,7 +460,13 @@
    tomorrowData=await fetchDay(tomorrowText,token);
    if(token!==loadToken)return;
    persist();renderTimes();lastDateCheck=todayText;
-   if(!silent)setStatus('تم تحديث مواقيت الصلاة. جرّب الأذان واسمح للمتصفح بتشغيل الصوت تلقائيًا.');
+   const nativeBridgeReady=syncNativeBackground();
+   if(!silent){
+    if(settings.enabled&&currentVoice().external)setStatus('هذا التسجيل الخارجي لا يدعم الأذان بعد إغلاق المفكرة؛ اختر تسجيلًا صوتيًا مباشرًا.');
+    else if(settings.enabled&&nativeBridgeReady)setStatus('أُرسلت إعدادات الأذان إلى تطبيق أنوار المرافق؛ أكمل أذونات الهاتف لتشغيله في الخلفية.');
+    else if(settings.enabled)setStatus('للتشغيل بعد إغلاق المفكرة، افتحها من تطبيق أندرويد المرافق.');
+    else setStatus('تم تحديث مواقيت الصلاة. يمكنك تجربة الأذان ثم تفعيل التنبيه.');
+   }
    tick();
   }catch(error){
    if(token===loadToken){
@@ -470,21 +491,27 @@
  });
  enabledInput.addEventListener('change',()=>{
   settings.enabled=enabledInput.checked;persist();
+  const nativeBridgeReady=syncNativeBackground();
   if(settings.enabled){
-   if(currentVoice().external)setStatus('التسجيل المغربي القديم يفتح من YouTube ولا يعمل تلقائيًا داخل المفكرة؛ اختر صوتًا مباشرًا للتنبيه التلقائي.');
-   else setStatus('تم تفعيل الأذان التلقائي. جرّب الأذان أولًا واسمح للمتصفح بتشغيل الصوت.');
-  }else{if(!audio.paused)audio.pause();setStatus('تم إيقاف الأذان التلقائي وإيقاف الصوت الجاري.');}
+   if(currentVoice().external)setStatus('هذا التسجيل الخارجي لا يدعم الأذان بعد إغلاق المفكرة؛ اختر صوتًا مباشرًا.');
+   else if(nativeBridgeReady)setStatus('أُرسلت إعدادات الأذان إلى تطبيق أنوار المرافق؛ أكمل أذونات الهاتف.');
+   else setStatus('فُعّل الأذان داخل المفكرة. للتشغيل بعد إغلاقها استخدم تطبيق أندرويد المرافق.');
+  }else{
+   if(!audio.paused)audio.pause();
+   setStatus('تم إيقاف الأذان التلقائي وإرسال أمر الإيقاف إلى التطبيق المرافق.');
+  }
  });
  volumeInput.addEventListener('input',()=>{
   settings.volume=Math.max(0,Math.min(1,Number(volumeInput.value)||0));audio.volume=settings.volume;persist();
  });
+ volumeInput.addEventListener('change',syncNativeBackground);
  voiceSelect.addEventListener('change',()=>{
   const next=VOICES.find(item=>item.key===voiceSelect.value);
   if(!next)return;
   settings.voice=next.key;audio.pause();
   if(next.external)audio.removeAttribute('src');else audio.src=next.url;
-  audio.load();persist();updateVoiceSource();
-  setStatus(next.external?'تم اختيار الأذان المغربي القديم. اضغط «استماع إلى الأذان المغربي» لفتح التسجيل الأصلي.':'تم اختيار '+next.label+'.');
+  audio.load();persist();updateVoiceSource();syncNativeBackground();
+  setStatus(next.external?'تم اختيار التسجيل المغربي؛ لا يدعم التشغيل الخلفي في الإصدار الحالي.':'تم اختيار '+next.label+'.');
  });
  testButton.addEventListener('click',()=>{
   const voice=currentVoice();
