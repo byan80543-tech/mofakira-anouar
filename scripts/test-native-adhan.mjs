@@ -21,6 +21,8 @@ assert.match(activity, /isMainFrame/);
 assert.ok(activity.includes('feat-native-background-adhan.mofakira-anouar.pages.dev'),'Android test APK opens the same branch preview that contains the web bridge');
 assert.match(scheduler, /setExactAndAllowWhileIdle/);
 assert.match(scheduler, /setAndAllowWhileIdle/);
+assert.match(scheduler, /Build\\.VERSION\\.SDK_INT < Build\\.VERSION_CODES\\.S \\|\\| alarmManager\\.canScheduleExactAlarms\\(\\)/,
+  'Android 6–11 keep exact alarms; only Android 12+ without special access uses the inexact fallback');
 assert.match(receiver, /PrayerAlarmScheduler.scheduleNext\(context\)/);
 assert.match(receiver, /startForegroundService/);
 assert.match(service, /ServiceCompat.startForeground/);
