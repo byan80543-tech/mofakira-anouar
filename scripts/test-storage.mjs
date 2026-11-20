@@ -13,7 +13,7 @@ const extracted=[
   between('function showStorageRecoveryNotice(','function exportStorageRecovery()'),
   between('function exportStorageRecovery(){','function save(){'),
   between('function save(){','function toast('),
-  between('function plain(h){','const notePlainTextCache='),
+  between('function htmlToPlainText(value){','const notePlainTextCache='),
   between('let pendingBefore=null;','function saveSel(){'),
   between('function openNote(n){','function applyPaperClass(style){')
 ].join('\n');
