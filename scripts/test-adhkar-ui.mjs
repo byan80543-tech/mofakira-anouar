@@ -77,7 +77,7 @@ assert.ok(wrangler.includes('name = "ADHKAR_STORE"') &&
 assert.ok(deploy.includes('ADHKAR_ADMIN_SECRET') && deploy.includes('secrets: |'),
   'the owner credential is injected as a server-side Worker secret');
 assert.ok(serviceWorker.includes("'./adhkar-management.js'") &&
-  serviceWorker.includes('anwar-shell-2026-11-20-v122'),
+  serviceWorker.includes('anwar-shell-2026-11-20-v123'),
   'the owner management module remains in the offline shell');
 
 console.log('Owner-only adhkar UI, privacy and offline integration tests passed.');
