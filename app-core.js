@@ -2101,15 +2101,17 @@ async function doWord(){
 function openHistory(){if(!cur){toast('افتح عملًا أولًا');return}clearTimeout(tm);if(pendingBefore){cur.history=cur.history||[];if(pendingBefore.html!==cur.html)cur.history.push(pendingBefore);cur.history=cur.history.slice(-15);pendingBefore=null}const h=(cur.history||[]).slice().reverse();$('historyItems').innerHTML=h.length?h.map((v,i)=>`<button type="button" class="history-item" data-ver="${h.length-1-i}"><span>${esc(v.title||'بلا عنوان')} · ${TYPES[v.type]||'عمل'}</span><small>${fmt(v.ts)}</small></button>`).join(''):'<p class="empty">لا توجد إصدارات سابقة لهذا العمل بعد.</p>';$('historyDialog').showModal()}
 function restoreHistory(i){if(!cur)return;const h=cur.history||[],v=h[i];if(!v)return;if(!confirm('استعادة هذا الإصدار؟ سيُحفظ الإصدار الحالي في السجل قبل الاستعادة.'))return;h.push({title:cur.title,type:cur.type,html:cur.html,ts:cur.ts,font:cur.font,size:cur.size,paper:cur.paper||'plain'});cur.history=h.slice(-15);Object.assign(cur,{title:v.title,type:v.type,html:v.html,ts:Date.now(),font:v.font,size:v.size,paper:v.paper||'plain'});pg.innerHTML=san(cur.html);$('t').value=cur.title;$('ty').value=cur.type;save();openNote(cur);$('historyDialog').close();toast('تمت استعادة الإصدار')}
 function setBookToolExpanded(open,scroll=false){
- const app=$('app'),panel=$('bookToolPanel'),toggle=$('bookToolToggle');
- if(!panel||!toggle)return;
+ const app=$('app'),panel=$('bookToolPanel'),content=$('bookToolContent'),toggle=$('bookToolToggle');
+ if(!panel||!content||!toggle)return;
  panel.open=!!open;
+ content.hidden=!open;
  toggle.setAttribute('aria-expanded',String(!!open));
  if(app)app.classList.toggle('book-open',!!open);
  if(open&&scroll)requestAnimationFrame(()=>panel.scrollIntoView({behavior:'smooth',block:'nearest'}));
 }
 $('bookToolPanel')?.addEventListener('toggle',()=>{
- const panel=$('bookToolPanel'),toggle=$('bookToolToggle');
+ const panel=$('bookToolPanel'),content=$('bookToolContent'),toggle=$('bookToolToggle');
+ if(content)content.hidden=!panel?.open;
  if(toggle)toggle.setAttribute('aria-expanded',String(!!panel?.open));
  $('app')?.classList.toggle('book-open',!!panel?.open);
 });
@@ -2442,7 +2444,7 @@ function toggleTasbihFromToolbar(button){
  }
 }
 document.addEventListener('click',e=>{
- const t=e.target.closest('button,.card,#fl div,.archive-card');
+ const t=e.target.closest('button,summary,.card,#fl div,.archive-card');
  if(!e.target.closest('#fm')&&t?.id!=='fb')$('fm').classList.remove('o');
  if(!e.target.closest('#paperStylePanel')&&t?.id!=='paperStyleBtn'){$('paperStylePanel').hidden=true;$('paperStyleBtn').setAttribute('aria-expanded','false')}
  if(!t)return;
@@ -2459,7 +2461,8 @@ document.addEventListener('click',e=>{
  const id=t.id;
  if(t.dataset.paper){setPaperStyle(t.dataset.paper);return}
  if(id==='paperStyleBtn'){const panel=$('paperStylePanel'),open=panel.hidden,rect=t.getBoundingClientRect();panel.hidden=!open;t.setAttribute('aria-expanded',String(open));if(open){panel.style.top=Math.min(innerHeight-panel.offsetHeight-10,Math.max(8,rect.bottom+5))+'px';panel.style.left=Math.max(10,Math.min(rect.left,innerWidth-panel.offsetWidth-10))+'px'}return}
- if(id==='createBook')createBook();
+ if(id==='bookToolToggle'){e.preventDefault();setBookToolExpanded($('bookToolContent').hidden,true)}
+ else if(id==='createBook')createBook();
  else if(id==='addBookFile')$('bookFilePicker').click();
  else if(id==='hist')openHistory();
  else if(id==='closeHistory')$('historyDialog').close();
