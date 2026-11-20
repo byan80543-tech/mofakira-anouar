@@ -59,6 +59,8 @@ jobs:
         run: node scripts/test-service-dashboard.mjs
       - name: Test compact prayer card and loading states
         run: node scripts/test-prayer-times-ui.mjs
+      - name: Test protection adhkar content, counts and navigation
+        run: node scripts/test-protection-adhkar.mjs
       - name: Test direct tasbih icon opens its dialog
         run: node scripts/test-tasbih-open.mjs
       - name: Test tasbih counter, voice capture and dhikr management
