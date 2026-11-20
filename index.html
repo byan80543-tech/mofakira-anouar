@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.aladhan.com https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="preload" href="./app-core.js?v=20261120-25" as="script">
+<link rel="preload" href="./app-core.js?v=20261120-26" as="script">
 <script src="api-gateway-config.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>مفكرة أنوار | Anouar Oumlili</title>
@@ -2256,7 +2256,7 @@ dialog[open]>.float-head{display:none!important}
 <div id="fm"><input id="fq" placeholder="ابحث عن خط…"><div id="fl"></div></div>
 <div id="pa"></div>
 <div id="rd" aria-label="لوحة الإذاعة">
- <div class="curtain-head"><button type="button" id="ownerBtn" class="radio-owner-pen" aria-label="الملكية والأذكار والسبحة" title="الملكية والأذكار والسبحة"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5 20.5 17 16 21.5 2.5 8 7 3.5Z" fill="#f1d89c" stroke="#fff0c5" stroke-width="1.1" stroke-linejoin="round"/><path d="m2.5 8 4.5-4.5M16 21.5l4.5-4.5M5.5 11.5l4.5-4.5" fill="none" stroke="#3b2d70" stroke-width="1.1"/><path d="m2.5 8-1 7.5L9 14.5" fill="#fff0c5" stroke="#fff0c5" stroke-linejoin="round"/></svg></button><button type="button" id="closeRadioPanel" class="radio-close-button" aria-label="إغلاق لوحة الإذاعة">×</button></div>
+ <div class="curtain-head"><button type="button" id="ownerBtn" class="radio-owner-pen" aria-label="الملكية وبطاقة النشر" title="الملكية وبطاقة النشر"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5 20.5 17 16 21.5 2.5 8 7 3.5Z" fill="#f1d89c" stroke="#fff0c5" stroke-width="1.1" stroke-linejoin="round"/><path d="m2.5 8 4.5-4.5M16 21.5l4.5-4.5M5.5 11.5l4.5-4.5" fill="none" stroke="#3b2d70" stroke-width="1.1"/><path d="m2.5 8-1 7.5L9 14.5" fill="#fff0c5" stroke="#fff0c5" stroke-linejoin="round"/></svg></button><button type="button" id="closeRadioPanel" class="radio-close-button" aria-label="إغلاق لوحة الإذاعة">×</button></div>
  <section id="anwarServiceHome" class="anwar-service-home" aria-label="الأقسام الرئيسية">
   <div id="anwarPrayerMount"></div>
   <div id="anwarServiceGrid" class="anwar-service-grid" aria-label="الأقسام">
@@ -2276,6 +2276,14 @@ dialog[open]>.float-head{display:none!important}
     <span class="lesson-series-button-tulip" aria-hidden="true"><img src="assets/tulip-cutout.svg" alt=""></span>
     <span class="lesson-series-button-copy"><small>الدروس والمحاضرات</small><strong>السلاسل والدروس الصوتية</strong></span>
    </button>
+   <button type="button" class="lesson-series-button anwar-service-card" data-anwar-service="adhkar" aria-controls="anwarAdhkarPage">
+    <span class="lesson-series-button-tulip" aria-hidden="true"><img src="assets/tulip-cutout.svg" alt=""></span>
+    <span class="lesson-series-button-copy"><small>الأذكار</small><strong>أذكار الصباح والمساء</strong></span>
+   </button>
+   <button type="button" class="lesson-series-button anwar-service-card" data-anwar-service="tasbih" aria-controls="anwarTasbihPage">
+    <span class="lesson-series-button-tulip" aria-hidden="true"><img src="assets/tulip-cutout.svg" alt=""></span>
+    <span class="lesson-series-button-copy"><small>السبحة</small><strong>التسبيح والعدّ الصوتي</strong></span>
+   </button>
   </div>
  </section>
  <section id="anwarQuranPage" class="anwar-service-page" aria-label="القرآن الكريم" hidden>
@@ -2287,6 +2295,89 @@ dialog[open]>.float-head{display:none!important}
  </section>
  <section id="anwarLessonsPage" class="anwar-service-page" aria-label="الدروس والمحاضرات" hidden>
   <div class="anwar-service-page-head"><button type="button" class="anwar-service-back" data-anwar-service-back>‹　العودة إلى الأقسام</button></div>
+ </section>
+ <section id="anwarAdhkarPage" class="anwar-service-page" aria-label="الأذكار" hidden>
+  <div class="anwar-service-page-head"><button type="button" class="anwar-service-back" data-anwar-service-back>‹　العودة إلى الأقسام</button></div>
+  <section id="adhkarPanel" class="anwar-adhkar-page-content" aria-label="أذكار الصباح والمساء">
+  <div class="owner-tabs adhkar-tabs" style="margin-top:0">
+   <button type="button" class="active" id="morningTab">أذكار الصباح</button>
+   <button type="button" id="eveningTab">أذكار المساء</button>
+   
+  </div>
+  
+  <div id="adhkarContent" class="adhkar-list"></div>
+  <small style="display:block;color:var(--mu);margin-top:8px;line-height:1.8">مراجعة المصدر: الآية من القرآن الكريم، والأذكار النبوية تُعزى إلى مصادرها الحديثية. لا تُعرض هذه القائمة على أنها حصر كامل للأذكار. للتحقق من نصوص الكتب وأبوابها: <a href="https://sunna.alifta.gov.sa/Book/IndexMatnBooks" target="_blank" rel="noopener noreferrer">مكتبة الحديث التابعة للرئاسة العامة للبحوث العلمية والإفتاء</a>، وتشمل الصحيحين والسنن وموطأ مالك ومسند أحمد. كما يمكن مراجعة التخريج والحكم عبر <a href="https://dorar.net/" target="_blank" rel="noopener noreferrer">الموسوعة الحديثية بالدرر السنية</a>. وعند إضافة أذكار أخرى يُذكر الكتاب ورقم الحديث ودرجة الحديث حيث يلزم.</small>
+ </section>
+ </section>
+ <section id="anwarTasbihPage" class="anwar-service-page" aria-label="السبحة" hidden>
+  <div class="anwar-service-page-head"><button type="button" id="anwarTasbihBack" class="anwar-service-back" data-anwar-service-back>‹　العودة إلى الأقسام</button></div>
+  <section id="tasbihPanel" class="anwar-tasbih-inline" hidden aria-labelledby="tasbihTitle">
+   <header class="anwar-tasbih-inline-head">
+    <div><strong id="tasbihTitle">سبحة الأذكار</strong></div>
+    <button type="button" id="tasbihThemeToggle" class="anwar-tasbih-theme-toggle" aria-controls="tasbihThemePicker" aria-expanded="false"><span aria-hidden="true">🎨</span><span>المظهر</span></button>
+    <button type="button" id="tasbihClose" aria-label="إغلاق السبحة">إغلاق</button>
+   </header>
+   <div id="tasbihThemePicker" class="anwar-tasbih-theme-picker" hidden role="group" aria-label="المظهر">
+    <div class="anwar-tasbih-theme-grid">
+     <button type="button" id="tasbihThemeEmerald" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="emerald" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="emerald" aria-hidden="true"><span>33</span></span><span>الأخضر والذهبي</span></button>
+     <button type="button" id="tasbihThemeDark" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="dark" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="dark" aria-hidden="true"><span>33</span></span><span>الفخم الداكن</span></button>
+     <button type="button" id="tasbihThemePink" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="pink" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="pink" aria-hidden="true"><span>33</span></span><span>التوليب الوردي</span></button>
+     <button type="button" id="tasbihThemeNight" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="night" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="night" aria-hidden="true"><span>33</span></span><span>الليلي</span></button>
+     <button type="button" id="tasbihThemeHeritage" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="heritage" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="heritage" aria-hidden="true"><span>33</span></span><span>التراثي</span></button>
+     <button type="button" id="tasbihThemeGlass" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="glass" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="glass" aria-hidden="true"><span>33</span></span><span>الزجاجي</span></button>
+    </div>
+   </div>
+   <div class="anwar-tasbih-content">
+    <div class="anwar-tasbih-phrase" id="tasbihPhrase">أستغفر الله العظيم وأتوب إليه</div>
+    <div class="tasbih-adhkar-picker">
+     <button type="button" id="tasbihDhikrToggle" class="tasbih-adhkar-toggle" aria-controls="tasbihDhikrListPanel" aria-expanded="false">
+      <span>أذكارك</span><span class="tasbih-adhkar-chevron" aria-hidden="true">⌄</span>
+     </button>
+     <div id="tasbihDhikrListPanel" class="tasbih-adhkar-list" role="group" aria-labelledby="tasbihDhikrToggle" hidden>
+      <div id="tasbihDhikrCards" class="tasbih-dhikr-cards" role="group" aria-labelledby="tasbihDhikrToggle"></div>
+      <div class="tasbih-dhikr-management">
+       <button type="button" id="tasbihRemoveDhikr" disabled>إزالة الذكر</button>
+       <button type="button" id="tasbihRestoreOfficial" hidden>استعادة القائمة</button>
+      </div>
+      <small class="tasbih-dhikr-note">الإزالة تخص قائمتك على هذا الجهاز فقط، ويمكنك استعادة الأذكار الرسمية متى شئت.</small>
+     </div>
+    </div>
+    <select id="tasbihDhikr" class="anwar-tasbih-select" aria-hidden="true" tabindex="-1" hidden>
+     <optgroup label="التسبيح والتحميد"><option>سبحان الله</option><option>الحمد لله</option><option>الله أكبر</option><option>لا إله إلا الله</option><option>سبحان الله وبحمده</option><option>سبحان الله العظيم</option><option>سبحان الله والحمد لله ولا إله إلا الله والله أكبر</option><option>لا حول ولا قوة إلا بالله</option></optgroup>
+     <optgroup label="الاستغفار والتوبة"><option>أستغفر الله</option><option selected>أستغفر الله العظيم وأتوب إليه</option><option>أستغفر الله العظيم الذي لا إله إلا هو الحي القيوم وأتوب إليه</option><option>رب اغفر لي وتب علي إنك أنت التواب الرحيم</option><option>اللهم إنك عفو تحب العفو فاعف عني</option></optgroup>
+     <optgroup label="أذكار وأدعية جامعة"><option>اللهم صل وسلم على نبينا محمد</option><option>اللهم أعني على ذكرك وشكرك وحسن عبادتك</option><option>لا إله إلا أنت سبحانك إني كنت من الظالمين</option><option>حسبي الله لا إله إلا هو عليه توكلت وهو رب العرش العظيم</option><option>رضيت بالله ربا وبالإسلام دينا وبمحمد نبيا</option><option>يا حي يا قيوم برحمتك أستغيث</option><option>ربنا آتنا في الدنيا حسنة وفي الآخرة حسنة وقنا عذاب النار</option><option>اللهم اكفني بحلالك عن حرامك وأغنني بفضلك عمن سواك</option></optgroup>
+    </select>
+    <div class="anwar-custom-dhikr">
+     <label for="tasbihCustomDhikrInput">ذكر جديد</label>
+     <div class="anwar-custom-dhikr-row">
+      <input id="tasbihCustomDhikrInput" type="text" maxlength="200" autocomplete="off">
+      <button type="button" id="tasbihAddCustomDhikr">إضافة</button>
+     </div>
+     <small id="tasbihCustomDhikrStatus" role="status" aria-live="polite"></small>
+     <small class="anwar-custom-dhikr-note">تُحفظ أذكارك على هذا الجهاز.</small>
+    </div>
+    <div class="anwar-tasbih-counter" id="tasbihCounterControl" role="button" tabindex="0" aria-label="عداد التسبيح" aria-live="polite"><strong id="tasbihCount">0</strong><span class="anwar-sr-only">عدد التسبيحات</span></div>
+    <div class="anwar-tasbih-actions"><button type="button" id="tasbihMinus" class="anwar-tasbih-small anwar-tasbih-flower" aria-label="إنقاص العدد"><span aria-hidden="true">🌸</span></button><button type="button" id="tasbihTap" class="anwar-tasbih-tap" aria-label="سجل تسبيحة واحدة">سبّح</button><button type="button" id="tasbihReset" class="anwar-tasbih-small anwar-tasbih-flower" aria-label="تصفير العداد"><span aria-hidden="true">🌸</span></button></div>
+    <section class="anwar-tasbih-voice" id="tasbihVoicePanel" data-state="idle" aria-label="التسجيل الصوتي للسبحة">
+     <div class="anwar-tasbih-voice-head">
+      <div class="anwar-tasbih-voice-copy">
+       <span class="anwar-tasbih-voice-dot" aria-hidden="true"></span>
+       <div class="anwar-tasbih-voice-label">
+        <strong id="tasbihVoiceState" aria-live="polite"></strong>
+        <small id="tasbihVoiceStatus" role="status" aria-live="polite"></small>
+       </div>
+      </div>
+      <button type="button" id="tasbihVoice" aria-pressed="false"><span aria-hidden="true">🎙️</span><span id="tasbihVoiceButtonLabel">ابدأ التسجيل</span></button>
+     </div>
+     <div class="anwar-tasbih-transcript" hidden>
+      <span>النص الملتقط</span>
+      <strong id="tasbihVoiceTranscript" aria-live="polite"></strong>
+     </div>
+     <small class="anwar-tasbih-voice-hint">يُحتسب العدد عند نطق الذكر كاملاً.</small>
+    </section>
+   </div>
+   <footer class="anwar-tasbih-footer">يُحفظ العدد والذكر المختار مشفرين على هذا الجهاز</footer>
+  </section>
  </section>
  <b class="radio-section-title">القرآن الكريم · اختر صوتاً وابدأ فوراً</b>
  <section class="radio-hero" aria-label="المشغل الإذاعي"><div class="radio-orbit radio-vintage-icon" role="img" aria-label="مذياع قديم يرمز إلى إذاعة أنوار القرآنية"><svg viewBox="0 0 120 96" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="woodRadio" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f4c77b"/><stop offset=".45" stop-color="#9a5426"/><stop offset="1" stop-color="#542b19"/></linearGradient><linearGradient id="goldRadio" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff0b8"/><stop offset="1" stop-color="#bd8734"/></linearGradient><linearGradient id="glassRadio" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#203e4a"/><stop offset="1" stop-color="#091c2d"/></linearGradient></defs><path d="M25 20 88 4" stroke="#e7d5a4" stroke-width="3.5" stroke-linecap="round"/><path d="m25 20 63-16" stroke="#7b8586" stroke-width="1.2"/><circle cx="25" cy="20" r="4" fill="url(#goldRadio)" stroke="#714b25"/><rect x="9" y="21" width="102" height="67" rx="11" fill="#3b2118" stroke="#e6c47a" stroke-width="2.5"/><rect x="13" y="25" width="94" height="59" rx="8" fill="url(#woodRadio)" stroke="#4d2918" stroke-width="1.5"/><rect x="18" y="31" width="55" height="38" rx="5" fill="url(#glassRadio)" stroke="#f2d28a" stroke-width="2"/><rect x="21" y="34" width="49" height="32" rx="3" fill="#d9c39a"/><g fill="#8d704d" opacity=".9"><path d="M24 37h43v1H24zm0 4h43v1H24zm0 4h43v1H24zm0 4h43v1H24zm0 4h43v1H24zm0 4h43v1H24zm0 4h43v1H24z"/></g><g fill="#f6dda0"><circle cx="27" cy="39" r="1"/><circle cx="34" cy="39" r="1"/><circle cx="41" cy="39" r="1"/><circle cx="48" cy="39" r="1"/><circle cx="55" cy="39" r="1"/><circle cx="62" cy="39" r="1"/></g><rect x="22" y="71" width="49" height="7" rx="2" fill="#241c18"/><path d="M26 74h41" stroke="#e4c178" stroke-width="1"/><g fill="url(#goldRadio)" stroke="#68401f" stroke-width="1.4"><circle cx="88" cy="43" r="11"/><circle cx="88" cy="69" r="8"/></g><circle cx="88" cy="43" r="4" fill="#7c4a26"/><circle cx="88" cy="69" r="3" fill="#7c4a26"/><path d="M83 43h10M88 38v10M85 69h6" stroke="#f4d58d" stroke-width="1.2" stroke-linecap="round"/><path d="M14 83h92" stroke="#f3d28b" stroke-width="1" opacity=".65"/><circle cx="17" cy="78" r="1.4" fill="#f8e5ad"/><circle cx="103" cy="78" r="1.4" fill="#f8e5ad"/></svg></div><div class="radio-hero-copy"><small>إذاعة أنوار القرآنية</small><strong id="radioNow">اختر قارئك المفضّل</strong><span id="radioSub">لمسة واحدة تفصل بينك وبين التلاوة</span><div class="radio-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div><span class="radio-live-dot" id="radioLiveDot"></span></section>
@@ -2413,7 +2504,6 @@ dialog[open]>.float-head{display:none!important}
  <h2>مفكرة أنوار</h2>
  <div class="owner-tabs">
   <button type="button" class="active" id="ownerTab">الملكية</button>
-  <button type="button" id="adhkarTab">الأذكار</button>
   <button type="button" id="shareTab">بطاقة النشر</button>
  </div>
  <section id="ownerPanel" class="owner-card">
@@ -2423,88 +2513,7 @@ dialog[open]>.float-head{display:none!important}
   <p style="text-align:center;margin-bottom:0"><strong>© 2026 Anouar Oumlili. جميع الحقوق محفوظة.</strong></p>
   <small style="display:block;text-align:center;color:var(--mu);margin-top:8px">تُحترم تراخيص المكتبات والخدمات والمواد التابعة لأطراف أخرى والمستخدمة داخل التطبيق.</small>
  </section>
- <section id="adhkarPanel" hidden>
-  <div class="owner-tabs adhkar-tabs" style="margin-top:0">
-   <button type="button" class="active" id="morningTab">أذكار الصباح</button>
-   <button type="button" id="eveningTab">أذكار المساء</button>
-   
-  <button type="button" id="adhkarTasbihToggle" class="adhkar-tasbih-toggle" aria-expanded="false" aria-controls="tasbihPanel">
-   <svg viewBox="0 0 36 36" aria-hidden="true">
-    <path d="M18 4.5C10.7 4.5 5 10.3 5 17.4S10.7 30.5 18 30.5s13-5.8 13-13.1S25.3 4.5 18 4.5Z" fill="none" stroke="#b58b55" stroke-width="1.5"/>
-    <g fill="#7b343b" stroke="#54212b" stroke-width=".7"><circle cx="18" cy="5.2" r="2.6"/><circle cx="25.7" cy="7.8" r="2.5"/><circle cx="30.5" cy="14.2" r="2.5"/><circle cx="30" cy="22" r="2.5"/><circle cx="24.4" cy="28" r="2.5"/><circle cx="16.5" cy="30.5" r="2.5"/><circle cx="9" cy="27.5" r="2.5"/><circle cx="5.2" cy="20.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><circle cx="11.5" cy="6.8" r="2.5"/></g>
-    <circle cx="18" cy="17.5" r="3.2" fill="#a97839" stroke="#f1d89c" stroke-width="1"/>
-   </svg><span>السبحة</span>
-  </button></div>
-  <section id="tasbihPanel" class="anwar-tasbih-inline" hidden aria-labelledby="tasbihTitle">
-   <header class="anwar-tasbih-inline-head">
-    <div><strong id="tasbihTitle">سبحة الأذكار</strong></div>
-    <button type="button" id="tasbihThemeToggle" class="anwar-tasbih-theme-toggle" aria-controls="tasbihThemePicker" aria-expanded="false"><span aria-hidden="true">🎨</span><span>المظهر</span></button>
-    <button type="button" id="tasbihClose" aria-label="إغلاق السبحة">إغلاق</button>
-   </header>
-   <div id="tasbihThemePicker" class="anwar-tasbih-theme-picker" hidden role="group" aria-label="المظهر">
-    <div class="anwar-tasbih-theme-grid">
-     <button type="button" id="tasbihThemeEmerald" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="emerald" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="emerald" aria-hidden="true"><span>33</span></span><span>الأخضر والذهبي</span></button>
-     <button type="button" id="tasbihThemeDark" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="dark" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="dark" aria-hidden="true"><span>33</span></span><span>الفخم الداكن</span></button>
-     <button type="button" id="tasbihThemePink" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="pink" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="pink" aria-hidden="true"><span>33</span></span><span>التوليب الوردي</span></button>
-     <button type="button" id="tasbihThemeNight" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="night" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="night" aria-hidden="true"><span>33</span></span><span>الليلي</span></button>
-     <button type="button" id="tasbihThemeHeritage" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="heritage" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="heritage" aria-hidden="true"><span>33</span></span><span>التراثي</span></button>
-     <button type="button" id="tasbihThemeGlass" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="glass" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="glass" aria-hidden="true"><span>33</span></span><span>الزجاجي</span></button>
-    </div>
-   </div>
-   <div class="anwar-tasbih-content">
-    <div class="anwar-tasbih-phrase" id="tasbihPhrase">أستغفر الله العظيم وأتوب إليه</div>
-    <div class="tasbih-adhkar-picker">
-     <button type="button" id="tasbihDhikrToggle" class="tasbih-adhkar-toggle" aria-controls="tasbihDhikrListPanel" aria-expanded="false">
-      <span>أذكارك</span><span class="tasbih-adhkar-chevron" aria-hidden="true">⌄</span>
-     </button>
-     <div id="tasbihDhikrListPanel" class="tasbih-adhkar-list" role="group" aria-labelledby="tasbihDhikrToggle" hidden>
-      <div id="tasbihDhikrCards" class="tasbih-dhikr-cards" role="group" aria-labelledby="tasbihDhikrToggle"></div>
-      <div class="tasbih-dhikr-management">
-       <button type="button" id="tasbihRemoveDhikr" disabled>إزالة الذكر</button>
-       <button type="button" id="tasbihRestoreOfficial" hidden>استعادة القائمة</button>
-      </div>
-      <small class="tasbih-dhikr-note">الإزالة تخص قائمتك على هذا الجهاز فقط، ويمكنك استعادة الأذكار الرسمية متى شئت.</small>
-     </div>
-    </div>
-    <select id="tasbihDhikr" class="anwar-tasbih-select" aria-hidden="true" tabindex="-1" hidden>
-     <optgroup label="التسبيح والتحميد"><option>سبحان الله</option><option>الحمد لله</option><option>الله أكبر</option><option>لا إله إلا الله</option><option>سبحان الله وبحمده</option><option>سبحان الله العظيم</option><option>سبحان الله والحمد لله ولا إله إلا الله والله أكبر</option><option>لا حول ولا قوة إلا بالله</option></optgroup>
-     <optgroup label="الاستغفار والتوبة"><option>أستغفر الله</option><option selected>أستغفر الله العظيم وأتوب إليه</option><option>أستغفر الله العظيم الذي لا إله إلا هو الحي القيوم وأتوب إليه</option><option>رب اغفر لي وتب علي إنك أنت التواب الرحيم</option><option>اللهم إنك عفو تحب العفو فاعف عني</option></optgroup>
-     <optgroup label="أذكار وأدعية جامعة"><option>اللهم صل وسلم على نبينا محمد</option><option>اللهم أعني على ذكرك وشكرك وحسن عبادتك</option><option>لا إله إلا أنت سبحانك إني كنت من الظالمين</option><option>حسبي الله لا إله إلا هو عليه توكلت وهو رب العرش العظيم</option><option>رضيت بالله ربا وبالإسلام دينا وبمحمد نبيا</option><option>يا حي يا قيوم برحمتك أستغيث</option><option>ربنا آتنا في الدنيا حسنة وفي الآخرة حسنة وقنا عذاب النار</option><option>اللهم اكفني بحلالك عن حرامك وأغنني بفضلك عمن سواك</option></optgroup>
-    </select>
-    <div class="anwar-custom-dhikr">
-     <label for="tasbihCustomDhikrInput">ذكر جديد</label>
-     <div class="anwar-custom-dhikr-row">
-      <input id="tasbihCustomDhikrInput" type="text" maxlength="200" autocomplete="off">
-      <button type="button" id="tasbihAddCustomDhikr">إضافة</button>
-     </div>
-     <small id="tasbihCustomDhikrStatus" role="status" aria-live="polite"></small>
-     <small class="anwar-custom-dhikr-note">تُحفظ أذكارك على هذا الجهاز.</small>
-    </div>
-    <div class="anwar-tasbih-counter" id="tasbihCounterControl" role="button" tabindex="0" aria-label="عداد التسبيح" aria-live="polite"><strong id="tasbihCount">0</strong><span class="anwar-sr-only">عدد التسبيحات</span></div>
-    <div class="anwar-tasbih-actions"><button type="button" id="tasbihMinus" class="anwar-tasbih-small anwar-tasbih-flower" aria-label="إنقاص العدد"><span aria-hidden="true">🌸</span></button><button type="button" id="tasbihTap" class="anwar-tasbih-tap" aria-label="سجل تسبيحة واحدة">سبّح</button><button type="button" id="tasbihReset" class="anwar-tasbih-small anwar-tasbih-flower" aria-label="تصفير العداد"><span aria-hidden="true">🌸</span></button></div>
-    <section class="anwar-tasbih-voice" id="tasbihVoicePanel" data-state="idle" aria-label="التسجيل الصوتي للسبحة">
-     <div class="anwar-tasbih-voice-head">
-      <div class="anwar-tasbih-voice-copy">
-       <span class="anwar-tasbih-voice-dot" aria-hidden="true"></span>
-       <div class="anwar-tasbih-voice-label">
-        <strong id="tasbihVoiceState" aria-live="polite"></strong>
-        <small id="tasbihVoiceStatus" role="status" aria-live="polite"></small>
-       </div>
-      </div>
-      <button type="button" id="tasbihVoice" aria-pressed="false"><span aria-hidden="true">🎙️</span><span id="tasbihVoiceButtonLabel">ابدأ التسجيل</span></button>
-     </div>
-     <div class="anwar-tasbih-transcript" hidden>
-      <span>النص الملتقط</span>
-      <strong id="tasbihVoiceTranscript" aria-live="polite"></strong>
-     </div>
-     <small class="anwar-tasbih-voice-hint">يُحتسب العدد عند نطق الذكر كاملاً.</small>
-    </section>
-   </div>
-   <footer class="anwar-tasbih-footer">يُحفظ العدد والذكر المختار مشفرين على هذا الجهاز</footer>
-  </section>
-  <div id="adhkarContent" class="adhkar-list"></div>
-  <small style="display:block;color:var(--mu);margin-top:8px;line-height:1.8">مراجعة المصدر: الآية من القرآن الكريم، والأذكار النبوية تُعزى إلى مصادرها الحديثية. لا تُعرض هذه القائمة على أنها حصر كامل للأذكار. للتحقق من نصوص الكتب وأبوابها: <a href="https://sunna.alifta.gov.sa/Book/IndexMatnBooks" target="_blank" rel="noopener noreferrer">مكتبة الحديث التابعة للرئاسة العامة للبحوث العلمية والإفتاء</a>، وتشمل الصحيحين والسنن وموطأ مالك ومسند أحمد. كما يمكن مراجعة التخريج والحكم عبر <a href="https://dorar.net/" target="_blank" rel="noopener noreferrer">الموسوعة الحديثية بالدرر السنية</a>. وعند إضافة أذكار أخرى يُذكر الكتاب ورقم الحديث ودرجة الحديث حيث يلزم.</small>
- </section>
+ 
  <section id="sharePanel" hidden>
   <div id="qrPanel">
    <strong>بطاقة نشر مفكرة أنوار</strong>
@@ -2579,9 +2588,9 @@ dialog[open]>.float-head{display:none!important}
 <script src="./vault-storage.js?v=20261120-1"></script>
 <script src="./vault-device-unlock.js?v=20261118-1"></script>
 <script src="./poetry-dictation.js?v=20261119-1" defer></script>
-<script src="./app-core.js?v=20261120-25" defer></script>
+<script src="./app-core.js?v=20261120-26" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
-<script src="./tasbih-controller.js?v=20261119-18" defer></script>
+<script src="./tasbih-controller.js?v=20261120-1" defer></script>
 <script src="./prayer-times.js?v=20261120-11" defer></script>
 
 
