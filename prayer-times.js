@@ -1,6 +1,6 @@
 /* Prayer times and adhan for Anwar notebook.
  * Prayer data: AlAdhan API. Default adhan recording: Wikimedia Commons, CC0 1.0.
- * No GPS permission is requested; only the user-entered city/country are sent to the API.
+ * No GPS permission is requested; the chosen city, country and calculation settings are sent to the timings API.
  */
 (function(){
  'use strict';
@@ -12,7 +12,7 @@
  const API='https://api.aladhan.com/v1';
  const VOICES=[
   {key:'calm',label:'أذان هادئ · الافتراضي',url:'https://upload.wikimedia.org/wikipedia/commons/b/b0/Beautiful_adhan.ogg',page:'https://commons.wikimedia.org/wiki/File:Beautiful_adhan.ogg',credit:'Adam-synagda',license:'CC0 1.0'},
-  {key:'morocco',label:'المغرب · مسجد الحسن الثاني',url:'https://upload.wikimedia.org/wikipedia/commons/transcoded/9/9c/Llamada_a_oraci%C3%B3n_Mezquita_Hassan_II.wav/Llamada_a_oraci%C3%B3n_Mezquita_Hassan_II.wav.mp3',page:'https://commons.wikimedia.org/wiki/File:Llamada_a_oraci%C3%B3n_Mezquita_Hassan_II.wav',credit:'Fraguando',license:'CC BY-SA 4.0',note:'تسجيل محيطي من محيط المسجد'},
+  {key:'morocco',label:'المغرب · مسجد الحسن الثاني',url:'https://upload.wikimedia.org/wikipedia/commons/transcoded/9/9c/Llamada_a_oraci%C3%B3n_Mezquita_Hassan_II.wav/Llamada_a_oraci%C3%B3n_Mezquita_Hassan_II.wav.mp3',page:'https://commons.wikimedia.org/wiki/File:Llamada_a_oraci%C3%B3n_Mezquita_Hassan_II.wav',credit:'Fraguando',license:'CC BY-SA 4.0',note:'تسجيل ميداني مع أجواء المسجد والمحيط'},
   {key:'madina',label:'المسجد النبوي · تسجيل ميداني',url:'https://upload.wikimedia.org/wikipedia/commons/7/7c/33937_ejaz215_call-to-prayer-from-the-prophet-s-mo.ogg',page:'https://commons.wikimedia.org/wiki/File:33937_ejaz215_call-to-prayer-from-the-prophet-s-mo.ogg',credit:'ejaz215',license:'CC BY 3.0'},
   {key:'maahur',label:'أذان فارسي · مقام ماهور',url:'https://upload.wikimedia.org/wikipedia/commons/a/ae/AzaanMaahur.ogg',page:'https://commons.wikimedia.org/wiki/File:AzaanMaahur.ogg',credit:'Saeed Hatamzadeh-Varmazyar',license:'CC BY-SA 4.0'}
  ];
@@ -325,7 +325,7 @@
    return true;
   }catch(error){
    const blocked=error&&error.name==='NotAllowedError';
-   setStatus(blocked?'المتصفح منع التشغيل التلقائي. اضغط «تجربة الأذان» مرة واحدة للسماح بالصوت.':'تعذّر تشغيل الأذان. تحقق من اتصال الإنترنت ثم جرّب الصوت يدويًا.');
+   setStatus(blocked?'اسمح بالصوت بالضغط على تجربة الصوت.':'تعذّر تحميل الأذان؛ تحقق من الاتصال.');
    return false;
   }
  }
@@ -390,7 +390,7 @@
   }catch(error){
    if(token===loadToken){
     if(!todayData)dateLine.textContent='لم تُحمّل المواقيت بعد.';
-    setStatus(error&&error.message?error.message:'تعذّر تحديث المواقيت. تحقق من الاتصال والمدينة.');
+    setStatus(error&&error.message?error.message:'تعذّر تحديث المواقيت.');
    }
   }finally{
    if(token===loadToken){loading=false;refreshButton.disabled=false;}
@@ -406,7 +406,7 @@
  });
  enabledInput.addEventListener('change',()=>{
   settings.enabled=enabledInput.checked;persist();
-  setStatus(settings.enabled?'فُعّل الأذان التلقائي.':'أُوقف الأذان التلقائي.');
+  setStatus(settings.enabled?'الأذان التلقائي مفعّل.':'الأذان التلقائي متوقف.');
  });
  volumeInput.addEventListener('input',()=>{
   settings.volume=Math.max(0,Math.min(1,Number(volumeInput.value)||0));audio.volume=settings.volume;persist();
