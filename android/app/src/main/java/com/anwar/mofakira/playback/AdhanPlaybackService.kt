@@ -49,6 +49,7 @@ class AdhanPlaybackService : Service() {
         requestAudioFocus()
 
         val media = MediaPlayer()
+        media.setVolume(config.volume, config.volume)
         player = media
         media.setWakeMode(applicationContext, PowerManager.PARTIAL_WAKE_LOCK)
         media.setAudioAttributes(
