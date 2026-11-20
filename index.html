@@ -2104,6 +2104,37 @@ dialog[open]>.float-head{display:none!important}
  #rib .rib-pop{scroll-behavior:auto!important}
 }
 </style>
+
+<style id="adhkar-library-management-style">
+.adhkar-library-actions{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.adhkar-library-actions button,.adhkar-admin-bar button,.adhkar-dialog-actions button,.adhkar-form>button{min-height:38px;padding:7px 12px;border:1px solid var(--bd);border-radius:10px;background:var(--sf);color:var(--tx);font:600 12px Cairo,Tahoma,sans-serif}
+.adhkar-library-actions button:first-child,.adhkar-dialog-actions button:first-child,.adhkar-form>button{background:var(--ac);border-color:var(--ac);color:#fff}
+.adhkar-sync-status,.adhkar-form-status{margin:6px 0;color:var(--mu);font:12px/1.8 Cairo,Tahoma,sans-serif}
+.adhkar-management-dialog{width:min(94vw,620px);max-width:620px;max-height:88dvh;overflow:auto;padding:16px;border:1px solid var(--bd);border-radius:16px;background:var(--bg);color:var(--tx);box-shadow:0 18px 60px #0003}
+.adhkar-management-dialog::backdrop{background:#08140f99;backdrop-filter:blur(3px)}
+.adhkar-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.adhkar-dialog-head h3{margin:0;color:var(--ac);font:700 20px 'Aref Ruqaa',Amiri,serif}
+.adhkar-dialog-head button{width:34px;height:34px;border:1px solid var(--bd);border-radius:50%;background:var(--sf);color:var(--tx);font-size:20px}
+.adhkar-form{display:grid;gap:10px;margin:10px 0}
+.adhkar-form label{display:grid;gap:4px;color:var(--mu);font:600 12px Cairo,Tahoma,sans-serif}
+.adhkar-form input,.adhkar-form textarea{width:100%;min-width:0;padding:9px 10px;border:1px solid var(--bd);border-radius:9px;background:var(--sf);color:var(--tx);font:13px/1.8 Cairo,Tahoma,sans-serif}
+.adhkar-form textarea{resize:vertical}
+.adhkar-dialog-actions,.adhkar-admin-bar{display:flex;gap:8px;flex-wrap:wrap}
+.adhkar-privacy-note{padding:10px 12px;border:1px solid var(--bd);border-radius:10px;background:var(--sf);color:var(--mu);font:12px/1.9 Cairo,Tahoma,sans-serif}
+.adhkar-honeypot{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important}
+.adhkar-admin-bar{justify-content:space-between;margin-bottom:8px}
+.adhkar-admin-section{margin-top:18px;padding-top:12px;border-top:1px solid var(--bd)}
+.adhkar-admin-section h4,.adhkar-form h4{margin:0;color:var(--ac);font:700 16px 'Aref Ruqaa',Amiri,serif}
+.adhkar-admin-entry,.adhkar-admin-suggestion{display:grid;gap:7px;padding:11px;margin:8px 0;border:1px solid var(--bd);border-radius:11px;background:var(--sf)}
+.adhkar-admin-entry strong,.adhkar-admin-suggestion strong{color:var(--ac)}
+.adhkar-admin-entry p,.adhkar-admin-suggestion p{margin:0;white-space:pre-line;line-height:1.8}
+.adhkar-admin-item-actions{display:flex;gap:7px;flex-wrap:wrap}
+.adhkar-admin-item-actions button{padding:6px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:600 11px Cairo,Tahoma,sans-serif}
+.adhkar-admin-item-actions button[data-action="delete"],.adhkar-admin-item-actions button[data-action="reject"]{color:#a33;border-color:#d8aaaa}
+#adhkarAdminWorkspace[hidden]{display:none!important}
+@media(max-width:420px){.adhkar-management-dialog{padding:12px}.adhkar-library-actions button{flex:1}}
+</style>
+
 </head>
 <body>
 <div class="app" id="app">
@@ -2317,6 +2348,11 @@ dialog[open]>.float-head{display:none!important}
   <div class="anwar-service-page-head"><button type="button" class="anwar-service-back" data-anwar-service-back>‹　العودة إلى الأقسام</button></div>
   <section id="adhkarPanel" class="anwar-adhkar-page-content" aria-label="أذكار التحصين">
   <h2 class="protective-page-title">أذكار التحصين</h2>
+  <div class="adhkar-library-actions" role="group" aria-label="إدارة واقتراح الأذكار">
+   <button type="button" id="adhkarSuggestOpen">اقتراح ذكر</button>
+   <button type="button" id="adhkarAdminOpen">إدارة المكتبة</button>
+  </div>
+  <p id="adhkarSyncStatus" class="adhkar-sync-status" role="status" aria-live="polite"></p>
   <div id="adhkarContent" class="adhkar-list"></div>
   <small style="display:block;color:var(--mu);margin-top:8px;line-height:1.8">مراجعة المصدر: الآية من القرآن الكريم، والأذكار النبوية تُعزى إلى مصادرها الحديثية. لا تُعرض هذه القائمة على أنها حصر كامل للأذكار. للتحقق من نصوص الكتب وأبوابها: <a href="https://sunna.alifta.gov.sa/Book/IndexMatnBooks" target="_blank" rel="noopener noreferrer">مكتبة الحديث التابعة للرئاسة العامة للبحوث العلمية والإفتاء</a>، وتشمل الصحيحين والسنن وموطأ مالك ومسند أحمد. كما يمكن مراجعة التخريج والحكم عبر <a href="https://dorar.net/" target="_blank" rel="noopener noreferrer">الموسوعة الحديثية بالدرر السنية</a>. وعند إضافة أذكار أخرى يُذكر الكتاب ورقم الحديث ودرجة الحديث حيث يلزم.</small>
  </section>
@@ -2510,6 +2546,50 @@ dialog[open]>.float-head{display:none!important}
  <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><button class="b" id="cp">📋 نسخ مشفر</button><button class="b" id="downloadBackup">⬇ تنزيل مشفر</button><button class="b" id="rs">♻️ استعادة</button><button class="b" id="cl">إغلاق</button></div>
 </dialog>
 <dialog id="historyDialog"><h3 style="margin-top:0">سجل إصدارات العمل</h3><p style="color:var(--mu);font-size:12px">تُحفظ لقطات سابقة تلقائيًا عند تعديل العمل. نحتفظ بآخر 15 إصدارًا.</p><div id="historyItems"></div><div class="dialog-actions" style="margin-top:12px"><button type="button" id="closeHistory">إغلاق</button></div></dialog>
+
+<dialog id="adhkarSuggestionDialog" class="adhkar-management-dialog" aria-labelledby="adhkarSuggestionTitle">
+ <header class="adhkar-dialog-head"><h3 id="adhkarSuggestionTitle">اقتراح ذكر للمراجعة</h3><button type="button" data-adhkar-close aria-label="إغلاق">×</button></header>
+ <p class="adhkar-privacy-note">لا نطلب اسمك أو بريدك أو رقم هاتفك. سيصل نص الاقتراح ومصدره فقط إلى صاحب المفكرة للمراجعة، ولن يظهر للزوار إلا بعد اعتماده، دون نسبة الاقتراح إلى صاحبه.</p>
+ <form id="adhkarSuggestionForm" class="adhkar-form">
+  <label>المجموعة<input name="group" maxlength="80" required placeholder="مثال: التحصين اليومي"></label>
+  <label>عنوان الذكر<input name="title" maxlength="120" required></label>
+  <label>نص الذكر<textarea name="text" rows="4" maxlength="5000" required></textarea></label>
+  <label>عدد التكرار إن ورد<input name="count" type="number" min="1" max="100000" inputmode="numeric" placeholder="اتركه فارغًا إن لم يثبت عدد"></label>
+  <label>وقت أو مناسبة الذكر<input name="occasion" maxlength="300" placeholder="اختياري"></label>
+  <label>المصدر أو المرجع<input name="source" maxlength="240" placeholder="إن توفر"></label>
+  <label>رابط المصدر<input name="sourceUrl" type="url" maxlength="500" placeholder="https://..."></label>
+  <label class="adhkar-honeypot" aria-hidden="true">اترك هذا الحقل فارغًا<input name="website" tabindex="-1" autocomplete="off"></label>
+  <p id="adhkarSuggestionStatus" class="adhkar-form-status" role="status" aria-live="polite"></p>
+  <div class="adhkar-dialog-actions"><button type="submit">إرسال للمراجعة</button><button type="button" data-adhkar-close>إلغاء</button></div>
+ </form>
+</dialog>
+<dialog id="adhkarAdminDialog" class="adhkar-management-dialog" aria-labelledby="adhkarAdminTitle">
+ <header class="adhkar-dialog-head"><h3 id="adhkarAdminTitle">إدارة مكتبة التحصين</h3><button type="button" data-adhkar-close aria-label="إغلاق">×</button></header>
+ <form id="adhkarAdminLogin" class="adhkar-form">
+  <p class="adhkar-privacy-note">لوحة خاصة بصاحب المفكرة. رمز الإدارة محفوظ في سرّ الخادم، ولا يُحفظ داخل التطبيق أو المتصفح. تنتهي الجلسة تلقائيًا بعد 20 دقيقة أو عند إغلاقها.</p>
+  <label>رمز الإدارة<input name="password" type="password" minlength="32" maxlength="512" autocomplete="current-password" required></label>
+  <p id="adhkarLoginStatus" class="adhkar-form-status" role="status" aria-live="polite"></p>
+  <button type="submit">دخول آمن</button>
+ </form>
+ <section id="adhkarAdminWorkspace" hidden>
+  <div class="adhkar-admin-bar"><button type="button" id="adhkarAdminLogout">إنهاء الجلسة</button><button type="button" id="adhkarInitialize" hidden>تهيئة المكتبة الحالية</button></div>
+  <p id="adhkarAdminStatus" class="adhkar-form-status" role="status" aria-live="polite"></p>
+  <form id="adhkarOfficialForm" class="adhkar-form">
+   <h4>إضافة ذكر رسمي أو تعديل ذكر</h4><input name="id" type="hidden">
+   <label>المجموعة<input name="group" maxlength="80" required></label>
+   <label>العنوان<input name="title" maxlength="120" required></label>
+   <label>نص الذكر<textarea name="text" rows="4" maxlength="5000" required></textarea></label>
+   <label>عدد التكرار إن ورد<input name="count" type="number" min="1" max="100000" inputmode="numeric" placeholder="فارغ إذا لم يحدد عدد"></label>
+   <label>المناسبة<input name="occasion" maxlength="300"></label>
+   <label>المصدر<input name="source" maxlength="240" required></label>
+   <label>رابط المصدر<input name="sourceUrl" type="url" maxlength="500" placeholder="https://..."></label>
+   <div class="adhkar-dialog-actions"><button type="submit">حفظ في المكتبة العامة</button><button type="reset">تفريغ الحقول</button></div>
+  </form>
+  <section class="adhkar-admin-section"><h4>الأذكار الرسمية المنشورة</h4><div id="adhkarOfficialList"></div></section>
+  <section class="adhkar-admin-section"><h4>اقتراحات الزوار الخاصة</h4><p class="adhkar-privacy-note">هذه القائمة لا تظهر للزوار. لا تحتوي على أسماء أو بريد أو عناوين أصحاب الاقتراحات.</p><div id="adhkarPendingList"></div></section>
+ </section>
+</dialog>
+
 <dialog id="ownerDialog">
  <div class="owner-mark">✒</div>
  <h2>مفكرة أنوار</h2>
@@ -2601,6 +2681,7 @@ dialog[open]>.float-head{display:none!important}
 <script src="./poetry-dictation.js?v=20261119-1" defer></script>
 <script src="./protective-adhkar.js?v=20261120-2" defer></script>
 <script src="./app-core.js?v=20261120-29" defer></script>
+<script src="./adhkar-management.js?v=20261120-1" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
 <script src="./tasbih-controller.js?v=20261120-2" defer></script>
 <script src="./prayer-times.js?v=20261120-11" defer></script>
