@@ -7,6 +7,7 @@ const root=process.cwd();
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const htmlAudit=JSON.parse(execFileSync('python3',[path.join(root,'scripts/html_inspector.py'),path.join(root,'index.html')],{encoding:'utf8'}));
 const appCore=fs.readFileSync(path.join(root,'app-core.js'),'utf8');
+const prayerTimes=fs.readFileSync(path.join(root,'prayer-times.js'),'utf8');
 const tasbihController=fs.readFileSync(path.join(root,'tasbih-controller.js'),'utf8');
 const poetryDictation=fs.readFileSync(path.join(root,'poetry-dictation.js'),'utf8');
 const appSource=html+String.fromCharCode(10)+appCore;
@@ -217,6 +218,13 @@ ok(!html.includes('id="transcriptTool"') && !html.includes('id="transcriptAudioF
 ok(appCore.includes('function transcriptWordTableXml') && appCore.includes('note.transcriptRows'),'legacy transcript tables remain exportable from previously saved notes');
 ok(html.includes('id="tasbihVoiceTranscript"') && html.includes('id="sp"') && appCore.includes("else if(id==='sp')togglePoetryDictation()") && appCore.includes('function appendPoetryDictationText'),'tasbih voice recognition and Arabic poetry dictation remain available independently of the removed tool');
 ok(appSource.includes("backdrop-filter:none;-webkit-backdrop-filter:none"),'vault startup overlay avoids an expensive full-screen blur');
+
+
+try{new vm.Script(prayerTimes,{filename:'prayer-times.js'});ok(true,'prayer-times controller JavaScript syntax is valid')}catch(error){failures.push('prayer-times.js: '+error.message)}
+ok(html.includes('id="anwarServiceHome"') && ['adhan','quran','radio','lessons'].every(service=>html.includes('data-anwar-service="'+service+'"')) && html.includes('id="anwarQuranPage"') && html.includes('id="anwarRadioPage"') && html.includes('id="anwarLessonsPage"'),'service dashboard exposes separate prayer, Quran, live radio and lesson sections');
+ok(prayerTimes.includes("document.getElementById('anwarPrayerMount')") && prayerTimes.includes('prayerMount.append(card)'),'prayer times retain their original card and mount it in the dashboard home');
+ok(appCore.includes('Anwar service dashboard') && appCore.includes('showHome(true)') && appCore.includes("button.dataset.anwarService"),'service dashboard navigation returns to the home view without replacing existing controls');
+ok(html.includes('id="reciterGrid"') && html.includes('id="surahPickerButton"') && html.includes('id="liveRadioPlay"') && html.includes('id="lessonHub"') && html.includes('id="lessonPlay"'),'original Quran reader, live-radio and lesson playback controls remain present');
 
 
 const deployWorkflow=fs.readFileSync(path.join(root,'.github/workflows/deploy-cloudflare-pages.yml'),'utf8');
