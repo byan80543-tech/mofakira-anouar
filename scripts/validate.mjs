@@ -79,6 +79,22 @@ ok(!appSource.includes('file_00000000670481f4ad879246afe6bae2.png'),'the oversiz
 ok(!manifest.icons.some(i=>String(i.src).includes('file_00000000670481f4ad879246afe6bae2.png')),'manifest excludes the oversized source icon');
 ok(appSource.includes('id="bookToolPanel"') && appSource.includes('id="bookToolContent" hidden'),'book creation is compact and collapsed inside the tools panel');
 ok(appSource.includes("setBookToolExpanded($('bookToolContent').hidden,true)"),'book panel toggle opens and closes correctly');
+const ribbonViewportStart=html.indexOf('<style id="anwar-ribbon-viewport-safe-v2">');
+const ribbonViewportEnd=html.indexOf('</style>',ribbonViewportStart);
+const ribbonViewportFix=ribbonViewportStart>=0&&ribbonViewportEnd>ribbonViewportStart
+ ?html.slice(ribbonViewportStart,ribbonViewportEnd):'';
+ok(
+ ribbonViewportFix.includes('@media (max-width:800px)') &&
+ ribbonViewportFix.includes('position:fixed!important') &&
+ ribbonViewportFix.includes('left:max(10px,env(safe-area-inset-left,0px))!important') &&
+ ribbonViewportFix.includes('right:max(10px,env(safe-area-inset-right,0px))!important') &&
+ ribbonViewportFix.includes('width:auto!important') &&
+ ribbonViewportFix.includes('transform:none!important') &&
+ ribbonViewportFix.includes('overflow-y:auto!important') &&
+ ribbonViewportFix.includes('z-index:200000!important'),
+ 'all mobile editor tool panels stay inside physical viewport edges and remain scrollable'
+);
+
 ok(appSource.includes('id="ownerBtn"') && !appSource.includes('id="newBookTool"'),'ownership shortcut remains in the tools panel without the old book shortcut');
 ok(!appSource.includes('<dialog id="bookDialog">'),'book creation no longer consumes a separate modal');
 ok(appSource.includes('loadFontStylesheets(false)') && appSource.includes('loadFontStylesheets(true)'),'font packs are deferred until after initial render or opened on demand');

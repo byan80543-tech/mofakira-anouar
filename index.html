@@ -3058,5 +3058,43 @@ dialog[open]>.float-head{display:none!important}
 
 </style>
 <div id="liveStationModal" class="live-station-modal" hidden role="dialog" aria-modal="true" aria-label="محطات البث المباشر"></div>
+
+<style id="anwar-ribbon-viewport-safe-v2">
+/* Keep every editor-tool panel within the physical phone viewport.
+   Fixed physical edges avoid RTL inline-edge drift; auto margins center a
+   capped panel without depending on translateX or the triggering icon. */
+@media (max-width:800px){
+  #rib{overflow:visible!important}
+  #rib .rib-pop,
+  #rib .rib-menu[open]>.rib-pop{
+    position:fixed!important;
+    top:auto!important;
+    left:max(10px,env(safe-area-inset-left,0px))!important;
+    right:max(10px,env(safe-area-inset-right,0px))!important;
+    inset-inline-start:auto!important;
+    inset-inline-end:auto!important;
+    width:auto!important;
+    min-width:0!important;
+    max-width:540px!important;
+    margin-left:auto!important;
+    margin-right:auto!important;
+    transform:none!important;
+    bottom:calc(68px + env(safe-area-inset-bottom,0px) + 8px)!important;
+    max-height:min(46vh,360px)!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain!important;
+    box-sizing:border-box!important;
+    z-index:200000!important;
+  }
+  #rib .rib-menu:nth-of-type(n+4)>.rib-pop{
+    left:max(10px,env(safe-area-inset-left,0px))!important;
+    right:max(10px,env(safe-area-inset-right,0px))!important;
+    margin-left:auto!important;
+    margin-right:auto!important;
+  }
+}
+</style>
+
 </body>
 </html>
