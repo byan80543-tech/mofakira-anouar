@@ -90,15 +90,13 @@ async function call(path, method = 'GET', body, token, origin, includeIp = true)
   return worker.fetch(request(path, method, body, token, origin, includeIp), env, {});
 }
 
-// Public reading works without per-visitor IP hashing, cookies, or an owner session.
+// Public reading needs no account, cookie, owner session, or persistent IP limiter.
+// Cloudflare supplies the network address; the Worker immediately HMAC-pseudonymizes it.
 const savedIpLimiter = env.IP_LIMITER;
-const savedIpSecret = env.IP_HASH_SECRET;
 env.IP_LIMITER = undefined;
-env.IP_HASH_SECRET = '';
-let response = await call('/v1/adhkar', 'GET', undefined, undefined, undefined, false);
+let response = await call('/v1/adhkar', 'GET');
 env.IP_LIMITER = savedIpLimiter;
-env.IP_HASH_SECRET = savedIpSecret;
-assert.equal(response.status, 200, 'public visitors can read the official library without any per-IP service');
+assert.equal(response.status, 200, 'public visitors can read the official library without the app IP-limiter database');
 let data = await response.json();
 assert.equal(data.initialized, false, 'an empty store is clearly marked');
 assert.deepEqual(data.entries, [], 'the public endpoint returns only official entries');
