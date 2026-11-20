@@ -4510,7 +4510,7 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
   }
   panel.scrollTo({top:0,behavior:'smooth'});
   const back=page.querySelector('[data-anwar-service-back]');
-  if(back)back.focus({preventScroll:true});
+  if(back&&name!=='tasbih')back.focus({preventScroll:true});
  }
 
  serviceButtons.forEach(button=>{
