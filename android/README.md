@@ -1,7 +1,7 @@
 # تطبيق أنوار المرافق للأذان الخلفي
 
-مشروع Android مرافق لواجهة مفكرة أنوار. يفتح الموقع نفسه داخل WebView، ويتلقى إعدادات الصلاة عبر Web Message Listener المقيد إلى أصل الموقع:
-`https://mofakira-anouar.pages.dev`.
+مشروع Android مرافق لواجهة مفكرة أنوار. تفتح حزمة الاختبار معاينة فرع التطوير داخل WebView، ويتلقى إعدادات الصلاة عبر Web Message Listener المقيد إلى أصل الموقع:
+`https://feat-native-background-adhan.mofakira-anouar.pages.dev`.
 
 ## ما يفعله الإصدار الأول
 
@@ -26,3 +26,6 @@
 من GitHub Actions شغّل سير العمل **Build Anwar Android Companion**. سيُنتج ملف Debug APK داخل Artifact باسم `anwar-android-debug-apk`. هذا بناء تجريبي غير مخصص للنشر على Google Play.
 
 المتطلبات: JDK 17، Android SDK 36، Gradle 8.13، Android Gradle Plugin 8.13.2.
+
+
+هذه حزمة اختبار مرتبطة بمعاينة الفرع `feat-native-background-adhan.mofakira-anouar.pages.dev`، وليست إصدار الإنتاج النهائي. بعد اختبارها على الجهاز سيُحوّل رابط التطبيق إلى النطاق المستقر في إصدار مستقل.

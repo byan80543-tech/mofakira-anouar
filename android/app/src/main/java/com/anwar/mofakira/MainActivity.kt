@@ -173,8 +173,8 @@ class MainActivity : Activity() {
     }
 
     companion object {
-        private const val SITE_HOST = "mofakira-anouar.pages.dev"
-        private const val SITE_ORIGIN = "https://mofakira-anouar.pages.dev"
+        private const val SITE_HOST = "feat-native-background-adhan.mofakira-anouar.pages.dev"
+        private const val SITE_ORIGIN = "https://feat-native-background-adhan.mofakira-anouar.pages.dev"
         private const val SITE_URL = "$SITE_ORIGIN/"
         private const val REQUEST_NOTIFICATIONS = 721
     }
