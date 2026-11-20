@@ -10,9 +10,7 @@ const RATE_POLICIES = Object.freeze({
   client: { limit: 30, windowMs: 60_000 },
   catalog: { limit: 20, windowMs: 60_000 },
   "country-list": { limit: 8, windowMs: 60_000 },
-  "country-profile": { limit: 12, windowMs: 60_000 },
-  "transcribe-global": { limit: 10, windowMs: 86_400_000 },
-  transcribe: { limit: 3, windowMs: 86_400_000 }
+  "country-profile": { limit: 12, windowMs: 60_000 }
 });
 
 const CACHE_TTLS = Object.freeze({
@@ -23,19 +21,7 @@ const CACHE_TTLS = Object.freeze({
 });
 
 const MAX_UPSTREAM_BYTES = 4 * 1024 * 1024;
-const MAX_AUDIO_BYTES = 8 * 1024 * 1024;
 const UPSTREAM_TIMEOUT_MS = 7_000;
-const TRANSCRIPTION_MODEL = "@cf/openai/whisper-large-v3-turbo";
-const AUDIO_EXTENSIONS = new Set([
-  "aac", "amr", "flac", "m4a", "m4b", "mp3", "mpga", "mpeg",
-  "oga", "ogg", "opus", "wav", "wave", "webm"
-]);
-const AUDIO_MIME_TYPES = new Set([
-  "audio/aac", "audio/amr", "audio/flac", "audio/mp3", "audio/mpeg",
-  "audio/mp4", "audio/mp4a-latm", "audio/ogg", "audio/opus",
-  "audio/wav", "audio/wave", "audio/webm", "audio/x-aac",
-  "audio/x-m4a", "audio/x-wav", "application/ogg"
-]);
 
 function json(data, status = 200, extraHeaders = {}) {
   return new Response(JSON.stringify(data), {
@@ -166,9 +152,7 @@ async function hmacClientKey(ip, secret) {
 async function checkLimits(namespace, clientKey, routeBucket) {
   const id = namespace.idFromName("anwar-api-gateway-global-rate-limiter");
   const stub = namespace.get(id);
-  const buckets = routeBucket === "transcribe"
-    ? ["total", "client", "transcribe-global", "transcribe"]
-    : ["total", "client", routeBucket];
+  const buckets = ["total", "client", routeBucket];
   const response = await stub.fetch("https://rate-limit.internal/check", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -323,11 +307,12 @@ export class IpRateLimiter {
 
     const clientKey = payload && payload.clientKey;
     const buckets = payload && payload.buckets;
-      const validRouteBuckets = new Set(["catalog", "country-list", "country-profile"]);
-    const validShape = Array.isArray(buckets) && (
-      (buckets.length === 3 && buckets[0] === "total" && buckets[1] === "client" && validRouteBuckets.has(buckets[2])) ||
-      (buckets.length === 4 && buckets[0] === "total" && buckets[1] === "client" && buckets[2] === "transcribe-global" && buckets[3] === "transcribe")
-    );
+    const validRouteBuckets = new Set(["catalog", "country-list", "country-profile"]);
+    const validShape = Array.isArray(buckets) &&
+      buckets.length === 3 &&
+      buckets[0] === "total" &&
+      buckets[1] === "client" &&
+      validRouteBuckets.has(buckets[2]);
     if (typeof clientKey !== "string" || !/^[a-f0-9]{64}$/.test(clientKey) || !validShape) {
       return json({ error: "Invalid rate-limit request" }, 400);
     }
@@ -342,17 +327,15 @@ export class IpRateLimiter {
     ).toArray();
     let state;
     try {
-      state = JSON.parse(rows[0]?.data || '{"global":[],"transcription":[],"clients":{}}');
+      state = JSON.parse(rows[0]?.data || '{"global":[],"clients":{}}');
+      // Drop counters left by the retired audio transcription route.
+      delete state.transcription;
     } catch {
       throw new Error("Rate-limit state is corrupted");
     }
 
     state.global = Array.isArray(state.global)
       ? state.global.filter(timestamp => Number.isFinite(timestamp) && timestamp > cutoff)
-      : [];
-    const dailyCutoff = now - 86_400_000;
-    state.transcription = Array.isArray(state.transcription)
-      ? state.transcription.filter(timestamp => Number.isFinite(timestamp) && timestamp > dailyCutoff)
       : [];
     if (!state.clients || typeof state.clients !== "object" || Array.isArray(state.clients)) {
       state.clients = {};
@@ -364,7 +347,8 @@ export class IpRateLimiter {
         delete state.clients[key];
         continue;
       }
-      for (const bucket of ["client", "catalog", "country-list", "country-profile", "transcribe"]) {
+      delete value.transcribe;
+      for (const bucket of ["client", "catalog", "country-list", "country-profile"]) {
         const windowMs = RATE_POLICIES[bucket]?.windowMs || 60_000;
         const bucketCutoff = now - windowMs;
         value[bucket] = Array.isArray(value[bucket])
@@ -381,27 +365,12 @@ export class IpRateLimiter {
       catalog: [],
       "country-list": [],
       "country-profile": [],
-      transcribe: [],
     };
-    const isTranscription = buckets.length === 4 &&
-      buckets[0] === "total" && buckets[1] === "client" &&
-      buckets[2] === "transcribe-global" && buckets[3] === "transcribe";
-    const validOrdinaryBuckets = buckets.length === 3 &&
-      buckets[0] === "total" && buckets[1] === "client" &&
-      ["catalog", "country-list", "country-profile"].includes(buckets[2]);
-    if (!isTranscription && !validOrdinaryBuckets) {
-      return json({ error: "Invalid rate-limit request" }, 400);
-    }
-    const routeBucket = isTranscription ? "transcribe" : buckets[2];
+    const routeBucket = buckets[2];
     const checks = [
       { bucket: "total", timestamps: state.global, policy: RATE_POLICIES.total },
       { bucket: "client", timestamps: client.client, policy: RATE_POLICIES.client },
-      ...(isTranscription ? [
-        { bucket: "transcribe-global", timestamps: state.transcription, policy: RATE_POLICIES["transcribe-global"] },
-        { bucket: "transcribe", timestamps: client.transcribe, policy: RATE_POLICIES.transcribe }
-      ] : [
-        { bucket: routeBucket, timestamps: client[routeBucket], policy: RATE_POLICIES[routeBucket] }
-      ])
+      { bucket: routeBucket, timestamps: client[routeBucket], policy: RATE_POLICIES[routeBucket] }
     ];
 
     for (const check of checks) {
@@ -419,7 +388,6 @@ export class IpRateLimiter {
     state.global.push(now);
     client.client.push(now);
     client[routeBucket].push(now);
-    if (isTranscription) state.transcription.push(now);
     state.clients[clientKey] = client;
     this.ctx.storage.sql.exec(
       "UPDATE rate_state SET data = ? WHERE id = 1",
@@ -433,86 +401,6 @@ export class IpRateLimiter {
   }
 }
 
-
-function bytesToBase64(bytes) {
-  let binary = "";
-  for (let index = 0; index < bytes.length; index += 0x8000) {
-    binary += String.fromCharCode(...bytes.subarray(index, index + 0x8000));
-  }
-  return btoa(binary);
-}
-
-function isSupportedAudioFile(file) {
-  const extension = String(file.name || "").split(".").pop().toLowerCase();
-  const mime = String(file.type || "").toLowerCase();
-  if (mime.startsWith("video/")) return false;
-  if (mime && !mime.startsWith("audio/") && mime !== "application/ogg") return false;
-  return AUDIO_EXTENSIONS.has(extension) || AUDIO_MIME_TYPES.has(mime);
-}
-
-async function transcribeAudio(request, env, origin) {
-  if (!env.AI || typeof env.AI.run !== "function") {
-    return errorResponse("خدمة التفريغ السحابي غير مفعّلة على الخادم بعد.", 503, origin);
-  }
-
-  const contentLength = Number(request.headers.get("Content-Length") || 0);
-  if (contentLength > MAX_AUDIO_BYTES + 128_000) {
-    return errorResponse("حجم الملف يتجاوز الحد المسموح وهو 8 ميغابايت.", 413, origin);
-  }
-
-  let form;
-  try {
-    form = await request.formData();
-  } catch {
-    return errorResponse("تعذّرت قراءة الملف المرفوع. أعد اختيار الملف وحاول مجددًا.", 400, origin);
-  }
-
-  if ([...form.keys()].some(key => key !== "audio" && key !== "consent")) {
-    return errorResponse("حقول طلب التفريغ غير مسموحة.", 400, origin);
-  }
-  const consentValues = form.getAll("consent");
-  if (consentValues.length !== 1 || consentValues[0] !== "true") {
-    return errorResponse("يجب تأكيد الموافقة على إرسال الملف الصوتي لمعالجته.", 400, origin);
-  }
-  const audioFiles = form.getAll("audio");
-  const file = audioFiles.length === 1 ? audioFiles[0] : null;
-  if (!file || typeof file.arrayBuffer !== "function" || typeof file.size !== "number") {
-    return errorResponse("أرفق ملفًا صوتيًا واحدًا فقط.", 400, origin);
-  }
-  if (file.size <= 0) {
-    return errorResponse("الملف الصوتي فارغ.", 400, origin);
-  }
-  if (file.size > MAX_AUDIO_BYTES) {
-    return errorResponse("حجم الملف يتجاوز الحد المسموح وهو 8 ميغابايت.", 413, origin);
-  }
-  if (!isSupportedAudioFile(file)) {
-    return errorResponse("صيغة الصوت غير مدعومة. استخدم MP3 أو M4A أو WAV أو OGG أو WEBM أو FLAC.", 415, origin);
-  }
-
-  try {
-    const audioBytes = new Uint8Array(await file.arrayBuffer());
-    if (!audioBytes.length || audioBytes.length > MAX_AUDIO_BYTES) {
-      return errorResponse("تعذّر التحقق من حجم الملف الصوتي.", 413, origin);
-    }
-    const result = await env.AI.run(TRANSCRIPTION_MODEL, {
-      audio: bytesToBase64(audioBytes),
-      task: "transcribe"
-    });
-    const transcriptionInfo = result?.transcription_info;
-    const text = typeof transcriptionInfo?.text === "string" ? transcriptionInfo.text.trim() : "";
-    if (!text || text.length > 250_000) {
-      return errorResponse("لم يُنتج محرك التفريغ نصًا صالحًا. جرّب ملفًا أوضح وأقصر.", 502, origin);
-    }
-    const detectedLanguage = String(transcriptionInfo?.language || "").slice(0, 24);
-    const wordCount = Number.isFinite(Number(transcriptionInfo?.word_count))
-      ? Math.max(0, Number(transcriptionInfo.word_count))
-      : text.split(/\s+/).filter(Boolean).length;
-    return withCors(json({ text, language: detectedLanguage, wordCount }, 200), origin);
-  } catch {
-    // Never log or persist audio bytes or transcription contents.
-    return errorResponse("تعذّر إتمام التفريغ الصوتي الآن. حاول بملف أصغر أو أعد المحاولة لاحقًا.", 502, origin);
-  }
-}
 
 export default {
   async fetch(request, env, ctx) {
@@ -543,37 +431,10 @@ export default {
     const url = new URL(request.url);
 
     if (request.method === "POST") {
-      if (url.pathname !== "/v1/transcribe" || url.search) {
-        if (!url.search && resolveRoute(url)) {
-          return errorResponse("طريقة الطلب غير مسموحة.", 405, origin, { Allow: "GET, OPTIONS" });
-        }
-        return errorResponse("المسار غير موجود.", 404, origin);
+      if (!url.search && resolveRoute(url)) {
+        return errorResponse("طريقة الطلب غير مسموحة.", 405, origin, { Allow: "GET, OPTIONS" });
       }
-
-      let edgeDecision;
-      try {
-        if (!env.EDGE_LIMITER) throw new Error("Edge rate limiter binding missing");
-        edgeDecision = await env.EDGE_LIMITER.limit({ key: "anwar-api-gateway" });
-      } catch {
-        return errorResponse("بوابة تحديد المعدل الطرفية غير متاحة مؤقتًا.", 503, origin);
-      }
-      if (!edgeDecision.success) {
-        return errorResponse("تم تجاوز الحد الطرفي للطلبات. انتظر قليلًا ثم أعد المحاولة.", 429, origin, { "Retry-After": "60" });
-      }
-
-      let decision;
-      try {
-        decision = await applyRateLimits(request, env, "transcribe");
-      } catch {
-        return errorResponse("بوابة الحماية غير متاحة مؤقتًا. حاول لاحقًا.", 503, origin);
-      }
-      if (decision.blocked) {
-        return errorResponse("بلغت حد التفريغ اليومي المسموح. حاول في وقت لاحق.", 429, origin, {
-          "Retry-After": String(decision.retryAfter)
-        });
-      }
-
-      return transcribeAudio(request, env, origin);
+      return errorResponse("المسار غير موجود.", 404, origin);
     }
 
     if (request.method !== "GET") {
