@@ -2594,6 +2594,80 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  const X='أكرم العلاقمي|9/akrm;محمد الطبلاوي|12/tblawi;محمد اللحيدان|8/lhdan;محمد صالح عالم شاه|12/shah;محمد جبريل|8/jbrl;محمد عبدالكريم|12/m_krm;محمود خليل الحصري|13/husr;الحصري (المصحف المجود)|13/husr/Almusshaf-Al-Mojawwad;الحصري (ورش)|13/husr/Rewayat-Warsh-A-n-Nafi;الحصري (قالون)|13/husr/Rewayat-Qalon-A-n-Nafi;محمود علي البنا|8/bna;محمود علي البنا (المصحف المجود)|8/bna/Almusshaf-Al-Mojawwad;مصطفى إسماعيل|8/mustafa;مصطفى إسماعيل (المصحف المجود)|8/mustafa/Almusshaf-Al-Mojawwad;مصطفى اللاهوني|6/lahoni;مصطفى رعد العزاوي|8/ra3ad;الزين محمد أحمد|9/alzain;ماجد الزامل|9/zaml;ماهر شخاشيرو|10/shaksh;ياسر سلامة|12/salamah/Rewayat-Hafs-A-n-Assem;خالد المهنا|11/mohna;عادل الكلباني|8/a_klb;موسى بلال|11/bilal;حاتم فريد الواعر|11/hatem;إبراهيم الجرمي|11/jormy;محمود الرفاعي|11/mrifai;توفيق الصايغ|6/twfeeq;إبراهيم الدوسري|10/ibrahim_dosri/Rewayat-Hafs-A-n-Assem;إبراهيم الدوسري (ورش)|10/ibrahim_dosri/Rewayat-Warsh-A-n-Nafi;جمال شاكر عبدالله|6/jamal;جمعان العصيمي|6/jaman;يوسف بن نوح أحمد|8/noah;معيض الحارثي|8/harthi;محمد رشاد الشريف|10/rashad;خالد الجليل|10/jleel;أحمد الطرابلسي|10/trabulsi;أحمد الطرابلسي (قالون)|10/trablsi;عبدالله الكندري|10/Abdullahk;أحمد عامر|10/Aamer;محمد عثمان خان|6/khan;وديع اليمني|6/wdee3;بندر بليله|6/balilah;خالد القحطاني|10/qht;خالد عبدالكافي|11/kafi;رامي الدعيس|6/rami;عبدالرحمن العوسي|6/aloosi;عبدالرحمن الماجد|10/a_majed;خليفة الطنيجي|12/tnjy;عبدالله الخلف|14/khalf;منصور السالمي|14/mansor;ناصر الماجد|14/nasser_almajed;أحمد السويلم|14/swlim/Rewayat-Hafs-A-n-Assem;بدر التركي|10/bader/Rewayat-Hafs-A-n-Assem;أحمد خليل شاهين|16/shaheen/Rewayat-Hafs-A-n-Assem;سعد المقرن|16/saad/Rewayat-Hafs-A-n-Assem;أحمد النفيس|16/nufais/Rewayat-Hafs-A-n-Assem;عبدالله كامل|16/kamel/Rewayat-Hafs-A-n-Assem;بيشه وا قادر الكردي|16/peshawa/Rewayat-Hafs-A-n-Assem;نذير المالكي|16/nathier/Rewayat-Hafs-A-n-Assem;عبدالإله بن عون|16/a_binaoun/Rewayat-Hafs-A-n-Assem;محمد برهجي|16/M_Burhaji/Rewayat-Hafs-A-n-Assem;هيثم الدخين|16/h_dukhain/Rewayat-Hafs-A-n-Assem;مفتاح السلطني|14/muftah_sultany/Rewayat-Hafs-A-n-Assem;أحمد ديبان|16/deban/Rewayat-Hafs-A-n-Assem;أحمد ديبان (قالون)|16/deban/Rewayat-Qalon-A-n-Nafi;أحمد ديبان (ورش)|16/deban/Rewayat-Warsh-A-n-Nafi-Men-Tariq-Alazraq;أحمد ديبان (الدوري عن أبي عمرو)|16/deban/Rewayat-Aldori-A-n-Abi-Amr;أحمد ديبان (البزي)|16/deban/Rewayat-Albizi-A-n-Ibn-Katheer;أحمد ديبان (قنبل)|16/deban/Rewayat-Qunbol-A-n-Ibn-Katheer;أحمد ديبان (شعبة)|16/deban/Rewayat-Sho-bah-A-n-Asim;القارئ ياسين (ورش)|11/qari;العيون الكوشي (ورش)|11/koshi;محمد سايد (ورش)|16/m_sayed/Rewayat-Warsh-A-n-Nafi;رشيد بلعالية (ورش)|6/bl3/Rewayat-Warsh-A-n-Nafi;مروان العكري (قالون)|16/m_akri/Rewayat-Qalon-A-n-Nafi;الدوكالي محمد العالم (قالون)|7/dokali;طارق عبدالغني دعوب (قالون)|10/tareq;محمود الشيمي (الدوري عن الكسائي)|10/sheimy;الفاتح محمد الزبير (الدوري عن أبي عمرو)|6/fateh;نورين محمد صديق (الدوري عن أبي عمرو)|16/nourin_siddig/Rewayat-Aldori-A-n-Abi-Amr;محمد عبدالحكيم العبدالله (الدوري عن الكسائي)|9/abdullah/Rewayat-AlDorai-A-n-Al-Kisa-ai;عكاشة كميني (البزي)|16/okasha/Rewayat-Albizi-A-n-Ibn-Katheer;المنشاوي (المصحف المجود)|10/minsh/Almusshaf-Al-Mojawwad;ماهر المعيقلي (المصحف المجود)|12/maher/Almusshaf-Al-Mojawwad'.split(';').map(s=>{const[a,p]=s.split('|'),[v,...r]=p.split('/');return[a,`https://server${v}.mp3quran.net/${r.join('/')}/`]}).sort((a,b)=>a[0].localeCompare(b[0],'ar'));
  X.forEach(x=>{if(!R.some(r=>r[0]===x[0]))R.push(x)});
  const rr=$('rr'),rsu=$('rsu'),st=$('rst'),pp=$('rpp'),rb=$('rb'),au=new Audio();let n=1,started=false,wd,cr=0,sl,playRequestId=0;
+
+ const stationSelect=$('rl'),stationPicker=$('liveStationPicker'),stationPickerChoice=$('liveStationChoice');
+ const stationModal=document.createElement('div');
+ stationModal.id='liveStationModal';stationModal.className='live-station-modal';
+ stationModal.hidden=true;stationModal.setAttribute('role','dialog');stationModal.setAttribute('aria-modal','true');stationModal.setAttribute('aria-labelledby','liveStationModalTitle');
+ const stationDialog=document.createElement('div');stationDialog.className='live-station-dialog';
+ const stationHeader=document.createElement('header');stationHeader.className='live-station-modal-head';
+ const stationHeaderCopy=document.createElement('div');
+ const stationModalTitle=document.createElement('strong');stationModalTitle.id='liveStationModalTitle';stationModalTitle.textContent='محطات البث المباشر';
+ const stationModalSub=document.createElement('small');stationModalSub.textContent='اختر المحطة التي ترغب في الاستماع إليها';
+ stationHeaderCopy.append(stationModalTitle,stationModalSub);
+ const stationClose=document.createElement('button');stationClose.type='button';stationClose.className='live-station-modal-close';stationClose.setAttribute('aria-label','إغلاق قائمة المحطات');stationClose.textContent='×';
+ stationHeader.append(stationHeaderCopy,stationClose);
+ const stationTools=document.createElement('div');stationTools.className='live-station-modal-tools';
+ const stationSearch=document.createElement('input');stationSearch.type='search';stationSearch.placeholder='ابحث عن محطة…';stationSearch.setAttribute('aria-label','ابحث عن محطة بث');
+ const stationCount=document.createElement('span');stationCount.className='live-station-modal-count';stationTools.append(stationSearch,stationCount);
+ const stationHint=document.createElement('small');stationHint.className='live-station-modal-hint';stationHint.textContent='تظهر المحطات في بطاقات مستقلة؛ اختر بطاقة لتعيين المحطة.';
+ const stationList=document.createElement('div');stationList.className='live-station-options';stationList.setAttribute('role','listbox');stationList.setAttribute('aria-label','محطات البث المتاحة');
+ stationDialog.append(stationHeader,stationTools,stationHint,stationList);stationModal.append(stationDialog);document.body.append(stationModal);
+ let stationPreviousOverflow='';
+ function renderLiveStationOptions(){
+  const query=String(stationSearch.value||'').trim().toLocaleLowerCase('ar');
+  const options=Array.from(stationSelect.options).map((option,index)=>({option,index}))
+   .filter(item=>item.option.value&&(!query||String(item.option.textContent||'').toLocaleLowerCase('ar').includes(query)));
+  stationCount.textContent=new Intl.NumberFormat('ar').format(options.length)+' محطة';
+  if(!options.length){
+   const empty=document.createElement('div');empty.className='live-station-options-empty';
+   empty.textContent=query?'لا توجد محطة بهذا الاسم.':'جارٍ تجهيز قائمة المحطات…';
+   stationList.replaceChildren(empty);return;
+  }
+  const fragment=document.createDocumentFragment();
+  options.forEach(({option,index})=>{
+   const item=document.createElement('button');item.type='button';
+   item.className='reciter-card live-station-option';item.dataset.stationIndex=String(index);
+   item.setAttribute('role','option');item.setAttribute('aria-selected',String(index===stationSelect.selectedIndex));
+   const seal=document.createElement('span');seal.className='reciter-seal';seal.setAttribute('aria-hidden','true');
+   const flower=document.createElement('img');flower.src='assets/tulip-cutout.svg';flower.alt='';flower.loading='lazy';flower.decoding='async';seal.append(flower);
+   const name=document.createElement('span');name.className='reciter-name';name.textContent=String(option.textContent||'إذاعة القرآن');
+   const mark=document.createElement('span');mark.className='live-station-option-mark';mark.setAttribute('aria-hidden','true');mark.textContent=index===stationSelect.selectedIndex?'✓':'○';
+   item.append(seal,name,mark);fragment.append(item);
+  });
+  stationList.replaceChildren(fragment);
+ }
+ function syncLiveStationPicker(){
+  const selected=stationSelect.selectedOptions&&stationSelect.selectedOptions[0];
+  if(stationPickerChoice)stationPickerChoice.textContent=selected&&selected.value?selected.textContent:'اختر محطة البث';
+  if(!stationModal.hidden)renderLiveStationOptions();
+ }
+ function openLiveStationPicker(){
+  renderLiveStationOptions();stationModal.hidden=false;
+  stationPicker.setAttribute('aria-expanded','true');
+  stationPreviousOverflow=document.body.style.overflow;document.body.style.overflow='hidden';
+  stationSearch.focus();
+ }
+ function closeLiveStationPicker(){
+  if(stationModal.hidden)return;
+  stationModal.hidden=true;stationPicker.setAttribute('aria-expanded','false');
+  document.body.style.overflow=stationPreviousOverflow;stationPicker.focus();
+ }
+ stationPicker.addEventListener('click',openLiveStationPicker);
+ stationClose.addEventListener('click',closeLiveStationPicker);
+ stationSearch.addEventListener('input',renderLiveStationOptions);
+ stationModal.addEventListener('click',event=>{if(event.target===stationModal)closeLiveStationPicker()});
+ stationList.addEventListener('click',event=>{
+  const item=event.target.closest('[data-station-index]');if(!item)return;
+  const index=Number(item.dataset.stationIndex);
+  if(!Number.isInteger(index)||index<0||index>=stationSelect.options.length)return;
+  stationSelect.selectedIndex=index;
+  stationSelect.dispatchEvent(new Event('change',{bubbles:true}));
+  closeLiveStationPicker();
+ });
+ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!stationModal.hidden)closeLiveStationPicker()});
+ syncLiveStationPicker();
+
  au.preload='metadata';au.volume=.8;$('ro').hidden=true;window.__anwarRadioAudio=au;
  // Keep the radio's requested volume separate from temporary ducking.
  let radioBaseVolume=au.volume,radioShouldPlay=false,radioResumePending=false,radioLastResumeAttempt=0;
@@ -2756,6 +2830,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
   const on=started&&!au.paused,live=mode()==='l';
   const selectedStation=$('rl').selectedOptions[0];
   const stationName=selectedStation?selectedStation.textContent:'إذاعة مباشرة';
+  syncLiveStationPicker();
   const liveButton=$('liveRadioPlay'),liveStatus=$('liveRadioStatus');
   pp.textContent=on?'⏸':'▶';rb.textContent=on?'⏸':'▶';rb.classList.toggle('on',on);
   $('radioNow').textContent=on?(live?stationName:'القارئ: '+R[cr][0]):'إذاعة أنوار القرآنية';
@@ -3050,6 +3125,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
    select.replaceChildren(fragment);
    if(previous&&stations.some(station=>station.url===previous))select.value=previous;
    if(!select.value)select.selectedIndex=0;
+   syncLiveStationPicker();
    $('liveStationArea').hidden=false;
    if(status)status.textContent='تم تحميل '+stations.length+' محطة. اختر المحطة التي تريد الاستماع إليها.';
    if(button){
@@ -3068,6 +3144,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
     option.textContent='إذاعة زين بلادي للقرآن الكريم';
     select.replaceChildren(option);
     select.selectedIndex=0;
+    syncLiveStationPicker();
     $('liveStationArea').hidden=false;
     if(status)status.textContent='تعذّر تحميل بقية المحطات؛ محطة زين بلادي متاحة للاستماع.';
     if(button){
@@ -3090,6 +3167,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  $('src').textContent='قائمة القرّاء الأساسية جاهزة. تُحمّل التحديثات عند فتح الإذاعة، وتُحمّل المحطات عند طلب البث المباشر.';
  document.querySelectorAll('input[name=rm]').forEach(x=>x.addEventListener('change',()=>{if(started)play()}));
  $('rl').addEventListener('change',()=>{
+  syncLiveStationPicker();
   if(started&&activePlaybackKind==='live'&&!au.paused)play();
   else{
    const selected=$('rl').selectedOptions[0];
