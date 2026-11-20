@@ -25,6 +25,10 @@ assert.equal(textParser('&lt;script&gt;نص ظاهر&lt;/script&gt;'),'<script>�
 const recordText=section(app,'function notePlainText(note){','function recordsText','record HTML to text');
 assert.ok(recordText.includes("plain(note.html||'')"));
 assert.ok(!recordText.includes('.innerHTML='));
+const htmlExport=section(app,'function recordsHtml(records,title){','function xmlEscape','safe HTML export');
+assert.ok(htmlExport.includes('esc(notePlainText(note))'));
+assert.ok(!htmlExport.includes('san(note.html'));
+assert.ok(htmlExport.includes('white-space:pre-wrap'));
 
 const fileImport=section(app,'async function handleBookFile(file){','function showOwnerPanel(','HTML and text file import');
 assert.ok(!fileImport.includes('DOMParser'));
