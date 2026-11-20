@@ -267,107 +267,26 @@ try {
   assert.equal((await last.json()).bucket, "total");
   assert.equal(updateCalls, 50, "the rejected 51st request does not update the SQLite row");
 
-  // Valid transcription upload reaches the bound Cloudflare AI model once.
-  let modelCalls = 0;
-  const aiEnv = {
-    ...baseEnv(),
-    AI: {
-      async run(model, input) {
-        modelCalls += 1;
-        assert.equal(model, "@cf/openai/whisper-large-v3-turbo");
-        assert.equal(input.task, "transcribe");
-        assert.ok(typeof input.audio === "string" && input.audio.length > 0);
-        return { transcription_info: { text: "هذا نص عربي تجريبي", word_count: 4 } };
-      }
-    }
-  };
-  const audioForm = new FormData();
-  audioForm.append("audio", new Blob([new Uint8Array([1,2,3,4])], { type: "audio/mpeg" }), "sample.mp3");
-  audioForm.append("consent", "true");
+  // The retired audio transcription endpoint is no longer exposed.
   response = await worker.fetch(new Request("https://gateway.example.workers.dev/v1/transcribe", {
     method: "POST",
-    headers: { Origin: "https://byan80543-tech.github.io", "CF-Connecting-IP": "192.0.2.50" },
-    body: audioForm
-  }), aiEnv, context);
-  assert.equal(response.status, 200);
-  const transcriptResult = await response.json();
-  assert.equal(transcriptResult.text, "هذا نص عربي تجريبي");
-  assert.equal(transcriptResult.wordCount, 4);
-  assert.equal(transcriptResult.language, "");
-  assert.equal(modelCalls, 1);
+    headers: { Origin: "https://byan80543-tech.github.io", "CF-Connecting-IP": "192.0.2.60" }
+  }), baseEnv(), context);
+  assert.equal(response.status, 404, "the removed audio transcription endpoint returns not found");
 
-  // Transcription rejects missing files, unsupported formats, untrusted origins and disabled AI.
-  const missingForm = new FormData();
-  missingForm.append("consent", "true");
-  response = await worker.fetch(new Request("https://gateway.example.workers.dev/v1/transcribe", {
-    method: "POST", headers: { Origin: "https://byan80543-tech.github.io", "CF-Connecting-IP": "192.0.2.51" }, body: missingForm
-  }), aiEnv, context);
-  assert.equal(response.status, 400);
-  const unsupportedForm = new FormData();
-  unsupportedForm.append("audio", new Blob(["not audio"], { type: "text/plain" }), "notes.txt");
-  unsupportedForm.append("consent", "true");
-  response = await worker.fetch(new Request("https://gateway.example.workers.dev/v1/transcribe", {
-    method: "POST", headers: { Origin: "https://byan80543-tech.github.io", "CF-Connecting-IP": "192.0.2.52" }, body: unsupportedForm
-  }), aiEnv, context);
-  assert.equal(response.status, 415);
-  const videoForm = new FormData();
-  videoForm.append("audio", new Blob([new Uint8Array([1])], { type: "video/mp4" }), "video.mp4");
-  videoForm.append("consent", "true");
-  response = await worker.fetch(new Request("https://gateway.example.workers.dev/v1/transcribe", {
-    method: "POST", headers: { Origin: "https://byan80543-tech.github.io", "CF-Connecting-IP": "192.0.2.55" }, body: videoForm
-  }), aiEnv, context);
-  assert.equal(response.status, 415, "video containers are rejected even when they may contain audio");
-  const noConsentForm = new FormData();
-  noConsentForm.append("audio", new Blob([new Uint8Array([1])], { type: "audio/mpeg" }), "a.mp3");
-  response = await worker.fetch(new Request("https://gateway.example.workers.dev/v1/transcribe", {
-    method: "POST", headers: { Origin: "https://byan80543-tech.github.io", "CF-Connecting-IP": "192.0.2.56" }, body: noConsentForm
-  }), aiEnv, context);
-  assert.equal(response.status, 400, "server rejects transcription without explicit consent");
-  const extraFieldForm = new FormData();
-  extraFieldForm.append("audio", new Blob([new Uint8Array([1])], { type: "audio/mpeg" }), "a.mp3");
-  extraFieldForm.append("consent", "true");
-  extraFieldForm.append("unexpected", "not allowed");
-  response = await worker.fetch(new Request("https://gateway.example.workers.dev/v1/transcribe", {
-    method: "POST", headers: { Origin: "https://byan80543-tech.github.io", "CF-Connecting-IP": "192.0.2.57" }, body: extraFieldForm
-  }), aiEnv, context);
-  assert.equal(response.status, 400, "server rejects unexpected multipart fields");
-  const blockedOriginForm = new FormData();
-  blockedOriginForm.append("audio", new Blob([new Uint8Array([1])], { type: "audio/mpeg" }), "a.mp3");
-  response = await worker.fetch(new Request("https://gateway.example.workers.dev/v1/transcribe", {
-    method: "POST", headers: { Origin: "https://evil.example", "CF-Connecting-IP": "192.0.2.53" }, body: blockedOriginForm
-  }), aiEnv, context);
-  assert.equal(response.status, 403);
-  const disabledAiEnv = { ...baseEnv(), AI: undefined };
-  response = await worker.fetch(new Request("https://gateway.example.workers.dev/v1/transcribe", {
-    method: "POST", headers: { Origin: "https://byan80543-tech.github.io", "CF-Connecting-IP": "192.0.2.54" }, body: (() => { const f = new FormData(); f.append("audio", new Blob([new Uint8Array([1])], { type: "audio/mpeg" }), "a.mp3"); return f; })()
-  }), disabledAiEnv, context);
-  assert.equal(response.status, 503);
-
-  // The Durable Object validates transcription-only buckets and enforces daily caps.
-  sql.exec("UPDATE rate_state SET data = ? WHERE id = 1", '{"global":[],"transcription":[],"clients":{}}');
-  updateCalls = 0;
-  const transcribeRequest = clientKey => new Request("https://rate-limit.internal/check", {
+  // The Durable Object no longer accepts transcription-only daily quota buckets.
+  const obsoleteQuotaRequest = new Request("https://rate-limit.internal/check", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ clientKey, buckets: ["total", "client", "transcribe-global", "transcribe"] })
+    body: JSON.stringify({
+      clientKey: "e".repeat(64),
+      buckets: ["total", "client", "transcribe-global", "transcribe"]
+    })
   });
-  const dailyClient = "c".repeat(64);
-  for (let i = 0; i < 3; i += 1) {
-    last = await limiter.fetch(transcribeRequest(dailyClient));
-    assert.equal(last.status, 200);
-  }
-  last = await limiter.fetch(transcribeRequest(dailyClient));
-  assert.equal(last.status, 429, "a fourth transcription per IP is blocked in the daily window");
-  assert.equal((await last.json()).bucket, "transcribe");
-  for (let i = 0; i < 7; i += 1) {
-    last = await limiter.fetch(transcribeRequest((100 + i).toString(16).padStart(64, "0")));
-    assert.equal(last.status, 200);
-  }
-  last = await limiter.fetch(transcribeRequest("d".repeat(64)));
-  assert.equal(last.status, 429, "the 11th daily transcription is blocked globally");
-  assert.equal((await last.json()).bucket, "transcribe-global");
+  const obsoleteQuotaResponse = await limiter.fetch(obsoleteQuotaRequest);
+  assert.equal(obsoleteQuotaResponse.status, 400, "transcription-only rate-limit buckets are rejected");
 
-  console.log("API gateway checks passed: origin, allowlist, cache, edge/IP limits, transcription upload, AI binding and daily quotas.");
+  console.log("API gateway checks passed: origin, allowlist, cache, edge/IP limits and retired transcription endpoint.");
 } finally {
   globalThis.fetch = originalFetch;
   Object.defineProperty(globalThis, "crypto", { value: originalCrypto, configurable: true, writable: true });
