@@ -27,7 +27,7 @@ assert.ok(byId.dajjal.text.includes('فِتْنَةِ الْمَسِيحِ ال�
 const html=fs.readFileSync(new URL('index.html',root),'utf8');
 const core=fs.readFileSync(new URL('app-core.js',root),'utf8');
 const worker=fs.readFileSync(new URL('service-worker.js',root),'utf8');
-assert.ok(html.includes('id="protectionTab"')&&html.includes('data-protection'),'the adhkar screen exposes the protection tab and counter controls');
+assert.ok(html.includes('id="protectionTab"')&&core.includes('dataset.protectionCount')&&core.includes('dataset.protectionReset'),'the adhkar screen exposes the protection tab and its independent counter controls');
 assert.ok(html.lastIndexOf('protection-adhkar.js')<html.lastIndexOf('<script src="./app-core.js'),'the protection library script loads before the app renderer');
 assert.ok(worker.includes("'./protection-adhkar.js'")&&worker.includes('anwar-shell-2026-11-20-v119'),'the protection library is included in the offline app shell');
 assert.match(core,/id==='protectionTab'\)renderAdhkar\('protection'\)/,'the protection tab is connected to the delegated click handler');
