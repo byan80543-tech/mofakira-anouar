@@ -18,9 +18,10 @@ function harness(){
    async encryptWithKey(key,template,plaintext){encryptCalls++;return {format:'test',plaintext}},
    async decryptWithKey(key,envelope){return envelope.plaintext}
   },
-  localStorage:{
-   setItem(key,value){values.set(key,String(value))},
-   getItem(key){return values.has(key)?values.get(key):null}
+  AnwarVaultStorage:{
+   async set(key,value){values.set(key,String(value));return true},
+   async get(key){return values.has(key)?values.get(key):null},
+   async remove(key){values.delete(key);return true}
   },
   clearLegacyPrivatePreferences(){return true},
   console:{warn(){}},toast(){},
