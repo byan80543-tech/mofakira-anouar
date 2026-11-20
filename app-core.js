@@ -2115,6 +2115,12 @@ $('bookToolPanel')?.addEventListener('toggle',()=>{
  if(toggle)toggle.setAttribute('aria-expanded',String(!!panel?.open));
  $('app')?.classList.toggle('book-open',!!panel?.open);
 });
+function syncRibbonMenuSpace(){
+ const anyOpen=Array.from(document.querySelectorAll('#rib .rib-menu')).some(menu=>menu.open);
+ $('app')?.classList.toggle('ribbon-menu-open',anyOpen);
+}
+document.querySelectorAll('#rib .rib-menu').forEach(menu=>menu.addEventListener('toggle',syncRibbonMenuSpace));
+
 
 async function createBook(){
  if(cur)flushPendingEdit(false);
