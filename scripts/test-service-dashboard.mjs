@@ -5,7 +5,7 @@ import vm from 'node:vm';
 
 const root=process.cwd();
 const appCore=fs.readFileSync(path.join(root,'app-core.js'),'utf8');
-const marker='/* Anwar service dashboard: organize existing prayer, Quran, live radio and lesson controls. */';
+const marker='/* Anwar service dashboard: organize prayer, Quran, radio, lessons, adhkar and tasbih. */';
 const start=appCore.indexOf(marker);
 assert.notEqual(start,-1,'service dashboard initializer exists');
 const dashboardSource=appCore.slice(start);
