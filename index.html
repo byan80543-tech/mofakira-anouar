@@ -2262,7 +2262,7 @@ dialog[open]>.float-head{display:none!important}
   <div id="anwarServiceGrid" class="anwar-service-grid" aria-label="الأقسام">
    <button type="button" class="lesson-series-button anwar-service-card" data-anwar-service="adhan" aria-controls="anwarPrayerMount" aria-expanded="false">
     <span class="lesson-series-button-tulip" aria-hidden="true"><img src="assets/tulip-cutout.svg" alt=""></span>
-    <span class="lesson-series-button-copy"><small>الأذان والمواقيت</small><strong>مواقيت الصلاة وأصوات المؤذنين والتنبيهات</strong></span>
+    <span class="lesson-series-button-copy"><small>أصوات الأذان</small><strong>اختيار الصوت والتنبيهات</strong></span>
    </button>
    <button type="button" class="lesson-series-button anwar-service-card" data-anwar-service="quran" aria-controls="anwarQuranPage">
     <span class="lesson-series-button-tulip" aria-hidden="true"><img src="assets/tulip-cutout.svg" alt=""></span>
@@ -2582,7 +2582,7 @@ dialog[open]>.float-head{display:none!important}
 <script src="./app-core.js?v=20261120-22" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
 <script src="./tasbih-controller.js?v=20261119-18" defer></script>
-<script src="./prayer-times.js?v=20261120-5" defer></script>
+<script src="./prayer-times.js?v=20261120-6" defer></script>
 
 
 
@@ -2908,6 +2908,26 @@ dialog[open]>.float-head{display:none!important}
 #rd .anwar-service-back:focus-visible,#rd .anwar-service-card:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 #rd #anwarRadioPage .radio-section-title{margin:2px 0;text-align:center}
 @media(max-width:360px){#rd .anwar-service-grid{gap:6px}#rd .anwar-service-card{padding:8px 7px!important;gap:6px!important}#rd .anwar-service-card .lesson-series-button-tulip{width:31px;height:34px}}
+
+/* الشريط العلوي: زر الملكية والإغلاق بحجم وشكل متطابقين */
+#rd .curtain-head #ownerBtn.radio-owner-pen{
+ flex:0 0 34px!important;
+ width:34px!important;height:34px!important;
+ min-width:34px!important;min-height:34px!important;
+ padding:5px!important;
+ border:1px solid rgba(255,255,255,.36)!important;
+ border-radius:50%!important;
+ background:rgba(255,255,255,.12)!important;
+ color:#fff2c5!important;
+ box-shadow:none!important;
+}
+#rd .curtain-head #ownerBtn.radio-owner-pen svg{
+ display:block;width:21px;height:21px;transform:rotate(90deg);
+}
+#rd .curtain-head #closeRadioPanel{
+ width:34px;height:34px;min-width:34px;min-height:34px;
+ border-radius:50%;padding:0;
+}
 
 /* تحسينات الوصول لقائمة المحطات ودليل القراء مع الإبقاء على البطاقات الأصلية */
 #rd .live-station{grid-template-columns:minmax(0,1fr);align-items:stretch;gap:8px}
