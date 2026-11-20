@@ -55,11 +55,12 @@
   function renderOfficialOptions(){
    const existing=Array.from(select.querySelectorAll('optgroup')).filter(group=>group.dataset.anwarOfficialDhikrs==='true');
    existing.forEach(group=>group.remove());
-   ['tasbih','morning','evening','daily'].forEach(period=>{
+   // Morning/evening adhkar are provided in the unified Protective Adhkar section.
+   ['tasbih','daily'].forEach(period=>{
     const items=officialAdhkar.filter(item=>item&&item.period===period&&typeof item.text==='string'&&item.text.trim());
     if(!items.length)return;
     const group=document.createElement('optgroup');
-    group.label=period==='tasbih'?'أذكار السبحة الرسمية':period==='morning'?'أذكار الصباح الرسمية':period==='evening'?'أذكار المساء الرسمية':'أذكار يومية';
+    group.label=period==='tasbih'?'أذكار السبحة الرسمية':'أذكار يومية';
     group.dataset.anwarOfficialDhikrs='true';
     group.dataset.anwarOfficialPeriod=period;
     items.forEach(item=>{
