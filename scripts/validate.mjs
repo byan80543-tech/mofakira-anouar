@@ -17,6 +17,8 @@ const vaultDeviceUnlock=fs.readFileSync(path.join(root,'vault-device-unlock.js')
 const toolbarBackNavigation=fs.readFileSync(path.join(root,'toolbar-back-navigation.js'),'utf8');
 const apiGatewayConfig=fs.readFileSync(path.join(root,'api-gateway-config.js'),'utf8');
 const apiGatewayWorker=fs.readFileSync(path.join(root,'workers/anwar-api-gateway/src/index.mjs'),'utf8');
+const apiGatewayWrangler=fs.readFileSync(path.join(root,'workers/anwar-api-gateway/wrangler.toml'),'utf8');
+const apiGatewayReadme=fs.readFileSync(path.join(root,'workers/anwar-api-gateway/README.md'),'utf8');
 const apiGatewayDeployWorkflow=fs.readFileSync(path.join(root,'.github/workflows/deploy-anwar-api-gateway.yml'),'utf8');
 const clickGuard=fs.readFileSync(path.join(root,'click-guard.js'),'utf8');
 const iconGenerator=fs.readFileSync(path.join(root,'scripts/generate-pwa-icons.py'),'utf8');
@@ -115,8 +117,8 @@ ok(apiGatewayDeployWorkflow.includes('workflow_dispatch:') && apiGatewayDeployWo
 ok(apiGatewayDeployWorkflow.includes('CLOUDFLARE_API_TOKEN') && apiGatewayDeployWorkflow.includes('CLOUDFLARE_ACCOUNT_ID') && apiGatewayDeployWorkflow.includes('IP_HASH_SECRET'),'deployment reads Cloudflare credentials and HMAC key only from repository secrets');
 
 ok(apiGatewayWorker.includes('ALLOWED_COUNTRY_CODES') && !apiGatewayWorker.includes('searchParams.get("url")'),'API gateway restricts country parameters and does not expose an open URL proxy');
-ok(apiGatewayWorker.includes('TRANSCRIPTION_MODEL = "@cf/openai/whisper-large-v3-turbo"') && apiGatewayWorker.includes('url.pathname !== "/v1/transcribe"') && apiGatewayWorker.includes('env.AI.run(TRANSCRIPTION_MODEL') && apiGatewayWorker.includes('MAX_AUDIO_BYTES = 8 * 1024 * 1024'),'API gateway exposes a fixed-size, fixed-model speech transcription route only');
-ok(apiGatewayWorker.includes('transcribe-global') && apiGatewayWorker.includes('state.transcription = Array.isArray(state.transcription)') && apiGatewayWorker.includes('RATE_POLICIES.transcribe'),'transcription requests have durable daily global and per-client limits');
+ok(!apiGatewayWorker.includes('TRANSCRIPTION_MODEL') && !apiGatewayWorker.includes('/v1/transcribe') && !apiGatewayWorker.includes('env.AI.run') && !apiGatewayWrangler.includes('[ai]'),'API gateway no longer exposes an audio transcription route or binds Workers AI');
+ok(!apiGatewayWorker.includes('transcribe-global') && !apiGatewayWorker.includes('RATE_POLICIES.transcribe') && !apiGatewayReadme.includes('/v1/youtube-transcript'),'retired audio/YouTube transcription routes and their dedicated quotas are absent from the active gateway');
 ok(apiGatewayWorker.includes('!allowedOrigins.includes(origin)') && apiGatewayWorker.includes('ALLOWED_ORIGINS'),'API gateway reflects CORS only for exact configured production origins');
 
 ok(appSource.includes('<script src="click-guard.js" defer></script>'),'click-burst guard is loaded as a same-origin deferred script');
@@ -211,9 +213,9 @@ ok(appSource.includes("content-visibility:auto;contain-intrinsic-size:auto 76px"
 const appCorePreload=htmlAudit.preload_scripts.find(href=>href.includes('app-core.js?v='));
 const appCoreScript=htmlAudit.script_sources.find(src=>src.includes('app-core.js?v='));
 ok(!!appCorePreload && !!appCoreScript && appCorePreload===appCoreScript && appCore.length>200000,'main application bundle is externally loaded and preload/script cache versions match');
-ok(!appSource.includes('id="youtubeTranscriptTool"') && !appSource.includes('id="transcriptYoutubeUrl"') && !appCore.includes('function parseYouTubeVideoId') && appSource.includes('id="transcriptAudioFile"') && appSource.includes('id="transcriptGenerate"') && appSource.includes('id="transcriptText"') && appSource.includes('id="transcriptExportPdf"'),'YouTube URL transcription stays removed while local audio-file transcription and transcript editing remain available');
-ok(appCore.includes('async function transcribeAudioFile()') && appCore.includes("else if(id==='transcriptGenerate')transcribeAudioFile()") && appCore.includes("window.confirm('سيُرسل الملف الصوتي الذي اخترته") && appCore.includes("form.append('audio',file,file.name||'recording.webm')") && appCore.includes("form.append('consent','true')") && appCore.indexOf("window.confirm('سيُرسل الملف الصوتي الذي اخترته") < appCore.indexOf("form.append('consent','true')") && apiGatewayWorker.includes('key !== "audio" && key !== "consent"') && apiGatewayWorker.includes('consentValues.length !== 1 || consentValues[0] !== "true"'),'local audio transcription requires confirmation before sending audio and the explicit consent field');
-ok(!appCore.includes('function parseYouTubeVideoId') && appCore.includes('function parseCaptionFile') && appCore.includes("else if(id==='transcriptExportPdf')exportTranscript('pdf')") && appCore.includes("else if(id==='transcriptInsertBook')insertTranscriptIntoBook()"),'YouTube URL parsing is absent while local caption import, PDF export and book insertion remain wired');
+ok(!html.includes('id="transcriptTool"') && !html.includes('id="transcriptAudioFile"') && !html.includes('id="transcriptGenerate"') && !html.includes('anwar-transcript-editor-v1') && !appCore.includes('async function transcribeAudioFile()') && !appCore.includes('function parseCaptionFile') && !appCore.includes('function formatTranscriptText'),'the audio-to-text panel, caption importer and transcript editor have been removed from the active notebook');
+ok(appCore.includes('function transcriptWordTableXml') && appCore.includes('note.transcriptRows'),'legacy transcript tables remain exportable from previously saved notes');
+ok(html.includes('id="tasbihVoiceTranscript"') && html.includes('id="sp"') && appCore.includes("else if(id==='sp')togglePoetryDictation()") && appCore.includes('function appendPoetryDictationText'),'tasbih voice recognition and Arabic poetry dictation remain available independently of the removed tool');
 ok(appSource.includes("backdrop-filter:none;-webkit-backdrop-filter:none"),'vault startup overlay avoids an expensive full-screen blur');
 
 

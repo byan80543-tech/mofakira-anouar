@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="preload" href="./app-core.js?v=20261120-18" as="script">
+<link rel="preload" href="./app-core.js?v=20261120-19" as="script">
 <script src="api-gateway-config.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>مفكرة أنوار | Anouar Oumlili</title>
@@ -2005,66 +2005,7 @@ dialog[open]>.float-head{display:none!important}
 }
 </style>
 
-<style id="anwar-transcript-editor-v1">
- .anwar-transcript-tool{display:grid;gap:9px;margin:13px 0;padding:12px;border:1px solid var(--bd);border-radius:12px;background:var(--bg);box-shadow:0 2px 9px rgba(20,35,50,.045)}
- .transcript-tool-head{display:flex;align-items:center;gap:9px;color:var(--ac)}
- .transcript-tool-head>span{display:grid;place-items:center;flex:none;width:34px;height:34px;border:1px solid var(--bd);border-radius:10px;background:var(--sf);font-size:18px}
- .transcript-tool-head div{display:grid;gap:1px}
- .transcript-tool-head strong{font:700 16px 'Aref Ruqaa',Amiri,serif}
- .transcript-tool-head small{color:var(--mu);font:10px Cairo,Tahoma,sans-serif}
- .transcript-focus-actions{display:flex;align-items:center;gap:6px;margin-inline-start:auto}
- .transcript-focus-open,.transcript-focus-close{display:grid;place-items:center;flex:none;width:36px;height:36px;padding:0;border:1px solid #c9a96a;border-radius:50%;background:linear-gradient(135deg,#f8efd9,#fffaf0);color:#725323;font:700 24px/1 Arial,sans-serif;cursor:pointer}
- .transcript-focus-open:focus-visible,.transcript-focus-close:focus-visible{outline:2px solid var(--ac);outline-offset:3px}
- .transcript-focus-close{display:none}
- #transcriptTool.transcript-focus-mode .transcript-focus-open{display:none}
- #transcriptTool.transcript-focus-mode .transcript-focus-close{display:grid}
- html.anwar-transcript-focus,body.anwar-transcript-focus{overflow:hidden!important;overscroll-behavior:none}
- #transcriptTool.transcript-focus-mode{position:fixed!important;inset:0!important;z-index:50000!important;box-sizing:border-box;width:100vw!important;max-width:none!important;height:100vh!important;height:100dvh!important;max-height:100dvh!important;overflow-y:auto!important;overscroll-behavior:contain;margin:0!important;border:0!important;border-radius:0!important;padding:calc(14px + env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-left,0px)) calc(18px + env(safe-area-inset-bottom,0px))!important;background:var(--bg)!important;box-shadow:none!important;align-content:start;gap:14px}
- #transcriptTool.transcript-focus-mode>*{width:100%;max-width:980px;margin-inline:auto}
- #transcriptTool.transcript-focus-mode .transcript-tool-head{position:sticky;top:0;z-index:3;padding:7px 0;background:var(--bg)}
- #transcriptTool.transcript-focus-mode .transcript-tool-head strong{font-size:21px}
- #transcriptTool.transcript-focus-mode .transcript-editor-panel{gap:12px;padding-top:14px}
- #transcriptTool.transcript-focus-mode .transcript-table-preview{max-height:35dvh}
- #transcriptTool.transcript-focus-mode .transcript-status{font-size:11px}
- html.anwar-transcript-focus,body.anwar-transcript-focus{overflow:hidden!important;overscroll-behavior:none}
- .transcript-alternates{border:1px solid var(--bd);border-radius:10px;background:var(--sf);padding:9px 11px}
- .transcript-alternates summary{color:var(--ac);font:700 11px Cairo,Tahoma,sans-serif;cursor:pointer}
- .transcript-alternates-body{display:grid;gap:9px;padding-top:10px}
- .transcript-alternates[open] summary{margin-bottom:2px}
- .transcript-field{display:grid;gap:5px;color:var(--tx);font:700 11px Cairo,Tahoma,sans-serif}
- #bookToolContent .transcript-field input,#bookToolContent .transcript-field textarea{box-sizing:border-box;width:100%;margin:0;border:1px solid var(--bd);border-radius:9px;padding:10px;background:var(--sf);color:var(--tx);font:12px/1.9 Cairo,Tahoma,sans-serif}
- .transcript-format-wrap{position:relative;display:inline-flex;align-items:center}
- .transcript-format-menu{position:absolute;z-index:30;top:calc(100% + 6px);right:0;min-width:190px;max-width:min(260px,85vw);padding:6px;border:1px solid var(--bd);border-radius:10px;background:var(--sf);box-shadow:0 8px 22px rgba(20,35,50,.16);display:grid;gap:3px}
- .transcript-format-menu[hidden]{display:none!important}
- .transcript-format-menu button{width:100%;text-align:right;border:0!important;background:transparent!important;padding:8px 10px!important;font-size:11px!important}
- .transcript-format-menu button:hover,.transcript-format-menu button:focus-visible{background:var(--ac2)!important;color:var(--ac)!important}
- #bookToolContent #transcriptText{min-height:176px;resize:vertical;white-space:pre-wrap;line-height:2.05;font:14px/2.05 Amiri,'Noto Naskh Arabic',serif}
- .transcript-table-preview{max-width:100%;overflow:auto;border:1px solid var(--bd);border-radius:9px;padding:8px;background:var(--sf)}
- .transcript-table-preview[hidden]{display:none!important}
- .transcript-table-caption{margin:0 0 7px;color:var(--mu);font:10px/1.7 Cairo,Tahoma,sans-serif}
- .transcript-table-preview table{min-width:430px;border-collapse:collapse;width:100%;table-layout:fixed;direction:rtl}
- .transcript-table-preview th,.transcript-table-preview td{border:1px solid #b9ad98;padding:8px;text-align:right;vertical-align:top;white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.8 Cairo,Tahoma,sans-serif}
- .transcript-table-preview th{background:#eee5d1;color:#624b23}
- .transcript-table-preview td:last-child{min-width:110px;height:36px;background:rgba(255,255,255,.35)}
- .transcript-upload-note{color:var(--mu);font:10px/1.8 Cairo,Tahoma,sans-serif}
- .transcript-generate-button{min-height:40px;border:1px solid #c9a96a;border-radius:9px;padding:8px 12px;background:linear-gradient(110deg,#f7efd9,#fffaf0);color:#624b23;font:700 12px Cairo,Tahoma,sans-serif}
- .transcript-generate-button:disabled{opacity:.6;cursor:wait}
- .transcript-import-button,.transcript-toolbar button,.transcript-export-actions button{min-height:34px;border:1px solid var(--bd);border-radius:8px;padding:6px 10px;background:var(--sf);color:var(--tx);font:700 10px Cairo,Tahoma,sans-serif}
- .transcript-import-button{border-color:#c9a96a;background:linear-gradient(110deg,#f7efd9,#fffaf0);color:#624b23}
- .transcript-status{margin:0;color:var(--mu);font:10px/1.8 Cairo,Tahoma,sans-serif}
- .transcript-status[data-state="error"]{color:#b34b43}
- .transcript-editor-panel{display:grid;gap:9px;padding-top:9px;border-top:1px solid var(--bd)}
- .transcript-editor-panel[hidden]{display:none!important}
- .transcript-toolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
- .transcript-toolbar button[aria-pressed="true"]{border-color:var(--ac);background:var(--ac2);color:var(--ac)}
- .transcript-format-label{margin-inline-start:auto;color:var(--mu);font:10px Cairo,Tahoma,sans-serif}
- .transcript-export-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
- .transcript-export-actions button{min-width:0;padding-inline:4px}
- .transcript-export-actions #transcriptExportPdf{border-color:#c9a96a;background:#fbf4e5;color:#725323}
- .transcript-export-actions #transcriptInsertBook{background:var(--ac);border-color:var(--ac);color:#fff}
- .transcript-import-button:focus-visible,.transcript-toolbar button:focus-visible,.transcript-export-actions button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
- @media(max-width:420px){.anwar-transcript-tool{padding:9px}.transcript-tool-head strong{font-size:15px}.transcript-export-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.transcript-toolbar button{flex:1}}
-</style>
+
 
 </head>
 <body>
@@ -2174,62 +2115,7 @@ dialog[open]>.float-head{display:none!important}
   </label>
   <button type="button" id="addBookFile" class="book-import-link" aria-label="إضافة مستند من الهاتف">📎 إضافة مستند من الهاتف</button>
 
-  <section class="anwar-transcript-tool" id="transcriptTool" aria-labelledby="transcriptToolTitle">
-   <header class="transcript-tool-head">
-    <span aria-hidden="true">🎙️</span>
-    <div><strong id="transcriptToolTitle">تفريغ الصوت وتنظيم النص</strong><small>حوّل ملفًا صوتيًا تملكه إلى نص، أو استورد ملف ترجمة محفوظًا، ثم راجعه ونظّمه</small></div>
-    <div class="transcript-focus-actions">
-     <button type="button" id="transcriptFocusOpen" class="transcript-focus-open" aria-label="فتح مساحة التفريغ بملء الشاشة" title="فتح مساحة مركزة بملء الشاشة">＋</button>
-     <button type="button" id="transcriptFocusClose" class="transcript-focus-close" aria-label="إغلاق مساحة التفريغ" title="إغلاق مساحة التفريغ">×</button>
-    </div>
-   </header>
-    <details class="transcript-alternates" id="transcriptSourceOptions">
-    <summary>لدي ملف صوتي أو ترجمة محفوظة</summary>
-    <div class="transcript-alternates-body">
-     <label class="transcript-field" for="transcriptAudioFile">اختر ملفًا صوتيًا من جهازك
-      <input id="transcriptAudioFile" type="file" accept="audio/*,.mp3,.m4a,.wav,.ogg,.webm,.flac,.aac">
-     </label>
-     <button type="button" id="transcriptGenerate" class="transcript-import-button">🎙️ توليد النص من الملف الصوتي</button>
-     <button type="button" id="transcriptChooseCaption" class="transcript-import-button">استيراد ملف ترجمة SRT / VTT / TXT</button>
-     <input type="file" id="transcriptCaptionFile" hidden accept=".srt,.vtt,.txt,text/plain,text/vtt">
-     <small class="transcript-upload-note">يدعم الصوت حتى 8 ميغابايت. استخدم ملفًا يحق لك معالجته؛ تتم معالجته مؤقتًا ولا تُحفظ نسخة منه في المفكرة.</small>
-    </div>
-   </details>
-   <p id="transcriptSourceStatus" class="transcript-status" role="status" aria-live="polite">اختر ملفًا صوتيًا من جهازك أو استورد ملف ترجمة محفوظًا لبدء العمل.</p>
-
-   <div id="transcriptEditorPanel" class="transcript-editor-panel" hidden>
-    <label class="transcript-field" for="transcriptTitle">عنوان التفريغ
-     <input id="transcriptTitle" type="text" maxlength="100" value="تفريغ فيديو">
-    </label>
-    <label class="transcript-field" for="transcriptText">النص المستخرج والقابل للتحرير
-     <textarea id="transcriptText" rows="9" dir="rtl" lang="ar" spellcheck="false" placeholder="سيظهر النص هنا بعد التفريغ الصوتي أو استيراد الترجمة..."></textarea>
-    </label>
-    <div id="transcriptTablePreview" class="transcript-table-preview" hidden aria-live="polite"></div>
-    <div class="transcript-toolbar" aria-label="أدوات مراجعة النص">
-     <button type="button" id="transcriptSpellcheck" aria-pressed="false" title="تشغيل التدقيق الإملائي المتاح في المتصفح">✎ التدقيق الإملائي</button>
-     <div class="transcript-format-wrap">
-      <button type="button" id="transcriptFormat" aria-haspopup="menu" aria-expanded="false" title="اختيار طريقة واحدة لترتيب النص">☷</button>
-      <div id="transcriptFormatMenu" class="transcript-format-menu" role="menu" hidden>
-       <button type="button" role="menuitem" data-transcript-format="0">فقرات منظمة</button>
-       <button type="button" role="menuitem" data-transcript-format="1">جمل منفصلة</button>
-       <button type="button" role="menuitem" data-transcript-format="2">نقاط مرتبة</button>
-       <button type="button" role="menuitem" data-transcript-format="3">قائمة مرقمة</button>
-       <button type="button" role="menuitem" data-transcript-format="4">مقاطع بعناوين</button>
-       <button type="button" role="menuitem" data-transcript-format="5">جدول للمذاكرة</button>
-       <button type="button" role="menuitem" data-transcript-format="-1">استعادة النص الأصلي</button>
-      </div>
-     </div>
-     <span id="transcriptFormatLabel" class="transcript-format-label">فقرات منظمة</span>
-    </div>
-    <div class="transcript-export-actions" aria-label="تنزيل التفريغ">
-     <button type="button" id="transcriptExportPdf" title="تنزيل النص بصيغة PDF">PDF</button>
-     <button type="button" id="transcriptExportDocx" title="تنزيل النص بصيغة Word">Word</button>
-     <button type="button" id="transcriptExportTxt" title="تنزيل النص بصيغة TXT">TXT</button>
-     <button type="button" id="transcriptInsertBook" title="إدراج النص في العمل المفتوح">إدراج في الكتاب</button>
-    </div>
-    <p id="transcriptEditorStatus" class="transcript-status" role="status" aria-live="polite"></p>
-   </div>
-  </section>
+  
 
   <label class="book-tool-field" for="bookFormat">صيغة الحفظ
    <select id="bookFormat">
@@ -2530,7 +2416,7 @@ dialog[open]>.float-head{display:none!important}
 <script src="./vault-storage.js?v=20261120-1"></script>
 <script src="./vault-device-unlock.js?v=20261118-1"></script>
 <script src="./poetry-dictation.js?v=20261119-1" defer></script>
-<script src="./app-core.js?v=20261120-18" defer></script>
+<script src="./app-core.js?v=20261120-19" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
 <script src="./tasbih-controller.js?v=20261119-18" defer></script>
 
