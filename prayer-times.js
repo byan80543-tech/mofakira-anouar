@@ -129,7 +129,7 @@
  nextBox.append(nextCopy,countdown);
  const timesGrid=el('div','anwar-prayer-times');
  const dateLine=el('div','anwar-prayer-date','جارٍ تحميل مواقيت المدينة…');
- const privacyLine=el('small','anwar-prayer-note','لا نطلب موقعك الجغرافي؛ نرسل اسم المدينة والدولة فقط إلى خدمة المواقيت. وقد تختلف الدقائق عن توقيت مسجدك المحلي.');
+ const privacyLine=el('small','anwar-prayer-note','لا نطلب موقعك الجغرافي؛ نرسل اسم المدينة والدولة والتاريخ وطريقة الحساب إلى خدمة المواقيت. وقد تختلف الدقائق عن توقيت مسجدك المحلي.');
  const details=el('details','anwar-prayer-settings');
  const summary=el('summary','','إعداد المدينة والتنبيه الصوتي');
  const fields=el('div','anwar-prayer-fields');
@@ -337,7 +337,7 @@
   refreshButton.disabled=true;
   try{
    if(!settings.city.trim()||!settings.country.trim())throw new Error('أدخل اسم الدولة والمدينة أولًا.');
-   const initialZone=settings.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';
+   const initialZone=validTimeZone(settings.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC');
    let requestedDate=dateString(new Date(),initialZone);
    let data=await fetchDay(requestedDate,token);
    if(token!==loadToken)return;
