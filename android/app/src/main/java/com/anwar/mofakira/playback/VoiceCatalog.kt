@@ -24,6 +24,30 @@ object VoiceCatalog {
             license = "CC0 1.0",
             fileName = "adhan-calm.ogg"
         ),
+        "aqsa" to AdhanVoice(
+            key = "aqsa",
+            title = "أذان المسجد الأقصى · ناجي قزاز",
+            url = "https://raw.githubusercontent.com/Kiwifu/adhan-mp3/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/Najee_Qazaz_-_Al_Aqsa_Jerusalem_%28%D9%86%D8%A7%D8%AC%D9%8A_%D9%82%D8%B2%D8%A7%D8%B2_-_%D8%A7%D9%84%D9%85%D8%B3%D8%AC%D8%AF_%D8%A7%D9%84%D8%A3%D9%82%D8%B5%D9%89_%D8%A7%D9%84%D9%82%D8%AF%D8%B3%29.mp3",
+            credit = "ناجي قزاز · المسجد الأقصى",
+            license = "المصدر: مجموعة Kiwifu للأذان",
+            fileName = "adhan-al-aqsa-najee.mp3"
+        ),
+        "haram_makki" to AdhanVoice(
+            key = "haram_makki",
+            title = "أذان الحرم المكي · علي بن أحمد ملا",
+            url = "https://raw.githubusercontent.com/Kiwifu/adhan-mp3/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/Ali_Ibn_Ahmad_Mala_1_-_Al_Haram_Al_Maki_%28%D8%B9%D9%84%D9%8A_%D8%A8%D9%86_%D8%A3%D8%AD%D9%85%D8%AF_%D9%85%D9%84%D8%A7_-_%D8%A7%D9%84%D8%AD%D8%B1%D9%85_%D8%A7%D9%84%D9%85%D9%83%D9%8A%29.mp3",
+            credit = "علي بن أحمد ملا · الحرم المكي",
+            license = "المصدر: مجموعة Kiwifu للأذان",
+            fileName = "adhan-haram-makki-ali-mala.mp3"
+        ),
+        "morocco_kamal" to AdhanVoice(
+            key = "morocco_kamal",
+            title = "أذان مغربي · كمال محمد المروش",
+            url = "https://raw.githubusercontent.com/Kiwifu/adhan-mp3/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/Kamal_Muhammad_Al_Marush_2_-_Morocco_%28%D9%83%D9%85%D8%A7%D9%84_%D9%85%D8%AD%D9%85%D8%AF_%D8%A7%D9%84%D9%85%D8%B1%D8%B9%D9%88%D8%B4_-_%D8%A7%D9%84%D9%85%D8%BA%D8%B1%D8%A8%29.mp3",
+            credit = "كمال محمد المروش · المغرب",
+            license = "المصدر: مجموعة Kiwifu للأذان",
+            fileName = "adhan-morocco-kamal.mp3"
+        ),
         "madina" to AdhanVoice(
             key = "madina",
             title = "أذان المسجد النبوي",

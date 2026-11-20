@@ -10,10 +10,11 @@ const worker=fs.readFileSync(path.join(root,'service-worker.js'),'utf8');
 
 assert.doesNotThrow(()=>new vm.Script(prayer,{filename:'prayer-times.js'}),'prayer controller syntax');
 assert.match(prayer,/const infoDetails=el\('details','anwar-prayer-info'\)/,'privacy explanation has a details disclosure');
-assert.match(prayer,/key:'morocco_old',label:'الأذان المغربي القديم · الحاج محمد العمري'/,'classic Moroccan adhan is available as a voice choice');
-assert.match(prayer,/تسجيل الإذاعة الوطنية بتاريخ 18\/02\/1993/,'classic Moroccan adhan retains its original recording attribution');
-assert.match(prayer,/if\(settings\.enabled&&!currentVoice\(\)\.external\)/,'external YouTube source is not incorrectly treated as an in-app autoplay stream');
-assert.match(prayer,/استماع خارجي للأذان/,'external recording has a clearly labeled source link');
+assert.doesNotMatch(prayer,/morocco_old|الحاج محمد العمري|youtube\.com|استماع خارجي للأذان/,'the old YouTube-only Moroccan recording is completely removed');
+assert.match(prayer,/key:'aqsa',label:'المسجد الأقصى · ناجي قزاز'/,'Al-Aqsa adhan is available as an in-app MP3 voice');
+assert.match(prayer,/key:'haram_makki',label:'الحرم المكي · علي بن أحمد ملا'/,'Al-Haram Al-Makki adhan is available as an in-app MP3 voice');
+assert.match(prayer,/key:'morocco_kamal',label:'أذان مغربي · كمال محمد المروش'/,'a direct Moroccan adhan recording is available in-app');
+assert.match(prayer,/raw\.githubusercontent\.com\/Kiwifu\/adhan-mp3/,'new adhan choices use direct MP3 files');
 assert.doesNotMatch(prayer,/key:'maahur'/,'Persian adhan option is removed');
 assert.doesNotMatch(prayer,/مسجد الحسن الثاني/,'modern Hassan II field recording is removed');
 assert.match(prayer,/infoDetails\.append\(infoSummary,privacyLine\)/,'complete original privacy explanation remains inside the disclosure');
