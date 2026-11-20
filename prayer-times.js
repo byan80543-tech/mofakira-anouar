@@ -547,7 +547,7 @@
   settings.country=normalizeCountry(countrySelect.value)||detectCountry();
   settings.method=methodForCountry(settings.country);
   settings.city=cityInput.value.trim();settings.school=schoolSelect.value;
-  persist();todayData=null;tomorrowData=null;lastDateCheck='';
+  persist();syncNativeBackground();todayData=null;tomorrowData=null;lastDateCheck='';
   timesGrid.replaceChildren(...PRAYERS.map(prayer=>{const item=el('div','anwar-prayer-time');item.append(el('b','',prayer.name),el('strong','','—'));return item;}));
   nextBox.hidden=true;nextName.textContent='';nextWhen.textContent='';countdown.textContent='';
   dateLine.textContent='جارٍ تحميل مواقيت الصلاة…';dateLine.dataset.state='loading';
@@ -562,7 +562,7 @@
   settings.city=defaultCity(selected);
   settings.timezone='';
   cityInput.value=settings.city;
-  persist();updateHeader();
+  persist();syncNativeBackground();updateHeader();
   todayData=null;tomorrowData=null;lastDateCheck='';
   nextBox.hidden=true;
   timesGrid.replaceChildren(...PRAYERS.map(prayer=>{const item=el('div','anwar-prayer-time');item.append(el('b','',prayer.name),el('strong','','—'));return item;}));

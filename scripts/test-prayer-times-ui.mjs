@@ -29,13 +29,25 @@ assert.match(prayer,/جارٍ تحميل مواقيت الصلاة…/,'initial 
 assert.match(prayer,/تعذّر تحميل المواقيت؛ تحقق من اسم المدينة أو الاتصال/,'failed loading state tells the user what to check');
 assert.match(prayer,/dateLine\.dataset\.state='ready'/,'successful timings mark the card ready');
 assert.match(prayer,/function cityForDisplay\(value\)/,'city display helper exists');
+assert.match(prayer,/const COUNTRY_OPTIONS=\[/,'country list replaces calculation-method picker');
+assert.match(prayer,/label:'المغرب'/,'Arabic country list includes Morocco');
+assert.match(prayer,/label:'الجزائر'/,'Arabic country list includes Algeria');
+assert.match(prayer,/label:'تونس'/,'Arabic country list includes Tunisia');
+assert.match(prayer,/function detectCountry\(\)/,'country is detected from device settings');
+assert.match(prayer,/TIME_ZONE_COUNTRY/,'timezone mapping is available for supported countries');
+assert.match(prayer,/function methodForCountry\(country\)/,'calculation method is selected internally by country');
+assert.match(prayer,/if\(settings\.method!==\'auto\'\)url\.searchParams\.set\(\'method\',settings\.method\)/,'automatic method is omitted from API request instead of sending an invalid value');
+assert.doesNotMatch(prayer,/METHOD_OPTIONS|methodSelect/,'technical calculation-method picker is removed');
+assert.match(prayer,/countrySelect\.addEventListener\('change'/,'manual country override remains available');
+assert.match(prayer,/persist\(\);syncNativeBackground\(\);todayData=null/,'refreshing city or country settings updates native background adhan');
+assert.match(prayer,/persist\(\);syncNativeBackground\(\);updateHeader\(\)/,'changing country immediately syncs native background adhan');
 assert.match(prayer,/meknes:'مكناس'/,'Meknes is displayed in Arabic');
 assert.match(prayer,/locationLabel\.textContent=cityForDisplay\(settings\.city\)\+' · '\+countryForDisplay\(settings\.country\)/,'location heading displays city before country in Arabic');
 assert.match(prayer,/\.anwar-prayer-card\{gap:7px;padding:10px 11px\}/,'prayer card uses compact spacing');
 assert.match(prayer,/\.anwar-prayer-next\[hidden\]\{display:none!important\}/,'hidden countdown is not forced visible by the grid rule');
 assert.match(html,/<small>أصوات الأذان<\/small><strong>اختيار الصوت والتنبيهات<\/strong>/,'section card distinguishes adhan sounds from the prayer timetable');
 assert.match(html,/#rd \.curtain-head #ownerBtn\.radio-owner-pen[\s\S]*?width:34px!important;height:34px!important/,'ownership button matches the close button dimensions');
-assert.match(html,/prayer-times\.js\?v=20261120-7/,'HTML loads the updated prayer controller');
-assert.match(worker,/anwar-shell-2026-11-20-v113/,'service worker cache is bumped for the updated prayer card');
+assert.match(html,/prayer-times\.js\?v=20261120-8/,'HTML loads the updated prayer controller');
+assert.match(worker,/anwar-shell-2026-11-20-v114/,'service worker cache is bumped for the updated prayer card');
 
 console.log('Prayer card compact layout, loading states, Arabic location and header controls tests passed.');
