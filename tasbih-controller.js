@@ -7,9 +7,7 @@
  function init(){
   if(window.__ANWAR_TASBIH_CONTROLLER_READY__)return;
   const $=id=>document.getElementById(id);
-  const panel=$('tasbihPanel'),toggleButton=$('adhkarTasbihToggle'),closeButton=$('tasbihClose');
-  const ownerDialog=$('ownerDialog'),ownerPanel=$('ownerPanel'),adhkarPanel=$('adhkarPanel'),sharePanel=$('sharePanel');
-  const ownerTab=$('ownerTab'),adhkarTab=$('adhkarTab'),shareTab=$('shareTab');
+  const panel=$('tasbihPanel');
   const countNode=$('tasbihCount'),phraseNode=$('tasbihPhrase'),select=$('tasbihDhikr');
   const counterControl=panel&&panel.querySelector('.anwar-tasbih-counter');
   const themeToggle=$('tasbihThemeToggle'),themePicker=$('tasbihThemePicker');
@@ -23,11 +21,10 @@
   const voicePanel=$('tasbihVoicePanel'),voiceButton=$('tasbihVoice');
   const voiceState=$('tasbihVoiceState'),voiceStatus=$('tasbihVoiceStatus');
   const voiceButtonLabel=$('tasbihVoiceButtonLabel'),voiceTranscript=$('tasbihVoiceTranscript');
-  const required={panel,toggleButton,closeButton,ownerDialog,adhkarPanel,select,countNode,phraseNode,counterControl,tap,minus,reset,cards,dhikrToggle,dhikrList,customInput,customAdd,customStatus,removeButton,restoreButton,voicePanel,voiceButton,voiceState,voiceStatus,voiceButtonLabel,voiceTranscript,themeToggle,themePicker,...Object.fromEntries(themeButtons.map(item=>['theme'+item.name,item.button]))};
+  const required={panel,select,countNode,phraseNode,counterControl,tap,minus,reset,cards,dhikrToggle,dhikrList,customInput,customAdd,customStatus,removeButton,restoreButton,voicePanel,voiceButton,voiceState,voiceStatus,voiceButtonLabel,voiceTranscript,themeToggle,themePicker,...Object.fromEntries(themeButtons.map(item=>['theme'+item.name,item.button]))};
   const missing=Object.keys(required).filter(key=>!required[key]);
   if(missing.length){
    console.error('تعذر تهيئة السبحة؛ عناصر الواجهة الناقصة:',missing);
-   if(toggleButton)toggleButton.title='تعذر تشغيل السبحة: واجهة غير مكتملة';
    return;
   }
   const preferences=globalThis.AnwarPrivatePreferences;
@@ -378,54 +375,14 @@
    chooseDhikr(value,true);
    customStatus.textContent='تمت الإضافة.';
   }
-  function switchOwnerView(which){
-   let usedBridge=false;
-   if(typeof window.AnwarShowOwnerPanel==='function'){
-    try{usedBridge=window.AnwarShowOwnerPanel(which)===true}catch(error){console.warn('تعذر استخدام جسر لوحة الأذكار',error)}
-   }
-   if(ownerPanel)ownerPanel.hidden=which!=='owner';
-   adhkarPanel.hidden=which!=='adhkar';
-   if(sharePanel)sharePanel.hidden=which!=='share';
-   if(ownerTab)ownerTab.classList.toggle('active',which==='owner');
-   if(adhkarTab)adhkarTab.classList.toggle('active',which==='adhkar');
-   if(shareTab)shareTab.classList.toggle('active',which==='share');
-   if(which==='adhkar'&&!usedBridge&&typeof window.AnwarRenderAdhkar==='function'){
-    try{window.AnwarRenderAdhkar('morning')}catch(error){console.warn('تعذر عرض أذكار الصباح',error)}
-   }
-  }
-  function revealAdhkarView(){
-   switchOwnerView('adhkar');
-   return !adhkarPanel.hidden;
-  }
   function openPanel(){
-   if(!panel.hidden){closePanel();return}
-   // Open the dialog first, but never let a navigation bridge or rendering
-   // error keep the actual tasbih panel hidden inside its parent section.
-   try{
-    if(!ownerDialog.open){
-     if(typeof ownerDialog.showModal==='function')ownerDialog.showModal();
-     else ownerDialog.setAttribute('open','');
-    }
-   }catch(error){
-    console.error('تعذر فتح نافذة الأذكار بالطريقة الحوارية؛ ستتم محاولة عرضها مباشرة.',error);
-    try{if(!ownerDialog.open)ownerDialog.setAttribute('open','')}catch(fallbackError){}
-   }
-   if(ownerPanel)ownerPanel.hidden=true;
-   adhkarPanel.hidden=false;
-   if(sharePanel)sharePanel.hidden=true;
-   if(ownerTab)ownerTab.classList.toggle('active',false);
-   if(adhkarTab)adhkarTab.classList.toggle('active',true);
-   if(shareTab)shareTab.classList.toggle('active',false);
-   if(typeof window.AnwarRenderAdhkar==='function'){
-    try{window.AnwarRenderAdhkar('morning')}
-    catch(error){console.warn('تعذر تحديث قائمة أذكار الصباح؛ بقيت السبحة قابلة للفتح.',error)}
-   }
+   if(!panel.hidden)return true;
    panel.hidden=false;
-   toggleButton.setAttribute('aria-expanded','true');
    requestAnimationFrame(()=>{
     try{panel.scrollIntoView({behavior:'smooth',block:'nearest'})}catch(error){}
    });
-   closeButton.focus()
+   counterControl.focus();
+   return true;
   }
   function closePanel(restoreFocus){
    themePicker.hidden=true;
@@ -433,8 +390,10 @@
    setDhikrListOpen(false);
    if(voiceActive)stopVoice('توقف الاستماع عند إغلاق السبحة.');
    panel.hidden=true;
-   toggleButton.setAttribute('aria-expanded','false');
-   if(restoreFocus!==false&&ownerDialog.open)toggleButton.focus();
+   if(restoreFocus!==false){
+    const backButton=$('anwarTasbihBack');
+    if(backButton)backButton.focus();
+   }
   }
 
   renderOfficialOptions();
@@ -444,10 +403,8 @@
   else if(!visibleOptions().some(option=>option.value===select.value))select.value=firstVisible()?firstVisible().value:'';
   update();
 
-  // The launch click is delegated by app-core.js, alongside the other dialog tabs.
-  // Keep the counter controller independent, but expose one explicit toggle API.
+  // The service dashboard opens this standalone panel directly; its counter and preferences remain independent.
 
-  closeButton.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();closePanel()});
   themeToggle.addEventListener('click',()=>{
    themePicker.hidden=!themePicker.hidden;
    themeToggle.setAttribute('aria-expanded',themePicker.hidden?'false':'true');
@@ -505,9 +462,6 @@
    saveAndUpdate();
    customStatus.textContent='تمت الاستعادة.';
   });
-  if(ownerTab)ownerTab.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();closePanel(false);switchOwnerView('owner')});
-  if(adhkarTab)adhkarTab.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();closePanel(false);switchOwnerView('adhkar')});
-  if(shareTab)shareTab.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();closePanel(false);switchOwnerView('share')});
   const morningTab=$('morningTab'),eveningTab=$('eveningTab');
   if(morningTab)morningTab.addEventListener('click',event=>{
    if(typeof window.AnwarRenderAdhkar==='function'){event.preventDefault();event.stopPropagation();window.AnwarRenderAdhkar('morning')}
@@ -515,7 +469,6 @@
   if(eveningTab)eveningTab.addEventListener('click',event=>{
    if(typeof window.AnwarRenderAdhkar==='function'){event.preventDefault();event.stopPropagation();window.AnwarRenderAdhkar('evening')}
   });
-  ownerDialog.addEventListener('close',()=>closePanel(false));
   document.addEventListener('keydown',event=>{
    if(event.key==='Escape'&&!panel.hidden){event.preventDefault();event.stopImmediatePropagation();closePanel(false)}
   },true);

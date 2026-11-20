@@ -2216,13 +2216,19 @@ async function handleBookFile(file){
  $('bookFileStatus').textContent='تم التعامل مع الملف عبر الحفظ أو التنزيل المتاح في هذا المتصفح.';
 }
 
-function showOwnerPanel(which){const own=which==='owner',adh=which==='adhkar';$('ownerPanel').hidden=!own;$('adhkarPanel').hidden=!adh;$('sharePanel').hidden=which!=='share';$('ownerTab').classList.toggle('active',own);$('adhkarTab').classList.toggle('active',adh);$('shareTab').classList.toggle('active',which==='share');if(adh)renderAdhkar('morning')}
-// Explicit bridge: the tasbih controller is in a separate IIFE and cannot
-// access this function through lexical scope.
-window.AnwarShowOwnerPanel=function(which){
- if(which!=='owner'&&which!=='adhkar'&&which!=='share')return false;
- showOwnerPanel(which);
+function showOwnerPanel(which){
+ const own=which==='owner',share=which==='share';
+ if(!own&&!share)return false;
+ $('ownerPanel').hidden=!own;
+ $('sharePanel').hidden=!share;
+ $('ownerTab').classList.toggle('active',own);
+ $('shareTab').classList.toggle('active',share);
  return true;
+}
+// Ownership and publication remain together; adhkar and tasbih have their own service pages.
+window.AnwarShowOwnerPanel=function(which){
+ if(which!=='owner'&&which!=='share')return false;
+ return showOwnerPanel(which);
 };
 async function makeQR(){
  const url=$('shareUrl').value.trim();
@@ -2418,37 +2424,7 @@ function speakText(){
   next();
  }
 $('rib').addEventListener('mousedown',e=>{if(e.target.closest('button'))e.preventDefault()});
-function toggleTasbihFromToolbar(button){
- const controller=window.AnwarTasbihController;
- if(controller&&typeof controller.toggle==='function'){
-  try{if(controller.toggle()===true)return true}
-  catch(error){console.error('تعذر فتح السبحة عبر متحكمها المستقل؛ ستتم محاولة العرض المباشر.',error)}
- }
- const panel=$('tasbihPanel'),dialog=$('ownerDialog'),adhkar=$('adhkarPanel');
- if(!panel||!dialog||!adhkar){
-  toast('تعذّر العثور على لوحة السبحة. أعد تحميل المفكرة وحاول مجدداً.');
-  return false;
- }
- try{
-  if(!panel.hidden){
-   panel.hidden=true;
-   if(button)button.setAttribute('aria-expanded','false');
-   return true;
-  }
-  if(!dialog.open)dialog.showModal();
-  showOwnerPanel('adhkar');
-  panel.hidden=false;
-  if(button)button.setAttribute('aria-expanded','true');
-  requestAnimationFrame(()=>{
-   try{panel.scrollIntoView({behavior:'smooth',block:'nearest'})}catch(error){}
-  });
-  return true;
- }catch(error){
-  console.error('تعذّر فتح السبحة عبر المسار الاحتياطي',error);
-  toast('تعذّر فتح السبحة. أغلق نافذة الملكية وحاول مرة أخرى.');
-  return false;
- }
-}
+
 document.addEventListener('click',e=>{
  const t=e.target.closest('button,summary,.card,#fl div,.archive-card');
  if(!e.target.closest('#fm')&&t?.id!=='fb')$('fm').classList.remove('o');
@@ -2505,11 +2481,9 @@ document.addEventListener('click',e=>{
  else if(id==='ownerBtn')$('ownerDialog').showModal();
  else if(id==='closeOwner')$('ownerDialog').close();
  else if(id==='ownerTab')showOwnerPanel('owner');
- else if(id==='adhkarTab')showOwnerPanel('adhkar');
  else if(id==='shareTab')showOwnerPanel('share');
  else if(id==='morningTab')renderAdhkar('morning');
  else if(id==='eveningTab')renderAdhkar('evening');
- else if(id==='adhkarTasbihToggle')toggleTasbihFromToolbar(t);
 });
 
 const ADHKAR={
@@ -4283,7 +4257,7 @@ bootVault();
  const dialogs=[
   ['dg','النسخة الاحتياطية'],
   ['historyDialog','سجل إصدارات العمل'],
-  ['ownerDialog','الملكية والأذكار']
+  ['ownerDialog','الملكية وبطاقة النشر']
  ];
  dialogs.forEach(([id,title])=>{
   const d=$(id);
@@ -4445,7 +4419,7 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
 }
 
 
-/* Anwar service dashboard: organize existing prayer, Quran, live radio and lesson controls. */
+/* Anwar service dashboard: organize prayer, Quran, radio, lessons, adhkar and tasbih. */
 (()=>{
  'use strict';
  const panel=document.getElementById('rd');
@@ -4453,7 +4427,9 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
  const quranPage=document.getElementById('anwarQuranPage');
  const radioPage=document.getElementById('anwarRadioPage');
  const lessonsPage=document.getElementById('anwarLessonsPage');
- if(!panel||!home||!quranPage||!radioPage||!lessonsPage)return;
+ const adhkarPage=document.getElementById('anwarAdhkarPage');
+ const tasbihPage=document.getElementById('anwarTasbihPage');
+ if(!panel||!home||!quranPage||!radioPage||!lessonsPage||!adhkarPage||!tasbihPage)return;
 
  const sectionTitles=Array.from(panel.querySelectorAll('.radio-section-title'));
  const quranTitle=sectionTitles.find(title=>title.textContent.includes('القرآن الكريم'));
@@ -4462,7 +4438,7 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
  const lessonHub=document.getElementById('lessonHub');
  if(!quranTitle||!radioTitle||!liveStation||!lessonHub)return;
 
- const pages={quran:quranPage,radio:radioPage,lessons:lessonsPage};
+ const pages={quran:quranPage,radio:radioPage,lessons:lessonsPage,adhkar:adhkarPage,tasbih:tasbihPage};
  const serviceButtons=Array.from(panel.querySelectorAll('[data-anwar-service]'));
  let lastOpener=null;
 
@@ -4479,7 +4455,19 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
   else quranPage.append(node);
  }
 
+ function closeTasbihIfOpen(){
+  if(tasbihPage.hidden)return;
+  const controller=window.AnwarTasbihController;
+  if(controller&&typeof controller.close==='function'){
+   try{controller.close()}catch(error){console.warn('تعذر إيقاف السبحة عند مغادرة صفحتها',error)}
+  }else{
+   const panel=document.getElementById('tasbihPanel');
+   if(panel)panel.hidden=true;
+  }
+ }
+
  function showHome(restoreFocus){
+  closeTasbihIfOpen();
   home.hidden=false;
   Object.values(pages).forEach(page=>{page.hidden=true});
   serviceButtons.forEach(button=>button.setAttribute('aria-pressed','false'));
@@ -4487,9 +4475,7 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
   const prayerSettings=document.querySelector('#anwarPrayerCard .anwar-prayer-settings');
   if(adhanButton)adhanButton.setAttribute('aria-expanded',String(Boolean(prayerSettings&&prayerSettings.open)));
   panel.scrollTo({top:0,behavior:'smooth'});
-  if(restoreFocus&&lastOpener){
-   lastOpener.focus({preventScroll:true});
-  }
+  if(restoreFocus&&lastOpener)lastOpener.focus({preventScroll:true});
  }
 
  function openService(name,button){
@@ -4505,13 +4491,26 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
   }
   const page=pages[name];
   if(!page)return;
+  if(!tasbihPage.hidden&&name!=='tasbih')closeTasbihIfOpen();
   lastOpener=button||lastOpener;
   home.hidden=true;
   Object.entries(pages).forEach(([key,item])=>{item.hidden=key!==name});
   serviceButtons.forEach(item=>item.setAttribute('aria-pressed',String(item===button)));
+  if(name==='adhkar'&&typeof window.AnwarRenderAdhkar==='function'){
+   try{window.AnwarRenderAdhkar('morning')}catch(error){console.warn('تعذر عرض أذكار الصباح',error)}
+  }
+  if(name==='tasbih'){
+   const controller=window.AnwarTasbihController;
+   if(controller&&typeof controller.open==='function'){
+    try{controller.open()}catch(error){console.warn('تعذر فتح السبحة',error)}
+   }else{
+    const tasbih=document.getElementById('tasbihPanel');
+    if(tasbih)tasbih.hidden=false;
+   }
+  }
   panel.scrollTo({top:0,behavior:'smooth'});
   const back=page.querySelector('[data-anwar-service-back]');
-  if(back)back.focus({preventScroll:true});
+  if(back&&name!=='tasbih')back.focus({preventScroll:true});
  }
 
  serviceButtons.forEach(button=>{

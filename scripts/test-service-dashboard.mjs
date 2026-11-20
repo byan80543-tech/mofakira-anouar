@@ -5,7 +5,7 @@ import vm from 'node:vm';
 
 const root=process.cwd();
 const appCore=fs.readFileSync(path.join(root,'app-core.js'),'utf8');
-const marker='/* Anwar service dashboard: organize existing prayer, Quran, live radio and lesson controls. */';
+const marker='/* Anwar service dashboard: organize prayer, Quran, radio, lessons, adhkar and tasbih. */';
 const start=appCore.indexOf(marker);
 assert.notEqual(start,-1,'service dashboard initializer exists');
 const dashboardSource=appCore.slice(start);
@@ -59,7 +59,9 @@ const home=new FakeElement('service-home');
 const quranPage=new FakeElement('quran-page');
 const radioPage=new FakeElement('radio-page');
 const lessonsPage=new FakeElement('lessons-page');
-quranPage.hidden=true;radioPage.hidden=true;lessonsPage.hidden=true;
+const adhkarPage=new FakeElement('adhkar-page');
+const tasbihPage=new FakeElement('tasbih-page');
+quranPage.hidden=true;radioPage.hidden=true;lessonsPage.hidden=true;adhkarPage.hidden=true;tasbihPage.hidden=true;
 const radioTitle=new FakeElement('radio-title','الإذاعات المباشرة');
 const quranTitle=new FakeElement('quran-title','القرآن الكريم · اختر صوتاً وابدأ فوراً');
 const liveStation=new FakeElement('live-station');
@@ -70,26 +72,34 @@ const lessonHub=new FakeElement('lesson-hub');
 const quranBack=new FakeElement('quran-back');
 const radioBack=new FakeElement('radio-back');
 const lessonsBack=new FakeElement('lessons-back');
+const adhkarBack=new FakeElement('adhkar-back');
+const tasbihBack=new FakeElement('tasbih-back');
 quranPage.backButton=quranBack;
 radioPage.backButton=radioBack;
 lessonsPage.backButton=lessonsBack;
+adhkarPage.backButton=adhkarBack;
+tasbihPage.backButton=tasbihBack;
 quranPage.append(quranBack);
 radioPage.append(radioBack);
 radioPage.append(radioTitle);
 lessonsPage.append(lessonsBack);
+adhkarPage.append(adhkarBack);
+tasbihPage.append(tasbihBack);
 
 const services={};
-for(const name of ['adhan','quran','radio','lessons']){
+for(const name of ['adhan','quran','radio','lessons','adhkar','tasbih']){
  const button=new FakeElement(name+'-button');
  button.dataset.anwarService=name;
  services[name]=button;
 }
-const backs=[quranBack,radioBack,lessonsBack];
+const backs=[quranBack,radioBack,lessonsBack,adhkarBack,tasbihBack];
 panel.append(new FakeElement('header'));
 panel.append(home);
 panel.append(quranPage);
 panel.append(radioPage);
 panel.append(lessonsPage);
+panel.append(adhkarPage);
+panel.append(tasbihPage);
 panel.append(quranTitle);
 panel.append(radioHero);
 panel.append(liveStation);
@@ -121,6 +131,8 @@ const ids={
  anwarQuranPage:quranPage,
  anwarRadioPage:radioPage,
  anwarLessonsPage:lessonsPage,
+ anwarAdhkarPage:adhkarPage,
+ anwarTasbihPage:tasbihPage,
  liveStationArea:liveStation,
  lessonHub,
  rg:launcher,
@@ -131,7 +143,16 @@ const document={
  querySelector:selector=>selector==='#anwarPrayerCard .anwar-prayer-settings'?prayerSettings:null
 };
 
-vm.runInNewContext(dashboardSource,{document});
+const renderedAdhkar=[];
+const tasbihCalls=[];
+const window={
+ AnwarRenderAdhkar(period){renderedAdhkar.push(period);return true},
+ AnwarTasbihController:{
+  open(){tasbihCalls.push('open');return true},
+  close(){tasbihCalls.push('close');return true}
+ }
+};
+vm.runInNewContext(dashboardSource,{document,window,console:{warn(){}}});
 
 assert.equal(quranTitle.parentNode,quranPage,'Quran heading must remain in Quran page');
 assert.equal(radioTitle.parentNode,radioPage,'live-radio heading must remain in live-radio page');
@@ -165,6 +186,24 @@ assert.equal(lessonsPage.hidden,false,'opening lessons shows the lesson page');
 assert.equal(quranPage.hidden,true,'opening lessons hides Quran content');
 lessonsBack.fire('click');
 
+
+services.adhkar.fire('click');
+assert.equal(home.hidden,true,'opening adhkar hides the dashboard');
+assert.equal(adhkarPage.hidden,false,'opening adhkar shows the dedicated adhkar page');
+assert.deepEqual(renderedAdhkar,['morning'],'opening adhkar starts with the morning list');
+adhkarBack.fire('click');
+assert.equal(home.hidden,false,'returning from adhkar restores the dashboard');
+assert.equal(adhkarPage.hidden,true,'returning from adhkar hides its page');
+
+services.tasbih.fire('click');
+assert.equal(home.hidden,true,'opening tasbih hides the dashboard');
+assert.equal(tasbihPage.hidden,false,'opening tasbih shows the dedicated tasbih page');
+assert.deepEqual(tasbihCalls,['open'],'opening tasbih invokes the existing standalone counter controller');
+tasbihBack.fire('click');
+assert.equal(home.hidden,false,'returning from tasbih restores the dashboard');
+assert.equal(tasbihPage.hidden,true,'returning from tasbih hides its page');
+assert.deepEqual(tasbihCalls,['open','close'],'leaving tasbih closes its controller and releases active voice recognition');
+
 services.adhan.fire('click');
 assert.equal(prayerSettings.open,true,'Adhan card opens the existing settings disclosure');
 assert.equal(services.adhan.getAttribute('aria-expanded'),'true','Adhan tile reports its expanded state');
@@ -175,5 +214,7 @@ assert.equal(home.hidden,false,'opening the Tulip launcher resets the panel to i
 assert.equal(quranPage.hidden,true,'opening the Tulip launcher hides stale Quran content');
 assert.equal(radioPage.hidden,true,'opening the Tulip launcher hides stale radio content');
 assert.equal(lessonsPage.hidden,true,'opening the Tulip launcher hides stale lesson content');
+assert.equal(adhkarPage.hidden,true,'opening the Tulip launcher hides stale adhkar content');
+assert.equal(tasbihPage.hidden,true,'opening the Tulip launcher hides stale tasbih content');
 
 console.log('Service dashboard navigation, section placement, and return-focus tests passed.');
