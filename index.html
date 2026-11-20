@@ -2043,13 +2043,51 @@ dialog[open]>.float-head{display:none!important}
  #rib .rib-pop{width:min(280px,calc(100vw - 16px));max-height:58vh;padding:10px}
  #rib .rib-controls .b{min-height:36px}
 }
+</style>
 <style id="anwar-ribbon-compatibility">
 #rib .rib-pop .g{display:block;flex:none;min-width:0;width:100%;padding:0;border:0;background:transparent}
 #rib .rib-pop .g>div{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:5px}
 #rib .rib-pop .g>small{display:block;margin-top:5px;text-align:right;font:700 9px Cairo,Tahoma,sans-serif;color:var(--mu)}
 #rib .rib-pop .bkp-tool svg{width:18px;height:18px;vertical-align:middle;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}
 #rib .rib-pop .bkp-tool:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
-</style></style></head>
+</style>
+<style id="anwar-bottom-centered-tool-drawer-v1">
+:root{--anwar-ribbon-panel-space:min(46vh,360px)}
+/* Reserve a dedicated bottom zone when a tool group is open; the editor shrinks instead of sitting behind the panel. */
+.app.ed.ribbon-menu-open #rib{
+ padding-top:calc(var(--anwar-ribbon-panel-space) + 12px)!important;
+ align-items:flex-end!important;
+}
+/* All groups use the same centered bottom sheet, never a side-anchored popup. */
+#rib .rib-pop{
+ position:fixed!important;
+ top:auto!important;
+ left:50%!important;
+ right:auto!important;
+ inset-inline-start:auto!important;
+ inset-inline-end:auto!important;
+ bottom:calc(68px + env(safe-area-inset-bottom,0px) + 8px)!important;
+ transform:translateX(-50%)!important;
+ width:min(540px,calc(100vw - 20px))!important;
+ max-height:var(--anwar-ribbon-panel-space)!important;
+ overflow-x:hidden!important;
+ overflow-y:auto!important;
+ overscroll-behavior:contain!important;
+ border-radius:15px!important;
+ box-shadow:0 12px 34px rgba(0,0,0,.24)!important;
+ z-index:12000!important;
+}
+#rib .rib-menu[open]>.rib-pop{display:grid!important}
+#rib .rib-menu:nth-of-type(n+4)>.rib-pop{left:50%!important;right:auto!important;inset-inline-start:auto!important;inset-inline-end:auto!important}
+@media(max-width:800px){
+ :root{--anwar-ribbon-panel-space:min(46vh,360px)}
+ #rib .rib-pop{width:calc(100vw - 18px)!important;padding:11px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ #rib .rib-pop{scroll-behavior:auto!important}
+}
+</style>
+</head>
 <body>
 <div class="app" id="app">
 <button type="button" id="exitFocus" class="focus-exit" aria-label="الخروج من وضع التركيز" title="الخروج من وضع التركيز">×</button>
