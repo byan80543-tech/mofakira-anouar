@@ -2551,6 +2551,23 @@ $('adhkarContent').addEventListener('click',event=>{
  renderProtectiveAdhkar();
 });
 window.AnwarRenderAdhkar=function(){return renderProtectiveAdhkar();};
+window.AnwarSetProtectiveAdhkar=function(items){
+ if(!Array.isArray(items)||items.length>200)return false;
+ const valid=items.every(item=>item&&typeof item==='object'&&
+  typeof item.id==='string'&&typeof item.group==='string'&&typeof item.title==='string'&&
+  typeof item.text==='string'&&typeof item.source==='string'&&
+  (item.sourceUrl===''||/^https:\/\//.test(item.sourceUrl))&&
+  (item.count===null||item.count===undefined||(Number.isSafeInteger(item.count)&&item.count>0)));
+ if(!valid)return false;
+ window.ANWAR_PROTECTIVE_ADHKAR=Object.freeze(items.map(item=>Object.freeze({
+  id:item.id,group:item.group,title:item.title,text:item.text,count:item.count??null,
+  occasion:item.occasion||'',source:item.source,sourceUrl:item.sourceUrl||'',kind:item.kind==='note'?'note':'dhikr'
+ })));
+ return renderProtectiveAdhkar();
+};
+window.AnwarGetProtectiveAdhkar=function(){
+ return Array.isArray(window.ANWAR_PROTECTIVE_ADHKAR)?window.ANWAR_PROTECTIVE_ADHKAR:[];
+};
 pg.addEventListener('keydown',e=>{
  const cell=e.target.closest('#pg .v span');
  if(!cell||!pg.contains(cell))return;
