@@ -35,6 +35,7 @@ const altered={...created.envelope,ciphertext:(originalCiphertext[0]==='A'?'B':'
 await assert.rejects(()=>vault.decryptEnvelope(password,altered),/تالف|غير صالحة/,'tampered ciphertext is rejected');
 assert.throws(()=>vault.validateEnvelope({...created.envelope,iterations:1000}),/غير مدعومة/,'weakened KDF settings are rejected');
 await assert.rejects(()=>vault.createVault('short',plaintext),/12 محرفًا/,'short passwords are rejected');
+await assert.rejects(()=>vault.createVault('x'.repeat(2049),plaintext),/2048/,'passwords above the shared device-unlock maximum are rejected');
 
 // Check actual UTF-8 bytes before deriving a key or writing an envelope.
 const oversizedArabic='ا'.repeat(4*1024*1024);
