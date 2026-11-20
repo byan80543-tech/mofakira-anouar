@@ -43,7 +43,7 @@ assert.ok(countryFetch.includes("searchParams.set('url',sourceUrl)"));
 assert.ok(!countryFetch.includes('encodeURIComponent(url)'));
 assert.ok(!countryFetch.includes("'https://api.allorigins.win/raw?url='+"));
 
-const upstreamValidator=section(worker,'function validateUpstreamUrl(target) {','async function fetchSameOriginOnly(target){','upstream URL validation');
+const upstreamValidator=section(worker,'function validateUpstreamUrl(target) {','async function fetchSameOriginOnly(target) {','upstream URL validation');
 for(const token of ['safe.protocol !== "https:"',"safe.username","safe.password","safe.port","safe.hash","isAllowedUpstreamHost(safe.hostname)"]){
   assert.ok(upstreamValidator.includes(token), 'upstream validator enforces '+token);
 }
