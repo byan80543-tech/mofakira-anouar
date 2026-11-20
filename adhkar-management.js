@@ -55,9 +55,7 @@
    if (response.status === 401 && options.token) clearAdminSession();
    const messages = {
     already_initialized: 'تم تهيئة المكتبة من قبل.',
-    initialize_library_first: 'ابدأ بتهيئة القائمة الحالية قبل تعديلها.',
-    source_required_before_approval: 'لا يمكن اعتماد هذا الاقتراح قبل إضافة مصدر موثوق.',
-    suggestion_not_found: 'لم يعد هذا الاقتراح متاحًا.'
+    initialize_library_first: 'ابدأ بتهيئة القائمة الحالية قبل تعديلها.'
    };
    throw new Error(data.message || messages[data.error] || 'تعذّر إكمال الطلب (' + response.status + ').');
   }
