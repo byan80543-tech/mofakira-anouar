@@ -204,7 +204,7 @@
   return String(d.getUTCDate()).padStart(2,'0')+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+d.getUTCFullYear();
  }
  function safeTime(value){
-  const match=String(value||'').match(/(?:^|\\s)(\\d{1,2}):(\\d{2})/);
+  const match=String(value||'').match(/(\d{1,2}):(\d{2})/);
   if(!match)return null;
   const hour=Number(match[1]),minute=Number(match[2]);
   if(hour>23||minute>59)return null;
@@ -343,6 +343,8 @@
    timeZone=zone;settings.timezone=zone;
    todayData=data;
    const todayText=data.date.gregorian.date;
+   lastDateCheck=todayText;
+   renderTimes();
    const tomorrowText=addDay(todayText);
    tomorrowData=await fetchDay(tomorrowText,token);
    if(token!==loadToken)return;
