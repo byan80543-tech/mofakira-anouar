@@ -66,8 +66,8 @@ assert.equal(worker.includes('/v1/admin/suggestions'), false,
 assert.ok(worker.includes('verifyAdminSession') &&
   worker.includes('const authenticated = await verifyAdminSession'),
   'all owner write and administration routes are authenticated on the server');
-assert.ok(worker.includes('key: "anwar-adhkar-public-read"'),
-  'public reads use one shared edge bucket instead of per-visitor identifiers');
+assert.ok(worker.includes('signAdminPayload("adhkar-public-read:" + clientAddress, env.IP_HASH_SECRET)'),
+  'public reads use a per-network HMAC key at Cloudflare edge without persisting the IP');
 assert.ok(!worker.includes('rateLimitedAdhkar(request, env, "adhkar-read"'),
   'public library reads do not use per-IP rate limiting');
 assert.ok(wrangler.includes('name = "ADHKAR_STORE"') &&
