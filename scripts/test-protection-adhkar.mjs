@@ -16,7 +16,7 @@ const byId=Object.fromEntries(items.map(item=>[item.id,item]));
 assert.equal(byId.muawwidhat.count,3,'the three protective surahs retain their three repetitions');
 assert.equal(byId.bismillah.count,3,'Bismillah alladhi la yadurru retains three repetitions');
 assert.equal(byId.children.count,1,'the child-protection invocation is shown once');
-assert.equal(byId.place.count,3,'the place-entry invocation retains three repetitions');
+assert.equal(byId.place.count,1,'the place-entry invocation is counted once as narrated in Sahih Muslim 2708');
 assert.equal(byId.blessing.count,null,'the blessing invocation is not assigned an invented count');
 assert.equal(byId.waswasa.count,null,'seeking refuge during whispers has no invented fixed count');
 assert.equal(byId.cave.count,null,'memorizing the cave verses is not treated as a repeated counter item');
