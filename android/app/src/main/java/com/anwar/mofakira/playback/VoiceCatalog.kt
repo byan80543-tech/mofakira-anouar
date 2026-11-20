@@ -65,7 +65,7 @@ object VoiceCache {
             if (connection.responseCode !in 200..299) return null
             val contentType = connection.contentType.orEmpty().lowercase()
             if (contentType.isNotEmpty() && !contentType.startsWith("audio/") &&
-                !contentType.contains("octet-stream")) return null
+                contentType != "application/ogg" && !contentType.contains("octet-stream")) return null
             if (connection.contentLengthLong > MAX_AUDIO_BYTES) return null
             var total = 0L
             connection.inputStream.use { input ->

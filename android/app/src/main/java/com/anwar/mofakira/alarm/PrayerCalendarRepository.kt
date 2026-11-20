@@ -36,11 +36,11 @@ object PrayerCalendarRepository {
         val events = JSONArray()
         listOf(firstMonth, firstMonth.plusMonths(1)).forEach { month ->
             val days = fetchMonth(config.city, config.country, config.method, config.school, month)
-            days.forEach { day ->
-                val dateObj = day.optJSONObject("date")?.optJSONObject("gregorian") ?: return@forEach
+            days.forEach dayLoop@ { day ->
+                val dateObj = day.optJSONObject("date")?.optJSONObject("gregorian") ?: return@dayLoop
                 val dateText = dateObj.optString("date")
-                val date = runCatching { LocalDate.parse(dateText, apiDate) }.getOrNull() ?: return@forEach
-                val timings = day.optJSONObject("timings") ?: return@forEach
+                val date = runCatching { LocalDate.parse(dateText, apiDate) }.getOrNull() ?: return@dayLoop
+                val timings = day.optJSONObject("timings") ?: return@dayLoop
                 listOf(
                     Triple("Fajr", "الفجر", "Fajr"),
                     Triple("Dhuhr", "الظهر", "Dhuhr"),

@@ -113,8 +113,12 @@ class MainActivity : Activity() {
             android.content.pm.PackageManager.PERMISSION_GRANTED
         ) {
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQUEST_NOTIFICATIONS)
+            return
         }
+        requestExactAlarmAccessIfNeeded()
+    }
 
+    private fun requestExactAlarmAccessIfNeeded() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
             if (!alarmManager.canScheduleExactAlarms()) {
@@ -133,6 +137,16 @@ class MainActivity : Activity() {
                     .show()
             }
         }
+    }
+
+    @Deprecated("Deprecated in Android API; retained for API 23 compatibility")
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_NOTIFICATIONS) requestExactAlarmAccessIfNeeded()
     }
 
     override fun onResume() {
