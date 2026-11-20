@@ -310,15 +310,4 @@
  });
 
  refreshPublicLibrary();
-   status($('adhkarAdminStatus'), action === 'approve'
-    ? 'تم الاعتماد والنشر دون إظهار هوية صاحب الاقتراح.'
-    : 'تم رفض الاقتراح وحذفه من صندوق المراجعة.');
-  } catch (error) {
-   status($('adhkarAdminStatus'), error.message);
-  } finally {
-   button.disabled = false;
-  }
- });
-
- refreshPublicLibrary();
 })();
