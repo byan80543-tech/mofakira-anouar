@@ -95,6 +95,7 @@
   const countText = String(data.get('count') || '').trim();
   return {
    id: String(data.get('id') || '').trim() || undefined,
+   suggestionId: String(data.get('suggestionId') || '').trim(),
    group: String(data.get('group') || '').trim(),
    title: String(data.get('title') || '').trim(),
    text: String(data.get('text') || '').trim(),
@@ -184,10 +185,11 @@
    sourceLink(card, item.source || 'لم يذكر مصدر', item.sourceUrl);
    const actions = document.createElement('div');
    actions.className = 'adhkar-admin-item-actions';
+   const edit = createAction('تحرير ثم نشر', 'edit', item.id);
    const approve = createAction('اعتماد ونشر', 'approve', item.id);
-   approve.disabled = !item.source;
-   approve.title = item.source ? 'نشر الذكر بعد المراجعة' : 'أضف مصدرًا موثوقًا قبل الاعتماد';
-   actions.append(approve, createAction('رفض وحذف الاقتراح', 'reject', item.id));
+   approve.disabled = !item.source || !libraryInitialized;
+   approve.title = !libraryInitialized ? 'هيّئ المكتبة أولًا' : item.source ? 'نشر الذكر بعد المراجعة' : 'أضف مصدرًا موثوقًا قبل الاعتماد';
+   actions.append(edit, approve, createAction('رفض وحذف الاقتراح', 'reject', item.id));
    card.append(actions);
    host.append(card);
   });
@@ -325,6 +327,8 @@
    return;
   }
   const payload = formData(officialForm);
+  const suggestionId = payload.suggestionId;
+  delete payload.suggestionId;
   const isEdit = Boolean(payload.id);
   const submit = officialForm.querySelector('[type="submit"]');
   submit.disabled = true;
@@ -335,6 +339,15 @@
     body: payload
    });
    officialForm.reset();
+   if (suggestionId) {
+    try {
+     await api('/v1/admin/suggestions/' + encodeURIComponent(suggestionId) + '/reject', {
+      method: 'POST', token: adminToken, body: {}
+     });
+    } catch (cleanupError) {
+     console.warn('Published suggestion could not be cleared from the private queue:', cleanupError);
+    }
+   }
    await loadAdminData();
    await refreshPublicLibrary();
    status($('adhkarAdminStatus'), isEdit ? 'تم تحديث الذكر في المكتبة العامة.' : 'تمت إضافة الذكر إلى المكتبة العامة.');
@@ -381,6 +394,19 @@
   const action = button.dataset.action;
   const item = pendingSuggestions.find(entry => entry.id === id);
   if (!item) return;
+  if (action === 'edit') {
+   for (const key of ['group','title','text','count','occasion','source','sourceUrl','kind']) {
+    const field = officialForm.elements.namedItem(key);
+    if (field) field.value = item[key] == null ? '' : String(item[key]);
+   }
+   const idField = officialForm.elements.namedItem('id');
+   const proposalField = officialForm.elements.namedItem('suggestionId');
+   if (idField) idField.value = '';
+   if (proposalField) proposalField.value = item.id;
+   officialForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+   status($('adhkarAdminStatus'), 'راجع النص وأضف المصدر الصحيح ثم احفظه للنشر. سيُحذف الاقتراح الخاص بعد نجاح النشر.');
+   return;
+  }
   if (action === 'approve' && !item.source) {
    status($('adhkarAdminStatus'), 'لا تعتمد هذا الاقتراح قبل التحقق من مصدره وإضافته.');
    return;
