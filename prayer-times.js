@@ -200,9 +200,8 @@
  card.id='anwarPrayerCard';
  card.setAttribute('aria-label','مواقيت الصلاة والأذان');
  const head=el('div','anwar-prayer-head');
- const title=el('strong','','مواقيت الصلاة');
  const locationLabel=el('small','','المغرب · مكناس');
- head.append(title,locationLabel);
+ head.append(locationLabel);
  const nextBox=el('div','anwar-prayer-next');
  const nextCopy=el('div','anwar-prayer-next-copy');
  const nextLabel=el('small','','الصلاة القادمة');
@@ -235,8 +234,8 @@
  VOICES.forEach(voice=>{const option=el('option','',voice.label);option.value=voice.key;voiceSelect.append(option)});
  voiceSelect.value=settings.voice;
  fields.append(countrySelect,cityInput,schoolSelect,voiceSelect);
- const refreshButton=el('button','primary','تحديث مواقيت الصلاة');
- refreshButton.type='button';
+ const refreshButton=el('button','primary','تحديث');
+ refreshButton.type='button';refreshButton.setAttribute('aria-label','تحديث مواقيت الصلاة');
  const testButton=el('button','','تجربة الأذان');
  testButton.type='button';
  const actions=el('div','anwar-prayer-actions');actions.append(refreshButton,testButton);
