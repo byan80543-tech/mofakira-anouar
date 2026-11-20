@@ -2482,29 +2482,8 @@ document.addEventListener('click',e=>{
  else if(id==='closeOwner')$('ownerDialog').close();
  else if(id==='ownerTab')showOwnerPanel('owner');
  else if(id==='shareTab')showOwnerPanel('share');
- else if(id==='morningTab')renderAdhkar('morning');
- else if(id==='eveningTab')renderAdhkar('evening');
- else if(id==='protectionTab')renderAdhkar('protection');
 });
 
-const ADHKAR={
- morning:[
-  ['آية الكرسي','اقرأ آية الكرسي كاملة من سورة البقرة، الآية 255.','مرة واحدة · القرآن الكريم: البقرة 255.'],
-  ['سور الإخلاص والفلق والناس','اقرأ سورة الإخلاص وسورة الفلق وسورة الناس.','ثلاث مرات صباحًا · سنن أبي داود، حديث 5082.'],
-  ['أصبحنا وأصبح الملك لله','أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَىٰ كُلِّ شَيْءٍ قَدِيرٌ.','يقال صباحًا · صحيح مسلم، حديث 2723.'],
-  ['سيد الاستغفار','اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَٰهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَىٰ عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ بِذَنْبِي، فَاغْفِرْ لِي؛ فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ.','مرة واحدة · صحيح البخاري، حديث 6306.'],
-  ['رضيت بالله ربًا','رَضِيتُ بِاللَّهِ رَبًّا، وَبِالْإِسْلَامِ دِينًا، وَبِمُحَمَّدٍ ﷺ نَبِيًّا.','ثلاث مرات · جامع الترمذي، حديث 3389.'],
-  ['بسم الله الذي لا يضر','بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ، وَهُوَ السَّمِيعُ الْعَلِيمُ.','ثلاث مرات · سنن أبي داود، حديث 5088، وجامع الترمذي، حديث 3388.']
- ],
- evening:[
-  ['آية الكرسي','اقرأ آية الكرسي كاملة من سورة البقرة، الآية 255.','مرة واحدة · القرآن الكريم: البقرة 255.'],
-  ['سور الإخلاص والفلق والناس','اقرأ سورة الإخلاص وسورة الفلق وسورة الناس.','ثلاث مرات مساءً · سنن أبي داود، حديث 5082.'],
-  ['أمسينا وأمسى الملك لله','أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَىٰ كُلِّ شَيْءٍ قَدِيرٌ.','يقال مساءً · صحيح مسلم، حديث 2723.'],
-  ['سيد الاستغفار','اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَٰهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَىٰ عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ بِذَنْبِي، فَاغْفِرْ لِي؛ فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ.','مرة واحدة · صحيح البخاري، حديث 6306.'],
-  ['رضيت بالله ربًا','رَضِيتُ بِاللَّهِ رَبًّا، وَبِالْإِسْلَامِ دِينًا، وَبِمُحَمَّدٍ ﷺ نَبِيًّا.','ثلاث مرات · جامع الترمذي، حديث 3389.'],
-  ['بسم الله الذي لا يضر','بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ، وَهُوَ السَّمِيعُ الْعَلِيمُ.','ثلاث مرات · سنن أبي داود، حديث 5088، وجامع الترمذي، حديث 3388.']
- ]
-};
 const protectiveProgress=Object.create(null);
 function renderProtectiveAdhkar(){
  const host=$('adhkarContent'),items=window.ANWAR_PROTECTIVE_ADHKAR;
@@ -2557,23 +2536,6 @@ function renderProtectiveAdhkar(){
  host.replaceChildren(fragment);
  return true;
 }
-function renderAdhkar(period){
- const protection=period==='protection';
- ['morningTab','eveningTab','protectionTab'].forEach(id=>{
-  const button=$(id),active=id===(protection?'protectionTab':period==='evening'?'eveningTab':'morningTab');
-  button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));
- });
- if(protection){renderProtectiveAdhkar();return}
- const host=$('adhkarContent'),list=ADHKAR[period];
- host.replaceChildren();
- list.forEach(item=>{
-  const card=document.createElement('article');card.className='dhikr';
-  const title=document.createElement('strong');title.textContent=item[0];
-  const body=document.createElement('div');body.textContent=item[1];
-  const source=document.createElement('small');source.textContent=item[2];
-  card.append(title,body,source);host.append(card);
- });
-}
 $('adhkarContent').addEventListener('click',event=>{
  const button=event.target.closest('[data-protective-action]');
  if(!button)return;
@@ -2589,6 +2551,7 @@ $('adhkarContent').addEventListener('click',event=>{
  renderProtectiveAdhkar();
 });
 window.AnwarRenderAdhkar=function(period){if(period!=='morning'&&period!=='evening'&&period!=='protection')return false;renderAdhkar(period);return true;};
+window.AnwarRenderAdhkar=function(){return renderProtectiveAdhkar();};
 pg.addEventListener('keydown',e=>{
  const cell=e.target.closest('#pg .v span');
  if(!cell||!pg.contains(cell))return;
@@ -4580,7 +4543,7 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
   Object.entries(pages).forEach(([key,item])=>{item.hidden=key!==name});
   serviceButtons.forEach(item=>item.setAttribute('aria-pressed',String(item===button)));
   if(name==='adhkar'&&typeof window.AnwarRenderAdhkar==='function'){
-   try{window.AnwarRenderAdhkar('morning')}catch(error){console.warn('تعذر عرض أذكار الصباح',error)}
+   try{window.AnwarRenderAdhkar('protection')}catch(error){console.warn('تعذر عرض أذكار الصباح',error)}
   }
   if(name==='tasbih'){
    const controller=window.AnwarTasbihController;
