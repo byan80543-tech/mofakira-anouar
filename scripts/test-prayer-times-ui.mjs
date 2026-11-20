@@ -40,13 +40,16 @@ assert.match(prayer,/if\(settings\.method!==\'auto\'\)url\.searchParams\.set\(\'
 assert.doesNotMatch(prayer,/METHOD_OPTIONS|methodSelect/,'technical calculation-method picker is removed');
 assert.match(prayer,/countrySelect\.addEventListener\('change'/,'manual country override remains available');
 assert.match(prayer,/const nativeBridgeReady=syncNativeBackground\(\)/,'native background adhan syncs after refreshed prayer data confirms the timezone');
+assert.match(prayer,/settings\.school='0'/,'refresh preserves the fixed standard Asr calculation for API and Android sync');
 assert.match(prayer,/settings\.timezone='';[\s\S]*?refreshTimes\(false\)/,'country change clears the old timezone and automatically fetches the selected country');
 assert.match(prayer,/meknes:'مكناس'/,'Meknes is displayed in Arabic');
 assert.match(prayer,/locationLabel\.textContent=cityForDisplay\(settings\.city\)\+' · '\+countryForDisplay\(settings\.country\)/,'location heading displays city before country in Arabic');
-assert.match(prayer,/fields\.append\(countrySelect,cityInput,schoolSelect,voiceSelect\)/,'settings retain the four controls without visible duplicate labels');
+assert.match(prayer,/fields\.append\(countrySelect,cityInput,voiceSelect\)/,'settings retain only country, city and adhan voice controls');
+assert.doesNotMatch(prayer,/schoolSelect|anwarPrayerSchool|قياسي|حنفي/,'Asr school selector and its labels are fully removed from the interface');
+assert.match(prayer,/school:'0'/,'standard Asr calculation remains fixed internally');
 assert.match(prayer,/countrySelect\.setAttribute\('aria-label','الدولة'\)/,'country remains accessible to screen readers');
 assert.match(prayer,/cityInput\.setAttribute\('aria-label','المدينة'\)/,'city remains accessible to screen readers');
-assert.match(prayer,/schoolSelect\.setAttribute\('aria-label','طريقة حساب العصر'\)/,'Asr method remains accessible to screen readers');
+assert.doesNotMatch(prayer,/schoolSelect|طريقة حساب العصر/,'Asr method is not exposed as a visible or accessible settings control');
 assert.match(prayer,/voiceSelect\.setAttribute\('aria-label','صوت الأذان'\)/,'adhan voice remains accessible to screen readers');
 assert.doesNotMatch(prayer,/const apiLink=|const audioLink=|const voiceCredit=/,'source links and recording credits are removed from the settings panel');
 assert.doesNotMatch(prayer,/اختيرت الدولة\. حدّد مدينتك|تحقق من المدينة ثم حدّث/,'duplicate location instructions are removed');
@@ -60,7 +63,7 @@ assert.doesNotMatch(prayer,/\.anwar-prayer-card\{gap:7px;padding:10px 11px\}/,'c
 assert.match(prayer,/\.anwar-prayer-next\[hidden\]\{display:none!important\}/,'hidden countdown is not forced visible by the grid rule');
 assert.match(html,/<small>أصوات الأذان<\/small><strong>اختيار الصوت والتنبيهات<\/strong>/,'section card distinguishes adhan sounds from the prayer timetable');
 assert.match(html,/#rd \.curtain-head #ownerBtn\.radio-owner-pen[\s\S]*?width:34px!important;height:34px!important/,'ownership button matches the close button dimensions');
-assert.match(html,/prayer-times\.js\?v=20261120-9/,'HTML loads the cleaned prayer controller');
-assert.match(worker,/anwar-shell-2026-11-20-v115/,'service worker cache is bumped for the cleaned prayer card');
+assert.match(html,/prayer-times\.js\?v=20261120-10/,'HTML loads the prayer controller without Asr method selector');
+assert.match(worker,/anwar-shell-2026-11-20-v116/,'service worker cache is bumped after removing the Asr selector');
 
 console.log('Prayer card compact layout, loading states, Arabic location and header controls tests passed.');
