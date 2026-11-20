@@ -2550,7 +2550,6 @@ $('adhkarContent').addEventListener('click',event=>{
  }
  renderProtectiveAdhkar();
 });
-window.AnwarRenderAdhkar=function(period){if(period!=='morning'&&period!=='evening'&&period!=='protection')return false;renderAdhkar(period);return true;};
 window.AnwarRenderAdhkar=function(){return renderProtectiveAdhkar();};
 pg.addEventListener('keydown',e=>{
  const cell=e.target.closest('#pg .v span');
@@ -4543,7 +4542,7 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
   Object.entries(pages).forEach(([key,item])=>{item.hidden=key!==name});
   serviceButtons.forEach(item=>item.setAttribute('aria-pressed',String(item===button)));
   if(name==='adhkar'&&typeof window.AnwarRenderAdhkar==='function'){
-   try{window.AnwarRenderAdhkar('protection')}catch(error){console.warn('تعذر عرض أذكار الصباح',error)}
+   try{window.AnwarRenderAdhkar('protection')}catch(error){console.warn('تعذر عرض أذكار التحصين',error)}
   }
   if(name==='tasbih'){
    const controller=window.AnwarTasbihController;
