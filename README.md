@@ -1,5 +1,7 @@
 # مفكرة أنوار
 
+[![Deploy Anwar API Gateway](https://github.com/byan80543-tech/mofakira-anouar/actions/workflows/deploy-anwar-api-gateway.yml/badge.svg)](https://github.com/byan80543-tech/mofakira-anouar/actions/workflows/deploy-anwar-api-gateway.yml)
+
 تطبيق ويب عربي لتدوين القصائد والنصوص والأفكار، مع أدوات تنسيق وتصدير ومحتوى صوتي وأذكار.
 
 ## بيانات المشروع والملكية
