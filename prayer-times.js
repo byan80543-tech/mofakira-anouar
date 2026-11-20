@@ -191,24 +191,8 @@
   ''
  ].join('');
  style.textContent += [
-  '.anwar-prayer-card{gap:7px;padding:10px 11px}',
-  '.anwar-prayer-head strong{font-size:17px}',
-  '.anwar-prayer-next{padding:8px 10px;gap:3px 8px}',
-  '.anwar-prayer-next small{font-size:10px}',
-  '.anwar-prayer-next strong{font-size:16px}',
-  '.anwar-prayer-next span{font-size:16px}',
-  '.anwar-prayer-time{gap:2px;padding:6px 2px}',
-  '.anwar-prayer-time b{font-size:9px}',
-  '.anwar-prayer-time strong{font-size:11px}',
-  '.anwar-prayer-date{padding:2px 1px;min-height:16px}',
-  '.anwar-prayer-info{border-top:1px solid #d9c99e;padding-top:4px}',
-  '.anwar-prayer-info summary{cursor:pointer;list-style-position:inside;color:var(--mu);font-size:10px;line-height:1.6;padding:2px 0}',
-  '.anwar-prayer-info .anwar-prayer-note{display:block;margin:0;padding:6px 2px 2px;font-size:10px;line-height:1.75}',
-  '.anwar-prayer-settings{padding-top:6px}',
-  '.anwar-prayer-settings summary{padding:2px 0}',
   '.anwar-prayer-next[hidden]{display:none!important}',
-  '@media(max-width:420px){.anwar-prayer-card{gap:6px;padding:9px}.anwar-prayer-next{padding:7px 9px}.anwar-prayer-time{padding:6px 1px}.anwar-prayer-time b{font-size:9px}.anwar-prayer-time strong{font-size:10px}}',
-  ''
+  '.anwar-prayer-status:empty{display:none!important}'
  ].join('');
  document.head.append(style);
 
@@ -240,25 +224,17 @@
  const details=el('details','anwar-prayer-settings');
  const summary=el('summary','','إعدادات المواقيت والأذان');
  const fields=el('div','anwar-prayer-fields');
- function makeField(label,control){
-  const wrap=el('label','anwar-prayer-field',label);wrap.append(control);return wrap;
- }
- const countrySelect=el('select');countrySelect.id='anwarPrayerCountry';
+ const countrySelect=el('select');countrySelect.id='anwarPrayerCountry';countrySelect.setAttribute('aria-label','الدولة');
  COUNTRY_OPTIONS.forEach(item=>{const option=el('option','',item.label);option.value=item.api;countrySelect.append(option)});
  countrySelect.value=settings.country;
- const cityInput=el('input');cityInput.id='anwarPrayerCity';cityInput.type='text';cityInput.autocomplete='address-level2';cityInput.maxLength=90;cityInput.value=settings.city;cityInput.placeholder='مثال: مكناس';
- const schoolSelect=el('select');schoolSelect.id='anwarPrayerSchool';
- [['0','العصر القياسي (شافعي / مالكي)'],['1','العصر الحنفي']].forEach(item=>{const op=el('option','',item[1]);op.value=item[0];schoolSelect.append(op)});
+ const cityInput=el('input');cityInput.id='anwarPrayerCity';cityInput.type='text';cityInput.setAttribute('aria-label','المدينة');cityInput.autocomplete='address-level2';cityInput.maxLength=90;cityInput.value=settings.city;cityInput.placeholder='المدينة';
+ const schoolSelect=el('select');schoolSelect.id='anwarPrayerSchool';schoolSelect.setAttribute('aria-label','طريقة حساب العصر');
+ [['0','قياسي'],['1','حنفي']].forEach(item=>{const op=el('option','',item[1]);op.value=item[0];schoolSelect.append(op)});
  schoolSelect.value=settings.school;
- const voiceSelect=el('select');voiceSelect.id='anwarPrayerVoice';
+ const voiceSelect=el('select');voiceSelect.id='anwarPrayerVoice';voiceSelect.setAttribute('aria-label','صوت الأذان');
  VOICES.forEach(voice=>{const option=el('option','',voice.label);option.value=voice.key;voiceSelect.append(option)});
  voiceSelect.value=settings.voice;
- fields.append(
-  makeField('الدولة',countrySelect),
-  makeField('المدينة',cityInput),
-  makeField('طريقة حساب العصر',schoolSelect),
-  makeField('صوت الأذان',voiceSelect)
- );
+ fields.append(countrySelect,cityInput,schoolSelect,voiceSelect);
  const refreshButton=el('button','primary','تحديث مواقيت الصلاة');
  refreshButton.type='button';
  const testButton=el('button','','تجربة الأذان');
@@ -272,16 +248,9 @@
  const volumeLabel=el('span','','مستوى صوت الأذان');
  const volumeInput=el('input');volumeInput.type='range';volumeInput.min='0';volumeInput.max='1';volumeInput.step='0.05';volumeInput.value=String(settings.volume);
  volumeWrap.append(volumeLabel,volumeInput);
- const status=el('div','anwar-prayer-status','اختر مدينتك، ثم جرّب الأذان واسمح للمتصفح بتشغيل الصوت قبل تفعيل التنبيه التلقائي.');
+ const status=el('div','anwar-prayer-status','');
  status.setAttribute('role','status');status.setAttribute('aria-live','polite');
- const links=el('div','anwar-prayer-links');
- const apiLink=el('a','','مصدر المواقيت');
- apiLink.href='https://aladhan.com/prayer-times-api';apiLink.target='_blank';apiLink.rel='noopener noreferrer';
- const audioLink=el('a','','مصدر التسجيل');
- audioLink.target='_blank';audioLink.rel='noopener noreferrer';
- const voiceCredit=el('small','anwar-prayer-note','');
- links.append(apiLink,audioLink);
- details.append(summary,fields,actions,toggleLabel,volumeWrap,status,links,voiceCredit);
+ details.append(summary,fields,actions,toggleLabel,volumeWrap,status);
  details.addEventListener('toggle',()=>{
   const launcher=document.querySelector('[data-anwar-service="adhan"]');
   if(launcher)launcher.setAttribute('aria-expanded',String(details.open));
@@ -299,18 +268,7 @@
  function persist(){
   try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings))}catch(_e){}
  }
- function currentVoice(){
-  return VOICES.find(item=>item.key===settings.voice)||VOICES[0];
- }
- function updateVoiceSource(){
-  const voice=currentVoice();
-  audioLink.href=voice.page;
-  audioLink.textContent='مصدر التسجيل';
-  audioLink.title=voice.credit+' · '+voice.license;
-  voiceCredit.textContent=voice.credit+' · '+voice.license+(voice.note?' · '+voice.note:'');
-  testButton.textContent='تجربة الأذان';
- }
- updateVoiceSource();
+ testButton.textContent='تجربة الأذان';
  function syncNativeBackground(){
   const bridge=window.AnwarAdhanBridge;
   if(!bridge||typeof bridge.postMessage!=='function')return false;
@@ -547,7 +505,7 @@
   settings.country=normalizeCountry(countrySelect.value)||detectCountry();
   settings.method=methodForCountry(settings.country);
   settings.city=cityInput.value.trim();settings.school=schoolSelect.value;
-  persist();syncNativeBackground();todayData=null;tomorrowData=null;lastDateCheck='';
+  persist();todayData=null;tomorrowData=null;lastDateCheck='';
   timesGrid.replaceChildren(...PRAYERS.map(prayer=>{const item=el('div','anwar-prayer-time');item.append(el('b','',prayer.name),el('strong','','—'));return item;}));
   nextBox.hidden=true;nextName.textContent='';nextWhen.textContent='';countdown.textContent='';
   dateLine.textContent='جارٍ تحميل مواقيت الصلاة…';dateLine.dataset.state='loading';
@@ -562,13 +520,13 @@
   settings.city=defaultCity(selected);
   settings.timezone='';
   cityInput.value=settings.city;
-  persist();syncNativeBackground();updateHeader();
+  settings.timezone='';
+  persist();updateHeader();
   todayData=null;tomorrowData=null;lastDateCheck='';
   nextBox.hidden=true;
   timesGrid.replaceChildren(...PRAYERS.map(prayer=>{const item=el('div','anwar-prayer-time');item.append(el('b','',prayer.name),el('strong','','—'));return item;}));
-  dateLine.textContent='تحقق من المدينة ثم حدّث المواقيت للحصول على التوقيت الأقرب إليك.';
-  dateLine.dataset.state='loading';
-  setStatus('اختيرت الدولة. حدّد مدينتك بدل المدينة الافتراضية إن لزم، ثم اضغط «تحديث مواقيت الصلاة».');
+  dateLine.textContent='جارٍ تحميل المواقيت…';dateLine.dataset.state='loading';
+  lastTick=Date.now();refreshTimes(false);
  });
  enabledInput.addEventListener('change',()=>{
   settings.enabled=enabledInput.checked;persist();
@@ -590,7 +548,7 @@
   if(!next)return;
   settings.voice=next.key;audio.pause();
   audio.src=next.url;
-  audio.load();persist();updateVoiceSource();syncNativeBackground();
+  audio.load();persist();syncNativeBackground();
   setStatus('تم اختيار '+next.label+'.');
  });
  testButton.addEventListener('click',()=>playAdhan('اختبار',true));
