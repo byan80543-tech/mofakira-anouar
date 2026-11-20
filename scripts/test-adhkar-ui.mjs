@@ -10,56 +10,74 @@ const wrangler = read('../workers/anwar-api-gateway/wrangler.toml');
 const serviceWorker = read('../service-worker.js');
 const deploy = read('../.github/workflows/deploy-anwar-api-gateway.yml');
 
-assert.ok(html.includes('id="adhkarSuggestOpen"') && html.includes('id="adhkarAdminOpen"'),
-  'the unified protection page exposes both proposal and owner controls');
-assert.ok(html.includes('id="adhkarSuggestionDialog"') && html.includes('id="adhkarAdminDialog"'),
-  'suggestion and admin forms are separate dialogs');
-assert.ok(html.includes('name="group"') && html.includes('name="title"') && html.includes('name="text"'),
-  'the suggestion form captures the dhikr content');
-const suggestionFormStart = html.indexOf('<form id="adhkarSuggestionForm"');
-const suggestionFormEnd = html.indexOf('</form>', suggestionFormStart);
-const suggestionForm = html.slice(suggestionFormStart, suggestionFormEnd);
-assert.doesNotMatch(suggestionForm, /<input[^>]+name="(?:email|phone|name|fullName|userId)"|<input[^>]+type="email"/i,
-  'the visitor suggestion form does not request identity details');
-assert.ok(html.includes('لا نطلب اسمك أو بريدك أو رقم هاتفك'),
-  'the UI explains the anonymous contribution policy');
+const publicPageStart = html.indexOf('<section id="anwarAdhkarPage"');
+const publicPageEnd = html.indexOf('<section id="anwarTasbihPage"', publicPageStart);
+const publicPage = html.slice(publicPageStart, publicPageEnd);
+
+assert.ok(html.includes('id="adhkarAdminOpen"') && html.includes('إدارة المالك'),
+  'the protection page exposes only the owner management entry');
+assert.ok(html.includes('القراءة العامة') && html.includes('صاحب المفكرة وحده'),
+  'the visitor-facing notice clearly states read-only access');
+assert.equal(publicPage.includes('adhkarSuggestOpen'), false,
+  'there is no visitor suggestion control on the protection page');
+assert.equal(publicPage.includes('<form'), false,
+  'the visitor-facing protection page contains no write form');
+assert.doesNotMatch(html, /adhkarSuggestionDialog|adhkarSuggestionForm|adhkarPendingList|اقتراحات الزوار|اقتراح ذكر/,
+  'all visitor suggestion and moderation UI has been removed');
+
+assert.ok(html.includes('id="adhkarAdminDialog"') && html.includes('id="adhkarAdminLogin"'),
+  'the owner-only admin dialog remains available');
+assert.ok(html.includes('id="adhkarOfficialForm"') && html.includes('id="adhkarOfficialList"'),
+  'the owner can add, edit and remove official entries');
 
 assert.ok(client.includes("credentials: 'omit'") && client.includes("referrerPolicy: 'no-referrer'"),
-  'API requests omit credentials and referrers');
+  'API requests omit browser credentials and referrers');
 assert.ok(client.includes("headers.Authorization = 'Bearer ' + options.token"),
-  'admin operations require an explicit bearer session token');
+  'admin operations require an explicit owner session token');
 assert.doesNotMatch(client, /localStorage|sessionStorage|indexedDB|document.cookie/,
   'admin session tokens are not persisted in browser storage');
+assert.equal(client.includes('suggestion'), false,
+  'the client has no visitor submission or moderation code');
+assert.equal(client.includes('adhkarPending'), false,
+  'the client no longer loads a private visitor queue');
 assert.equal(client.includes('.innerHTML'), false,
-  'visitor-provided text is never inserted as HTML');
+  'entry content is rendered as text, not interpreted as HTML');
 assert.ok(client.includes('node.textContent = String(text || \'\')'),
-  'admin content is rendered as inert text');
+  'admin-managed content is displayed as inert text');
 assert.ok(client.includes('window.confirm('),
-  'public deletion and moderation require explicit owner confirmation');
+  'removing an official item requires owner confirmation');
 assert.ok(client.includes('window.AnwarSetProtectiveAdhkar'),
-  'online approved items update the existing protective-adhkar renderer');
+  'published entries refresh the shared protection renderer');
 
 assert.ok(core.includes('window.AnwarSetProtectiveAdhkar=function(items)') &&
   core.includes('window.AnwarGetProtectiveAdhkar=function()'),
-  'the app exposes a validated bridge for the local and shared official list');
+  'the app exposes a validated bridge for the official local fallback');
 assert.ok(worker.includes('export class AdhkarStore') &&
-  worker.includes('CREATE TABLE IF NOT EXISTS adhkar_suggestions') &&
   worker.includes('CREATE TABLE IF NOT EXISTS adhkar_entries'),
-  'the worker stores pending suggestions separately from approved entries');
+  'the worker stores the approved official library');
+assert.equal(worker.includes('CREATE TABLE IF NOT EXISTS adhkar_suggestions'), false,
+  'the worker no longer creates a visitor submission table');
+assert.ok(worker.includes('DROP TABLE IF EXISTS adhkar_suggestions'),
+  'any legacy visitor suggestion table is deleted during store initialization');
+assert.equal(worker.includes('/v1/adhkar/suggestions'), false,
+  'the public suggestion API route has been removed');
+assert.equal(worker.includes('/v1/admin/suggestions'), false,
+  'the private moderation API route has been removed');
 assert.ok(worker.includes('verifyAdminSession') &&
-  worker.includes('source_required_before_approval'),
-  'the server verifies signed owner sessions and rejects unsourced approvals');
-assert.ok(!worker.includes('submitter_email') && !worker.includes('submitter_name') &&
-  !worker.includes('submitter_phone'),
-  'the private store schema has no contributor identity fields');
+  worker.includes('const authenticated = await verifyAdminSession'),
+  'all owner write and administration routes are authenticated on the server');
+assert.ok(worker.includes('key: "anwar-adhkar-public-read"'),
+  'public reads use one shared edge bucket instead of per-visitor identifiers');
+assert.ok(!worker.includes('rateLimitedAdhkar(request, env, "adhkar-read"'),
+  'public library reads do not use per-IP rate limiting');
 assert.ok(wrangler.includes('name = "ADHKAR_STORE"') &&
   wrangler.includes('[exports.AdhkarStore]') &&
   wrangler.includes('storage = "sqlite"'),
-  'the private store is a dedicated SQLite-backed Durable Object');
+  'the official library is held in a dedicated SQLite-backed Durable Object');
 assert.ok(deploy.includes('ADHKAR_ADMIN_SECRET') && deploy.includes('secrets: |'),
-  'the deployment workflow injects the admin secret as a Worker secret');
+  'the owner credential is injected as a server-side Worker secret');
 assert.ok(serviceWorker.includes("'./adhkar-management.js'") &&
   serviceWorker.includes('anwar-shell-2026-11-20-v121'),
-  'the management module is included in the offline shell and cache version is bumped');
+  'the owner management module remains in the offline shell');
 
-console.log('Adhkar UI privacy and offline integration tests passed.');
+console.log('Owner-only adhkar UI, privacy and offline integration tests passed.');
