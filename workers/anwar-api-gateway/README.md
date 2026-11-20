@@ -34,7 +34,7 @@
 
 ## النشر عبر GitHub Actions
 
-أضيف سير عمل يدوي في `.github/workflows/deploy-anwar-api-gateway.yml`. بعد إضافة الأسرار الثلاثة إلى إعدادات مستودع GitHub، افتح تبويب Actions وشغّل `Deploy Anwar API Gateway`.
+أضيف سير عمل يدوي في `.github/workflows/deploy-anwar-api-gateway.yml`. بعد إضافة الأسرار الأربعة إلى إعدادات مستودع GitHub، افتح تبويب Actions وشغّل `Deploy Anwar API Gateway`. يرفع سير العمل شيفرة العامل والسرين معًا باستخدام `wrangler deploy --secrets-file`؛ فلا يحاول رفع الأسرار إلى عامل غير منشور قبل نشره.
 
 **التهيئة الأولية بأقل صلاحيات:**
 
@@ -48,6 +48,7 @@
 - `CLOUDFLARE_API_TOKEN`: رمز API المحدود إلى العامل `anwar-api-gateway`.
 - `CLOUDFLARE_ACCOUNT_ID`: معرّف حساب Cloudflare.
 - `IP_HASH_SECRET`: السر العشوائي الذي أنشأته. يستخدمه Worker لبصمة HMAC ولا يُحفظ في GitHub كملف؛ يبقى Secret مشفرًا ويُمرر عبر Wrangler Action إلى سر Worker.
+- `ADHKAR_ADMIN_SECRET`: رمز إدارة منفصل لا يقل عن 32 محرفًا، يُستخدم لإنشاء جلسات المالك الموقعة.
 
 بعد إضافة الأسرار، افتح Actions وشغّل `Deploy Anwar API Gateway`. سيرفع GitHub Actions العامل وإعدادات Durable Object وRate Limiting، ويضبط سر HMAC من GitHub Secrets دون طباعته في سجل التشغيل.
 
@@ -79,7 +80,7 @@
 
 1. أنشئ رمزًا عشوائيًا طويلًا (64 حرفًا أو أكثر) باستخدام مدير كلمات مرور موثوق. لا تستخدم كلمة مرور سبق استعمالها.
 2. أضف الرمز إلى GitHub Repository Settings → Secrets and variables → Actions باسم `ADHKAR_ADMIN_SECRET`.
-3. شغّل سير العمل `Deploy Anwar API Gateway`. يجب أن تكون أسرار البوابة الأخرى موجودة أيضًا: `CLOUDFLARE_API_TOKEN` و`CLOUDFLARE_ACCOUNT_ID` و`IP_HASH_SECRET`.
+3. شغّل سير العمل `Deploy Anwar API Gateway`. يجب أن تكون الأسرار الأربعة موجودة: `CLOUDFLARE_API_TOKEN` و`CLOUDFLARE_ACCOUNT_ID` و`IP_HASH_SECRET` و`ADHKAR_ADMIN_SECRET`.
 4. بعد معرفة عنوان Worker المنشور، ضعه في `api-gateway-config.js` داخل `ANWAR_API_GATEWAY_BASE`، ثم انشر صفحة المفكرة.
 5. افتح «إدارة المالك» وسجّل الدخول، ثم اضغط «تهيئة القائمة الحالية» مرة واحدة لنقل الأذكار الحالية إلى المكتبة المشتركة.
 
