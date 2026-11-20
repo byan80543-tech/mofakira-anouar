@@ -31,7 +31,7 @@
   'بريطانيا':'United Kingdom','المملكة المتحدة':'United Kingdom',
   'الولايات المتحدة':'United States','كندا':'Canada',
   'باكستان':'Pakistan','الهند':'India','ماليزيا':'Malaysia',
-  'إندونيسيا':'Indonesia','إندونيسيا':'Indonesia'
+  'إندونيسيا':'Indonesia'
  };
  const COUNTRY_AR={
   Morocco:'المغرب',Algeria:'الجزائر',Tunisia:'تونس',Egypt:'مصر',
@@ -71,9 +71,10 @@
   }catch(_e){return defaults;}
  }
  let settings=readSettings();
- let todayData=null,tomorrowData=null,timeZone=settings.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';
- let loading=false,loadToken=0,lastTick=Date.now(),lastShownKey='',lastDateCheck='';
- let refreshTimer=null;
+ function validTimeZone(value){try{new Intl.DateTimeFormat('en',{timeZone:value}).format();return value;}catch(_e){return Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';}}
+ let todayData=null,tomorrowData=null,timeZone=validTimeZone(settings.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC');
+ let loading=false,loadToken=0,lastTick=Date.now(),lastDateCheck='';
+ let pendingAdhanKey='',lastAutoAttemptAt=0;
  const el=(tag,className,text)=>{
   const node=document.createElement(tag);
   if(className)node.className=className;
@@ -108,7 +109,7 @@
   '.anwar-prayer-links{display:flex;gap:12px;flex-wrap:wrap;font-size:10px}',
   '.anwar-prayer-links a{color:var(--ac);text-decoration:none}',
   '@media(max-width:420px){.anwar-prayer-card{padding:10px}.anwar-prayer-times{gap:3px}.anwar-prayer-time{padding:7px 1px}.anwar-prayer-time b{font-size:9px}.anwar-prayer-time strong{font-size:11px}.anwar-prayer-fields{grid-template-columns:1fr 1fr}}',
-  '@media(prefers-color-scheme:dark){.anwar-prayer-card{background:linear-gradient(145deg,#2f3029,var(--bg))}.anwar-prayer-time.is-next{background:#55472b;color:#fff}}'
+  ''
  ].join('');
  document.head.append(style);
 
@@ -284,17 +285,19 @@
   try{localStorage.setItem(PLAYED_KEY,key)}catch(_e){}
  }
  async function playAdhan(prayer,isTest){
-  if(!isTest&&!settings.enabled)return;
-  if(!audio.paused&&!audio.ended){if(isTest)setStatus('الأذان يعمل الآن بالفعل.');return;}
+  if(!isTest&&!settings.enabled)return false;
+  if(!audio.paused&&!audio.ended){if(isTest)setStatus('الأذان يعمل الآن بالفعل.');return false;}
   audio.volume=settings.volume;
   try{audio.currentTime=0}catch(_e){}
   try{
    const attempt=audio.play();
    if(attempt&&typeof attempt.then==='function')await attempt;
    setStatus(isTest?'بدأ اختبار صوت الأذان.':'دخل وقت صلاة '+prayer+'؛ بدأ الأذان وخُفّض صوت إذاعة القرآن مؤقتًا.');
+   return true;
   }catch(error){
    const blocked=error&&error.name==='NotAllowedError';
    setStatus(blocked?'المتصفح منع التشغيل التلقائي. اضغط «تجربة الأذان» مرة واحدة للسماح بالصوت.':'تعذّر تشغيل الأذان. تحقق من اتصال الإنترنت ثم جرّب الصوت يدويًا.');
+   return false;
   }
  }
  audio.addEventListener('ended',()=>setStatus('انتهى الأذان؛ عاد صوت الإذاعة إلى مستواه السابق.'));
@@ -305,7 +308,10 @@
    events.forEach(event=>{
     const key=event.date+'|'+event.key+'|'+settings.city+'|'+settings.country;
     if(lastTick<event.at&&now>=event.at&&now-event.at<=180000&&!alreadyPlayed(key)){
-     markPlayed(key);playAdhan(event.name,false);
+     if(pendingAdhanKey!==key&&now-lastAutoAttemptAt>=15000){
+      pendingAdhanKey=key;lastAutoAttemptAt=now;
+      playAdhan(event.name,false).then(played=>{if(played)markPlayed(key)}).finally(()=>{if(pendingAdhanKey===key)pendingAdhanKey=''});
+     }
     }
    });
   }
@@ -321,7 +327,7 @@
   }
   if(todayData&&timeZone){
    const todayHere=dateString(new Date(now),timeZone);
-   if(todayHere!==lastDateCheck&&!loading){lastDateCheck=todayHere;refreshTimes(true);}
+   if(todayHere!==lastDateCheck&&!loading)refreshTimes(true);
   }
  }
  async function refreshTimes(silent){
@@ -341,7 +347,7 @@
     data=await fetchDay(cityDate,token);
     if(token!==loadToken)return;
    }
-   timeZone=zone;settings.timezone=zone;
+   timeZone=validTimeZone(zone);settings.timezone=timeZone;
    todayData=data;
    const todayText=data.date.gregorian.date;
    lastDateCheck=todayText;
