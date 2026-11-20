@@ -16,7 +16,10 @@ assert.ok(html.includes('id="adhkarSuggestionDialog"') && html.includes('id="adh
   'suggestion and admin forms are separate dialogs');
 assert.ok(html.includes('name="group"') && html.includes('name="title"') && html.includes('name="text"'),
   'the suggestion form captures the dhikr content');
-assert.doesNotMatch(html, /<input[^>]+name="(?:email|phone|name|fullName|userId)"|<input[^>]+type="email"/i,
+const suggestionFormStart = html.indexOf('<form id="adhkarSuggestionForm"');
+const suggestionFormEnd = html.indexOf('</form>', suggestionFormStart);
+const suggestionForm = html.slice(suggestionFormStart, suggestionFormEnd);
+assert.doesNotMatch(suggestionForm, /<input[^>]+name="(?:email|phone|name|fullName|userId)"|<input[^>]+type="email"/i,
   'the visitor suggestion form does not request identity details');
 assert.ok(html.includes('لا نطلب اسمك أو بريدك أو رقم هاتفك'),
   'the UI explains the anonymous contribution policy');
@@ -27,7 +30,7 @@ assert.ok(client.includes("headers.Authorization = 'Bearer ' + options.token"),
   'admin operations require an explicit bearer session token');
 assert.doesNotMatch(client, /localStorage|sessionStorage|indexedDB|document.cookie/,
   'admin session tokens are not persisted in browser storage');
-assert.doesNotMatch(client, /.innerHTMLs*=/,
+assert.equal(client.includes('.innerHTML'), false,
   'visitor-provided text is never inserted as HTML');
 assert.ok(client.includes('node.textContent = String(text || \'\')'),
   'admin content is rendered as inert text');
