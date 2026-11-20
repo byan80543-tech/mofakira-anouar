@@ -2484,6 +2484,7 @@ document.addEventListener('click',e=>{
  else if(id==='shareTab')showOwnerPanel('share');
  else if(id==='morningTab')renderAdhkar('morning');
  else if(id==='eveningTab')renderAdhkar('evening');
+ else if(id==='protectionTab')renderAdhkar('protection');
 });
 
 const ADHKAR={
@@ -2504,8 +2505,90 @@ const ADHKAR={
   ['بسم الله الذي لا يضر','بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ، وَهُوَ السَّمِيعُ الْعَلِيمُ.','ثلاث مرات · سنن أبي داود، حديث 5088، وجامع الترمذي، حديث 3388.']
  ]
 };
-function renderAdhkar(period){const morning=period==='morning';$('morningTab').classList.toggle('active',morning);$('eveningTab').classList.toggle('active',!morning);$('adhkarContent').innerHTML=ADHKAR[period].map(x=>`<article class="dhikr"><strong>${x[0]}</strong><div>${x[1]}</div><small>${x[2]}</small></article>`).join('')}
-window.AnwarRenderAdhkar=function(period){if(period!=='morning'&&period!=='evening')return false;renderAdhkar(period);return true;};
+const protectiveProgress=Object.create(null);
+function renderProtectiveAdhkar(){
+ const host=$('adhkarContent'),items=window.ANWAR_PROTECTIVE_ADHKAR;
+ if(!host||!Array.isArray(items)){if(host)host.textContent='تعذر تحميل أذكار التحصين.';return false}
+ const fragment=document.createDocumentFragment();
+ const intro=document.createElement('p');
+ intro.className='protective-intro';
+ intro.textContent='أذكار وأدعية ثابتة للتحصين والرقية والاستعاذة. أُثبت العدد حيث ورد، ولم نضع عددًا تعبديًا لما لم يرد فيه عدد محدد.';
+ fragment.append(intro);
+ let activeGroup='';
+ items.forEach(item=>{
+  if(item.group!==activeGroup){
+   activeGroup=item.group;
+   const heading=document.createElement('h3');
+   heading.className='protective-group-title';
+   heading.textContent=activeGroup;
+   fragment.append(heading);
+  }
+  const card=document.createElement('article');
+  card.className='protective-card'+(item.kind==='note'?' is-note':'');
+  const head=document.createElement('div');head.className='protective-card-head';
+  const title=document.createElement('strong');title.textContent=item.title;
+  const tag=document.createElement('span');tag.className='protective-tag';
+  tag.textContent=item.kind==='note'?'تذكير':Number.isInteger(item.count)?item.count+' مرات':'دون عدد محدد';
+  head.append(title,tag);card.append(head);
+  const body=document.createElement('p');body.className='protective-text';body.textContent=item.text;card.append(body);
+  const meta=document.createElement('div');meta.className='protective-meta';
+  const occasion=document.createElement('span');occasion.textContent=item.occasion||'';
+  const source=document.createElement('a');source.href=item.sourceUrl;source.target='_blank';source.rel='noopener noreferrer';source.textContent=item.source;source.setAttribute('aria-label','مصدر الذكر: '+item.source);
+  meta.append(occasion,source);card.append(meta);
+  if(item.kind!=='note'){
+   const state=protectiveProgress[item.id]||(protectiveProgress[item.id]={count:0,done:false});
+   const progress=document.createElement('div');progress.className='protective-progress';
+   const fill=document.createElement('span');
+   const numeric=Number.isInteger(item.count)&&item.count>0;
+   const current=numeric?Math.min(state.count,item.count):(state.done?1:0);
+   fill.style.width=(numeric?current/item.count*100:current*100)+'%';
+   progress.append(fill);progress.setAttribute('role','progressbar');progress.setAttribute('aria-valuemin','0');progress.setAttribute('aria-valuemax',String(numeric?item.count:1));progress.setAttribute('aria-valuenow',String(current));
+   card.append(progress);
+   const actions=document.createElement('div');actions.className='protective-actions';
+   const countButton=document.createElement('button');countButton.type='button';countButton.dataset.protectiveAction='count';countButton.dataset.protectiveId=item.id;
+   countButton.textContent=numeric?'تكرار الذكر · '+current+'/'+item.count:(state.done?'تمت القراءة':'سجلت القراءة');
+   countButton.disabled=numeric&&current>=item.count;
+   const resetButton=document.createElement('button');resetButton.type='button';resetButton.dataset.protectiveAction='reset';resetButton.dataset.protectiveId=item.id;resetButton.textContent='إعادة';
+   resetButton.hidden=current===0;
+   actions.append(countButton,resetButton);card.append(actions);
+  }
+  fragment.append(card);
+ });
+ host.replaceChildren(fragment);
+ return true;
+}
+function renderAdhkar(period){
+ const protection=period==='protection';
+ ['morningTab','eveningTab','protectionTab'].forEach(id=>{
+  const button=$(id),active=id===(protection?'protectionTab':period==='evening'?'eveningTab':'morningTab');
+  button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));
+ });
+ if(protection){renderProtectiveAdhkar();return}
+ const host=$('adhkarContent'),list=ADHKAR[period];
+ host.replaceChildren();
+ list.forEach(item=>{
+  const card=document.createElement('article');card.className='dhikr';
+  const title=document.createElement('strong');title.textContent=item[0];
+  const body=document.createElement('div');body.textContent=item[1];
+  const source=document.createElement('small');source.textContent=item[2];
+  card.append(title,body,source);host.append(card);
+ });
+}
+$('adhkarContent').addEventListener('click',event=>{
+ const button=event.target.closest('[data-protective-action]');
+ if(!button)return;
+ const id=button.dataset.protectiveId,action=button.dataset.protectiveAction;
+ const item=(window.ANWAR_PROTECTIVE_ADHKAR||[]).find(entry=>entry.id===id);
+ if(!item||item.kind==='note')return;
+ const state=protectiveProgress[id]||(protectiveProgress[id]={count:0,done:false});
+ if(action==='reset'){state.count=0;state.done=false}
+ else if(action==='count'){
+  if(Number.isInteger(item.count)&&item.count>0)state.count=Math.min(item.count,state.count+1);
+  else state.done=!state.done;
+ }
+ renderProtectiveAdhkar();
+});
+window.AnwarRenderAdhkar=function(period){if(period!=='morning'&&period!=='evening'&&period!=='protection')return false;renderAdhkar(period);return true;};
 pg.addEventListener('keydown',e=>{
  const cell=e.target.closest('#pg .v span');
  if(!cell||!pg.contains(cell))return;

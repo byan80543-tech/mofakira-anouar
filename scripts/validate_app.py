@@ -16,6 +16,7 @@ from html_inspector import inspect_html
 ROOT = Path(__file__).resolve().parents[1]
 INDEX = ROOT / "index.html"
 APP_CORE = ROOT / "app-core.js"
+PROTECTIVE_ADHKAR = ROOT / "protective-adhkar.js"
 MANIFEST = ROOT / "manifest.webmanifest"
 SERVICE_WORKER = ROOT / "service-worker.js"
 errors: list[str] = []
@@ -64,7 +65,7 @@ def png_dimensions(path: Path) -> tuple[int, int] | None:
 
 
 def main() -> int:
-    for path in (INDEX, APP_CORE, MANIFEST, SERVICE_WORKER):
+    for path in (INDEX, APP_CORE, PROTECTIVE_ADHKAR, MANIFEST, SERVICE_WORKER):
         if not path.is_file():
             fail(f"Required file is missing: {path.relative_to(ROOT)}")
     if errors:
@@ -145,6 +146,7 @@ def main() -> int:
                 )
 
     check_js_syntax(app_core, "app-core.js")
+    check_js_syntax(PROTECTIVE_ADHKAR.read_text(encoding="utf-8"), "protective-adhkar.js")
 
     sw_text = SERVICE_WORKER.read_text(encoding="utf-8")
     check_js_syntax(sw_text, "service-worker.js")
