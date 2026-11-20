@@ -1,0 +1,47 @@
+name: Build Anwar Android Companion
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "android/**"
+      - "prayer-times.js"
+      - ".github/workflows/build-anwar-android.yml"
+  push:
+    branches: [main]
+    paths:
+      - "android/**"
+      - "prayer-times.js"
+      - ".github/workflows/build-anwar-android.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  android-debug-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Install Android 36 platform
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.13"
+      - name: Build debug APK and run unit tests
+        run: gradle -p android assembleDebug testDebugUnitTest
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: anwar-android-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
