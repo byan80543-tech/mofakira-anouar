@@ -2561,7 +2561,7 @@ function renderProtectionAdhkar(){
    const card=document.createElement('article');card.className='dhikr protection-dhikr-card';card.dataset.protectionCard=item.id;
    const head=document.createElement('div');head.className='protection-dhikr-head';
    const title=document.createElement('strong');title.textContent=item.title;
-   const count=document.createElement('span');count.className='protection-dhikr-count';count.textContent=item.count===null?'دون عدد محدد':item.count+' مرات';
+   const count=document.createElement('span');count.className='protection-dhikr-count';count.textContent=item.count===null?'دون عدد محدد':item.count===1?'مرة واحدة':item.count+' مرات';
    head.append(title,count);
    const text=document.createElement('p');text.className='protection-dhikr-text';text.textContent=item.text;
    const occasion=document.createElement('small');occasion.className='protection-dhikr-occasion';occasion.textContent=item.occasion;
