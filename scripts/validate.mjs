@@ -237,6 +237,8 @@ try{new vm.Script(prayerTimes,{filename:'prayer-times.js'});ok(true,'prayer-time
 ok(html.includes('id="anwarServiceHome"') && ['adhan','quran','radio','lessons'].every(service=>html.includes('data-anwar-service="'+service+'"')) && html.includes('id="anwarQuranPage"') && html.includes('id="anwarRadioPage"') && html.includes('id="anwarLessonsPage"'),'service dashboard exposes separate prayer, Quran, live radio and lesson sections');
 ok(prayerTimes.includes("document.getElementById('anwarPrayerMount')") && prayerTimes.includes('prayerMount.append(card)'),'prayer times retain their original card and mount it in the dashboard home');
 ok(appCore.includes('Anwar service dashboard') && appCore.includes('showHome(true)') && appCore.includes("button.dataset.anwarService"),'service dashboard navigation returns to the home view without replacing existing controls');
+ok(html.includes('class="protective-page-title">أذكار التحصين</h2>') && !html.includes('id="morningTab"') && !html.includes('id="eveningTab"') && !html.includes('id="protectionTab"'),'the adhkar screen is a single unified protection page without duplicate period tabs');
+ok(appCore.includes("window.AnwarRenderAdhkar('protection')") && appCore.includes('window.AnwarRenderAdhkar=function(){return renderProtectiveAdhkar();}'),'the adhkar service card opens the protection renderer directly');
 ok(html.includes('id="reciterGrid"') && html.includes('id="surahPickerButton"') && html.includes('id="liveRadioPlay"') && html.includes('id="lessonHub"') && html.includes('id="lessonPlay"'),'original Quran reader, live-radio and lesson playback controls remain present');
 
 
