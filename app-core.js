@@ -3022,6 +3022,14 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
     seen.add(url);
     stations.push({name:String(item&&item.name||'إذاعة القرآن').trim().slice(0,100)||'إذاعة القرآن',url});
    });
+   // محطة زين بلادي القرآنية: رابط صوت مباشر HTTPS بصيغة AAC (96 kbps).
+   // تبقى متاحة حتى عند تعذر فهرس MP3Quran الخارجي.
+   const zineBladiUrl=safeHttpsURL('https://asmaki.ma:8000/radio.mp3');
+   if(zineBladiUrl){
+    const duplicateIndex=stations.findIndex(station=>station.url===zineBladiUrl);
+    if(duplicateIndex>=0)stations.splice(duplicateIndex,1);
+    stations.unshift({name:'إذاعة زين بلادي للقرآن الكريم',url:zineBladiUrl});
+   }
    if(!stations.length){
     radioApiPromise=null;
     if(status)status.textContent='لم تصل قائمة محطات صالحة الآن. يمكنك إعادة المحاولة.';
@@ -3052,6 +3060,23 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
    return stations.length;
   }).catch(error=>{
    radioApiPromise=null;
+   // لا نحرم المستخدم من محطة زين بلادي إذا تعذر جلب القائمة العامة.
+   const fallbackUrl=safeHttpsURL('https://asmaki.ma:8000/radio.mp3');
+   if(fallbackUrl){
+    const option=document.createElement('option');
+    option.value=fallbackUrl;
+    option.textContent='إذاعة زين بلادي للقرآن الكريم';
+    select.replaceChildren(option);
+    select.selectedIndex=0;
+    $('liveStationArea').hidden=false;
+    if(status)status.textContent='تعذّر تحميل بقية المحطات؛ محطة زين بلادي متاحة للاستماع.';
+    if(button){
+     button.disabled=false;
+     button.removeAttribute('aria-busy');
+     button.textContent='تشغيل المحطة المختارة　▶';
+    }
+    return 1;
+   }
    if(status)status.textContent='تعذّر تحميل قائمة المحطات. تحقق من الاتصال ثم أعد المحاولة.';
    if(button){
     button.disabled=false;

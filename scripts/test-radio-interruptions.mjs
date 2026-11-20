@@ -23,6 +23,9 @@ assert.ok(!toggleBody.includes('__anwarStopCountryAudio'),'toggling the radio do
 assert.ok(toggleBody.includes('radioShouldPlay=false'),'manual pause clears the resume intent');
 
 assert.ok(radio.includes('function syncRadioDucking()'),'radio ducking helper exists');
+assert.ok(radio.includes('إذاعة زين بلادي للقرآن الكريم'),'Zine Bladi Quran Radio is listed in the in-app live station catalogue');
+assert.ok(radio.includes('https://asmaki.ma:8000/radio.mp3'),'Zine Bladi uses the HTTPS direct stream URL');
+assert.ok(radio.includes('محطة زين بلادي متاحة للاستماع'),'Zine Bladi remains available when the MP3Quran station catalogue fails');
 assert.ok(radio.includes("document.querySelectorAll('audio,video')")&&radio.includes('anotherAudioIsPlaying?0.28:1'),'radio is lowered, not paused, while another audible in-app audio or video element plays');
 assert.ok(radio.includes("document.addEventListener(type,syncRadioDucking,true)"),'audio events from other in-app players update ducking');
 assert.ok(radio.includes('function resumeRadioAfterReturn()'),'safe foreground resume helper exists');
@@ -44,9 +47,9 @@ assert.ok(radio.includes('radioShouldPlay=false;au.pause();started=false;ui()'),
 const preload=html.match(/<link rel="preload" href="([^"]*app-core[.]js[?]v=[^"]+)" as="script">/);
 const script=html.match(/<script src="([^"]*app-core[.]js[?]v=[^"]+)" defer><\/script>/);
 const bundleVersion=script&&script[1].match(/20\d{6}-(\d+)$/);
-assert.ok(preload&&script&&preload[1]===script[1]&&bundleVersion&&Number(bundleVersion[1])>=12,'preload and script use a current matching bundle version');
+assert.ok(preload&&script&&preload[1]===script[1]&&bundleVersion&&Number(bundleVersion[1])>=23,'preload and script use a current matching bundle version');
 const cacheVersion=worker.match(/const CACHE_NAME='anwar-shell-20\d{2}-\d{2}-\d{2}-v\d+';/);
-assert.ok(cacheVersion&&Number(cacheVersion[0].match(/-v(\d+)/)[1])>=93,'service worker cache is bumped for the updated app shell');
+assert.ok(cacheVersion&&Number(cacheVersion[0].match(/-v(\d+)/)[1])>=111,'service worker cache is bumped for the updated app shell');
 
 console.log('PASS radio continues while lesson and country audio play');
 console.log('PASS radio volume is ducked temporarily and restored after competing audio stops');
