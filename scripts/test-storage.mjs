@@ -47,6 +47,23 @@ function makeHarness(initial={}){
   const messages=[],download={blob:null,anchor:null,appended:null};
   class FakeBlob{constructor(parts,options={}){this.parts=parts;this.type=options.type||''}}
   const fakeURL={createObjectURL(blob){download.blob=blob;return 'blob:anwar-recovery'},revokeObjectURL(url){download.revoked=url}};
+  class FakeDOMParser{
+    parseFromString(source){
+      const text=String(source??'')
+        .replaceAll('<div>','')
+        .replaceAll('</div>','\\n')
+        .replaceAll('<br>','\\n')
+        .replaceAll('<br/>','\\n')
+        .replaceAll('<br />','\\n')
+        .replaceAll('&nbsp;',' ')
+        .replaceAll('&amp;','&')
+        .replaceAll('&lt;','<')
+        .replaceAll('&gt;','>')
+        .replaceAll('&quot;','"')
+        .replaceAll('&#39;',"'");
+      return {body:{innerText:text,textContent:text}};
+    }
+  }
   const fakeDocument={
     createElement(tag){
       if(tag==='div'){
@@ -61,7 +78,7 @@ function makeHarness(initial={}){
   };
   const sandbox={
     console:{warn(){},error(){}},
-    Date,Math,JSON,Set,Number,String,Array,Object,Error,Blob:FakeBlob,URL:fakeURL,document:fakeDocument,
+    Date,Math,JSON,Set,Number,String,Array,Object,Error,Blob:FakeBlob,URL:fakeURL,document:fakeDocument,DOMParser:FakeDOMParser,
     setTimeout(){return 1},
     matchMedia(){return {matches:true}},
     TYPES:{poem:'قصيدة',text:'نص',idea:'فكرة'},
