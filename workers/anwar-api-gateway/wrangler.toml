@@ -21,3 +21,12 @@ namespace_id = "20261118"
 [ratelimits.simple]
 limit = 50
 period = 60
+
+
+[[durable_objects.bindings]]
+name = "ADHKAR_STORE"
+class_name = "AdhkarStore"
+
+[exports.AdhkarStore]
+type = "durable-object"
+storage = "sqlite"
