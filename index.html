@@ -2007,7 +2007,43 @@ dialog[open]>.float-head{display:none!important}
 
 
 
-</head>
+<style id="anwar-compact-ribbon">
+#rib{display:none!important;position:relative!important;inset:auto!important;order:6;flex:none;gap:5px;align-items:center;justify-content:space-between;flex-wrap:nowrap;max-height:none!important;min-height:62px;overflow:visible!important;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));background:var(--sf);border-top:1px solid var(--bd);z-index:30}
+.app.ed #rib{display:flex!important}
+.app.focus #rib,.app.ed.focus #rib{display:none!important}
+#rib .rib-menu{position:relative;flex:1 1 0;min-width:0}
+#rib .rib-trigger{list-style:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:100%;min-width:0;min-height:48px;padding:4px 2px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);cursor:pointer;user-select:none}
+#rib .rib-trigger::-webkit-details-marker{display:none}
+#rib .rib-trigger>span{font:600 20px/1.1 Arial,sans-serif;color:var(--ac)}
+#rib .rib-trigger small{font:700 9px/1.25 Cairo,Tahoma,sans-serif;color:var(--mu);white-space:nowrap}
+#rib .rib-menu[open]>.rib-trigger{border-color:var(--ac);background:var(--ac2)}
+#rib .rib-pop{position:absolute;bottom:calc(100% + 8px);inset-inline-start:0;width:min(290px,calc(100vw - 18px));max-height:min(62vh,470px);overflow:auto;overscroll-behavior:contain;display:none;gap:9px;padding:11px;border:1px solid var(--bd);border-radius:13px;background:var(--sf);color:var(--tx);box-shadow:0 12px 32px rgba(0,0,0,.22);z-index:10000}
+#rib .rib-menu[open]>.rib-pop{display:grid}
+#rib .rib-menu:nth-of-type(n+4)>.rib-pop{inset-inline-start:auto;inset-inline-end:0}
+#rib .rib-pop-title{font:700 11px Cairo,Tahoma,sans-serif;color:var(--ac);padding:0 2px 3px;border-bottom:1px solid var(--bd)}
+#rib .rib-controls{display:flex;flex-wrap:wrap;align-items:center;gap:5px}
+#rib .rib-controls .b{min-height:34px;flex:1 1 auto;padding:6px 9px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:600 11px Cairo,Tahoma,sans-serif}
+#rib .rib-controls .b:active{background:var(--ac2);border-color:var(--ac)}
+#rib .rib-controls select,#rib .rib-controls input[type=color]{min-width:0;min-height:34px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);padding:4px;font:11px Cairo,Tahoma,sans-serif}
+#rib .rib-controls input[type=color]{width:42px;padding:3px}
+#rib .book-tool-field{display:grid;gap:4px;min-width:0;margin:0;font:700 10px Cairo,Tahoma,sans-serif;color:var(--mu)}
+#rib .book-tool-field input,#rib .book-tool-field select{width:100%;min-width:0;min-height:36px;padding:6px 9px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:12px Cairo,Tahoma,sans-serif}
+#rib .rib-hint,#rib #bookFileStatus{display:block;margin:0;padding:7px 8px;border-radius:8px;background:var(--ac2);color:var(--mu);font:10px/1.55 Cairo,Tahoma,sans-serif}
+#rib .rib-primary-action{min-height:36px;padding:6px 15px;border:1px solid var(--ac);border-radius:8px;background:var(--ac);color:#fff;font:700 11px Cairo,Tahoma,sans-serif}
+#rib .rib-separator{height:1px;background:var(--bd);margin:1px 0}
+#rib #addBookFile{min-height:35px;width:100%;padding:6px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:700 11px Cairo,Tahoma,sans-serif}
+#rib #bookFilePicker{display:none}
+#rib #ty{min-height:34px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);padding:4px 7px;font:11px Cairo,Tahoma,sans-serif}
+#rib #paperStylePanel{z-index:10020}
+@media(max-width:800px){
+ #rib{gap:4px;min-height:59px;padding:5px 6px calc(5px + env(safe-area-inset-bottom,0px))}
+ #rib .rib-trigger{min-height:46px;border-radius:9px}
+ #rib .rib-trigger>span{font-size:19px}
+ #rib .rib-trigger small{font-size:8px}
+ #rib .rib-pop{width:min(280px,calc(100vw - 16px));max-height:58vh;padding:10px}
+ #rib .rib-controls .b{min-height:36px}
+}
+</style></head>
 <body>
 <div class="app" id="app">
 <button type="button" id="exitFocus" class="focus-exit" aria-label="الخروج من وضع التركيز" title="الخروج من وضع التركيز">×</button>
@@ -2076,61 +2112,103 @@ dialog[open]>.float-head{display:none!important}
   <div id="cards"></div>
   <button id="listMore" class="render-more" type="button" hidden aria-controls="cards">عرض المزيد</button>
   <button id="new">+ عمل جديد</button>
-  <button id="newBook">📖 إنشاء كتاب</button>
  </section>
  <section id="area"><div id="pg" contenteditable="true" data-ph="ابدأ الكتابة هنا… استخدم زر «بيت» لكتابة الصدر والعجز"></div><div class="empty" id="em" style="display:none">اختر عملًا أو أنشئ عملًا جديدًا</div></section>
 </main>
 <div class="st"><span id="info"></span><span>تكبير <input type="range" id="zm" min="60" max="150" value="100"></span></div>
 
-<div class="rib" id="rib">
- <div class="g"><div><button class="b" id="prn" title="طباعة العمل الحالي" aria-label="طباعة العمل الحالي">🖨️</button><button class="b" id="pdf" title="تنزيل ملف PDF" aria-label="تنزيل العمل بصيغة PDF">📄</button><button class="b word-export" id="word" title="تنزيل Word (DOCX)" aria-label="تنزيل Word">W</button><select id="ty" aria-label="نوع العمل" title="نوع العمل"><option value="poem">قصيدة</option><option value="text">نص</option><option value="idea">فكرة</option></select></div><small>الملف</small></div>
- <div class="g"><div><button class="b" id="fb" title="نوع الخط" style="min-width:110px">الخط ▾</button><button class="b" id="paperStyleBtn" title="تغيير شكل الورقة" aria-expanded="false">▤ الورقة</button><select id="sz" title="حجم الخط"><option>14</option><option>16</option><option>18</option><option selected>20</option><option>24</option><option>28</option><option>32</option><option>40</option><option>56</option></select></div><small>الخط</small></div>
- <div id="paperStylePanel" class="paper-style-panel" hidden role="group" aria-label="اختيار شكل الورقة">
- <div class="paper-style-title">شكل صفحة الكتابة</div>
- <button type="button" class="paper-style-option" data-paper="plain" aria-pressed="false"><span class="paper-preview preview-plain"></span><span><b>بيضاء</b><small>كتابة حرة</small></span></button>
- <button type="button" class="paper-style-option" data-paper="ruled" aria-pressed="false"><span class="paper-preview preview-ruled"></span><span><b>مخططة</b><small>سطور هادئة</small></span></button>
- <button type="button" class="paper-style-option" data-paper="poetry" aria-pressed="false"><span class="paper-preview preview-poetry"><i></i><i></i></span><span><b>الشعر العمودي</b><small>صدر وعجز بإطارين</small></span></button>
- <button type="button" class="paper-style-option" data-paper="framed" aria-pressed="false"><span class="paper-preview preview-framed"></span><span><b>مؤطرة</b><small>إطار أدبي رقيق</small></span></button>
+<div class="rib" id="rib" aria-label="أدوات المفكرة">
+ <details class="rib-menu" name="anwar-ribbon-menu">
+  <summary class="rib-trigger" aria-label="التنسيق" title="الخط والتنسيق"><span aria-hidden="true">Aa</span><small>تنسيق</small></summary>
+  <div class="rib-pop">
+   <div class="rib-pop-title">الخط وشكل الصفحة</div>
+   <div class="rib-controls">
+    <button class="b" id="fb" title="نوع الخط" style="min-width:104px">نوع الخط ▾</button>
+    <select id="sz" title="حجم الخط" aria-label="حجم الخط"><option>14</option><option>16</option><option>18</option><option selected>20</option><option>24</option><option>28</option><option>32</option><option>40</option><option>56</option></select>
+    <button class="b" id="paperStyleBtn" title="تغيير شكل الورقة" aria-expanded="false">شكل الورقة ▾</button>
+    <input type="color" id="fc" value="#222222" title="لون الخط" aria-label="لون الخط">
+    <input type="color" id="hc" value="#fff2a8" title="تمييز النص" aria-label="تمييز النص">
+   </div>
+   <div id="paperStylePanel" class="paper-style-panel" hidden role="group" aria-label="اختيار شكل الورقة">
+    <div class="paper-style-title">شكل صفحة الكتابة</div>
+    <button type="button" class="paper-style-option" data-paper="plain" aria-pressed="false"><span class="paper-preview preview-plain"></span><span><b>بيضاء</b><small>كتابة حرة</small></span></button>
+    <button type="button" class="paper-style-option" data-paper="ruled" aria-pressed="false"><span class="paper-preview preview-ruled"></span><span><b>مخططة</b><small>سطور هادئة</small></span></button>
+    <button type="button" class="paper-style-option" data-paper="poetry" aria-pressed="false"><span class="paper-preview preview-poetry"><i></i><i></i></span><span><b>الشعر العمودي</b><small>صدر وعجز بإطارين</small></span></button>
+    <button type="button" class="paper-style-option" data-paper="framed" aria-pressed="false"><span class="paper-preview preview-framed"></span><span><b>مؤطرة</b><small>إطار أدبي رقيق</small></span></button>
+   </div>
+   <div class="rib-pop-title">تنسيق النص</div>
+   <div class="rib-controls">
+    <button class="b" data-c="bold" title="خط عريض" aria-label="تغليظ الخط"><b>B</b></button>
+    <button class="b" data-c="italic" title="خط مائل" aria-label="تمييل الخط"><i>I</i></button>
+    <button class="b" data-c="underline" title="تسطير" aria-label="تسطير النص"><u>U</u></button>
+   </div>
+  </div>
+ </details>
+ <details class="rib-menu" name="anwar-ribbon-menu">
+  <summary class="rib-trigger" aria-label="الفقرة" title="محاذاة الفقرات والقوائم"><span aria-hidden="true">≡</span><small>فقرة</small></summary>
+  <div class="rib-pop">
+   <div class="rib-pop-title">محاذاة الفقرة</div>
+   <div class="rib-controls">
+    <button class="b" data-c="justifyRight" title="محاذاة إلى اليمين" aria-label="محاذاة الفقرة إلى اليمين">يمين</button>
+    <button class="b" data-c="justifyCenter" title="توسيط" aria-label="توسيط الفقرة">توسيط</button>
+    <button class="b" data-c="justifyLeft" title="محاذاة إلى اليسار" aria-label="محاذاة الفقرة إلى اليسار">يسار</button>
+    <button class="b" data-c="justifyFull" title="ضبط جانبي الفقرة" aria-label="ضبط الفقرة من الجانبين">ضبط</button>
+   </div>
+   <div class="rib-pop-title">القوائم</div>
+   <div class="rib-controls">
+    <button class="b" data-c="insertUnorderedList" title="قائمة نقطية" aria-label="إدراج قائمة نقطية">• قائمة نقطية</button>
+    <button class="b" data-c="insertOrderedList" title="قائمة مرقمة" aria-label="إدراج قائمة مرقمة">1. قائمة مرقمة</button>
+   </div>
+  </div>
+ </details>
+ <details class="rib-menu" id="bookToolPanel" name="anwar-ribbon-menu">
+  <summary class="rib-trigger" id="bookToolToggle" aria-expanded="false" aria-controls="bookToolContent" title="الطباعة والتصدير والاستيراد"><span aria-hidden="true">⇧</span><small>الملف</small></summary>
+  <div class="rib-pop" id="bookToolContent">
+   <div class="rib-pop-title">العمل الحالي</div>
+   <div class="rib-controls">
+    <button class="b" id="prn" title="طباعة العمل الحالي" aria-label="طباعة العمل الحالي">🖨️ طباعة</button>
+    <button class="b" id="pdf" title="تنزيل ملف PDF" aria-label="تنزيل العمل بصيغة PDF">📄 PDF</button>
+    <button class="b word-export" id="word" title="تنزيل Word (DOCX)" aria-label="تنزيل Word">W Word</button>
+    <select id="ty" aria-label="نوع العمل" title="نوع العمل"><option value="poem">قصيدة</option><option value="text">نص</option><option value="idea">فكرة</option></select>
+   </div>
+   <div class="rib-pop-title">تصدير مجموعة من الأعمال</div>
+   <label class="book-tool-field" for="bookTitle">اسم الملف<input id="bookTitle" value="مختارات من مفكرة أنوار" maxlength="100"></label>
+   <label class="book-tool-field" for="bookScope">الأعمال المراد تصديرها
+    <select id="bookScope"><option value="current">العمل المفتوح حالياً</option><option value="poem">القصائد فقط</option><option value="all" selected>كل الأعمال: قصائد ونصوص وأفكار</option><option value="text">النصوص والأفكار</option></select>
+   </label>
+   <label class="book-tool-field" for="bookFormat">صيغة التصدير
+    <select id="bookFormat"><option value="pdf">PDF</option><option value="docx" selected>Word</option><option value="txt">TXT</option><option value="html">HTML</option></select>
+   </label>
+   <small id="exportFormatHint" class="rib-hint">اختر صيغة التصدير المناسبة لمحتواك.</small>
+   <div class="rib-controls"><button type="button" id="createBook" class="rib-primary-action">تصدير الأعمال</button></div>
+   <div class="rib-separator"></div>
+   <div class="rib-pop-title">استيراد ملف إلى المفكرة أو فتحه</div>
+   <button type="button" id="addBookFile" class="b book-import-link" aria-label="إضافة مستند من الهاتف">📎 اختيار ملف من الجهاز</button>
+   <p id="bookFileStatus" class="anwar-book-note" aria-live="polite">تُدرج ملفات TXT وMD وCSV وHTML كنصوص. أما PDF وملفات Office والصور فتُفتح أو تُشارك دون تغيير أصلها.</p>
+   <input type="file" id="bookFilePicker" hidden accept=".txt,.md,.csv,.html,.htm,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.ods,.odp,.rtf,.png,.jpg,.jpeg,.webp,.gif">
+  </div>
+ </details>
+ <details class="rib-menu" name="anwar-ribbon-menu">
+  <summary class="rib-trigger" aria-label="أدوات الكتابة" title="أدوات الكتابة والصوت"><span aria-hidden="true">✍</span><small>الكتابة</small></summary>
+  <div class="rib-pop"><div class="rib-controls">
+   <button class="b" id="vs" title="إدراج بيت شعري من شطرين" aria-label="إدراج بيت شعري">📜 إدراج بيت</button>
+   <button class="b" id="sp" type="button" aria-pressed="false" title="إلقاء القصيدة صوتيًا وتحويل كلامك إلى كتابة داخل المفكرة" aria-label="إملاء القصيدة صوتيًا">🎙️ إلقاء صوتي</button>
+   <button class="b" id="speakRead" type="button" title="قراءة النص بصوت مسموع" aria-label="قراءة النص صوتيًا">🔊 قراءة النص</button>
+  </div></div>
+ </details>
+ <details class="rib-menu" name="anwar-ribbon-menu">
+  <summary class="rib-trigger" aria-label="أدوات إضافية" title="التركيز والإلهام والنسخ والتثبيت"><span aria-hidden="true">⋯</span><small>المزيد</small></summary>
+  <div class="rib-pop"><div class="rib-controls">
+   <button class="b" id="fo" title="إخفاء الأدوات للتركيز على الكتابة" aria-label="تشغيل وضع التركيز">🎯 تركيز</button>
+   <button class="b" id="ip" title="عرض فكرة تساعد على الكتابة" aria-label="عرض فكرة للكتابة">💡 إلهام</button>
+   <button class="b" id="pn" title="تثبيت العمل أو إلغاء تثبيته" aria-label="تثبيت العمل أو إلغاء تثبيته">☆ تثبيت</button>
+   <button class="b" id="cy" title="نسخ نص العمل" aria-label="نسخ نص العمل إلى الحافظة">📋 نسخ</button>
+   <button class="b bkp-tool" id="bkp" type="button" title="إنشاء نسخة احتياطية مشفرة أو استعادتها" aria-label="فتح النسخة الاحتياطية المشفرة" aria-haspopup="dialog" aria-controls="dg">🔐 نسخة مشفرة</button>
+   <button class="b" id="hist" title="فتح سجل الإصدارات السابقة" aria-label="سجل إصدارات العمل">🕘 الإصدارات</button>
+   <button class="b dn" id="dl" title="حذف العمل" aria-label="حذف العمل الحالي">🗑️ حذف العمل</button>
+  </div></div>
+ </details>
 </div>
- <div class="g"><div><button class="b" data-c="bold" title="خط عريض" aria-label="تطبيق الخط العريض"><b>B</b></button><button class="b" data-c="italic" title="خط مائل" aria-label="تطبيق الخط المائل"><i>I</i></button><button class="b" data-c="underline" title="تسطير" aria-label="تسطير النص"><u>U</u></button><input type="color" id="fc" value="#222222" title="لون الخط"><input type="color" id="hc" value="#fff2a8" title="تمييز"></div><small>التنسيق</small></div>
- <div class="g"><div><button class="b" data-c="justifyRight" title="محاذاة إلى اليمين" aria-label="محاذاة الفقرة إلى اليمين">▶≡</button><button class="b" data-c="justifyCenter" title="توسيط" aria-label="توسيط الفقرة">≡</button><button class="b" data-c="justifyLeft" title="محاذاة إلى اليسار" aria-label="محاذاة الفقرة إلى اليسار">≡◀</button><button class="b" data-c="justifyFull" title="ضبط جانبي الفقرة" aria-label="ضبط الفقرة من الجانبين">☰</button><button class="b" data-c="insertUnorderedList" title="قائمة نقطية" aria-label="إدراج قائمة نقطية">•≡</button><button class="b" data-c="insertOrderedList" title="قائمة مرقمة" aria-label="إدراج قائمة مرقمة">1≡</button></div><small>الفقرة</small></div>
- <div class="g"><div><button class="b" id="vs" title="إدراج بيت شعري من شطرين" aria-label="إدراج بيت شعري">📜 بيت</button><button class="b" id="sp" type="button" aria-pressed="false" title="إلقاء القصيدة صوتيًا وتحويل كلامك إلى كتابة داخل المفكرة" aria-label="إملاء القصيدة صوتيًا">🎙️ إلقاء</button><button class="b" id="speakRead" type="button" title="قراءة النص بصوت مسموع" aria-label="قراءة النص صوتيًا">🔊 قراءة</button><button class="b" id="fo" title="إخفاء الأدوات للتركيز على الكتابة" aria-label="تشغيل وضع التركيز">🎯 تركيز</button><button class="b" id="ip" title="عرض فكرة تساعد على الكتابة" aria-label="عرض فكرة للكتابة">💡 إلهام</button><button class="b" id="pn" title="تثبيت العمل أو إلغاء تثبيته" aria-label="تثبيت العمل أو إلغاء تثبيته">☆ تثبيت</button><button class="b" id="cy" title="نسخ نص العمل" aria-label="نسخ نص العمل إلى الحافظة">📋</button><button class="b bkp-tool" id="bkp" type="button" title="إنشاء نسخة احتياطية مشفرة أو استعادتها" aria-label="فتح النسخة الاحتياطية المشفرة" aria-haspopup="dialog" aria-controls="dg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h12l3.5 3.5v13.5H3.5V3.5H5Z"/><path d="M7 3.5v6h9v-6M8 20.5v-7h8v7"/></svg><span>نسخة مشفرة</span></button><button class="b" id="hist" title="فتح سجل الإصدارات السابقة" aria-label="سجل إصدارات العمل">🕘 الإصدارات</button><button class="b dn" id="dl" title="حذف العمل" aria-label="حذف العمل الحالي">🗑️</button></div><small>أدوات أنوار</small></div>
- <div class="g book-tool-card" id="bookToolPanel">
- <header class="book-tool-head">
-  <button type="button" class="book-tool-toggle" id="bookToolToggle" aria-expanded="false" aria-controls="bookToolContent">
-   <span class="book-tool-icon" aria-hidden="true">📖</span>
-   <span class="book-tool-title"><strong>إنشاء كتاب</strong><small>Word · PDF · TXT · HTML</small></span>
-   <span class="book-tool-chevron" aria-hidden="true">⌄</span>
-  </button>
- </header>
- <div class="book-tool-content" id="bookToolContent" hidden>
-  <label class="book-tool-field" for="bookTitle">عنوان الكتاب<input id="bookTitle" value="مختارات من مفكرة أنوار" maxlength="100"></label>
-  <label class="book-tool-field" for="bookScope">محتوى الكتاب
-   <select id="bookScope">
-    <option value="current">العمل المفتوح حالياً</option>
-    <option value="poem">القصائد فقط</option>
-    <option value="all" selected>كل الأعمال: قصائد ونصوص وأفكار</option>
-    <option value="text">النصوص والأفكار</option>
-   </select>
-  </label>
-  <button type="button" id="addBookFile" class="book-import-link" aria-label="إضافة مستند من الهاتف">📎 إضافة مستند من الهاتف</button>
-
-  
-
-  <label class="book-tool-field" for="bookFormat">صيغة الحفظ
-   <select id="bookFormat">
-    <option value="pdf">PDF · للقراءة والطباعة</option>
-    <option value="docx" selected>Word · مستند قابل للتحرير</option>
-    <option value="txt">TXT · نص بسيط</option>
-    <option value="html">HTML · صفحة ويب</option>
-   </select>
-  </label>
-  <p id="bookFileStatus" class="anwar-book-note" aria-live="polite">يمكنك إضافة مستند من هاتفك. تُدرج ملفات TXT وHTML وCSV في الصفحة؛ أما PDF وملفات Office والصور فتُفتح أو تُشارك دون تغيير أصلها.</p>
-  <input type="file" id="bookFilePicker" hidden accept=".txt,.md,.csv,.html,.htm,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.ods,.odp,.rtf,.png,.jpg,.jpeg,.webp,.gif">
-  <div class="book-tool-actions"><button type="button" id="createBook">حفظ الكتاب</button></div>
- </div>
-</div>
-</div></div>
 <div id="fm"><input id="fq" placeholder="ابحث عن خط…"><div id="fl"></div></div>
 <div id="pa"></div>
 <div id="rd" aria-label="لوحة الإذاعة">
