@@ -67,6 +67,26 @@ const VAULT_IDLE_LOCK_MS=0; // القفل التلقائي معطّل؛ القف
 let vaultIdleTimer=null,vaultLastActivityAt=0;
 const hasOwn=(object,key)=>Object.prototype.hasOwnProperty.call(object,key);
 const esc=s=>String(s??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
+function trustedAnwarGatewayBase(){
+ const raw=String(globalThis.ANWAR_API_GATEWAY_BASE||'').trim();
+ if(!raw)return '';
+ try{
+  const base=new URL(raw);
+  const labels=base.hostname.toLowerCase().split('.');
+  const account=labels[1]||'';
+  let validAccount=account.length>0&&account.length<=63&&account[0]!=='-'&&account[account.length-1]!=='-';
+  for(let i=0;validAccount&&i<account.length;i++){
+   const code=account.charCodeAt(i);
+   validAccount=(code>=48&&code<=57)||(code>=97&&code<=122)||code===45;
+  }
+  if(base.protocol!=='https:'||labels.length!==4||labels[0]!=='anwar-api-gateway'||
+     labels[2]!=='workers'||labels[3]!=='dev'||!validAccount||
+     base.username||base.password||base.port||base.pathname!=='/'||base.search||base.hash){
+   return '';
+  }
+  return base.origin;
+ }catch(_error){return ''}
+}
 function safeHttpsURL(value){try{const u=new URL(String(value));return u.protocol==='https:'?u.href:''}catch(e){return ''}}
 function safeFontName(value){return typeof value==='string'&&FONTS.includes(value)?value:'Amiri'}
 function san(h){
@@ -969,7 +989,122 @@ function theme(){
  document.documentElement.style.setProperty('--paper-text',p[1]);
 }
 function chips(){$('chips').innerHTML=[['all','الكل'],['poem','قصائد'],['text','نصوص'],['idea','أفكار'],['pin','⭐ المثبّتة']].map(([k,v])=>`<button class="chip ${flt===k?'on':''}" data-k="${k}">${v}</button>`).join('')}
-function plain(h){const d=new DOMParser().parseFromString(san(h),'text/html');return d.body?.innerText||d.body?.textContent||''}
+function htmlToPlainText(value){
+ const source=String(value??'').slice(0,500000);
+ const lower=source.toLowerCase();
+ const entities={
+  amp:'&',lt:'<',gt:'>',quot:'"',apos:"'",nbsp:' ',copy:'©',reg:'®',trade:'™',
+  hellip:'…',ndash:'–',mdash:'—',lsquo:'‘',rsquo:'’',ldquo:'“',rdquo:'”',
+  laquo:'«',raquo:'»',bull:'•',middot:'·',cent:'¢',pound:'£',euro:'€',
+  yen:'¥',deg:'°',times:'×',divide:'÷',plusmn:'±',sect:'§',para:'¶',
+  lrm:'\u200e',rlm:'\u200f',zwnj:'\u200c',zwj:'\u200d'
+ };
+ const blockTags=new Set([
+  'address','article','aside','blockquote','br','dd','div','dl','dt','fieldset',
+  'figcaption','figure','footer','form','h1','h2','h3','h4','header','hr','li',
+  'main','nav','ol','p','pre','section','table','tr','ul'
+ ]);
+ const output=[];
+ let index=0,rawTag='';
+ const appendBreak=()=>{
+  if(output.length&&output[output.length-1]!=='\n')output.push('\n');
+ };
+ const decodeEntityAt=position=>{
+  const end=source.indexOf(';',position+1);
+  if(end<0||end-position>18)return null;
+  const token=source.slice(position+1,end);
+  let decoded;
+  if(token[0]==='#'){
+   const hex=token[1]==='x'||token[1]==='X';
+   const digits=token.slice(hex?2:1);
+   if(!digits||digits.length>(hex?6:7))return null;
+   for(let i=0;i<digits.length;i++){
+    const code=digits.charCodeAt(i);
+    const valid=hex
+     ?(code>=48&&code<=57)||(code>=65&&code<=70)||(code>=97&&code<=102)
+     :(code>=48&&code<=57);
+    if(!valid)return null;
+   }
+   const point=Number.parseInt(digits,hex?16:10);
+   if(!Number.isInteger(point)||point<1||point>0x10ffff||(point>=0xd800&&point<=0xdfff))return null;
+   decoded=String.fromCodePoint(point);
+  }else if(Object.prototype.hasOwnProperty.call(entities,token)){
+   decoded=entities[token];
+  }else{
+   return null;
+  }
+  return {value:decoded,next:end+1};
+ };
+ while(index<source.length){
+  if(rawTag){
+   const marker='</'+rawTag;
+   const close=lower.indexOf(marker,index);
+   if(close<0)break;
+   const closeEnd=source.indexOf('>',close+marker.length);
+   index=closeEnd<0?source.length:closeEnd+1;
+   rawTag='';
+   appendBreak();
+   continue;
+  }
+  if(source.startsWith('<!--',index)){
+   const end=source.indexOf('-->',index+4);
+   index=end<0?source.length:end+3;
+   continue;
+  }
+  if(source[index]==='<'){
+   const next=source[index+1];
+   if(next==='!'||next==='?'){
+    const end=source.indexOf('>',index+2);
+    index=end<0?source.length:end+1;
+    continue;
+   }
+   let cursor=index+1,closing=false;
+   if(source[cursor]==='/'){closing=true;cursor++}
+   const first=source.charCodeAt(cursor);
+   if((first>=65&&first<=90)||(first>=97&&first<=122)){
+    const tagStart=cursor++;
+    while(cursor<source.length){
+     const code=source.charCodeAt(cursor);
+     if((code>=65&&code<=90)||(code>=97&&code<=122)||(code>=48&&code<=57)||code===45||code===58)cursor++;
+     else break;
+    }
+    const name=lower.slice(tagStart,cursor);
+    let quote='',closed=false;
+    while(cursor<source.length){
+     const ch=source[cursor];
+     if(quote){if(ch===quote)quote=''}
+     else if(ch==='"'||ch==="'")quote=ch;
+     else if(ch==='>'){closed=true;cursor++;break}
+     cursor++;
+    }
+    if(closed){
+     if(!closing&&['head','script','style','template','noscript'].includes(name)){
+      rawTag=name;
+      index=cursor;
+      continue;
+     }
+     if(blockTags.has(name))appendBreak();
+     index=cursor;
+     continue;
+    }
+   }
+  }
+  if(source[index]==='&'){
+   const entity=decodeEntityAt(index);
+   if(entity){output.push(entity.value);index=entity.next;continue}
+  }
+  if(source[index]==='\r'){
+   if(source[index+1]==='\n')index++;
+   output.push('\n');
+   index++;
+   continue;
+  }
+  output.push(source[index]);
+  index++;
+ }
+ return output.join('').replace(/\u00a0/g,' ').replace(/[ \t]+\n/g,'\n').replace(/\n[ \t]+\n/g,'\n\n').replace(/\n{3,}/g,'\n\n').trim();
+}
+function plain(h){return htmlToPlainText(h)}
 const notePlainTextCache=new WeakMap();
 function plainNote(n){
  const html=String(n.html||''),cached=notePlainTextCache.get(n);
@@ -2099,13 +2234,8 @@ async function importTranscriptCaption(file){
 }
 
 function transcriptWorkerEndpoint(){
- const raw=String(globalThis.ANWAR_API_GATEWAY_BASE||'').trim();
- if(!raw)return '';
- try{
-  const base=new URL(raw);
-  if(base.protocol!=='https:'||!base.hostname.endsWith('.workers.dev')||base.username||base.password)return '';
-  return base.origin+'/v1/transcribe';
- }catch(error){return ''}
+ const base=trustedAnwarGatewayBase();
+ return base?new URL('/v1/transcribe',base).href:'';
 }
 
 async function transcribeAudioFile(){
@@ -2373,7 +2503,7 @@ async function handleBookFile(file){
   return;
  }
  if(['html','htm'].includes(ext)){
-  try{const source=await file.text(),doc=new DOMParser().parseFromString(source,'text/html');insertImportedText(doc.body?.innerText||doc.body?.textContent||'',name)}
+  try{const source=await file.text();insertImportedText(plain(source),name)}
   catch(error){console.warn(error);toast('تعذّر قراءة صفحة HTML.')}
   return;
  }
@@ -3067,13 +3197,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
   ui();
  }
  function anwarApiGatewayBase(){
-  const raw=String(globalThis.ANWAR_API_GATEWAY_BASE||'').trim();
-  if(!raw)return '';
-  try{
-   const base=new URL(raw);
-   if(base.protocol!=='https:'||!base.hostname.endsWith('.workers.dev')||base.username||base.password)return '';
-   return base.origin;
-  }catch(_e){return ''}
+  return trustedAnwarGatewayBase();
  }
  function anwarApiGatewayUrl(source){
   const base=anwarApiGatewayBase();if(!base)return source;
@@ -3341,7 +3465,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
      error.retryAfterMs=retry*1000;throw error;
     }
     const body=await response.text();
-    if(body.length<300||body.length>3000000||(!body.includes('/ar/reciters')&&!body.includes('media.way2quran.com')))throw new Error('استجابة غير صالحة');
+    if(body.length<300||body.length>3000000)throw new Error('استجابة غير صالحة');
     return body;
    }
 
@@ -3363,7 +3487,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
       const response=await fetch(proxyUrl,{signal:controller.signal,cache:'force-cache',credentials:'omit',referrerPolicy:'no-referrer'});
       if(!response.ok)throw new Error('HTTP '+response.status);
       const body=await response.text();
-      if(body.length<300||body.length>3000000||(!body.includes('/ar/reciters')&&!body.includes('media.way2quran.com')))throw new Error('استجابة غير صالحة');
+      if(body.length<300||body.length>3000000)throw new Error('استجابة غير صالحة');
       return body;
      }catch(error){lastError=error;if(externalSignal&&externalSignal.aborted)throw error}
      finally{clearTimeout(timer)}
