@@ -227,6 +227,15 @@ ok(appCore.includes('Anwar service dashboard') && appCore.includes('showHome(tru
 ok(html.includes('id="reciterGrid"') && html.includes('id="surahPickerButton"') && html.includes('id="liveRadioPlay"') && html.includes('id="lessonHub"') && html.includes('id="lessonPlay"'),'original Quran reader, live-radio and lesson playback controls remain present');
 
 
+ok(appCore.includes("sectionTitles.find(title=>title.textContent.includes('القرآن الكريم'))") && appCore.includes("sectionTitles.find(title=>title.textContent.includes('الإذاعات المباشرة'))"),'radio and Quran headings are selected by their own labels rather than DOM order');
+ok(html.includes('id="liveRadioStatus"') && html.includes('id="rl" aria-label="اختر محطة البث المباشر"') && !/id="rl"[^>]*hidden/.test(html) && html.includes('تشغيل المحطة المختارة'),'live-radio page exposes an accessible station picker and playback status');
+ok(appCore.includes('const stations=[],seen=new Set()') && appCore.includes('stations.push({name:') && appCore.includes('select.replaceChildren(fragment)') && appCore.includes("safeHttpsURL(item&&item.url)"),'live-radio catalogue preserves every unique safe station instead of discarding all but the first');
+ok(appCore.includes("activePlaybackKind==='live'&&!au.paused") && appCore.includes('إيقاف البث مؤقتًا') && appCore.includes('متابعة البث'),'live-radio selection, pause and resume are handled without interrupting Quran-reader state');
+ok(html.includes('id="anwarCountryReaders"') && html.includes('id="reciterCountry"') && html.includes('id="reciterCountryOpen"') && html.includes('id="countryRandomPlay"') && html.includes('id="reciterCountryStatus"'),'country-based reciter directory and random-reciter action are visible inside the Quran section');
+ok(!/<div hidden aria-hidden="true">[^<]*<button[^>]*id="countryRandomPlay"/.test(html),'country directory actions are no longer trapped inside a hidden accessibility subtree');
+ok(appCore.includes('Object.entries(countryDirectory).forEach(([key,entry])=>') && appCore.includes('countrySelect.replaceChildren(...countryOptions)'),'country selector receives all configured countries before it is used');
+ok(prayerTimes.includes("launcher.setAttribute('aria-expanded',String(details.open))") && appCore.includes("button.setAttribute('aria-expanded',String(Boolean(settings&&settings.open)))"),'Adhan tile exposes the expanded state of its actual settings disclosure');
+
 const deployWorkflow=fs.readFileSync(path.join(root,'.github/workflows/deploy-cloudflare-pages.yml'),'utf8');
 const securityHeaders=fs.readFileSync(path.join(root,'_headers'),'utf8');
 ok(deployWorkflow.includes('cp _headers dist/_headers'),'Cloudflare Pages receives _headers at the deployment output root');
