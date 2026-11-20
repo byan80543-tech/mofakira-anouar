@@ -118,6 +118,26 @@
   '@media(max-width:420px){.anwar-prayer-card{padding:10px}.anwar-prayer-times{gap:3px}.anwar-prayer-time{padding:7px 1px}.anwar-prayer-time b{font-size:9px}.anwar-prayer-time strong{font-size:11px}.anwar-prayer-fields{grid-template-columns:1fr 1fr}}',
   ''
  ].join('');
+ style.textContent += [
+  '.anwar-prayer-card{gap:7px;padding:10px 11px}',
+  '.anwar-prayer-head strong{font-size:17px}',
+  '.anwar-prayer-next{padding:8px 10px;gap:3px 8px}',
+  '.anwar-prayer-next small{font-size:10px}',
+  '.anwar-prayer-next strong{font-size:16px}',
+  '.anwar-prayer-next span{font-size:16px}',
+  '.anwar-prayer-time{gap:2px;padding:6px 2px}',
+  '.anwar-prayer-time b{font-size:9px}',
+  '.anwar-prayer-time strong{font-size:11px}',
+  '.anwar-prayer-date{padding:2px 1px;min-height:16px}',
+  '.anwar-prayer-info{border-top:1px solid #d9c99e;padding-top:4px}',
+  '.anwar-prayer-info summary{cursor:pointer;list-style-position:inside;color:var(--mu);font-size:10px;line-height:1.6;padding:2px 0}',
+  '.anwar-prayer-info .anwar-prayer-note{display:block;margin:0;padding:6px 2px 2px;font-size:10px;line-height:1.75}',
+  '.anwar-prayer-settings{padding-top:6px}',
+  '.anwar-prayer-settings summary{padding:2px 0}',
+  '.anwar-prayer-next[hidden]{display:none!important}',
+  '@media(max-width:420px){.anwar-prayer-card{gap:6px;padding:9px}.anwar-prayer-next{padding:7px 9px}.anwar-prayer-time{padding:6px 1px}.anwar-prayer-time b{font-size:9px}.anwar-prayer-time strong{font-size:10px}}',
+  ''
+ ].join('');
  document.head.append(style);
 
  const card=el('section','anwar-prayer-card');
@@ -130,17 +150,21 @@
  const nextBox=el('div','anwar-prayer-next');
  const nextCopy=el('div','anwar-prayer-next-copy');
  const nextLabel=el('small','','الصلاة القادمة');
- const nextName=el('strong','','—');
+ const nextName=el('strong','','');
  const nextWhen=el('small','anwar-prayer-next-when','');
  nextCopy.append(nextLabel,nextName,nextWhen);
  const countdownCopy=el('div','anwar-prayer-countdown');
  const countdownLabel=el('small','','الوقت المتبقي حتى دخول الصلاة');
- const countdown=el('span','','--:--:--');
+ const countdown=el('span','','');
  countdownCopy.append(countdownLabel,countdown);
  nextBox.append(nextCopy,countdownCopy);
+ nextBox.hidden=true;
  const timesGrid=el('div','anwar-prayer-times');
  const dateLine=el('div','anwar-prayer-date','جارٍ تحميل مواقيت المدينة…');
  const privacyLine=el('small','anwar-prayer-note','لا نطلب موقعك الجغرافي؛ نرسل المدينة والدولة وتاريخ المواقيت وطريقة الحساب واختيار العصر إلى خدمة المواقيت. وقد تختلف الدقائق عن توقيت مسجدك المحلي.');
+ const infoDetails=el('details','anwar-prayer-info');
+ const infoSummary=el('summary','','معلومات المواقيت وخصوصية الموقع');
+ infoDetails.append(infoSummary,privacyLine);
  const details=el('details','anwar-prayer-settings');
  const summary=el('summary','','إعدادات المواقيت والأذان');
  const fields=el('div','anwar-prayer-fields');
@@ -201,7 +225,7 @@
  const audio=document.createElement('audio');
  audio.id='anwarPrayerAdhanAudio';audio.preload='none';audio.hidden=true;audio.controls=false;audio.setAttribute('playsinline','');audio.setAttribute('aria-label','صوت الأذان');
  audio.src=(VOICES.find(item=>item.key===settings.voice)||VOICES[0]).url;audio.volume=settings.volume;
- card.append(head,nextBox,timesGrid,dateLine,privacyLine,details,audio);
+ card.append(head,nextBox,timesGrid,dateLine,infoDetails,details,audio);
  const prayerMount=document.getElementById('anwarPrayerMount');
  if(prayerMount)prayerMount.append(card);
  else{const insertBefore=panel.querySelector('.radio-section-title');if(insertBefore)panel.insertBefore(card,insertBefore);else panel.append(card);}
@@ -227,6 +251,21 @@
  function countryForDisplay(value){
   const api=countryForApi(value);
   return COUNTRY_AR[api]||trimmedCountry(value);
+ }
+ const CITY_AR={
+  meknes:'مكناس',mequinez:'مكناس',fes:'فاس',fez:'فاس',
+  casablanca:'الدار البيضاء',rabat:'الرباط',
+  tangier:'طنجة',tanger:'طنجة',marrakech:'مراكش',marrakesh:'مراكش',
+  agadir:'أكادير',oujda:'وجدة',tetouan:'تطوان',kenitra:'القنيطرة',
+  safi:'آسفي',taza:'تازة','al hoceima':'الحسيمة',nador:'الناظور',
+  'beni mellal':'بني ملال',khouribga:'خريبكة',settat:'سطات',
+  berkane:'بركان',larache:'العرائش',essaouira:'الصويرة',
+  taroudant:'تارودانت',guelmim:'كلميم',dakhla:'الداخلة'
+ };
+ function cityForDisplay(value){
+  const city=trimmedCountry(value);
+  const key=city.toLowerCase().replace(/[éèê]/g,'e').replace(/[àâ]/g,'a').replace(/[îï]/g,'i').replace(/[ô]/g,'o').replace(/[ùû]/g,'u').replace(/\s+/g,' ').trim();
+  return CITY_AR[key]||city;
  }
  function trimmedCountry(value){return String(value||'').trim()}
  function dateParts(date,timeZone){
@@ -277,7 +316,7 @@
   return json.data;
  }
  function updateHeader(){
-  locationLabel.textContent=countryForDisplay(settings.country)+' · '+settings.city;
+  locationLabel.textContent=cityForDisplay(settings.city)+' · '+countryForDisplay(settings.country);
  }
  function renderTimes(){
   if(!todayData)return;
@@ -292,6 +331,7 @@
   const greg=todayData.date&&todayData.date.gregorian?todayData.date.gregorian.date:'';
   const hijri=todayData.date&&todayData.date.hijri?todayData.date.hijri.date:'';
   dateLine.textContent=(greg?'ميلادي '+greg:'')+(hijri?' · هجري '+hijri:'');
+  dateLine.dataset.state='ready';
   updateHeader();
  }
  function eventList(){
@@ -356,6 +396,7 @@
   if(todayData)lastTick=now;
   const next=events.find(event=>event.at>now);
   if(next){
+   nextBox.hidden=false;
    nextName.textContent=next.name;
    countdown.textContent=formatCountdown(next.at-now);
    nextLabel.textContent='الصلاة القادمة';
@@ -363,7 +404,8 @@
    nextWhen.textContent=(next.date===todayDate?'اليوم':'غدًا')+' · '+timeLabel(next.at);
    timesGrid.querySelectorAll('.anwar-prayer-time').forEach(item=>item.classList.toggle('is-next',item.dataset.prayer===next.key&&next.date===(todayData&&todayData.date&&todayData.date.gregorian&&todayData.date.gregorian.date)));
   }else{
-   nextName.textContent='—';nextWhen.textContent='';countdown.textContent='--:--:--';
+   nextBox.hidden=true;
+   nextName.textContent='';nextWhen.textContent='';countdown.textContent='';
   }
   if(todayData&&timeZone){
    const todayHere=dateString(new Date(now),timeZone);
@@ -373,7 +415,11 @@
  async function refreshTimes(silent){
   const token=++loadToken;
   loading=true;
-  if(!silent)setStatus('جارٍ تحديث مواقيت المدينة…');
+  if(!silent){
+   setStatus('جارٍ تحديث مواقيت الصلاة…');
+   dateLine.textContent='جارٍ تحميل مواقيت الصلاة…';dateLine.dataset.state='loading';
+   nextBox.hidden=true;
+  }
   refreshButton.disabled=true;
   try{
    if(!settings.city.trim()||!settings.country.trim())throw new Error('أدخل اسم الدولة والمدينة أولًا.');
@@ -400,7 +446,10 @@
    tick();
   }catch(error){
    if(token===loadToken){
-    if(!todayData)dateLine.textContent='لم تُحمّل المواقيت بعد.';
+    if(!todayData){
+     dateLine.textContent='تعذّر تحميل المواقيت؛ تحقق من اسم المدينة أو الاتصال.';
+     dateLine.dataset.state='error';nextBox.hidden=true;
+    }
     setStatus(error&&error.message?error.message:'تعذّر تحديث المواقيت.');
    }
   }finally{
@@ -412,7 +461,8 @@
   settings.method=methodSelect.value;settings.school=schoolSelect.value;
   persist();todayData=null;tomorrowData=null;lastDateCheck='';
   timesGrid.replaceChildren(...PRAYERS.map(prayer=>{const item=el('div','anwar-prayer-time');item.append(el('b','',prayer.name),el('strong','','—'));return item;}));
-  nextName.textContent='—';countdown.textContent='--:--:--';dateLine.textContent='جارٍ تحديث مواقيت المدينة…';
+  nextBox.hidden=true;nextName.textContent='';nextWhen.textContent='';countdown.textContent='';
+  dateLine.textContent='جارٍ تحميل مواقيت الصلاة…';dateLine.dataset.state='loading';
   lastTick=Date.now();refreshTimes(false);
  });
  enabledInput.addEventListener('change',()=>{
