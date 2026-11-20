@@ -1,10 +1,8 @@
-'use strict';
-const assert=require('node:assert/strict');
-const fs=require('node:fs');
-const vm=require('node:vm');
-const path=require('node:path');
-const root=path.resolve(__dirname,'..');
-const dataSource=fs.readFileSync(path.join(root,'protection-adhkar.js'),'utf8');
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+const root=new URL('../',import.meta.url);
+const dataSource=fs.readFileSync(new URL('protection-adhkar.js',root),'utf8');
 const sandbox={window:{}};
 vm.runInNewContext(dataSource,sandbox,{filename:'protection-adhkar.js'});
 const groups=sandbox.window.ANWAR_PROTECTION_ADHKAR;
@@ -26,9 +24,9 @@ assert.ok(byId.kursi.text.includes('الْحَيُّ الْقَيُّومُ')&&b
 assert.ok(byId.muawwidhat.text.includes('قُلْ هُوَ اللَّهُ أَحَدٌ')&&byId.muawwidhat.text.includes('قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ')&&byId.muawwidhat.text.includes('قُلْ أَعُوذُ بِرَبِّ النَّاسِ'),'all three protective surahs are present in full');
 assert.ok(byId['devil-plot'].text.includes('وَذَرَأَ وَبَرَأَ')&&byId['devil-plot'].source.includes('15460'),'the extended invocation against devils includes its source');
 assert.ok(byId.dajjal.text.includes('فِتْنَةِ الْمَسِيحِ الدَّجَّالِ')&&byId.dajjal.source.includes('صحيح مسلم 589'),'the supplication against the Dajjal includes its hadith reference');
-const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
-const core=fs.readFileSync(path.join(root,'app-core.js'),'utf8');
-const worker=fs.readFileSync(path.join(root,'service-worker.js'),'utf8');
+const html=fs.readFileSync(new URL('index.html',root),'utf8');
+const core=fs.readFileSync(new URL('app-core.js',root),'utf8');
+const worker=fs.readFileSync(new URL('service-worker.js',root),'utf8');
 assert.ok(html.includes('id="protectionTab"')&&html.includes('data-protection'),'the adhkar screen exposes the protection tab and counter controls');
 assert.ok(html.lastIndexOf('protection-adhkar.js')<html.lastIndexOf('<script src="./app-core.js'),'the protection library script loads before the app renderer');
 assert.ok(worker.includes("'./protection-adhkar.js'")&&worker.includes('anwar-shell-2026-11-20-v119'),'the protection library is included in the offline app shell');
