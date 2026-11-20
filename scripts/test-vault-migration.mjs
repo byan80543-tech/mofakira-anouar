@@ -30,6 +30,7 @@ function makeHarness({failVerification=false}={}){
     ['anwar_tasbih_dhikr_v1','الحمد لله']
   ]);
   const operations=[];
+  const vaultRecords=new Map();
   const elements={
     vaultPassword:{value:'Strong phrase for Anouar 2026',disabled:false},
     vaultPasswordConfirm:{value:'Strong phrase for Anouar 2026',disabled:false},
@@ -44,6 +45,11 @@ function makeHarness({failVerification=false}={}){
       getItem(key){operations.push('get:'+key);return data.has(key)?data.get(key):null},
       setItem(key,value){operations.push('set:'+key);data.set(key,String(value))},
       removeItem(key){operations.push('remove:'+key);data.delete(key)}
+    },
+    AnwarVaultStorage:{
+      async get(key){operations.push('vault:get:'+key);return vaultRecords.has(key)?vaultRecords.get(key):null},
+      async set(key,value){operations.push('vault:set:'+key);vaultRecords.set(key,String(value));return true},
+      async remove(key){operations.push('vault:remove:'+key);vaultRecords.delete(key);return true}
     },
     S:initialState,
     vaultGateMode:'setup',
@@ -72,17 +78,17 @@ function makeHarness({failVerification=false}={}){
     });
   }
   vm.runInNewContext(clearSource+'\n'+persistenceSource+'\n'+submitSource+'\nthis.run=submitVaultForm;',sandbox,{timeout:3000});
-  return {sandbox,elements,data,operations,calls,run:sandbox.run,initialState};
+  return {sandbox,elements,data,vaultRecords,operations,calls,run:sandbox.run,initialState};
 }
 
 const successful=makeHarness();
 await successful.run({preventDefault(){}});
-const {sandbox,elements,data,operations,calls,initialState}=successful;
+const {sandbox,elements,data,vaultRecords,operations,calls,initialState}=successful;
 assert.equal(calls.finished,true,'verified initial migration opens the vault');
 assert.equal(sandbox.vaultUnlocked,true,'vault unlocks only after verification');
 assert.equal(data.get('anwar_vault_mode_v1'),'encrypted','the encrypted mode marker is stored only after successful verification');
-const primaryText=data.get('anwar_vault_v1');
-const backupText=data.get('anwar_vault_backup_v1');
+const primaryText=vaultRecords.get('anwar_vault_v1');
+const backupText=vaultRecords.get('anwar_vault_backup_v1');
 assert.ok(primaryText&&backupText,'primary and secondary encrypted envelopes are stored');
 assert.ok(!primaryText.includes('محتوى لا يجب كشفه'),'primary envelope does not expose note text');
 assert.ok(!backupText.includes('محتوى لا يجب كشفه'),'backup envelope does not expose note text');
@@ -98,7 +104,7 @@ assert.equal(data.has('anwar_tasbih_dhikr_v1'),false,'legacy tasbih choice is re
 assert.deepEqual(JSON.parse(await sandbox.AnwarVaultCrypto.decryptWithKey(sandbox.vaultKey,primary)).preferences,{radio:{reciter:'قارئ قديم',surah:55},readerAdvance:'s',tasbih:{count:144,dhikr:'الحمد لله',customDhikrs:[],removedOfficialDhikrs:[]}},'legacy settings and the empty custom dhikr list are included in the encrypted snapshot');
 assert.equal(elements.vaultPassword.value,'','password field is cleared after success');
 assert.equal(elements.vaultPasswordConfirm.value,'','password confirmation field is cleared after success');
-assert.ok(operations.indexOf('remove:anwar_v1')>operations.indexOf('get:anwar_vault_backup_v1'),'legacy cleanup occurs after encrypted backup verification');
+assert.ok(operations.indexOf('remove:anwar_v1')>operations.indexOf('vault:get:anwar_vault_backup_v1'),'legacy cleanup occurs after the encrypted backup has been written and read back');
 
 const failed=makeHarness({failVerification:true});
 await failed.run({preventDefault(){}});
@@ -110,8 +116,8 @@ assert.ok(failed.data.has('anwar_rd'),'legacy radio preference is retained after
 assert.ok(failed.data.has('anwar_reader_advance'),'legacy reader preference is retained after failed verification');
 assert.ok(failed.data.has('anwar_tasbih_count_v1'),'legacy tasbih count is retained after failed verification');
 assert.ok(failed.data.has('anwar_tasbih_dhikr_v1'),'legacy tasbih choice is retained after failed verification');
-assert.equal(failed.data.has('anwar_vault_v1'),false,'unverified encrypted primary envelope is rolled back');
-assert.equal(failed.data.has('anwar_vault_backup_v1'),false,'no secondary backup is written before primary verification');
+assert.equal(failed.vaultRecords.has('anwar_vault_v1'),false,'unverified encrypted primary envelope is rolled back');
+assert.equal(failed.vaultRecords.has('anwar_vault_backup_v1'),false,'no secondary backup is written before primary verification');
 assert.equal(failed.data.has('anwar_vault_mode_v1'),false,'failed encrypted setup rolls back the mode marker and remains recoverable as plaintext');
 assert.match(failed.elements.vaultError.textContent,/simulated read-back verification failure/,'the failure is surfaced to the user');
 

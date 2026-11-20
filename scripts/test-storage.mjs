@@ -28,6 +28,7 @@ function makeHarness(initial={}){
       this.writeCount++;
       values.set(key,String(value));
     },
+    removeItem(key){values.delete(key)},
     values
   };
   const elements={
@@ -82,6 +83,11 @@ function makeHarness(initial={}){
     san:s=>String(s??''),
     safeFontName:v=>typeof v==='string'&&['Amiri','Tajawal'].includes(v)?v:'Amiri',
     localStorage:storage,
+    AnwarVaultStorage:{
+      async get(key){return storage.getItem(key)},
+      async set(key,value){storage.setItem(key,value);return true},
+      async remove(key){storage.removeItem(key);return true}
+    },
     S:{notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[]},
     cur:null,draftNote:null,tm:null,pendingBefore:null,
     pg:{innerHTML:'',style:{},focus(){},classList:{add(){},remove(){}}},
@@ -105,7 +111,7 @@ function makeHarness(initial={}){
     confirm:()=>true,
     theme(){},chips(){},renderList(){}
   };
-  vm.runInNewContext(String.fromCharCode(10)+preferenceSource+String.fromCharCode(10)+extracted+String.fromCharCode(10)+"this.api={load,save,startFreshNotebook,retryStorageAccess,restoreStorageBackup,exportStorageRecovery,waitForWrites:()=>vaultSaveQueue,writeError:()=>vaultLastWriteError,decryptMock:key=>AnwarVaultCrypto.decryptWithKey(vaultKey,JSON.parse(localStorage.getItem(key)||'null')),snapshot:()=>({S,storageRecoveryBlocked,storageRecoveryRaw,storageRecoveryExported,storageRecoveryMode,storageRecoveryBackupAvailable}),\n      activateEdit:(note,previous,html)=>{cur=note;pendingBefore=previous;pg.innerHTML=html},\n      draftState:()=>({cur,draftNote,notes:S.notes}),touch,newNote,openNote,flushPendingEdit};",sandbox,{timeout:3000});
+  vm.runInNewContext(String.fromCharCode(10)+preferenceSource+String.fromCharCode(10)+extracted+String.fromCharCode(10)+"this.api={load,save,startFreshNotebook,retryStorageAccess,restoreStorageBackup,exportStorageRecovery,waitForWrites:()=>vaultSaveQueue,writeError:()=>vaultLastWriteError,decryptMock:key=>{const raw=localStorage.getItem(key);const envelope=JSON.parse(raw||'null');if(!envelope||envelope.format!=='mock-vault')throw new Error('bad mock envelope for '+key+': '+String(raw));return AnwarVaultCrypto.decryptWithKey(vaultKey,envelope)},snapshot:()=>({S,storageRecoveryBlocked,storageRecoveryRaw,storageRecoveryExported,storageRecoveryMode,storageRecoveryBackupAvailable}),\n      activateEdit:(note,previous,html)=>{cur=note;pendingBefore=previous;pg.innerHTML=html},\n      draftState:()=>({cur,draftNote,notes:S.notes}),touch,newNote,openNote,flushPendingEdit};",sandbox,{timeout:3000});
   return {api:sandbox.api,storage,elements,messages,sandbox,download};
 }
 const assert=(condition,message)=>{
@@ -129,11 +135,11 @@ h.api.load();
 assert(h.api.snapshot().storageRecoveryBlocked&&h.api.snapshot().storageRecoveryRaw==='{broken-json','corrupt primary enters recovery without losing its raw value');
 assert(h.storage.getItem('anwar_v1')==='{broken-json','corrupt primary is not overwritten automatically');
 assert(!h.elements.restoreBackup.hidden,'a valid backup is offered for explicit recovery');
-h.api.restoreStorageBackup();
+await h.api.restoreStorageBackup();
 assert(h.storage.getItem('anwar_v1')==='{broken-json','backup restore is blocked until raw export');
 h.api.exportStorageRecovery();
 assert(h.download.blob.parts.join('')==='{broken-json'&&h.download.blob.type==='application/json;charset=utf-8'&&h.download.anchor.download==='anwar-storage-recovery-raw.json'&&h.download.anchor.clicked&&h.api.snapshot().storageRecoveryExported,'raw recovery export creates and clicks a downloadable Blob');
-h.api.restoreStorageBackup();
+await h.api.restoreStorageBackup();
 assert(!h.api.snapshot().storageRecoveryBlocked&&JSON.parse(h.storage.getItem('anwar_v1')).notes[0].id==='backup','valid backup restores only after raw export');
 
 h=makeHarness({'anwar_v1_backup_v2':state(note('orphan-backup'))});
@@ -145,7 +151,7 @@ h.api.load();
 assert(h.api.snapshot().storageRecoveryBlocked&&h.api.snapshot().storageRecoveryBackupAvailable,'an all-invalid primary is held for recovery while a valid backup is offered');
 h.api.exportStorageRecovery();
 assert(h.download.blob.parts.join('')===h.api.snapshot().storageRecoveryRaw&&h.download.anchor.clicked,'invalid primary recovery export downloads its raw value');
-h.api.restoreStorageBackup();
+await h.api.restoreStorageBackup();
 assert(h.api.snapshot().S.notes[0]?.id==='clean-backup','explicit backup restore recovers all-invalid primary after raw export');
 
 h=makeHarness({'anwar_v1':state(null,note('valid-row'))});
@@ -164,11 +170,11 @@ h=makeHarness({
 });
 h.api.load();
 assert(!h.elements.startFresh.hidden,'fresh-start action is shown for damaged data');
-h.api.startFreshNotebook();
+await h.api.startFreshNotebook();
 assert(h.api.snapshot().storageRecoveryBlocked&&h.storage.getItem('anwar_v1')==='corrupt','fresh start cannot overwrite damaged data before raw export');
 h.api.exportStorageRecovery();
 assert(h.download.anchor.clicked&&h.api.snapshot().storageRecoveryExported,'fresh-start path requires an actual raw export action');
-h.api.startFreshNotebook();
+await h.api.startFreshNotebook();
 assert(!h.api.snapshot().storageRecoveryBlocked&&h.api.snapshot().S.notes.length===0,'fresh start clears recovery lock after raw export');
 assert(h.storage.getItem('anwar_library_saved_v1')===JSON.stringify(['saved-book']),'fresh start preserves saved library items');
 assert(h.storage.getItem('anwar_rd')===JSON.stringify({r:'reader',n:12,m:'l'}),'fresh start preserves radio state');
@@ -179,7 +185,7 @@ h.api.load();
 assert(h.api.snapshot().storageRecoveryBlocked&&h.api.snapshot().storageRecoveryMode==='unavailable','blocked localStorage access is distinct from corrupt JSON');
 h.storage.failGetKey=null;
 h.sandbox.vaultUnlocked=false;
-assert(h.api.retryStorageAccess()===true&&!h.api.snapshot().storageRecoveryBlocked,'retry succeeds when browser storage access returns');
+assert(await h.api.retryStorageAccess()===true&&!h.api.snapshot().storageRecoveryBlocked,'retry succeeds when browser storage access returns');
 
 h=makeHarness({'anwar_v1_backup_v2':state(note('retry-backup'))});
 h.storage.failGetKey='anwar_v1';
@@ -187,7 +193,7 @@ h.api.load();
 const writesBeforeRetry=h.storage.writeCount;
 h.storage.failGetKey=null;
 h.sandbox.vaultUnlocked=false;
-assert(h.api.retryStorageAccess()===true&&h.api.snapshot().S.notes[0]?.id==='retry-backup','retry loads a valid backup when the primary key is absent');
+assert(await h.api.retryStorageAccess()===true&&h.api.snapshot().S.notes[0]?.id==='retry-backup','retry loads a valid backup when the primary key is absent');
 assert(h.storage.getItem('anwar_v1')===null&&h.storage.writeCount===writesBeforeRetry,'retry remains read-only and does not rewrite the missing primary record');
 
 h=makeHarness({'anwar_v1_backup_v2':''});

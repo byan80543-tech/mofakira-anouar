@@ -9,8 +9,8 @@ const extract=(start,end)=>{
   return html.slice(a,b);
 };
 const bootSource=extract('async function bootVault(){','async function submitVaultForm(event,suppliedPassword){');
-const continueSource=extract('function continueVaultAfterRecovery(){','function prepareLegacyStateForVault(){');
-const retrySource=extract('function retryStorageAccess(){','function restoreStorageBackup(){');
+const continueSource=extract('async function continueVaultAfterRecovery(){','function prepareLegacyStateForVault(){');
+const retrySource=extract('async function retryStorageAccess(){','async function restoreStorageBackup(){');
 
 function makeHarness(initial={},failReads=false){
   const values=new Map(Object.entries(initial));
@@ -20,6 +20,13 @@ function makeHarness(initial={},failReads=false){
       getItem(key){
         calls.reads.push(key);
         if(failReads)throw new Error('simulated localStorage read failure');
+        return values.has(key)?values.get(key):null;
+      }
+    },
+    AnwarVaultStorage:{
+      async get(key){
+        calls.reads.push(key);
+        if(failReads)throw new Error('simulated IndexedDB read failure');
         return values.has(key)?values.get(key):null;
       }
     },
@@ -83,16 +90,16 @@ assert.ok(h.calls.recovery,'blocked startup storage access is shown as a recover
 assert.equal(h.calls.mode,null,'blocked storage access never starts a new vault');
 
 h=makeHarness({'anwar_vault_backup_v1':'encrypted-backup'});
-h.api.continueVaultAfterRecovery();
+await h.api.continueVaultAfterRecovery();
 assert.equal(h.calls.mode,'unlock','post-recovery continuation recognizes a backup-only vault');
 assert.match(h.calls.message,/نسخة احتياطية مشفرة/,'post-recovery continuation explains backup restoration');
 
 h=makeHarness();
-h.api.continueVaultAfterRecovery();
+await h.api.continueVaultAfterRecovery();
 assert.equal(h.calls.finished,true,'post-recovery continuation returns to free mode when no encrypted vault exists');
 
 h=makeHarness({'anwar_vault_backup_v1':'encrypted-backup'});
-assert.equal(h.api.retryStorageAccess(),true,'retry succeeds when access to backup-only vault returns');
+assert.equal(await h.api.retryStorageAccess(),true,'retry succeeds when access to backup-only vault returns');
 assert.equal(h.calls.mode,'unlock','retry opens the unlock gate for a backup-only vault');
 assert.match(h.calls.message,/نسخة احتياطية مشفرة/,'retry explains that the encrypted backup can be restored');
 assert.equal(h.calls.cleared,true,'retry clears the storage access warning');
@@ -100,11 +107,11 @@ assert.ok(h.calls.reads.includes('anwar_vault_mode_v1'),'retry checks the select
 assert.equal(h.calls.legacyPrepared,false,'backup recovery never imports legacy plaintext before password verification');
 
 h=makeHarness({'anwar_vault_v1':'encrypted-primary'});
-assert.equal(h.api.retryStorageAccess(),true,'retry recognizes an existing primary vault');
+assert.equal(await h.api.retryStorageAccess(),true,'retry recognizes an existing primary vault');
 assert.equal(h.calls.mode,'unlock','retry opens the primary vault unlock gate');
 
 h=makeHarness({},true);
-assert.equal(h.api.retryStorageAccess(),false,'retry remains blocked while storage access is unavailable');
+assert.equal(await h.api.retryStorageAccess(),false,'retry remains blocked while storage access is unavailable');
 assert.equal(h.calls.mode,null,'failed retry does not start a new vault');
 
 console.log('All encrypted-vault startup and backup-recovery tests passed.');

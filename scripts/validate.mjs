@@ -90,7 +90,8 @@ ok(appSource.includes('async function ensurePdfLibraries()'),'PDF libraries load
 ok(appSource.includes('async function makeQR()'),'QR library loads only when QR generation is requested');
 ok(!htmlAudit.script_sources.some(src=>/(html2canvas|qrcodejs|jspdf)/i.test(src)),'heavy PDF and QR libraries are not loaded by static script tags');
 ok(!appSource.includes('Object.hasOwn('),'storage normalization avoids unsupported Object.hasOwn calls');
-ok(appSource.includes('src="./vault-crypto.js?v=20261118-2"'),'the local vault crypto helper is loaded by the notebook');
+ok(appSource.includes('src="./vault-crypto.js?v=20261118-3"'),'the local vault crypto helper is loaded by the notebook');
+ok(appSource.includes('src="./vault-storage.js?v=20261120-1"') && serviceWorker.includes("'./vault-storage.js'"),'verified IndexedDB vault storage is loaded and precached for offline use');
 ok(appSource.includes('id="vaultGate"') && appSource.includes('id="vaultLockBtn"'),'password gate and manual vault lock controls are present');
 
 ok(appSource.includes('id="anwar-toolbar-spacing-and-palette-cycle-v2"') && appSource.includes('.tb{gap:4px!important}'),'toolbar icons keep a small, consistent gap');

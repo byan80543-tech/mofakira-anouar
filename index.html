@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="preload" href="./app-core.js?v=20261120-17" as="script">
+<link rel="preload" href="./app-core.js?v=20261120-18" as="script">
 <script src="api-gateway-config.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>مفكرة أنوار | Anouar Oumlili</title>
@@ -2501,9 +2501,9 @@ dialog[open]>.float-head{display:none!important}
   <form id="vaultForm">
    <div id="vaultPasswordFields">
     <label for="vaultPassword">عبارة المرور</label>
-    <input id="vaultPassword" type="password" required minlength="12" autocomplete="new-password" placeholder="12 محرفًا على الأقل">
+    <input id="vaultPassword" type="password" required minlength="12" maxlength="2048" autocomplete="new-password" placeholder="12 محرفًا على الأقل">
     <label id="vaultConfirmRow" for="vaultPasswordConfirm">تأكيد عبارة المرور</label>
-    <input id="vaultPasswordConfirm" type="password" required minlength="12" autocomplete="new-password" placeholder="أعد كتابة عبارة المرور">
+    <input id="vaultPasswordConfirm" type="password" required minlength="12" maxlength="2048" autocomplete="new-password" placeholder="أعد كتابة عبارة المرور">
     <button id="vaultSubmit" type="submit">تشفير المفكرة وفتحها</button>
    </div>
   </form>
@@ -2518,7 +2518,7 @@ dialog[open]>.float-head{display:none!important}
  <p class="vault-device-explanation">سيطلب المتصفح تحقق الهاتف الآمن، مثل قفل الشاشة أو البصمة بحسب إعداد جهازك. لا يقرأ الموقع رسم القفل ولا يخزنه.</p>
  <form id="vaultDeviceSetupForm">
   <label for="vaultDeviceSetupPassword">أعد إدخال كلمة المرور الأساسية للتأكيد</label>
-  <input id="vaultDeviceSetupPassword" type="password" autocomplete="current-password" minlength="12" required>
+  <input id="vaultDeviceSetupPassword" type="password" autocomplete="current-password" minlength="12" maxlength="2048" required>
   <button id="vaultDeviceSetupSubmit" type="submit">تفعيل الفتح بقفل الهاتف</button>
  </form>
  <p id="vaultDeviceSetupStatus" role="status" aria-live="polite"></p>
@@ -2526,10 +2526,11 @@ dialog[open]>.float-head{display:none!important}
  <button id="vaultDeviceSetupClose" type="button" class="vault-device-close">إغلاق</button>
 </dialog>
 <div id="toast"></div>
-<script src="./vault-crypto.js?v=20261118-2"></script>
+<script src="./vault-crypto.js?v=20261118-3"></script>
+<script src="./vault-storage.js?v=20261120-1"></script>
 <script src="./vault-device-unlock.js?v=20261118-1"></script>
 <script src="./poetry-dictation.js?v=20261119-1" defer></script>
-<script src="./app-core.js?v=20261120-17" defer></script>
+<script src="./app-core.js?v=20261120-18" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
 <script src="./tasbih-controller.js?v=20261119-18" defer></script>
 
