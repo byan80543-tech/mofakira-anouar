@@ -2596,13 +2596,13 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  const rr=$('rr'),rsu=$('rsu'),st=$('rst'),pp=$('rpp'),rb=$('rb'),au=new Audio();let n=1,started=false,wd,cr=0,sl,playRequestId=0;
 
  const stationSelect=$('rl'),stationPicker=$('liveStationPicker'),stationPickerChoice=$('liveStationChoice');
- const stationModal=document.createElement('div');
- stationModal.id='liveStationModal';stationModal.className='live-station-modal';
- stationModal.hidden=true;stationModal.setAttribute('role','dialog');stationModal.setAttribute('aria-modal','true');stationModal.setAttribute('aria-labelledby','liveStationModalTitle');
+ const stationModal=$('liveStationModal');
+ stationModal.className='live-station-modal';stationModal.hidden=true;
+ stationModal.setAttribute('role','dialog');stationModal.setAttribute('aria-modal','true');stationModal.setAttribute('aria-label','محطات البث المباشر');
  const stationDialog=document.createElement('div');stationDialog.className='live-station-dialog';
  const stationHeader=document.createElement('header');stationHeader.className='live-station-modal-head';
  const stationHeaderCopy=document.createElement('div');
- const stationModalTitle=document.createElement('strong');stationModalTitle.id='liveStationModalTitle';stationModalTitle.textContent='محطات البث المباشر';
+ const stationModalTitle=document.createElement('strong');stationModalTitle.textContent='محطات البث المباشر';
  const stationModalSub=document.createElement('small');stationModalSub.textContent='اختر المحطة التي ترغب في الاستماع إليها';
  stationHeaderCopy.append(stationModalTitle,stationModalSub);
  const stationClose=document.createElement('button');stationClose.type='button';stationClose.className='live-station-modal-close';stationClose.setAttribute('aria-label','إغلاق قائمة المحطات');stationClose.textContent='×';
@@ -2612,7 +2612,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  const stationCount=document.createElement('span');stationCount.className='live-station-modal-count';stationTools.append(stationSearch,stationCount);
  const stationHint=document.createElement('small');stationHint.className='live-station-modal-hint';stationHint.textContent='تظهر المحطات في بطاقات مستقلة؛ اختر بطاقة لتعيين المحطة.';
  const stationList=document.createElement('div');stationList.className='live-station-options';stationList.setAttribute('role','listbox');stationList.setAttribute('aria-label','محطات البث المتاحة');
- stationDialog.append(stationHeader,stationTools,stationHint,stationList);stationModal.append(stationDialog);document.body.append(stationModal);
+ stationDialog.append(stationHeader,stationTools,stationHint,stationList);stationModal.replaceChildren(stationDialog);
  let stationPreviousOverflow='';
  function renderLiveStationOptions(){
   const query=String(stationSearch.value||'').trim().toLocaleLowerCase('ar');
