@@ -27,53 +27,124 @@
   {key:'Maghrib',name:'المغرب'},
   {key:'Isha',name:'العشاء'}
  ];
+ const COUNTRY_OPTIONS=[
+  {code:'MA',api:'Morocco',label:'المغرب',city:'Meknes',method:'21'},
+  {code:'DZ',api:'Algeria',label:'الجزائر',city:'Algiers',method:'19'},
+  {code:'TN',api:'Tunisia',label:'تونس',city:'Tunis',method:'18'},
+  {code:'LY',api:'Libya',label:'ليبيا',city:'Tripoli',method:'auto'},
+  {code:'EG',api:'Egypt',label:'مصر',city:'Cairo',method:'5'},
+  {code:'SD',api:'Sudan',label:'السودان',city:'Khartoum',method:'auto'},
+  {code:'MR',api:'Mauritania',label:'موريتانيا',city:'Nouakchott',method:'auto'},
+  {code:'SO',api:'Somalia',label:'الصومال',city:'Mogadishu',method:'auto'},
+  {code:'DJ',api:'Djibouti',label:'جيبوتي',city:'Djibouti',method:'auto'},
+  {code:'KM',api:'Comoros',label:'جزر القمر',city:'Moroni',method:'auto'},
+  {code:'SA',api:'Saudi Arabia',label:'السعودية',city:'Riyadh',method:'4'},
+  {code:'YE',api:'Yemen',label:'اليمن',city:'Sanaa',method:'auto'},
+  {code:'OM',api:'Oman',label:'عمان',city:'Muscat',method:'8'},
+  {code:'AE',api:'United Arab Emirates',label:'الإمارات',city:'Abu Dhabi',method:'8'},
+  {code:'QA',api:'Qatar',label:'قطر',city:'Doha',method:'10'},
+  {code:'BH',api:'Bahrain',label:'البحرين',city:'Manama',method:'8'},
+  {code:'KW',api:'Kuwait',label:'الكويت',city:'Kuwait City',method:'9'},
+  {code:'IQ',api:'Iraq',label:'العراق',city:'Baghdad',method:'auto'},
+  {code:'SY',api:'Syria',label:'سوريا',city:'Damascus',method:'auto'},
+  {code:'LB',api:'Lebanon',label:'لبنان',city:'Beirut',method:'auto'},
+  {code:'JO',api:'Jordan',label:'الأردن',city:'Amman',method:'23'},
+  {code:'PS',api:'Palestine',label:'فلسطين',city:'Gaza',method:'auto'},
+  {code:'TR',api:'Turkey',label:'تركيا',city:'Ankara',method:'13'},
+  {code:'FR',api:'France',label:'فرنسا',city:'Paris',method:'12'},
+  {code:'DE',api:'Germany',label:'ألمانيا',city:'Berlin',method:'auto'},
+  {code:'GB',api:'United Kingdom',label:'بريطانيا',city:'London',method:'auto'},
+  {code:'US',api:'United States',label:'الولايات المتحدة',city:'Washington',method:'2'},
+  {code:'CA',api:'Canada',label:'كندا',city:'Ottawa',method:'2'},
+  {code:'PK',api:'Pakistan',label:'باكستان',city:'Islamabad',method:'1'},
+  {code:'IN',api:'India',label:'الهند',city:'New Delhi',method:'auto'},
+  {code:'MY',api:'Malaysia',label:'ماليزيا',city:'Kuala Lumpur',method:'17'},
+  {code:'ID',api:'Indonesia',label:'إندونيسيا',city:'Jakarta',method:'20'}
+ ];
  const COUNTRY_ALIASES={
   'المغرب':'Morocco','المملكة المغربية':'Morocco',
-  'الجزائر':'Algeria','تونس':'Tunisia','مصر':'Egypt',
+  'الجزائر':'Algeria','تونس':'Tunisia','ليبيا':'Libya','مصر':'Egypt',
+  'السودان':'Sudan','موريتانيا':'Mauritania','الصومال':'Somalia',
+  'جيبوتي':'Djibouti','جزر القمر':'Comoros',
   'السعودية':'Saudi Arabia','المملكة العربية السعودية':'Saudi Arabia',
+  'اليمن':'Yemen','عمان':'Oman','سلطنة عمان':'Oman',
   'الإمارات':'United Arab Emirates','الامارات':'United Arab Emirates',
   'قطر':'Qatar','الكويت':'Kuwait','البحرين':'Bahrain',
-  'عمان':'Oman','سلطنة عمان':'Oman','الأردن':'Jordan',
+  'العراق':'Iraq','سوريا':'Syria','لبنان':'Lebanon','الأردن':'Jordan','فلسطين':'Palestine',
   'تركيا':'Turkey','فرنسا':'France','ألمانيا':'Germany',
   'بريطانيا':'United Kingdom','المملكة المتحدة':'United Kingdom',
   'الولايات المتحدة':'United States','كندا':'Canada',
   'باكستان':'Pakistan','الهند':'India','ماليزيا':'Malaysia',
   'إندونيسيا':'Indonesia'
  };
- const COUNTRY_AR={
-  Morocco:'المغرب',Algeria:'الجزائر',Tunisia:'تونس',Egypt:'مصر',
-  'Saudi Arabia':'السعودية','United Arab Emirates':'الإمارات',
-  Qatar:'قطر',Kuwait:'الكويت',Bahrain:'البحرين',Oman:'عمان',
-  Jordan:'الأردن',Turkey:'تركيا',France:'فرنسا',Germany:'ألمانيا',
-  'United Kingdom':'بريطانيا','United States':'الولايات المتحدة',
-  Canada:'كندا',Pakistan:'باكستان',India:'الهند',Malaysia:'ماليزيا',
-  Indonesia:'إندونيسيا'
+ const COUNTRY_AR=Object.fromEntries(COUNTRY_OPTIONS.map(item=>[item.api,item.label]));
+ const TIME_ZONE_COUNTRY={
+  'Africa/Casablanca':'MA','Africa/Algiers':'DZ','Africa/Tunis':'TN',
+  'Africa/Tripoli':'LY','Africa/Cairo':'EG','Africa/Khartoum':'SD',
+  'Africa/Nouakchott':'MR','Africa/Mogadishu':'SO','Africa/Djibouti':'DJ',
+  'Indian/Comoro':'KM','Asia/Riyadh':'SA','Asia/Aden':'YE',
+  'Asia/Muscat':'OM','Asia/Dubai':'AE','Asia/Qatar':'QA','Asia/Bahrain':'BH',
+  'Asia/Kuwait':'KW','Asia/Baghdad':'IQ','Asia/Damascus':'SY',
+  'Asia/Beirut':'LB','Asia/Amman':'JO','Asia/Gaza':'PS','Asia/Hebron':'PS',
+  'Europe/Istanbul':'TR','Europe/Paris':'FR','Europe/Berlin':'DE',
+  'Europe/London':'GB','America/New_York':'US','America/Chicago':'US',
+  'America/Denver':'US','America/Los_Angeles':'US','America/Toronto':'CA',
+  'America/Vancouver':'CA','Asia/Karachi':'PK','Asia/Kolkata':'IN',
+  'Asia/Kuala_Lumpur':'MY','Asia/Jakarta':'ID'
  };
- const METHOD_OPTIONS=[
-  ['auto','تلقائي حسب البلد'],
-  ['21','المغرب — وزارة الأوقاف'],
-  ['19','الجزائر'],
-  ['18','تونس'],
-  ['4','أم القرى — مكة'],
-  ['5','الهيئة المصرية العامة للمساحة'],
-  ['3','رابطة العالم الإسلامي'],
-  ['2','الجمعية الإسلامية لأمريكا الشمالية'],
-  ['1','جامعة العلوم الإسلامية — كراتشي'],
-  ['13','الشؤون الدينية — تركيا'],
-  ['12','اتحاد المنظمات الإسلامية — فرنسا']
- ];
+ function normalizeCountry(value){
+  const raw=String(value||'').trim();
+  const api=COUNTRY_ALIASES[raw]||raw;
+  return COUNTRY_OPTIONS.some(item=>item.api===api)?api:'';
+ }
+ function detectCountry(){
+  let zone='';
+  try{zone=Intl.DateTimeFormat().resolvedOptions().timeZone||'';}catch(_e){}
+  const zoneCode=TIME_ZONE_COUNTRY[zone];
+  if(zoneCode){
+   const match=COUNTRY_OPTIONS.find(item=>item.code===zoneCode);
+   if(match)return match.api;
+  }
+  const locales=[];
+  try{
+   if(Array.isArray(navigator.languages))locales.push(...navigator.languages);
+   if(navigator.language)locales.push(navigator.language);
+  }catch(_e){}
+  for(const locale of locales){
+   const match=String(locale).match(/-([A-Za-z]{2})(?:-|$)/);
+   if(match){
+    const country=COUNTRY_OPTIONS.find(item=>item.code===match[1].toUpperCase());
+    if(country)return country.api;
+   }
+  }
+  return 'Morocco';
+ }
+ function defaultCity(country){
+  const match=COUNTRY_OPTIONS.find(item=>item.api===country);
+  return match?match.city:'Meknes';
+ }
+ function methodForCountry(country){
+  const match=COUNTRY_OPTIONS.find(item=>item.api===normalizeCountry(country));
+  return match?match.method:'auto';
+ }
  function readSettings(){
-  const defaults={country:'Morocco',city:'Meknes',method:'21',school:'0',enabled:false,volume:0.9,timezone:'',voice:DEFAULT_VOICE};
+  const defaults={country:detectCountry(),city:'',method:'auto',school:'0',enabled:false,volume:0.9,timezone:'',voice:DEFAULT_VOICE,countrySource:'auto'};
   try{
    const value=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}');
+   const storedCountry=normalizeCountry(value.country);
+   const manualCountry=value.countrySource==='manual'||(!value.countrySource&&storedCountry&&storedCountry!=='Morocco');
+   const country=manualCountry&&storedCountry?storedCountry:defaults.country;
+   const changedFromSaved=!!storedCountry&&storedCountry!==country;
+   const storedCity=typeof value.city==='string'?value.city.trim().slice(0,90):'';
    return {
-    country:typeof value.country==='string'&&value.country.trim()?value.country.trim().slice(0,90):defaults.country,
-    city:typeof value.city==='string'&&value.city.trim()?value.city.trim().slice(0,90):defaults.city,
-    method:METHOD_OPTIONS.some(item=>item[0]===String(value.method))?String(value.method):defaults.method,
+    country:country,
+    city:changedFromSaved||!storedCity?defaultCity(country):storedCity,
+    method:methodForCountry(country),
+    countrySource:manualCountry?'manual':'auto',
     school:value.school==='1'?'1':'0',
     enabled:value.enabled===true,
     volume:Number.isFinite(Number(value.volume))?Math.max(0,Math.min(1,Number(value.volume))):defaults.volume,
-    timezone:typeof value.timezone==='string'?value.timezone.slice(0,90):'',
+    timezone:changedFromSaved?'':(typeof value.timezone==='string'?value.timezone.slice(0,90):''),
     voice:VOICES.some(item=>item.key===value.voice)?value.voice:DEFAULT_VOICE
    };
   }catch(_e){return defaults;}
@@ -162,7 +233,7 @@
  nextBox.hidden=true;
  const timesGrid=el('div','anwar-prayer-times');
  const dateLine=el('div','anwar-prayer-date','جارٍ تحميل مواقيت المدينة…');
- const privacyLine=el('small','anwar-prayer-note','لا نطلب موقعك الجغرافي؛ نرسل المدينة والدولة وتاريخ المواقيت وطريقة الحساب واختيار العصر إلى خدمة المواقيت. وقد تختلف الدقائق عن توقيت مسجدك المحلي.');
+ const privacyLine=el('small','anwar-prayer-note','نحدد الدولة تلقائيًا من المنطقة الزمنية وإعدادات لغة الجهاز دون طلب GPS أو الموقع الدقيق. تُرسل المدينة والدولة إلى خدمة المواقيت لحساب الصلاة، ويمكنك تغييرهما متى شئت.');
  const infoDetails=el('details','anwar-prayer-info');
  const infoSummary=el('summary','','معلومات المواقيت وخصوصية الموقع');
  infoDetails.append(infoSummary,privacyLine);
@@ -172,11 +243,10 @@
  function makeField(label,control){
   const wrap=el('label','anwar-prayer-field',label);wrap.append(control);return wrap;
  }
- const countryInput=el('input');countryInput.id='anwarPrayerCountry';countryInput.type='text';countryInput.autocomplete='country-name';countryInput.maxLength=90;countryInput.value=settings.country;
- const cityInput=el('input');cityInput.id='anwarPrayerCity';cityInput.type='text';cityInput.autocomplete='address-level2';cityInput.maxLength=90;cityInput.value=settings.city;
- const methodSelect=el('select');methodSelect.id='anwarPrayerMethod';
- METHOD_OPTIONS.forEach(item=>{const op=el('option','',item[1]);op.value=item[0];methodSelect.append(op)});
- methodSelect.value=settings.method;
+ const countrySelect=el('select');countrySelect.id='anwarPrayerCountry';
+ COUNTRY_OPTIONS.forEach(item=>{const option=el('option','',item.label);option.value=item.api;countrySelect.append(option)});
+ countrySelect.value=settings.country;
+ const cityInput=el('input');cityInput.id='anwarPrayerCity';cityInput.type='text';cityInput.autocomplete='address-level2';cityInput.maxLength=90;cityInput.value=settings.city;cityInput.placeholder='مثال: مكناس';
  const schoolSelect=el('select');schoolSelect.id='anwarPrayerSchool';
  [['0','العصر القياسي (شافعي / مالكي)'],['1','العصر الحنفي']].forEach(item=>{const op=el('option','',item[1]);op.value=item[0];schoolSelect.append(op)});
  schoolSelect.value=settings.school;
@@ -184,9 +254,8 @@
  VOICES.forEach(voice=>{const option=el('option','',voice.label);option.value=voice.key;voiceSelect.append(option)});
  voiceSelect.value=settings.voice;
  fields.append(
-  makeField('الدولة',countryInput),
+  makeField('الدولة',countrySelect),
   makeField('المدينة',cityInput),
-  makeField('طريقة حساب المواقيت',methodSelect),
   makeField('طريقة حساب العصر',schoolSelect),
   makeField('صوت الأذان',voiceSelect)
  );
@@ -475,13 +544,31 @@
   }
  }
  refreshButton.addEventListener('click',()=>{
-  settings.country=countryInput.value.trim();settings.city=cityInput.value.trim();
-  settings.method=methodSelect.value;settings.school=schoolSelect.value;
+  settings.country=normalizeCountry(countrySelect.value)||detectCountry();
+  settings.method=methodForCountry(settings.country);
+  settings.city=cityInput.value.trim();settings.school=schoolSelect.value;
   persist();todayData=null;tomorrowData=null;lastDateCheck='';
   timesGrid.replaceChildren(...PRAYERS.map(prayer=>{const item=el('div','anwar-prayer-time');item.append(el('b','',prayer.name),el('strong','','—'));return item;}));
   nextBox.hidden=true;nextName.textContent='';nextWhen.textContent='';countdown.textContent='';
   dateLine.textContent='جارٍ تحميل مواقيت الصلاة…';dateLine.dataset.state='loading';
   lastTick=Date.now();refreshTimes(false);
+ });
+ countrySelect.addEventListener('change',()=>{
+  const selected=normalizeCountry(countrySelect.value);
+  if(!selected)return;
+  settings.country=selected;
+  settings.countrySource='manual';
+  settings.method=methodForCountry(selected);
+  settings.city=defaultCity(selected);
+  settings.timezone='';
+  cityInput.value=settings.city;
+  persist();updateHeader();
+  todayData=null;tomorrowData=null;lastDateCheck='';
+  nextBox.hidden=true;
+  timesGrid.replaceChildren(...PRAYERS.map(prayer=>{const item=el('div','anwar-prayer-time');item.append(el('b','',prayer.name),el('strong','','—'));return item;}));
+  dateLine.textContent='تحقق من المدينة ثم حدّث المواقيت للحصول على التوقيت الأقرب إليك.';
+  dateLine.dataset.state='loading';
+  setStatus('اختيرت الدولة. حدّد مدينتك بدل المدينة الافتراضية إن لزم، ثم اضغط «تحديث مواقيت الصلاة».');
  });
  enabledInput.addEventListener('change',()=>{
   settings.enabled=enabledInput.checked;persist();
@@ -507,9 +594,6 @@
   setStatus('تم اختيار '+next.label+'.');
  });
  testButton.addEventListener('click',()=>playAdhan('اختبار',true));
- countryInput.addEventListener('change',()=>{
-  if(settings.country==='Morocco'&&countryInput.value.trim()!=='Morocco'&&methodSelect.value==='21')methodSelect.value='auto';
- });
  if(todayData)renderTimes();else timesGrid.replaceChildren(...PRAYERS.map(prayer=>{
   const item=el('div','anwar-prayer-time');item.append(el('b','',prayer.name),el('strong','','—'));return item;
  }));
