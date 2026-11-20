@@ -2075,7 +2075,7 @@ async function exportRecords(records,title,format){
  if(format==='docx')return downloadBlob(recordsDocx(records,title),base+'.docx');
  if(format==='pdf'){
   $('pa').style.cssText='position:fixed;left:-10000px;top:0;width:794px;padding:48px 58px;background:#fff;color:#111;font-family:Amiri,serif;font-size:20px;line-height:2;direction:rtl';
-  $('pa').innerHTML='<section class="book-cover"><div style="font-size:60px;color:#b58a43">✒</div><h1>'+esc(title)+'</h1><p>مختارات من أعمال</p><h2 style="font-size:32px">Anouar Oumlili</h2><p>أنوار أومليلي · المغرب</p><p style="margin-top:70px;font-size:15px">مفكرة أنوار</p></section>'+records.map(note=>'<section class="book-item"><h2>'+esc(note.title||'بلا عنوان')+'</h2><div class="m">'+esc(TYPES[note.type]||'عمل')+' · '+esc(fmt(note.ts))+'</div><hr><div class="paper-export paper-'+(note.paper||'plain')+'">'+san(note.html||'')+'</div></section>').join('')+'<div class="f">مفكرة أنوار · © 2026 Anouar Oumlili · جميع الحقوق محفوظة</div>';
+  $('pa').innerHTML=records.map(note=>'<section class="book-item"><h2>'+esc(note.title||'بلا عنوان')+'</h2><div class="m">'+esc(TYPES[note.type]||'عمل')+' · '+esc(fmt(note.ts))+'</div><hr><div class="paper-export paper-'+(note.paper||'plain')+'">'+san(note.html||'')+'</div></section>').join('')+'<div class="f">مفكرة أنوار · © 2026 Anouar Oumlili · جميع الحقوق محفوظة</div>';
   return await renderPaPdf(base+'.pdf');
  }
  toast('صيغة غير مدعومة',3000);return false;
@@ -2101,18 +2101,18 @@ async function doWord(){
 function openHistory(){if(!cur){toast('افتح عملًا أولًا');return}clearTimeout(tm);if(pendingBefore){cur.history=cur.history||[];if(pendingBefore.html!==cur.html)cur.history.push(pendingBefore);cur.history=cur.history.slice(-15);pendingBefore=null}const h=(cur.history||[]).slice().reverse();$('historyItems').innerHTML=h.length?h.map((v,i)=>`<button type="button" class="history-item" data-ver="${h.length-1-i}"><span>${esc(v.title||'بلا عنوان')} · ${TYPES[v.type]||'عمل'}</span><small>${fmt(v.ts)}</small></button>`).join(''):'<p class="empty">لا توجد إصدارات سابقة لهذا العمل بعد.</p>';$('historyDialog').showModal()}
 function restoreHistory(i){if(!cur)return;const h=cur.history||[],v=h[i];if(!v)return;if(!confirm('استعادة هذا الإصدار؟ سيُحفظ الإصدار الحالي في السجل قبل الاستعادة.'))return;h.push({title:cur.title,type:cur.type,html:cur.html,ts:cur.ts,font:cur.font,size:cur.size,paper:cur.paper||'plain'});cur.history=h.slice(-15);Object.assign(cur,{title:v.title,type:v.type,html:v.html,ts:Date.now(),font:v.font,size:v.size,paper:v.paper||'plain'});pg.innerHTML=san(cur.html);$('t').value=cur.title;$('ty').value=cur.type;save();openNote(cur);$('historyDialog').close();toast('تمت استعادة الإصدار')}
 function setBookToolExpanded(open,scroll=false){
- const app=$('app'),panel=$('bookToolPanel'),content=$('bookToolContent'),toggle=$('bookToolToggle');
- if(!app||!panel||!content||!toggle)return;
- content.hidden=!open;
- panel.classList.toggle('expanded',!!open);
+ const app=$('app'),panel=$('bookToolPanel'),toggle=$('bookToolToggle');
+ if(!panel||!toggle)return;
+ panel.open=!!open;
  toggle.setAttribute('aria-expanded',String(!!open));
- app.classList.toggle('book-open',!!open);
+ if(app)app.classList.toggle('book-open',!!open);
  if(open&&scroll)requestAnimationFrame(()=>panel.scrollIntoView({behavior:'smooth',block:'nearest'}));
 }
-function openBookDialog(){
- if(cur)flushPendingEdit(false);
- setBookToolExpanded(true,true);
-}
+$('bookToolPanel')?.addEventListener('toggle',()=>{
+ const panel=$('bookToolPanel'),toggle=$('bookToolToggle');
+ if(toggle)toggle.setAttribute('aria-expanded',String(!!panel?.open));
+ $('app')?.classList.toggle('book-open',!!panel?.open);
+});
 
 async function createBook(){
  if(cur)flushPendingEdit(false);
@@ -2120,14 +2120,14 @@ async function createBook(){
  let notes;
  if(scope==='current')notes=cur&&cur!==draftNote?[cur]:[];
  else notes=S.notes.filter(n=>scope==='all'||(scope==='poem'?n.type==='poem':n.type==='text'||n.type==='idea')).sort((a,b)=>a.ts-b.ts);
- if(!notes.length){toast(scope==='current'?'افتح عملاً أو اختر كل الأعمال لإنشاء الكتاب.':'لا توجد أعمال ضمن هذا الاختيار.');return}
+ if(!notes.length){toast(scope==='current'?'افتح عملاً أولاً لتصديره.':'لا توجد أعمال ضمن هذا الاختيار.');return}
  const format=$('bookFormat').value,button=$('createBook');
- button.disabled=true;button.textContent='جارٍ التجهيز…';
+ button.disabled=true;button.textContent='جارٍ التصدير…';
  try{
   const ok=await exportRecords(notes,title,format);
-  if(ok){setBookToolExpanded(false);toast('تم تجهيز الكتاب بنجاح ✓',3000)}
- }catch(error){console.warn('تعذّر إنشاء الكتاب',error);toast('تعذّر إنشاء الكتاب. بقيت أعمالك محفوظة.',5000)}
- finally{button.disabled=false;button.textContent='حفظ الكتاب'}
+  if(ok){setBookToolExpanded(false);toast('تم تصدير الأعمال بنجاح ✓',3000)}
+ }catch(error){console.warn('تعذّر تصدير الأعمال',error);toast('تعذّر التصدير. بقيت أعمالك محفوظة.',5000)}
+ finally{button.disabled=false;button.textContent='تصدير الأعمال'}
 }
 function insertImportedText(text,filename){
  if(!cur)newNote();
@@ -2459,9 +2459,7 @@ document.addEventListener('click',e=>{
  const id=t.id;
  if(t.dataset.paper){setPaperStyle(t.dataset.paper);return}
  if(id==='paperStyleBtn'){const panel=$('paperStylePanel'),open=panel.hidden,rect=t.getBoundingClientRect();panel.hidden=!open;t.setAttribute('aria-expanded',String(open));if(open){panel.style.top=Math.min(innerHeight-panel.offsetHeight-10,Math.max(8,rect.bottom+5))+'px';panel.style.left=Math.max(10,Math.min(rect.left,innerWidth-panel.offsetWidth-10))+'px'}return}
- if(id==='bookToolToggle')setBookToolExpanded($('bookToolContent').hidden,true);
- else if(id==='newBook')openBookDialog();
- else if(id==='createBook')createBook();
+ if(id==='createBook')createBook();
  else if(id==='addBookFile')$('bookFilePicker').click();
  else if(id==='hist')openHistory();
  else if(id==='closeHistory')$('historyDialog').close();
@@ -2563,8 +2561,8 @@ $('bookFilePicker').addEventListener('change',e=>{
  e.target.value='';
 });
 $('bookFormat').addEventListener('change',e=>{
- const hints={pdf:'ينشئ ملف PDF جاهزاً للقراءة والطباعة ويحفظه مباشرة على الجهاز.',docx:'ينشئ مستند Word قابلاً للتحرير.',txt:'يحفظ النص العربي في ملف بسيط.',html:'ينشئ صفحة ويب مستقلة من أعمال الكتاب.'};
- $('bookFileStatus').textContent=hints[e.target.value]||'اختر صيغة الحفظ المناسبة.';
+ const hints={pdf:'ينشئ ملف PDF للقراءة والطباعة.',docx:'ينشئ مستند Word قابلاً للتحرير.',txt:'يحفظ النص العربي في ملف نصي بسيط.',html:'ينشئ صفحة HTML مستقلة من الأعمال.'};
+ $('exportFormatHint').textContent=hints[e.target.value]||'اختر صيغة التصدير المناسبة.';
 });
 $('fq').addEventListener('input',e=>fontList(e.target.value));
 $('sz').addEventListener('change',e=>applySize(+e.target.value));
