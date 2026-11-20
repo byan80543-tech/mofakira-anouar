@@ -4481,7 +4481,7 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
  const radioTitle=sectionTitles.find(title=>title.textContent.includes('الإذاعات المباشرة'));
  const liveStation=document.getElementById('liveStationArea');
  const lessonHub=document.getElementById('lessonHub');
- if(!quranTitle||!radioTitle||!liveStation||!lessonHub)return;
+ // Optional content mounts must never disable the service navigation itself.
 
  const pages={quran:quranPage,radio:radioPage,lessons:lessonsPage,adhkar:adhkarPage,tasbih:tasbihPage};
  const serviceButtons=Array.from(panel.querySelectorAll('[data-anwar-service]'));
