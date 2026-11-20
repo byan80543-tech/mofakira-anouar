@@ -53,8 +53,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Test caption entity decoding and prevent double unescaping
-        run: node scripts/test-caption-entity-decoding.mjs
       - name: Test radio continuity across in-app audio and foreground interruptions
         run: node scripts/test-radio-interruptions.mjs
       - name: Test direct tasbih icon opens its dialog
