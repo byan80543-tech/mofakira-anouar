@@ -47,7 +47,7 @@
 
 - `CLOUDFLARE_API_TOKEN`: رمز API المحدود إلى العامل `anwar-api-gateway`.
 - `CLOUDFLARE_ACCOUNT_ID`: معرّف حساب Cloudflare.
-- `IP_HASH_SECRET`: السر العشوائي الذي أنشأته. يستخدمه Worker لبصمة HMAC ولا يُحفظ في GitHub كملف؛ يبقى Secret مشفرًا ويُمرر عبر Wrangler Action إلى سر Worker.
+- `IP_HASH_SECRET`: السر العشوائي الذي أنشأته. يستخدمه Worker لبصمة HMAC ولا يُحفظ في المستودع؛ يحقنه سير النشر من GitHub Secrets عبر ملف مؤقت مقيّد الصلاحيات يُحذف بعد خطوة النشر.
 - `ADHKAR_ADMIN_SECRET`: رمز إدارة منفصل لا يقل عن 32 محرفًا، يُستخدم لإنشاء جلسات المالك الموقعة.
 
 بعد إضافة الأسرار، افتح Actions وشغّل `Deploy Anwar API Gateway`. سيرفع GitHub Actions العامل وإعدادات Durable Object وRate Limiting، ويضبط سر HMAC من GitHub Secrets دون طباعته في سجل التشغيل.
