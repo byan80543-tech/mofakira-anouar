@@ -45,7 +45,7 @@ assert.match(prayer,/\.anwar-prayer-card\{gap:7px;padding:10px 11px\}/,'prayer c
 assert.match(prayer,/\.anwar-prayer-next\[hidden\]\{display:none!important\}/,'hidden countdown is not forced visible by the grid rule');
 assert.match(html,/<small>أصوات الأذان<\/small><strong>اختيار الصوت والتنبيهات<\/strong>/,'section card distinguishes adhan sounds from the prayer timetable');
 assert.match(html,/#rd \.curtain-head #ownerBtn\.radio-owner-pen[\s\S]*?width:34px!important;height:34px!important/,'ownership button matches the close button dimensions');
-assert.match(html,/prayer-times\.js\?v=20261120-7/,'HTML loads the updated prayer controller');
+assert.match(html,/prayer-times\.js\?v=20261120-8/,'HTML loads the updated prayer controller');
 assert.match(worker,/anwar-shell-2026-11-20-v114/,'service worker cache is bumped for the updated prayer card');
 
 console.log('Prayer card compact layout, loading states, Arabic location and header controls tests passed.');
