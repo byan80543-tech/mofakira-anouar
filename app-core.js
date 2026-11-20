@@ -1919,6 +1919,11 @@ function safeFileName(value,fallback){
  const cleaned=String(value||fallback||'anwar-book').replace(/[\\/:*?"<>|]/g,'-').replace(/\s+/g,' ').trim().slice(0,80);
  return cleaned||fallback||'anwar-book';
 }
+// User-selected files are downloaded as inert attachments, never as active HTML/SVG.
+async function downloadUntrustedFile(file,filename){
+ const inertBlob=new Blob([file],{type:'application/octet-stream'});
+ return downloadBlob(inertBlob,safeFileName(filename,'download'));
+}
 async function downloadBlob(blob,filename,options={}){
  if(!options.direct&&typeof window.showSaveFilePicker==='function'){
   try{
@@ -2524,7 +2529,7 @@ async function handleBookFile(file){
   const url=URL.createObjectURL(file),opened=openSafeBlobTab(url);
   if(opened){$('bookFileStatus').textContent='فُتح الملف في علامة جديدة للقراءة.';setTimeout(()=>URL.revokeObjectURL(url),120000);return}
  }
- await downloadBlob(file,name);
+ await downloadUntrustedFile(file,name);
  $('bookFileStatus').textContent='تم التعامل مع الملف عبر الحفظ أو التنزيل المتاح في هذا المتصفح.';
 }
 
