@@ -55,12 +55,6 @@ function makeHarness(initial={}){
         .replaceAll('<br>',' ')
         .replaceAll('<br/>',' ')
         .replaceAll('<br />',' ')
-        .replaceAll('&nbsp;',' ')
-        .replaceAll('&amp;','&')
-        .replaceAll('&lt;','<')
-        .replaceAll('&gt;','>')
-        .replaceAll('&quot;','"')
-        .replaceAll('&#39;',"'");
       return {body:{innerText:text,textContent:text}};
     }
   }
