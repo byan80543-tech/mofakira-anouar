@@ -12,9 +12,8 @@
  const API='https://api.aladhan.com/v1';
  const VOICES=[
   {key:'calm',label:'أذان هادئ · الافتراضي',url:'https://upload.wikimedia.org/wikipedia/commons/b/b0/Beautiful_adhan.ogg',page:'https://commons.wikimedia.org/wiki/File:Beautiful_adhan.ogg',credit:'Adam-synagda',license:'CC0 1.0'},
-  {key:'morocco',label:'المغرب · مسجد الحسن الثاني',url:'https://upload.wikimedia.org/wikipedia/commons/transcoded/9/9c/Llamada_a_oraci%C3%B3n_Mezquita_Hassan_II.wav/Llamada_a_oraci%C3%B3n_Mezquita_Hassan_II.wav.mp3',page:'https://commons.wikimedia.org/wiki/File:Llamada_a_oraci%C3%B3n_Mezquita_Hassan_II.wav',credit:'Fraguando',license:'CC BY-SA 4.0',note:'تسجيل ميداني مع أجواء المسجد والمحيط'},
-  {key:'madina',label:'المسجد النبوي · تسجيل ميداني',url:'https://upload.wikimedia.org/wikipedia/commons/7/7c/33937_ejaz215_call-to-prayer-from-the-prophet-s-mo.ogg',page:'https://commons.wikimedia.org/wiki/File:33937_ejaz215_call-to-prayer-from-the-prophet-s-mo.ogg',credit:'ejaz215',license:'CC BY 3.0'},
-  {key:'maahur',label:'أذان فارسي · مقام ماهور',url:'https://upload.wikimedia.org/wikipedia/commons/a/ae/AzaanMaahur.ogg',page:'https://commons.wikimedia.org/wiki/File:AzaanMaahur.ogg',credit:'Saeed Hatamzadeh-Varmazyar',license:'CC BY-SA 4.0'}
+  {key:'morocco_old',label:'الأذان المغربي القديم · الحاج محمد العمري',url:'https://www.youtube.com/watch?v=gOSnBo61v1w',page:'https://www.youtube.com/watch?v=gOSnBo61v1w',credit:'الحاج محمد العمري · الإذاعة الوطنية',license:'رابط للمصدر الأصلي على YouTube',note:'تسجيل الإذاعة الوطنية بتاريخ 18/02/1993 · يفتح للاستماع الخارجي',external:true},
+  {key:'madina',label:'المسجد النبوي · تسجيل ميداني',url:'https://upload.wikimedia.org/wikipedia/commons/7/7c/33937_ejaz215_call-to-prayer-from-the-prophet-s-mo.ogg',page:'https://commons.wikimedia.org/wiki/File:33937_ejaz215_call-to-prayer-from-the-prophet-s-mo.ogg',credit:'ejaz215',license:'CC BY 3.0'}
  ];
  const DEFAULT_VOICE='calm';
  const SETTINGS_KEY='anwar_prayer_settings_v1';
@@ -224,7 +223,9 @@
  });
  const audio=document.createElement('audio');
  audio.id='anwarPrayerAdhanAudio';audio.preload='none';audio.hidden=true;audio.controls=false;audio.setAttribute('playsinline','');audio.setAttribute('aria-label','صوت الأذان');
- audio.src=(VOICES.find(item=>item.key===settings.voice)||VOICES[0]).url;audio.volume=settings.volume;
+ const initialVoice=VOICES.find(item=>item.key===settings.voice)||VOICES[0];
+ if(!initialVoice.external)audio.src=initialVoice.url;
+ audio.volume=settings.volume;
  card.append(head,nextBox,timesGrid,dateLine,infoDetails,details,audio);
  const prayerMount=document.getElementById('anwarPrayerMount');
  if(prayerMount)prayerMount.append(card);
@@ -239,9 +240,10 @@
  function updateVoiceSource(){
   const voice=currentVoice();
   audioLink.href=voice.page;
-  audioLink.textContent='مصدر التسجيل';
+  audioLink.textContent=voice.external?'استماع خارجي للأذان':'مصدر التسجيل';
   audioLink.title=voice.credit+' · '+voice.license;
   voiceCredit.textContent=voice.credit+' · '+voice.license+(voice.note?' · '+voice.note:'');
+  testButton.textContent=voice.external?'استماع إلى الأذان المغربي':'تجربة الأذان';
  }
  updateVoiceSource();
  function countryForApi(value){
@@ -363,6 +365,7 @@
   try{localStorage.setItem(PLAYED_KEY,key)}catch(_e){}
  }
  async function playAdhan(prayer,isTest){
+  if(currentVoice().external){setStatus('هذا التسجيل متاح عبر YouTube من مصدره الأصلي؛ استخدم زر الاستماع الخارجي، واختر تسجيلًا مباشرًا لتشغيل الأذان تلقائيًا داخل المفكرة.');return false;}
   if(!isTest&&!settings.enabled)return false;
   if(!audio.paused&&!audio.ended){if(isTest)setStatus('الأذان يعمل الآن بالفعل.');return false;}
   audio.volume=settings.volume;
@@ -382,7 +385,7 @@
  audio.addEventListener('error',()=>setStatus('تعذّر تحميل تسجيل الأذان من المصدر الصوتي.'));
  function tick(){
   const now=Date.now(),events=eventList();
-  if(settings.enabled){
+  if(settings.enabled&&!currentVoice().external){
    events.forEach(event=>{
     const key=event.date+'|'+event.key+'|'+settings.city+'|'+settings.country;
     if(lastTick<event.at&&now>=event.at&&now-event.at<=180000&&!alreadyPlayed(key)){
@@ -467,8 +470,10 @@
  });
  enabledInput.addEventListener('change',()=>{
   settings.enabled=enabledInput.checked;persist();
-  if(settings.enabled)setStatus('تم تفعيل الأذان التلقائي. جرّب الأذان أولًا واسمح للمتصفح بتشغيل الصوت.');
-  else{if(!audio.paused)audio.pause();setStatus('تم إيقاف الأذان التلقائي وإيقاف الصوت الجاري.');}
+  if(settings.enabled){
+   if(currentVoice().external)setStatus('التسجيل المغربي القديم يفتح من YouTube ولا يعمل تلقائيًا داخل المفكرة؛ اختر صوتًا مباشرًا للتنبيه التلقائي.');
+   else setStatus('تم تفعيل الأذان التلقائي. جرّب الأذان أولًا واسمح للمتصفح بتشغيل الصوت.');
+  }else{if(!audio.paused)audio.pause();setStatus('تم إيقاف الأذان التلقائي وإيقاف الصوت الجاري.');}
  });
  volumeInput.addEventListener('input',()=>{
   settings.volume=Math.max(0,Math.min(1,Number(volumeInput.value)||0));audio.volume=settings.volume;persist();
@@ -476,10 +481,21 @@
  voiceSelect.addEventListener('change',()=>{
   const next=VOICES.find(item=>item.key===voiceSelect.value);
   if(!next)return;
-  settings.voice=next.key;audio.pause();audio.src=next.url;audio.load();
-  persist();updateVoiceSource();setStatus('تم اختيار '+next.label+'.');
+  settings.voice=next.key;audio.pause();
+  if(next.external)audio.removeAttribute('src');else audio.src=next.url;
+  audio.load();persist();updateVoiceSource();
+  setStatus(next.external?'تم اختيار الأذان المغربي القديم. اضغط «استماع إلى الأذان المغربي» لفتح التسجيل الأصلي.':'تم اختيار '+next.label+'.');
  });
- testButton.addEventListener('click',()=>playAdhan('اختبار',true));
+ testButton.addEventListener('click',()=>{
+  const voice=currentVoice();
+  if(voice.external){
+   const popup=window.open(voice.url,'_blank');
+   if(popup){try{popup.opener=null}catch(_e){}setStatus('فُتح مصدر تسجيل الأذان المغربي القديم في تبويب جديد.');}
+   else setStatus('منع المتصفح فتح نافذة جديدة؛ استخدم رابط «استماع خارجي للأذان».');
+   return;
+  }
+  playAdhan('اختبار',true);
+ });
  countryInput.addEventListener('change',()=>{
   if(settings.country==='Morocco'&&countryInput.value.trim()!=='Morocco'&&methodSelect.value==='21')methodSelect.value='auto';
  });

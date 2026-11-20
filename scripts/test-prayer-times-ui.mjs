@@ -10,6 +10,12 @@ const worker=fs.readFileSync(path.join(root,'service-worker.js'),'utf8');
 
 assert.doesNotThrow(()=>new vm.Script(prayer,{filename:'prayer-times.js'}),'prayer controller syntax');
 assert.match(prayer,/const infoDetails=el\('details','anwar-prayer-info'\)/,'privacy explanation has a details disclosure');
+assert.match(prayer,/key:'morocco_old',label:'الأذان المغربي القديم · الحاج محمد العمري'/,'classic Moroccan adhan is available as a voice choice');
+assert.match(prayer,/تسجيل الإذاعة الوطنية بتاريخ 18\/02\/1993/,'classic Moroccan adhan retains its original recording attribution');
+assert.match(prayer,/if\(settings\.enabled&&!currentVoice\(\)\.external\)/,'external YouTube source is not incorrectly treated as an in-app autoplay stream');
+assert.match(prayer,/استماع خارجي للأذان/,'external recording has a clearly labeled source link');
+assert.doesNotMatch(prayer,/key:'maahur'/,'Persian adhan option is removed');
+assert.doesNotMatch(prayer,/مسجد الحسن الثاني/,'modern Hassan II field recording is removed');
 assert.match(prayer,/infoDetails\.append\(infoSummary,privacyLine\)/,'complete original privacy explanation remains inside the disclosure');
 assert.match(prayer,/card\.append\(head,nextBox,timesGrid,dateLine,infoDetails,details,audio\)/,'prayer card keeps all original sections and the privacy disclosure');
 assert.match(prayer,/nextBox\.hidden=true/,'countdown starts hidden while prayer data is unavailable');
@@ -28,7 +34,7 @@ assert.match(prayer,/\.anwar-prayer-card\{gap:7px;padding:10px 11px\}/,'prayer c
 assert.match(prayer,/\.anwar-prayer-next\[hidden\]\{display:none!important\}/,'hidden countdown is not forced visible by the grid rule');
 assert.match(html,/<small>أصوات الأذان<\/small><strong>اختيار الصوت والتنبيهات<\/strong>/,'section card distinguishes adhan sounds from the prayer timetable');
 assert.match(html,/#rd \.curtain-head #ownerBtn\.radio-owner-pen[\s\S]*?width:34px!important;height:34px!important/,'ownership button matches the close button dimensions');
-assert.match(html,/prayer-times\.js\?v=20261120-6/,'HTML loads the updated prayer controller');
-assert.match(worker,/anwar-shell-2026-11-20-v109/,'service worker cache is bumped for the updated prayer card');
+assert.match(html,/prayer-times\.js\?v=20261120-7/,'HTML loads the updated prayer controller');
+assert.match(worker,/anwar-shell-2026-11-20-v110/,'service worker cache is bumped for the updated prayer card');
 
 console.log('Prayer card compact layout, loading states, Arabic location and header controls tests passed.');
