@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.aladhan.com https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="preload" href="./app-core.js?v=20261120-27" as="script">
+<link rel="preload" href="./app-core.js?v=20261120-28" as="script">
 <script src="api-gateway-config.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>مفكرة أنوار | Anouar Oumlili</title>
@@ -191,8 +191,7 @@ dialog textarea{width:100%;height:140px;background:var(--bg);color:var(--tx);bor
 .adhkar-list{display:grid;gap:8px}
 .dhikr{padding:10px;border:1px solid var(--bd);border-radius:9px;line-height:1.9;background:var(--bg)}
 .dhikr small{display:block;color:var(--mu);margin-top:4px}
-.adhkar-tabs{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px!important}
-.adhkar-tabs button{min-width:0;padding:8px 5px!important;font-size:clamp(10px,2.7vw,13px);line-height:1.5}
+.protective-page-title{margin:4px 2px 12px;color:var(--ac);font:700 21px 'Aref Ruqaa',Amiri,serif}
 #adhkarContent .protective-intro{margin:0 0 8px;padding:10px 12px;border:1px solid var(--bd);border-radius:10px;background:linear-gradient(135deg,var(--bg),var(--sf));color:var(--mu);font-size:11px;line-height:1.85}
 #adhkarContent .protective-group-title{margin:12px 2px 3px;color:var(--ac);font:700 16px 'Aref Ruqaa',Amiri,serif}
 #adhkarContent .protective-card{display:grid;gap:8px;padding:13px;border:1px solid var(--bd);border-radius:12px;background:var(--bg);box-shadow:0 2px 8px #243b3210}
@@ -2299,7 +2298,7 @@ dialog[open]>.float-head{display:none!important}
    </button>
    <button type="button" class="lesson-series-button anwar-service-card" data-anwar-service="adhkar" aria-controls="anwarAdhkarPage">
     <span class="lesson-series-button-tulip" aria-hidden="true"><img src="assets/tulip-cutout.svg" alt=""></span>
-    <span class="lesson-series-button-copy"><small>الأذكار</small><strong>أذكار الصباح والمساء</strong></span>
+    <span class="lesson-series-button-copy"><small>أذكار التحصين</small><strong>الأذكار اليومية والرقية</strong></span>
    </button>
    <button type="button" class="lesson-series-button anwar-service-card" data-anwar-service="tasbih" aria-controls="anwarTasbihPage">
     <span class="lesson-series-button-tulip" aria-hidden="true"><img src="assets/tulip-cutout.svg" alt=""></span>
@@ -2319,13 +2318,8 @@ dialog[open]>.float-head{display:none!important}
  </section>
  <section id="anwarAdhkarPage" class="anwar-service-page" aria-label="الأذكار" hidden>
   <div class="anwar-service-page-head"><button type="button" class="anwar-service-back" data-anwar-service-back>‹　العودة إلى الأقسام</button></div>
-  <section id="adhkarPanel" class="anwar-adhkar-page-content" aria-label="أذكار الصباح والمساء">
-  <div class="owner-tabs adhkar-tabs" style="margin-top:0" role="group" aria-label="أقسام الأذكار">
-   <button type="button" class="active" id="morningTab" aria-pressed="true">الصباح</button>
-   <button type="button" id="eveningTab" aria-pressed="false">المساء</button>
-   <button type="button" id="protectionTab" aria-pressed="false">التحصين</button>
-  </div>
-  
+  <section id="adhkarPanel" class="anwar-adhkar-page-content" aria-label="أذكار التحصين">
+  <h2 class="protective-page-title">أذكار التحصين</h2>
   <div id="adhkarContent" class="adhkar-list"></div>
   <small style="display:block;color:var(--mu);margin-top:8px;line-height:1.8">مراجعة المصدر: الآية من القرآن الكريم، والأذكار النبوية تُعزى إلى مصادرها الحديثية. لا تُعرض هذه القائمة على أنها حصر كامل للأذكار. للتحقق من نصوص الكتب وأبوابها: <a href="https://sunna.alifta.gov.sa/Book/IndexMatnBooks" target="_blank" rel="noopener noreferrer">مكتبة الحديث التابعة للرئاسة العامة للبحوث العلمية والإفتاء</a>، وتشمل الصحيحين والسنن وموطأ مالك ومسند أحمد. كما يمكن مراجعة التخريج والحكم عبر <a href="https://dorar.net/" target="_blank" rel="noopener noreferrer">الموسوعة الحديثية بالدرر السنية</a>. وعند إضافة أذكار أخرى يُذكر الكتاب ورقم الحديث ودرجة الحديث حيث يلزم.</small>
  </section>
@@ -2608,8 +2602,8 @@ dialog[open]>.float-head{display:none!important}
 <script src="./vault-storage.js?v=20261120-1"></script>
 <script src="./vault-device-unlock.js?v=20261118-1"></script>
 <script src="./poetry-dictation.js?v=20261119-1" defer></script>
-<script src="./protective-adhkar.js?v=20261120-1" defer></script>
-<script src="./app-core.js?v=20261120-27" defer></script>
+<script src="./protective-adhkar.js?v=20261120-2" defer></script>
+<script src="./app-core.js?v=20261120-28" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
 <script src="./tasbih-controller.js?v=20261120-1" defer></script>
 <script src="./prayer-times.js?v=20261120-11" defer></script>
