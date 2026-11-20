@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.aladhan.com https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="preload" href="./app-core.js?v=20261120-20" as="script">
+<link rel="preload" href="./app-core.js?v=20261120-21" as="script">
 <script src="api-gateway-config.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>مفكرة أنوار | Anouar Oumlili</title>
@@ -2260,7 +2260,7 @@ dialog[open]>.float-head{display:none!important}
  <section id="anwarServiceHome" class="anwar-service-home" aria-label="الأقسام الرئيسية">
   <div id="anwarPrayerMount"></div>
   <div id="anwarServiceGrid" class="anwar-service-grid" aria-label="الأقسام">
-   <button type="button" class="lesson-series-button anwar-service-card" data-anwar-service="adhan" aria-controls="anwarPrayerMount">
+   <button type="button" class="lesson-series-button anwar-service-card" data-anwar-service="adhan" aria-controls="anwarPrayerMount" aria-expanded="false">
     <span class="lesson-series-button-tulip" aria-hidden="true"><img src="assets/tulip-cutout.svg" alt=""></span>
     <span class="lesson-series-button-copy"><small>الأذان والمواقيت</small><strong>مواقيت الصلاة وأصوات المؤذنين والتنبيهات</strong></span>
    </button>
@@ -2290,7 +2290,7 @@ dialog[open]>.float-head{display:none!important}
  </section>
  <b class="radio-section-title">القرآن الكريم · اختر صوتاً وابدأ فوراً</b>
  <section class="radio-hero" aria-label="المشغل الإذاعي"><div class="radio-orbit radio-vintage-icon" role="img" aria-label="مذياع قديم يرمز إلى إذاعة أنوار القرآنية"><svg viewBox="0 0 120 96" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="woodRadio" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f4c77b"/><stop offset=".45" stop-color="#9a5426"/><stop offset="1" stop-color="#542b19"/></linearGradient><linearGradient id="goldRadio" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff0b8"/><stop offset="1" stop-color="#bd8734"/></linearGradient><linearGradient id="glassRadio" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#203e4a"/><stop offset="1" stop-color="#091c2d"/></linearGradient></defs><path d="M25 20 88 4" stroke="#e7d5a4" stroke-width="3.5" stroke-linecap="round"/><path d="m25 20 63-16" stroke="#7b8586" stroke-width="1.2"/><circle cx="25" cy="20" r="4" fill="url(#goldRadio)" stroke="#714b25"/><rect x="9" y="21" width="102" height="67" rx="11" fill="#3b2118" stroke="#e6c47a" stroke-width="2.5"/><rect x="13" y="25" width="94" height="59" rx="8" fill="url(#woodRadio)" stroke="#4d2918" stroke-width="1.5"/><rect x="18" y="31" width="55" height="38" rx="5" fill="url(#glassRadio)" stroke="#f2d28a" stroke-width="2"/><rect x="21" y="34" width="49" height="32" rx="3" fill="#d9c39a"/><g fill="#8d704d" opacity=".9"><path d="M24 37h43v1H24zm0 4h43v1H24zm0 4h43v1H24zm0 4h43v1H24zm0 4h43v1H24zm0 4h43v1H24zm0 4h43v1H24z"/></g><g fill="#f6dda0"><circle cx="27" cy="39" r="1"/><circle cx="34" cy="39" r="1"/><circle cx="41" cy="39" r="1"/><circle cx="48" cy="39" r="1"/><circle cx="55" cy="39" r="1"/><circle cx="62" cy="39" r="1"/></g><rect x="22" y="71" width="49" height="7" rx="2" fill="#241c18"/><path d="M26 74h41" stroke="#e4c178" stroke-width="1"/><g fill="url(#goldRadio)" stroke="#68401f" stroke-width="1.4"><circle cx="88" cy="43" r="11"/><circle cx="88" cy="69" r="8"/></g><circle cx="88" cy="43" r="4" fill="#7c4a26"/><circle cx="88" cy="69" r="3" fill="#7c4a26"/><path d="M83 43h10M88 38v10M85 69h6" stroke="#f4d58d" stroke-width="1.2" stroke-linecap="round"/><path d="M14 83h92" stroke="#f3d28b" stroke-width="1" opacity=".65"/><circle cx="17" cy="78" r="1.4" fill="#f8e5ad"/><circle cx="103" cy="78" r="1.4" fill="#f8e5ad"/></svg></div><div class="radio-hero-copy"><small>إذاعة أنوار القرآنية</small><strong id="radioNow">اختر قارئك المفضّل</strong><span id="radioSub">لمسة واحدة تفصل بينك وبين التلاوة</span><div class="radio-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div><span class="radio-live-dot" id="radioLiveDot"></span></section>
- <div class="live-station" id="liveStationArea" hidden><div><b>البث المباشر</b><small>استمع إلى القرآن مباشرة</small></div><select id="rl" aria-label="المحطة الافتراضية" hidden></select><button type="button" id="liveRadioPlay">استمع إلى الإذاعة　▶</button></div>
+ <div class="live-station" id="liveStationArea" hidden><div><b>محطات البث المباشر</b><small id="liveRadioStatus" role="status" aria-live="polite">اختر محطة للاستماع إليها داخل المفكرة.</small></div><label for="rl">اختر محطة البث</label><select id="rl" aria-label="اختر محطة البث المباشر"><option value="">جارٍ تجهيز المحطات…</option></select><button type="button" id="liveRadioPlay" aria-pressed="false">تشغيل المحطة المختارة　▶</button></div>
  <input id="rq" type="search" placeholder="ابحث عن اسم القارئ…" aria-label="ابحث عن قارئ">
  <div class="reciter-list-head"><span class="reciter-list-title">موسوعة القرّاء والروايات</span><span class="reciter-count" id="reciterCount">جارٍ التحميل…</span></div>
  <small class="reciter-catalog-note">كل مصحف ورواية متاحة يظهران كخيار مستقل، وقد تختلف السور المتاحة من رواية إلى أخرى. والبحث أعلاه يخص قائمة التشغيل داخل أنوار.</small>
@@ -2308,7 +2308,7 @@ dialog[open]>.float-head{display:none!important}
   </select>
  </div>
 
- <div hidden aria-hidden="true"><button type="button" id="countryQuickToggle" aria-expanded="false"></button><div id="countryQuickPanel" hidden></div><button type="button" id="countryRandomPlay"></button><select id="reciterCountry"><option value=""></option></select><button type="button" id="reciterCountryOpen" disabled></button><small id="reciterCountryStatus"></small></div>
+ <div hidden aria-hidden="true"><button type="button" id="countryQuickToggle" aria-expanded="false"></button><div id="countryQuickPanel" hidden></div></div>
  <section id="reciterCountryModal" class="country-reader-modal" hidden aria-modal="true" role="dialog" aria-labelledby="countryModalTitle">
   <div class="country-reader-dialog" tabindex="-1">
    <header class="country-reader-header">
@@ -2333,6 +2333,16 @@ dialog[open]>.float-head{display:none!important}
 
  <div id="reciterGrid" class="reciter-grid" role="list" aria-label="قائمة القراء"><div class="reciter-loading">جارٍ تجهيز قائمة القراء…</div></div>
  <button type="button" id="reciterMore" class="reciter-more" hidden>عرض المزيد من القراء</button>
+ <section id="anwarCountryReaders" class="reciter-country-panel" aria-label="قرّاء القرآن حسب البلد">
+  <div class="reciter-list-head"><span class="reciter-list-title">قرّاء من مختلف البلدان</span></div>
+  <label for="reciterCountry">اختر البلد لعرض القرّاء</label>
+  <div class="reciter-country-controls">
+   <select id="reciterCountry" aria-label="اختر بلد القرّاء"><option value="">جارٍ تجهيز قائمة البلدان…</option></select>
+   <button type="button" id="reciterCountryOpen" class="reciter-country-open" disabled>عرض القائمة</button>
+  </div>
+  <small id="reciterCountryStatus" class="reciter-country-status" role="status" aria-live="polite">اختر بلدًا لعرض القرّاء المتاحين.</small>
+  <button type="button" id="countryRandomPlay" class="country-random-action">استمع إلى قارئ عشوائي</button>
+ </section>
  <select id="rr" aria-label="القارئ" hidden></select><select id="rsu" aria-label="السورة" hidden></select>
  <label hidden><input type="radio" name="rm" value="c" checked> إذاعة متواصلة</label><label hidden><input type="radio" name="rm" value="s"> سورة واحدة</label><label id="rlb" hidden><input type="radio" name="rm" value="l"> بث مباشر</label>
  <div class="rc radio-controls"><button id="rpv" title="السورة السابقة">⏮</button><button id="rpp" aria-label="إيقاف مؤقت أو متابعة">▶</button><button id="rnx" title="السورة التالية">⏭</button><input type="range" id="rv" min="0" max="1" step=".05" value=".8" aria-label="مستوى الصوت"></div>
@@ -2569,10 +2579,10 @@ dialog[open]>.float-head{display:none!important}
 <script src="./vault-storage.js?v=20261120-1"></script>
 <script src="./vault-device-unlock.js?v=20261118-1"></script>
 <script src="./poetry-dictation.js?v=20261119-1" defer></script>
-<script src="./app-core.js?v=20261120-20" defer></script>
+<script src="./app-core.js?v=20261120-21" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
 <script src="./tasbih-controller.js?v=20261119-18" defer></script>
-<script src="./prayer-times.js?v=20261120-4" defer></script>
+<script src="./prayer-times.js?v=20261120-5" defer></script>
 
 
 
@@ -2898,6 +2908,16 @@ dialog[open]>.float-head{display:none!important}
 #rd .anwar-service-back:focus-visible,#rd .anwar-service-card:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 #rd #anwarRadioPage .radio-section-title{margin:2px 0;text-align:center}
 @media(max-width:360px){#rd .anwar-service-grid{gap:6px}#rd .anwar-service-card{padding:8px 7px!important;gap:6px!important}#rd .anwar-service-card .lesson-series-button-tulip{width:31px;height:34px}}
+
+/* تحسينات الوصول لقائمة المحطات ودليل القراء مع الإبقاء على البطاقات الأصلية */
+#rd .live-station{grid-template-columns:minmax(0,1fr);align-items:stretch;gap:8px}
+#rd .live-station select{display:block!important;width:100%;min-width:0;min-height:42px;border:1px solid #c9a96a;border-radius:9px;background:var(--sf);color:var(--tx);padding:8px 10px}
+#rd .live-station>label{display:block;color:var(--mu);font-size:11px}
+#rd .live-station button{width:100%;white-space:normal}
+#rd .reciter-country-panel{display:grid;gap:8px;min-width:0;padding:10px;border:1px solid var(--bd);border-radius:11px;background:var(--bg)}
+#rd .reciter-country-panel>label{display:block;color:var(--mu);font-size:11px}
+#rd .country-random-action{min-height:40px;padding:8px 12px;border:1px solid #c9a96a;border-radius:9px;background:linear-gradient(110deg,#fff7e3,var(--sf));color:var(--ac);font:inherit;font-size:12px;font-weight:700}
+#rd .country-random-action:disabled{opacity:.65}
 </style>
 </body>
 </html>
