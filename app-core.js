@@ -1320,7 +1320,7 @@ function applySize(px){
  if(!cur)return;restore();
  if(!saved||saved.collapsed){cur.size=px;pg.style.fontSize=px+'px';save();return}
  document.execCommand('fontSize',false,7);
- pg.querySelectorAll('font[size="7"]').forEach(f=>{const s=document.createElement('span');s.style.fontSize=px+'px';s.innerHTML=f.innerHTML;f.replaceWith(s)});touch();
+ pg.querySelectorAll('font[size="7"]').forEach(f=>{const s=document.createElement('span');s.style.fontSize=px+'px';s.append(...Array.from(f.childNodes));f.replaceWith(s)});touch();
 }
 function applyFont(f){
  if(!cur)return;restore();
@@ -2970,9 +2970,21 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)resumeRadioAfterReturn()});
  window.addEventListener('focus',resumeRadioAfterReturn);
  window.addEventListener('pageshow',resumeRadioAfterReturn);
- rr.innerHTML=R.map((r,i)=>`<option value="${i}">${esc(r[0])}</option>`).join('');
- rsu.innerHTML=SU.map((s,i)=>`<option value="${i+1}">${i+1}. ${esc(s)}</option>`).join('');
- const surahPicker=$('surahPicker');surahPicker.innerHTML=rsu.innerHTML;surahPicker.value=String(n);
+ rr.replaceChildren(...R.map((r,i)=>{
+  const option=document.createElement('option');
+  option.value=String(i);
+  option.textContent=String(r[0]??'');
+  return option;
+ }));
+ rsu.replaceChildren(...SU.map((s,i)=>{
+  const option=document.createElement('option');
+  option.value=String(i+1);
+  option.textContent=(i+1)+'. '+String(s??'');
+  return option;
+ }));
+ const surahPicker=$('surahPicker');
+ surahPicker.replaceChildren(...Array.from(rsu.options,option=>option.cloneNode(true)));
+ surahPicker.value=String(n);
  const surahPickerButton=$('surahPickerButton'),surahPickerCurrent=$('surahPickerCurrent');
  const surahPickerModal=$('surahPickerModal'),surahPickerList=$('surahPickerList'),surahPickerSearch=$('surahPickerSearch');
  function syncSurahPickerLabel(){
@@ -2988,11 +3000,45 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  function renderSurahPickerOptions(query){
   const q=String(query||'').trim().toLocaleLowerCase('ar');
   const options=Array.from(surahPicker.options).filter(option=>!q||option.textContent.toLocaleLowerCase('ar').includes(q)||String(option.value).includes(q));
-  surahPickerList.innerHTML=options.length?options.map(option=>{
-   const number=Number(option.value),active=number===Number(surahPicker.value);
-   const name=String(option.textContent).replace(/^\s*\d+\s*[.．-]?\s*/,'');
-   return '<button type="button" class="surah-picker-option" role="option" data-surah-option="'+number+'" aria-selected="'+active+'"><span class="surah-picker-option-tulip" aria-hidden="true"><img src="assets/tulip-cutout.svg" alt="" loading="lazy" decoding="async"></span><span class="surah-picker-option-copy"><span class="surah-picker-option-number">'+number+'.</span><span class="surah-picker-option-name">'+esc(name)+'</span></span></button>';
-  }).join(''):'<div class="surah-picker-empty">لا توجد سورة بهذا الاسم.</div>';
+  const fragment=document.createDocumentFragment();
+  if(options.length){
+   options.forEach(option=>{
+    const number=Number(option.value),active=number===Number(surahPicker.value);
+    const name=String(option.textContent||'').replace(/^\s*\d+\s*[.．-]?\s*/,'');
+    const button=document.createElement('button');
+    button.type='button';
+    button.className='surah-picker-option';
+    button.setAttribute('role','option');
+    button.dataset.surahOption=String(number);
+    button.setAttribute('aria-selected',String(active));
+    const seal=document.createElement('span');
+    seal.className='surah-picker-option-tulip';
+    seal.setAttribute('aria-hidden','true');
+    const image=document.createElement('img');
+    image.src='assets/tulip-cutout.svg';
+    image.alt='';
+    image.loading='lazy';
+    image.decoding='async';
+    seal.append(image);
+    const copy=document.createElement('span');
+    copy.className='surah-picker-option-copy';
+    const numberLabel=document.createElement('span');
+    numberLabel.className='surah-picker-option-number';
+    numberLabel.textContent=number+'.';
+    const nameLabel=document.createElement('span');
+    nameLabel.className='surah-picker-option-name';
+    nameLabel.textContent=name;
+    copy.append(numberLabel,nameLabel);
+    button.append(seal,copy);
+    fragment.append(button);
+   });
+  }else{
+   const empty=document.createElement('div');
+   empty.className='surah-picker-empty';
+   empty.textContent='لا توجد سورة بهذا الاسم.';
+   fragment.append(empty);
+  }
+  surahPickerList.replaceChildren(fragment);
  }
  function closeSurahPicker(){
   if(!surahPickerModal||surahPickerModal.hidden)return;
