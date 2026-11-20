@@ -194,6 +194,10 @@
  const voiceCredit=el('small','anwar-prayer-note','');
  links.append(apiLink,audioLink,qarawiyyinLink,kurdLink);
  details.append(summary,fields,actions,toggleLabel,volumeWrap,status,links,voiceCredit);
+ details.addEventListener('toggle',()=>{
+  const launcher=document.querySelector('[data-anwar-service="adhan"]');
+  if(launcher)launcher.setAttribute('aria-expanded',String(details.open));
+ });
  const audio=document.createElement('audio');
  audio.id='anwarPrayerAdhanAudio';audio.preload='none';audio.hidden=true;audio.controls=false;audio.setAttribute('playsinline','');audio.setAttribute('aria-label','صوت الأذان');
  audio.src=(VOICES.find(item=>item.key===settings.voice)||VOICES[0]).url;audio.volume=settings.volume;
