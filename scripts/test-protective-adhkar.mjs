@@ -30,7 +30,7 @@ const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const app=fs.readFileSync(new URL('../app-core.js',import.meta.url),'utf8');
 const worker=fs.readFileSync(new URL('../service-worker.js',import.meta.url),'utf8');
 assert.match(html,/<button[^>]*id="protectionTab"[^>]*>التحصين<\/button>/,'the adhkar page shows a dedicated protection tab');
-assert.ok(html.indexOf('./protective-adhkar.js?v=20261120-1')<html.indexOf('./app-core.js'),'protective data loads before the application renderer');
+assert.ok(html.indexOf('<script src="./protective-adhkar.js')<html.indexOf('<script src="./app-core.js'),'protective data loads before the application renderer');
 assert.match(app,/else if\(id==='protectionTab'\)renderAdhkar\('protection'\)/,'the protection tab is wired to the renderer');
 assert.match(app,/function renderProtectiveAdhkar\(\)/,'the dedicated protective renderer exists');
 assert.match(app,/countButton\.dataset\.protectiveAction='count'/,'the renderer exposes a per-entry repeat action');
