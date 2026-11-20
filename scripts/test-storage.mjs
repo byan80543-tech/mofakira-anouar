@@ -51,10 +51,10 @@ function makeHarness(initial={}){
     parseFromString(source){
       const text=String(source??'')
         .replaceAll('<div>','')
-        .replaceAll('</div>','\\n')
-        .replaceAll('<br>','\\n')
-        .replaceAll('<br/>','\\n')
-        .replaceAll('<br />','\\n')
+        .replaceAll('</div>',' ')
+        .replaceAll('<br>',' ')
+        .replaceAll('<br/>',' ')
+        .replaceAll('<br />',' ')
         .replaceAll('&nbsp;',' ')
         .replaceAll('&amp;','&')
         .replaceAll('&lt;','<')
@@ -68,7 +68,7 @@ function makeHarness(initial={}){
     createElement(tag){
       if(tag==='div'){
         const node={textContent:'',get innerText(){return this.textContent}};
-        Object.defineProperty(node,'innerHTML',{set(value){this.textContent=String(value??'').replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ')}});
+        Object.defineProperty(node,'innerHTML',{set(value){this.textContent=String(value??'')}});
         return node;
       }
       const anchor={tagName:tag,clicked:false,removed:false,click(){this.clicked=true},remove(){this.removed=true}};
