@@ -54,7 +54,7 @@ const adhkarPageHtml=html.slice(adhkarPageStart,tasbihPageStart);
 const tasbihPageHtml=html.slice(tasbihPageStart);
 ok(ownerTabs.includes('id="ownerTab"') && ownerTabs.includes('id="shareTab"') && !ownerTabs.includes('id="adhkarTab"'), 'ownership dialog contains only ownership and publication tabs');
 ok(!ownerDialogHtml.includes('id="adhkarPanel"') && !ownerDialogHtml.includes('id="tasbihPanel"'), 'adhkar and tasbih are no longer embedded in the ownership dialog');
-ok(adhkarPageHtml.includes('id="adhkarPanel"') && adhkarPageHtml.includes('id="morningTab"') && adhkarPageHtml.includes('id="eveningTab"') && adhkarPageHtml.includes('id="adhkarContent"'), 'the dedicated adhkar page contains the morning/evening list and renderer mount');
+ok(adhkarPageHtml.includes('id="adhkarPanel"') && adhkarPageHtml.includes('id="morningTab"') && adhkarPageHtml.includes('id="eveningTab"') && adhkarPageHtml.includes('id="protectionTab"') && adhkarPageHtml.includes('id="adhkarContent"'), 'the dedicated adhkar page contains morning, evening and protection tabs');
 ok(tasbihPageHtml.includes('id="tasbihPanel"') && tasbihPageHtml.includes('id="tasbihCount"') && tasbihPageHtml.includes('id="tasbihVoice"') && tasbihPageHtml.includes('id="tasbihThemePicker"'), 'the dedicated tasbih page keeps the existing counter, voice and theme controls');
 ok(html.includes('data-anwar-service="adhkar"') && html.includes('aria-controls="anwarAdhkarPage"') && html.includes('data-anwar-service="tasbih"') && html.includes('aria-controls="anwarTasbihPage"'), 'the home dashboard exposes separate adhkar and tasbih cards');
 ok(!html.includes('id="adhkarTab"') && !html.includes('id="adhkarTasbihToggle"'), 'obsolete ownership-tab and intermediate tasbih launcher are removed');
