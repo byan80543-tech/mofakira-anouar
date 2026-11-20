@@ -1,9 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
+import { execFileSync } from 'node:child_process';
 
 const root=process.cwd();
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+const htmlAudit=JSON.parse(execFileSync('python3',[path.join(root,'scripts/html_inspector.py'),path.join(root,'index.html')],{encoding:'utf8'}));
 const appCore=fs.readFileSync(path.join(root,'app-core.js'),'utf8');
 const tasbihController=fs.readFileSync(path.join(root,'tasbih-controller.js'),'utf8');
 const poetryDictation=fs.readFileSync(path.join(root,'poetry-dictation.js'),'utf8');
@@ -36,7 +38,7 @@ ok(tasbihController.includes("preferences.set('tasbih'") && tasbihController.inc
 ok(tasbihController.includes("removeButton.addEventListener('click'") && tasbihController.includes("restoreButton.addEventListener('click'") && tasbihController.includes("customAdd.addEventListener('click'"), 'custom dhikr add, remove and official restore actions are wired');
 ok(tasbihController.includes("voiceButton.addEventListener('click'") && tasbihController.includes('bestSpeechText(result,voiceTargetPhrase)') && tasbihController.includes('countPhraseMatches(liveText,voiceTargetPhrase)') && tasbihController.includes('voiceResultSegments') && tasbihController.includes('freshBatch') && tasbihController.includes("const speechLanguages=['ar-MA','ar-SA','ar']") && tasbihController.includes('voiceFallbackPending') && tasbihController.includes('scheduleVoiceRestart') && tasbihController.includes('recognition.onspeechstart=') && tasbihController.includes('recognition.onspeechend=') && html.includes('.anwar-tasbih-transcript strong.is-fading'), 'Arabic speech recognition handles different result batching, locale fallbacks and mobile session restarts');
 ok(html.includes('id="anwar-tasbih-touch-polish-v1"') && html.includes('-webkit-tap-highlight-color:transparent'), 'tasbih touch feedback suppresses the blue tap highlight while retaining keyboard focus');
-ok((html.match(/class="anwar-tasbih-small anwar-tasbih-flower"/g)||[]).length===2 && html.includes('aria-label="إنقاص العدد"') && html.includes('aria-label="تصفير العداد"') && html.includes('id="anwar-tasbih-side-flowers-v1"'), 'both side controls use matching flower icons and keep distinct accessible actions');
+ok(htmlAudit.elements.filter(element=>element.attrs.class==='anwar-tasbih-small anwar-tasbih-flower').length===2 && html.includes('aria-label="إنقاص العدد"') && html.includes('aria-label="تصفير العداد"') && html.includes('id="anwar-tasbih-side-flowers-v1"'), 'both side controls use matching flower icons and keep distinct accessible actions');
 const ownerDialogStart=html.indexOf('<dialog id="ownerDialog">');
 const outerTabsStart=html.indexOf('<div class="owner-tabs">',ownerDialogStart);
 const ownerPanelStart=html.indexOf('<section id="ownerPanel"',outerTabsStart);
@@ -48,8 +50,9 @@ const innerTabs=html.slice(innerTabsStart,tasbihPanelStart);
 ok(outerTabs.includes('id="ownerTab"') && outerTabs.includes('id="adhkarTab"') && outerTabs.includes('id="shareTab"'), 'owner, adhkar and sharing tabs are restored to the visible top-level navigation');
 ok(innerTabs.includes('id="morningTab"') && innerTabs.includes('id="eveningTab"') && innerTabs.includes('id="adhkarTasbihToggle"'), 'morning, evening and tasbih controls are grouped together inside the adhkar view');
 ok(!innerTabs.includes('id="adhkarTab"') && !outerTabs.includes('id="adhkarTasbihToggle"'), 'adhkar navigation is no longer hidden behind its own panel and the tasbih launcher is not misplaced');
-ok(/<script src="\.\/tasbih-controller\.js\?v=\d{8}-\d+" defer><\/script>/.test(html) && serviceWorker.includes("'./tasbih-controller.js'") && /const CACHE_NAME='anwar-shell-\d{4}-\d{2}-\d{2}-v\d+';/.test(serviceWorker), 'standalone tasbih controller is versioned and precached for offline use');
-ok(html.includes('src="./poetry-dictation.js?v=20261119-1" defer') && serviceWorker.includes("'./poetry-dictation.js'") && appCore.includes('window.AnwarPoetryDictation'), 'poetry dictation controller is versioned and precached for offline use');
+const tasbihScript=htmlAudit.script_sources.find(src=>src.startsWith('./tasbih-controller.js?v='));
+ok(!!tasbihScript && serviceWorker.includes("'./tasbih-controller.js'") && /const CACHE_NAME='anwar-shell-[0-9]{4}-[0-9]{2}-[0-9]{2}-v[0-9]+';/.test(serviceWorker), 'standalone tasbih controller is versioned and precached for offline use');
+ok(htmlAudit.script_sources.includes('./poetry-dictation.js?v=20261119-1') && serviceWorker.includes("'./poetry-dictation.js'") && appCore.includes('window.AnwarPoetryDictation'), 'poetry dictation controller is versioned and precached for offline use');
 
 ok(manifest.name==='مفكرة أنوار' && manifest.short_name==='مفكرة أنوار','PWA name and short_name');
 ok(manifest.start_url==='/mofakira-anouar/' && manifest.scope==='/mofakira-anouar/','GitHub Pages start_url and scope');
@@ -85,7 +88,7 @@ ok(appSource.includes("size:v.size,paper:v.paper||'plain'"),'restoring a previou
 
 ok(appSource.includes('async function ensurePdfLibraries()'),'PDF libraries load only when PDF export is requested');
 ok(appSource.includes('async function makeQR()'),'QR library loads only when QR generation is requested');
-ok(!/<script\b[^>]*\bsrc\s*=\s*["'][^"']*(?:html2canvas|qrcodejs|jspdf)/i.test(html),'heavy PDF and QR libraries are not loaded by static script tags');
+ok(!htmlAudit.script_sources.some(src=>/(html2canvas|qrcodejs|jspdf)/i.test(src)),'heavy PDF and QR libraries are not loaded by static script tags');
 ok(!appSource.includes('Object.hasOwn('),'storage normalization avoids unsupported Object.hasOwn calls');
 ok(appSource.includes('src="./vault-crypto.js?v=20261118-2"'),'the local vault crypto helper is loaded by the notebook');
 ok(appSource.includes('id="vaultGate"') && appSource.includes('id="vaultLockBtn"'),'password gate and manual vault lock controls are present');
@@ -142,7 +145,8 @@ const iconPolishEnd=html.indexOf('</style>',iconPolishStart);
 const iconPolish=html.slice(iconPolishStart,iconPolishEnd);
 ok(iconPolish.includes('.tb #vaultLockBtn') && !iconPolish.includes('#bkp'),'top toolbar icon polish includes the lock and excludes the relocated backup control');
 ok(appSource.includes('#rib .bkp-tool svg') && appSource.includes('#rib .bkp-tool:focus-visible'),'relocated backup control has a consistent in-panel icon and keyboard focus treatment');
-ok(['prn','pdf','vs','sp','fo','ip','pn','cy','hist','dl'].every(id=>new RegExp('id="'+id+'"[^>]*(?:aria-label|title)=').test(html)),'editor action icons have readable accessible names or titles');
+const accessibleControlIds=['prn','pdf','vs','sp','fo','ip','pn','cy','hist','dl'];
+ok(accessibleControlIds.every(id=>htmlAudit.elements.some(element=>element.attrs.id===id&&(element.attrs['aria-label']||element.attrs.title))),'editor action icons have readable accessible names or titles');
 ok(toolbarBackNavigation.includes("paletteButton.setAttribute('aria-expanded'") && toolbarBackNavigation.includes("radioButton.setAttribute('aria-pressed'") && toolbarBackNavigation.includes('إيقاف إذاعة القرآن مؤقتًا'),'toolbar controls keep palette and Quran playback states accessible');
 
 try{new vm.Script(toolbarBackNavigation,{filename:'toolbar-back-navigation.js'});ok(true,'contextual back-navigation helper JavaScript syntax is valid')}catch(error){failures.push('toolbar-back-navigation.js: '+error.message)}
@@ -181,16 +185,14 @@ for(const icon of manifest.icons??[]){
   ok(!!iconPath&&fs.existsSync(path.join(root,iconPath)),`manifest icon exists: ${iconPath}`);
 }
 
-const ids=[...html.matchAll(/(?:^|\s)id\s*=\s*["']([^"']+)["']/gim)].map(m=>m[1]);
-const duplicateIds=ids.filter((id,i)=>ids.indexOf(id)!==i);
+const duplicateIds=htmlAudit.ids.filter((id,i)=>htmlAudit.ids.indexOf(id)!==i);
 ok(duplicateIds.length===0,'HTML IDs are unique');
 
-let scriptCount=0;
-for(const match of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)){
-  if(/\bsrc\s*=/.test(match[1]))continue;
-  scriptCount++;
-  try{new vm.Script(match[2],{filename:`inline-script-${scriptCount}.js`})}
-  catch(error){failures.push(`inline script ${scriptCount}: ${error.message}`)}
+const inlineScripts=htmlAudit.inline_scripts;
+const scriptCount=inlineScripts.length;
+for(let i=0;i<inlineScripts.length;i++){
+  try{new vm.Script(inlineScripts[i],{filename:`inline-script-${i+1}.js`})}
+  catch(error){failures.push(`inline script ${i+1}: ${error.message}`)}
 }
 ok(scriptCount===0,'application HTML contains no inline JavaScript');
 try{new vm.Script(appCore,{filename:'app-core.js'});ok(true,'extracted application bundle syntax is valid')}catch(error){failures.push('app-core.js: '+error.message+' '+String(error.stack||'').split('\\n').slice(0,3).join(' '))}
@@ -205,9 +207,9 @@ ok(socialFunction.includes(".on('meta[property=\"og:title\"]'") && socialFunctio
 const qualityWorkflow=fs.readFileSync(path.join(root,'.github/workflows/quality.yml'),'utf8');
 ok(qualityWorkflow.includes('wrangler@4.164.0') && !qualityWorkflow.includes('wrangler@latest'),'quality dry-run pins the Wrangler version used by deployment');
 ok(appSource.includes("content-visibility:auto;contain-intrinsic-size:auto 76px"),'off-screen note cards skip unnecessary painting');
-const appCorePreload=html.match(new RegExp('<link rel="preload" href="([^"]*app-core[.]js[?]v=[^"]+)" as="script">'));
-const appCoreScript=html.match(new RegExp('<script src="([^"]*app-core[.]js[?]v=[^"]+)" defer></script>'));
-ok(!!appCorePreload && !!appCoreScript && appCorePreload[1].includes('app-core.js?v=') && appCorePreload[1]===appCoreScript[1] && appCore.length>200000,'main application bundle is externally loaded and preload/script cache versions match');
+const appCorePreload=htmlAudit.preload_scripts.find(href=>href.includes('app-core.js?v='));
+const appCoreScript=htmlAudit.script_sources.find(src=>src.includes('app-core.js?v='));
+ok(!!appCorePreload && !!appCoreScript && appCorePreload===appCoreScript && appCore.length>200000,'main application bundle is externally loaded and preload/script cache versions match');
 ok(!appSource.includes('id="youtubeTranscriptTool"') && !appSource.includes('id="transcriptYoutubeUrl"') && !appCore.includes('function parseYouTubeVideoId') && appSource.includes('id="transcriptAudioFile"') && appSource.includes('id="transcriptGenerate"') && appSource.includes('id="transcriptText"') && appSource.includes('id="transcriptExportPdf"'),'YouTube URL transcription stays removed while local audio-file transcription and transcript editing remain available');
 ok(appCore.includes('async function transcribeAudioFile()') && appCore.includes("else if(id==='transcriptGenerate')transcribeAudioFile()") && appCore.includes("window.confirm('سيُرسل الملف الصوتي الذي اخترته") && appCore.includes("form.append('audio',file,file.name||'recording.webm')") && appCore.includes("form.append('consent','true')") && appCore.indexOf("window.confirm('سيُرسل الملف الصوتي الذي اخترته") < appCore.indexOf("form.append('consent','true')") && apiGatewayWorker.includes('key !== "audio" && key !== "consent"') && apiGatewayWorker.includes('consentValues.length !== 1 || consentValues[0] !== "true"'),'local audio transcription requires confirmation before sending audio and the explicit consent field');
 ok(!appCore.includes('function parseYouTubeVideoId') && appCore.includes('function parseCaptionFile') && appCore.includes("else if(id==='transcriptExportPdf')exportTranscript('pdf')") && appCore.includes("else if(id==='transcriptInsertBook')insertTranscriptIntoBook()"),'YouTube URL parsing is absent while local caption import, PDF export and book insertion remain wired');
