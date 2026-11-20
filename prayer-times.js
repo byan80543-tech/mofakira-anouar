@@ -95,7 +95,7 @@
   '.anwar-prayer-head strong{font-family:"Aref Ruqaa",Amiri,serif;font-size:18px;color:var(--ac)}',
   '.anwar-prayer-head small,.anwar-prayer-date,.anwar-prayer-note{font-size:10px;color:var(--mu);line-height:1.7}',
   '.anwar-prayer-next{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 10px;padding:10px 12px;border-radius:11px;background:linear-gradient(115deg,#0b3159,#1c6077);color:#fff}',
-  '.anwar-prayer-next small{font-size:11px;color:#f1dca9}.anwar-prayer-next strong{font-size:17px;color:#fff2c5}.anwar-prayer-next span{font-size:12px;color:#fff;direction:ltr;text-align:left;font-variant-numeric:tabular-nums}',
+  '.anwar-prayer-next small{font-size:11px;color:#f1dca9;line-height:1.6}.anwar-prayer-next strong{font-size:17px;color:#fff2c5}.anwar-prayer-next-copy,.anwar-prayer-countdown{display:grid;gap:3px;min-width:0}.anwar-prayer-next-when{color:#fff!important}.anwar-prayer-countdown{justify-items:end;text-align:right}.anwar-prayer-next span{font-size:18px;font-weight:700;color:#fff;direction:ltr;text-align:left;font-variant-numeric:tabular-nums;white-space:nowrap}',
   '.anwar-prayer-times{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}',
   '.anwar-prayer-time{display:grid;gap:3px;min-width:0;padding:8px 3px;text-align:center;border:1px solid var(--bd);border-radius:9px;background:var(--sf)}',
   '.anwar-prayer-time b{font-size:10px;color:var(--mu);white-space:nowrap}.anwar-prayer-time strong{font-size:12px;color:var(--ac);direction:ltr;font-variant-numeric:tabular-nums}',
@@ -128,12 +128,16 @@
  const locationLabel=el('small','','المغرب · مكناس');
  head.append(title,locationLabel);
  const nextBox=el('div','anwar-prayer-next');
- const nextCopy=el('div');
+ const nextCopy=el('div','anwar-prayer-next-copy');
  const nextLabel=el('small','','الصلاة القادمة');
  const nextName=el('strong','','—');
- nextCopy.append(nextLabel,nextName);
+ const nextWhen=el('small','anwar-prayer-next-when','');
+ nextCopy.append(nextLabel,nextName,nextWhen);
+ const countdownCopy=el('div','anwar-prayer-countdown');
+ const countdownLabel=el('small','','الوقت المتبقي حتى دخول الصلاة');
  const countdown=el('span','','--:--:--');
- nextBox.append(nextCopy,countdown);
+ countdownCopy.append(countdownLabel,countdown);
+ nextBox.append(nextCopy,countdownCopy);
  const timesGrid=el('div','anwar-prayer-times');
  const dateLine=el('div','anwar-prayer-date','جارٍ تحميل مواقيت المدينة…');
  const privacyLine=el('small','anwar-prayer-note','لا نطلب موقعك الجغرافي؛ نرسل المدينة والدولة وتاريخ المواقيت وطريقة الحساب واختيار العصر إلى خدمة المواقيت. وقد تختلف الدقائق عن توقيت مسجدك المحلي.');
@@ -349,10 +353,12 @@
   if(next){
    nextName.textContent=next.name;
    countdown.textContent=formatCountdown(next.at-now);
-   nextLabel.textContent='الصلاة القادمة · '+timeLabel(next.at);
+   nextLabel.textContent='الصلاة القادمة';
+   const todayDate=todayData&&todayData.date&&todayData.date.gregorian&&todayData.date.gregorian.date;
+   nextWhen.textContent=(next.date===todayDate?'اليوم':'غدًا')+' · '+timeLabel(next.at);
    timesGrid.querySelectorAll('.anwar-prayer-time').forEach(item=>item.classList.toggle('is-next',item.dataset.prayer===next.key&&next.date===(todayData&&todayData.date&&todayData.date.gregorian&&todayData.date.gregorian.date)));
   }else{
-   nextName.textContent='—';countdown.textContent='--:--:--';
+   nextName.textContent='—';nextWhen.textContent='';countdown.textContent='--:--:--';
   }
   if(todayData&&timeZone){
    const todayHere=dateString(new Date(now),timeZone);
