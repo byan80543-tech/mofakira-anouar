@@ -2430,6 +2430,9 @@ document.addEventListener('click',e=>{
  if(!e.target.closest('#fm')&&t?.id!=='fb')$('fm').classList.remove('o');
  if(!e.target.closest('#paperStylePanel')&&t?.id!=='paperStyleBtn'){$('paperStylePanel').hidden=true;$('paperStyleBtn').setAttribute('aria-expanded','false')}
  if(!t)return;
+ if(t.dataset.protectionCount){changeProtectionCount(t.dataset.protectionCount,1);return}
+ if(t.dataset.protectionReset){changeProtectionCount(t.dataset.protectionReset,0);return}
+ if(t.dataset.protectionDone){toggleProtectionDone(t.dataset.protectionDone);return}
  if(t.dataset.archiveFilter!==undefined){archiveFilter=t.dataset.archiveFilter;renderArchive(true);return}
  if(t.dataset.archiveId){stopPoetryDictation(false);const selected=S.notes.find(n=>n.id===t.dataset.archiveId);if(selected){openNote(selected);$('archiveDialog').close()}return}
  if(t.id==='listMore'){listRenderLimit+=LIST_PAGE_SIZE;renderList();return}
@@ -2484,6 +2487,7 @@ document.addEventListener('click',e=>{
  else if(id==='shareTab')showOwnerPanel('share');
  else if(id==='morningTab')renderAdhkar('morning');
  else if(id==='eveningTab')renderAdhkar('evening');
+ else if(id==='protectionTab')renderAdhkar('protection');
 });
 
 const ADHKAR={
@@ -2504,8 +2508,85 @@ const ADHKAR={
   ['بسم الله الذي لا يضر','بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ، وَهُوَ السَّمِيعُ الْعَلِيمُ.','ثلاث مرات · سنن أبي داود، حديث 5088، وجامع الترمذي، حديث 3388.']
  ]
 };
-function renderAdhkar(period){const morning=period==='morning';$('morningTab').classList.toggle('active',morning);$('eveningTab').classList.toggle('active',!morning);$('adhkarContent').innerHTML=ADHKAR[period].map(x=>`<article class="dhikr"><strong>${x[0]}</strong><div>${x[1]}</div><small>${x[2]}</small></article>`).join('')}
-window.AnwarRenderAdhkar=function(period){if(period!=='morning'&&period!=='evening')return false;renderAdhkar(period);return true;};
+const protectionProgress=new Map();
+function protectionItemById(id){
+ for(const group of (window.ANWAR_PROTECTION_ADHKAR||[]))for(const item of group.items)if(item.id===id)return item;
+ return null;
+}
+function refreshProtectionCard(card,item){
+ const state=protectionProgress.get(item.id)||{count:0,done:false};
+ const status=card.querySelector('.protection-dhikr-status');
+ const action=card.querySelector('[data-protection-count],[data-protection-done]');
+ const reset=card.querySelector('[data-protection-reset]');
+ const bar=card.querySelector('.protection-dhikr-progress-fill');
+ const progress=card.querySelector('.protection-dhikr-progress');
+ if(item.count===null){
+  status.textContent=state.done?'تم الاطلاع':'لا عدد محدد';
+  action.textContent=state.done?'إلغاء التحديد':'تم الاطلاع';
+  action.setAttribute('aria-pressed',String(state.done));
+  progress.hidden=true;reset.hidden=true;
+ }else{
+  const count=Math.min(item.count,state.count);
+  status.textContent=count+' / '+item.count;
+  action.textContent=count>=item.count?'اكتمل الذكر':'تسجيل مرة';
+  action.disabled=count>=item.count;
+  progress.hidden=false;
+  progress.setAttribute('aria-valuenow',String(count));
+  progress.setAttribute('aria-valuemax',String(item.count));
+  bar.style.width=(count/item.count*100)+'%';
+  reset.hidden=count===0;
+ }
+}
+function changeProtectionCount(id,value){
+ const item=protectionItemById(id);if(!item||item.count===null)return false;
+ const card=$('adhkarContent').querySelector('[data-protection-card="'+id+'"]');if(!card)return false;
+ const state=protectionProgress.get(id)||{count:0,done:false};
+ state.count=value===0?0:Math.min(item.count,state.count+1);
+ protectionProgress.set(id,state);refreshProtectionCard(card,item);return true;
+}
+function toggleProtectionDone(id){
+ const item=protectionItemById(id);if(!item||item.count!==null)return false;
+ const card=$('adhkarContent').querySelector('[data-protection-card="'+id+'"]');if(!card)return false;
+ const state=protectionProgress.get(id)||{count:0,done:false};state.done=!state.done;
+ protectionProgress.set(id,state);refreshProtectionCard(card,item);return true;
+}
+function renderProtectionAdhkar(){
+ const target=$('adhkarContent');target.replaceChildren();
+ const intro=document.createElement('p');intro.className='protection-intro';
+ intro.textContent='أذكار وأدعية ثابتة للتحصين، مرتبة بحسب مناسبتها. لكل ذكر عدّاده المستقل، ولا نضع عددًا لم يرد به دليل.';
+ target.append(intro);
+ (window.ANWAR_PROTECTION_ADHKAR||[]).forEach(group=>{
+  const heading=document.createElement('h3');heading.className='protection-group-title';heading.textContent=group.title;target.append(heading);
+  group.items.forEach(item=>{
+   const card=document.createElement('article');card.className='dhikr protection-dhikr-card';card.dataset.protectionCard=item.id;
+   const head=document.createElement('div');head.className='protection-dhikr-head';
+   const title=document.createElement('strong');title.textContent=item.title;
+   const count=document.createElement('span');count.className='protection-dhikr-count';count.textContent=item.count===null?'دون عدد محدد':item.count+' مرات';
+   head.append(title,count);
+   const text=document.createElement('p');text.className='protection-dhikr-text';text.textContent=item.text;
+   const occasion=document.createElement('small');occasion.className='protection-dhikr-occasion';occasion.textContent=item.occasion;
+   const source=document.createElement('small');source.className='protection-dhikr-source';source.textContent='المصدر: '+item.source;
+   const controls=document.createElement('div');controls.className='protection-dhikr-controls';
+   const status=document.createElement('span');status.className='protection-dhikr-status';status.setAttribute('aria-live','polite');
+   const progress=document.createElement('div');progress.className='protection-dhikr-progress';progress.setAttribute('role','progressbar');progress.setAttribute('aria-label','تقدم تكرار '+item.title);progress.setAttribute('aria-valuemin','0');
+   const fill=document.createElement('span');fill.className='protection-dhikr-progress-fill';progress.append(fill);
+   const action=document.createElement('button');action.type='button';action.className='protection-dhikr-action';
+   if(item.count===null)action.dataset.protectionDone=item.id;else action.dataset.protectionCount=item.id;
+   const reset=document.createElement('button');reset.type='button';reset.className='protection-dhikr-reset';reset.textContent='تصفير';reset.dataset.protectionReset=item.id;reset.hidden=true;
+   controls.append(status,progress,action,reset);
+   card.append(head,text,occasion,source,controls);target.append(card);
+   refreshProtectionCard(card,item);
+  });
+ });
+}
+function renderAdhkar(period){
+ const morning=period==='morning',evening=period==='evening',protection=period==='protection';
+ $('morningTab').classList.toggle('active',morning);$('eveningTab').classList.toggle('active',evening);$('protectionTab').classList.toggle('active',protection);
+ $('morningTab').setAttribute('aria-pressed',String(morning));$('eveningTab').setAttribute('aria-pressed',String(evening));$('protectionTab').setAttribute('aria-pressed',String(protection));
+ if(protection){renderProtectionAdhkar();return}
+ $('adhkarContent').innerHTML=ADHKAR[period].map(x=>`<article class="dhikr"><strong>${x[0]}</strong><div>${x[1]}</div><small>${x[2]}</small></article>`).join('');
+}
+window.AnwarRenderAdhkar=function(period){if(!['morning','evening','protection'].includes(period))return false;renderAdhkar(period);return true;};
 pg.addEventListener('keydown',e=>{
  const cell=e.target.closest('#pg .v span');
  if(!cell||!pg.contains(cell))return;
