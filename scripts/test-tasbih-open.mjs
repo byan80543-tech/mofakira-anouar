@@ -32,17 +32,18 @@ const ownerTabs=ownerDialog.slice(ownerDialog.indexOf('<div class="owner-tabs">'
 assert.ok(ownerTabs.includes('id="ownerTab"')&&ownerTabs.includes('id="shareTab"'),'ownership dialog keeps owner and publication tabs');
 assert.doesNotMatch(ownerTabs,/adhkarTab/,'the adhkar tab is removed from ownership');
 assert.doesNotMatch(ownerDialog,/id="adhkarPanel"|id="tasbihPanel"/,'adhkar and tasbih are no longer nested inside ownership dialog');
-assert.ok(adhkarPage.includes('id="adhkarPanel"')&&adhkarPage.includes('id="morningTab"')&&adhkarPage.includes('id="eveningTab"')&&adhkarPage.includes('id="adhkarContent"'),'the dedicated adhkar page contains morning/evening navigation and existing content renderer');
+assert.ok(adhkarPage.includes('id="adhkarPanel"')&&adhkarPage.includes('class="protective-page-title">أذكار التحصين</h2>')&&adhkarPage.includes('id="adhkarContent"'),'the dedicated adhkar page opens the unified protection collection directly');
+assert.doesNotMatch(adhkarPage,/id="morningTab"|id="eveningTab"|id="protectionTab"/,'the old morning/evening tabs and secondary protection tab are removed');
 assert.ok(tasbihPage.includes('id="tasbihPanel"')&&tasbihPage.includes('id="tasbihCounterControl"')&&tasbihPage.includes('id="tasbihVoice"')&&tasbihPage.includes('id="tasbihThemePicker"'),'the standalone tasbih page keeps counter, voice and appearance controls');
 assert.ok(!tasbihPage.includes('adhkarTasbihToggle'),'the obsolete intermediate tasbih launcher is removed');
 assert.ok(!tasbihPage.includes('tasbihClose'),'the tasbih page uses one return control instead of a duplicate close action');
-for(const id of ['adhkarPanel','tasbihPanel','tasbihCount','tasbihVoice','morningTab','eveningTab']){
+for(const id of ['adhkarPanel','tasbihPanel','tasbihCount','tasbihVoice']){
  assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,id+' remains unique after moving');
 }
 assert.ok((html.match(/data-anwar-service="adhkar"/g)||[]).length===1,'the home dashboard has one adhkar entry card');
 assert.ok((html.match(/data-anwar-service="tasbih"/g)||[]).length===1,'the home dashboard has one tasbih entry card');
-assert.ok(appCore.includes('window.AnwarRenderAdhkar=function(period)'), 'the existing morning/evening renderer remains available');
-assert.ok(appCore.includes("if(name==='adhkar'&&typeof window.AnwarRenderAdhkar==='function')"),'the adhkar card opens with the morning list');
+assert.ok(appCore.includes('window.AnwarRenderAdhkar=function(){return renderProtectiveAdhkar();}'), 'the unified protection renderer remains directly callable');
+assert.ok(appCore.includes("if(name==='adhkar'&&typeof window.AnwarRenderAdhkar==='function')")&&appCore.includes("window.AnwarRenderAdhkar('protection')"),'the adhkar card opens the protection collection directly');
 assert.ok(appCore.includes("if(name==='tasbih')")&&appCore.includes('controller.open()'),'the tasbih card opens its own page controller directly');
 assert.ok(!appCore.includes("else if(id==='adhkarTab')")&&!appCore.includes('toggleTasbihFromToolbar'),'the ownership and tasbih entry points are no longer coupled');
 assert.ok(controller.includes('window.AnwarTasbihController=Object.freeze({')&&controller.includes('open(){'),'the independent controller exposes its direct open action');
