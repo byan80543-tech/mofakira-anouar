@@ -16,7 +16,7 @@ const publicPage = html.slice(publicPageStart, publicPageEnd);
 
 assert.ok(html.includes('id="adhkarAdminOpen"') && html.includes('إدارة المالك'),
   'the protection page exposes only the owner management entry');
-assert.ok(html.includes('القراءة العامة') && html.includes('صاحب المفكرة وحده'),
+assert.ok(html.includes('للزوار القراءة فقط') && html.includes('صاحب المفكرة وحده'),
   'the visitor-facing notice clearly states read-only access');
 assert.equal(publicPage.includes('adhkarSuggestOpen'), false,
   'there is no visitor suggestion control on the protection page');
@@ -66,8 +66,8 @@ assert.equal(worker.includes('/v1/admin/suggestions'), false,
 assert.ok(worker.includes('verifyAdminSession') &&
   worker.includes('const authenticated = await verifyAdminSession'),
   'all owner write and administration routes are authenticated on the server');
-assert.ok(worker.includes('key: "anwar-adhkar-public-read"'),
-  'public reads use one shared edge bucket instead of per-visitor identifiers');
+assert.ok(worker.includes('signAdminPayload("adhkar-public-read:" + clientAddress, env.IP_HASH_SECRET)'),
+  'public reads use a per-network HMAC key at Cloudflare edge without persisting the IP');
 assert.ok(!worker.includes('rateLimitedAdhkar(request, env, "adhkar-read"'),
   'public library reads do not use per-IP rate limiting');
 assert.ok(wrangler.includes('name = "ADHKAR_STORE"') &&
@@ -77,7 +77,7 @@ assert.ok(wrangler.includes('name = "ADHKAR_STORE"') &&
 assert.ok(deploy.includes('ADHKAR_ADMIN_SECRET') && deploy.includes('secrets: |'),
   'the owner credential is injected as a server-side Worker secret');
 assert.ok(serviceWorker.includes("'./adhkar-management.js'") &&
-  serviceWorker.includes('anwar-shell-2026-11-20-v122'),
+  serviceWorker.includes('anwar-shell-2026-11-20-v123'),
   'the owner management module remains in the offline shell');
 
 console.log('Owner-only adhkar UI, privacy and offline integration tests passed.');

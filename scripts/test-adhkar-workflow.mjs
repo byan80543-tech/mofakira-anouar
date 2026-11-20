@@ -4,6 +4,7 @@ import worker from '../workers/anwar-api-gateway/src/index.mjs';
 const ADMIN_SECRET = 'anwar-owner-admin-test-secret-'.padEnd(64, 'x');
 const allowedOrigin = 'https://mofakira-anouar.pages.dev';
 const edgeKeys = [];
+const rawPublicIp = '203.0.113.17';
 const ownerRateBuckets = [];
 const official = [];
 let initialized = false;
@@ -89,20 +90,21 @@ async function call(path, method = 'GET', body, token, origin, includeIp = true)
   return worker.fetch(request(path, method, body, token, origin, includeIp), env, {});
 }
 
-// Public reading works without per-visitor IP hashing, cookies, or an owner session.
+// Public reading needs no account, cookie, owner session, or persistent IP limiter.
+// Cloudflare supplies the network address; the Worker immediately HMAC-pseudonymizes it.
 const savedIpLimiter = env.IP_LIMITER;
-const savedIpSecret = env.IP_HASH_SECRET;
 env.IP_LIMITER = undefined;
-env.IP_HASH_SECRET = '';
-let response = await call('/v1/adhkar', 'GET', undefined, undefined, undefined, false);
+let response = await call('/v1/adhkar', 'GET');
 env.IP_LIMITER = savedIpLimiter;
-env.IP_HASH_SECRET = savedIpSecret;
-assert.equal(response.status, 200, 'public visitors can read the official library without any per-IP service');
+assert.equal(response.status, 200, 'public visitors can read the official library without the app IP-limiter database');
 let data = await response.json();
 assert.equal(data.initialized, false, 'an empty store is clearly marked');
 assert.deepEqual(data.entries, [], 'the public endpoint returns only official entries');
-assert.deepEqual(edgeKeys, ['anwar-adhkar-public-read'], 'public reads use one shared edge bucket');
-assert.equal(ownerRateBuckets.length, 0, 'public reads do not invoke per-visitor IP hashing or storage');
+assert.equal(edgeKeys.length, 1, 'public reads use Cloudflare edge rate limiting');
+assert.notEqual(edgeKeys[0], rawPublicIp, 'the edge limiter receives no raw IP address');
+assert.equal(typeof edgeKeys[0], 'string', 'the per-network edge key is a pseudonymous HMAC');
+assert.equal(ownerRateBuckets.length, 0, 'public reads do not write visitor identifiers to the app rate-limit database');
+assert.equal(edgeKeys[0].length, 43, 'the edge key is a base64url HMAC, not a raw address');
 
 edgeAllowed = false;
 response = await call('/v1/adhkar', 'GET', undefined, undefined, undefined, false);

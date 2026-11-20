@@ -44,5 +44,5 @@ assert.match(app,/countButton\.dataset\.protectiveAction='count'/,'the renderer 
 assert.match(app,/protectiveProgress/,'per-entry progress is tracked independently');
 assert.match(app,/source\.rel='noopener noreferrer'/,'source links use safe new-tab attributes');
 assert.ok(worker.includes("'./protective-adhkar.js'"),'the protective data file is precached for offline use');
-assert.match(worker,/anwar-shell-2026-11-20-v122/,'the service-worker cache is bumped for the adhkar management module and protection navigation');
+assert.match(worker,/anwar-shell-2026-11-20-v123/,'the service-worker cache is bumped for the adhkar management module and protection navigation');
 console.log('Protective adhkar content, source metadata, repeat counts and offline integration tests passed.');
