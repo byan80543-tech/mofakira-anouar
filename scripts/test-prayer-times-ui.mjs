@@ -39,8 +39,8 @@ assert.match(prayer,/function methodForCountry\(country\)/,'calculation method i
 assert.match(prayer,/if\(settings\.method!==\'auto\'\)url\.searchParams\.set\(\'method\',settings\.method\)/,'automatic method is omitted from API request instead of sending an invalid value');
 assert.doesNotMatch(prayer,/METHOD_OPTIONS|methodSelect/,'technical calculation-method picker is removed');
 assert.match(prayer,/countrySelect\.addEventListener\('change'/,'manual country override remains available');
-assert.match(prayer,/persist\(\);syncNativeBackground\(\);todayData=null/,'refreshing city or country settings updates native background adhan');
-assert.match(prayer,/persist\(\);syncNativeBackground\(\);updateHeader\(\)/,'changing country immediately syncs native background adhan');
+assert.match(prayer,/const nativeBridgeReady=syncNativeBackground\(\)/,'native background adhan syncs after refreshed prayer data confirms the timezone');
+assert.match(prayer,/settings\.timezone='';[\s\S]*?refreshTimes\(false\)/,'country change clears the old timezone and automatically fetches the selected country');
 assert.match(prayer,/meknes:'مكناس'/,'Meknes is displayed in Arabic');
 assert.match(prayer,/locationLabel\.textContent=cityForDisplay\(settings\.city\)\+' · '\+countryForDisplay\(settings\.country\)/,'location heading displays city before country in Arabic');
 assert.match(prayer,/fields\.append\(countrySelect,cityInput,schoolSelect,voiceSelect\)/,'settings retain the four controls without visible duplicate labels');
