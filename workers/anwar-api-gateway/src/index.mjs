@@ -11,8 +11,6 @@ const RATE_POLICIES = Object.freeze({
   catalog: { limit: 20, windowMs: 60_000 },
   "country-list": { limit: 8, windowMs: 60_000 },
   "country-profile": { limit: 12, windowMs: 60_000 },
-  "adhkar-read": { limit: 50, windowMs: 60_000 },
-  "adhkar-suggestions": { limit: 3, windowMs: 60 * 60_000 },
   "admin-login": { limit: 5, windowMs: 60 * 60_000 }
 });
 
@@ -310,7 +308,7 @@ export class IpRateLimiter {
 
     const clientKey = payload && payload.clientKey;
     const buckets = payload && payload.buckets;
-    const validRouteBuckets = new Set(["catalog", "country-list", "country-profile", "adhkar-read", "adhkar-suggestions", "admin-login"]);
+    const validRouteBuckets = new Set(["catalog", "country-list", "country-profile", "admin-login"]);
     const validShape = Array.isArray(buckets) &&
       buckets.length === 3 &&
       buckets[0] === "total" &&
@@ -351,7 +349,10 @@ export class IpRateLimiter {
         continue;
       }
       delete value.transcribe;
-      for (const bucket of ["client", "catalog", "country-list", "country-profile", "adhkar-read", "adhkar-suggestions", "admin-login"]) {
+      // Purge legacy adhkar visitor counters; public reads no longer use per-visitor identifiers.
+      delete value["adhkar-read"];
+      delete value["adhkar-suggestions"];
+      for (const bucket of ["client", "catalog", "country-list", "country-profile", "admin-login"]) {
         const windowMs = RATE_POLICIES[bucket]?.windowMs || 60_000;
         const bucketCutoff = now - windowMs;
         value[bucket] = Array.isArray(value[bucket])
@@ -368,8 +369,6 @@ export class IpRateLimiter {
       catalog: [],
       "country-list": [],
       "country-profile": [],
-      "adhkar-read": [],
-      "adhkar-suggestions": [],
       "admin-login": [],
     };
     const routeBucket = buckets[2];
@@ -552,13 +551,10 @@ async function rateLimitedAdhkar(request, env, bucket, origin) {
 
 function isAdhkarApiPath(pathname) {
   return pathname === "/v1/adhkar" ||
-    pathname === "/v1/adhkar/suggestions" ||
     pathname === "/v1/admin/session" ||
     pathname === "/v1/admin/adhkar" ||
     pathname === "/v1/admin/adhkar/initialize" ||
-    pathname === "/v1/admin/suggestions" ||
-    /^\/v1\/admin\/adhkar\/[a-z0-9-]{1,80}$/i.test(pathname) ||
-    /^\/v1\/admin\/suggestions\/[a-f0-9-]{1,80}\/(approve|reject)$/i.test(pathname);
+    /^\/v1\/admin\/adhkar\/[a-z0-9-]{1,80}$/i.test(pathname);
 }
 
 async function handleAdhkarApi(request, url, env, origin) {
@@ -569,34 +565,25 @@ async function handleAdhkarApi(request, url, env, origin) {
   const adminSecret = String(env.ADHKAR_ADMIN_SECRET || "");
   if (!env.ADHKAR_STORE) return errorResponse("مخزن مكتبة الأذكار غير مهيأ.", 503, origin);
 
+  // Public reading uses one shared Cloudflare edge bucket. It does not derive,
+  // hash, or persist a visitor identifier or IP address.
   if (path === "/v1/adhkar" && method === "GET") {
-    const limited = await rateLimitedAdhkar(request, env, "adhkar-read", origin);
-    if (limited) return limited;
+    let edgeDecision;
+    try {
+      if (!env.EDGE_LIMITER) throw new Error("Edge rate limiter binding missing");
+      edgeDecision = await env.EDGE_LIMITER.limit({ key: "anwar-adhkar-public-read" });
+    } catch {
+      return errorResponse("خدمة قراءة مكتبة الأذكار غير متاحة مؤقتًا.", 503, origin);
+    }
+    if (!edgeDecision.success) {
+      return errorResponse("تجاوزت المكتبة حد الطلبات العام. حاول بعد قليل.", 429, origin, {
+        "Retry-After": "60"
+      });
+    }
     try {
       return withCors(await callAdhkarStore(env, "/entries"), origin);
     } catch {
       return errorResponse("تعذر تحميل مكتبة الأذكار.", 503, origin);
-    }
-  }
-
-  if (path === "/v1/adhkar/suggestions" && method === "POST") {
-    const limited = await rateLimitedAdhkar(request, env, "adhkar-suggestions", origin);
-    if (limited) return limited;
-    const body = await readJsonBody(request);
-    if (!body) return errorResponse("بيانات الاقتراح غير صالحة.", 400, origin);
-    if (typeof body.website === "string" && body.website.trim()) {
-      return withCors(json({ accepted: true }, 202), origin);
-    }
-    const suggestion = normalizeDhikr(body, { id: crypto.randomUUID() });
-    if (!suggestion) return errorResponse("أكمل عنوان الذكر ومجموعته ونصه، وتأكد من العدد والرابط.", 400, origin);
-    try {
-      const stored = await callAdhkarStore(env, "/suggestions", "POST", {
-        ...suggestion, createdAt: new Date().toISOString()
-      });
-      if (!stored.ok) return withCors(stored, origin);
-      return withCors(json({ accepted: true, message: "وصل اقتراحك للمراجعة." }, 202), origin);
-    } catch {
-      return errorResponse("تعذر حفظ الاقتراح الآن. حاول لاحقًا.", 503, origin);
     }
   }
 
@@ -617,8 +604,9 @@ async function handleAdhkarApi(request, url, env, origin) {
     }
   }
 
+  // Every write or administrative read requires a valid owner-only session.
   const authenticated = await verifyAdminSession(request, adminSecret);
-  if (!authenticated) return errorResponse("يلزم تسجيل دخول الإدارة أولًا.", 401, origin);
+  if (!authenticated) return errorResponse("هذه العملية متاحة لصاحب المفكرة فقط.", 401, origin);
 
   try {
     if (path === "/v1/admin/adhkar" && method === "GET") {
@@ -647,22 +635,9 @@ async function handleAdhkarApi(request, url, env, origin) {
       if (!entry) return errorResponse("أدخل نص الذكر ومصدره الصحيح قبل الحفظ.", 400, origin);
       return withCors(await callAdhkarStore(env, "/entry", "PUT", entry), origin);
     }
-    if (path === "/v1/admin/suggestions" && method === "GET") {
-      return withCors(await callAdhkarStore(env, "/suggestions"), origin);
-    }
     const entryDelete = /^\/v1\/admin\/adhkar\/([a-z0-9-]{1,80})$/i.exec(path);
     if (entryDelete && method === "DELETE") {
       return withCors(await callAdhkarStore(env, "/entry/" + encodeURIComponent(entryDelete[1]), "DELETE"), origin);
-    }
-    const suggestionAction = /^\/v1\/admin\/suggestions\/([a-f0-9-]{1,80})\/(approve|reject)$/i.exec(path);
-    if (suggestionAction && method === "POST") {
-      const action = suggestionAction[2];
-      if (action === "reject") {
-        return withCors(await callAdhkarStore(env, "/suggestion/" + suggestionAction[1] + "/reject", "POST", {}), origin);
-      }
-      return withCors(await callAdhkarStore(env, "/suggestion/" + suggestionAction[1] + "/approve", "POST", {
-        entryId: crypto.randomUUID()
-      }), origin);
     }
     return errorResponse("طريقة الطلب غير مسموحة لهذا المسار.", 405, origin);
   } catch {
@@ -677,9 +652,9 @@ export class AdhkarStore {
     ctx.blockConcurrencyWhile(() => {
       ctx.storage.sql.exec(
         "CREATE TABLE IF NOT EXISTS adhkar_entries (id TEXT PRIMARY KEY, group_name TEXT NOT NULL, title TEXT NOT NULL, text TEXT NOT NULL, count INTEGER, occasion TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT '', source_url TEXT NOT NULL DEFAULT '', kind TEXT NOT NULL DEFAULT 'dhikr', created_at TEXT NOT NULL, updated_at TEXT NOT NULL);" +
-        "CREATE TABLE IF NOT EXISTS adhkar_suggestions (id TEXT PRIMARY KEY, group_name TEXT NOT NULL, title TEXT NOT NULL, text TEXT NOT NULL, count INTEGER, occasion TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT '', source_url TEXT NOT NULL DEFAULT '', kind TEXT NOT NULL DEFAULT 'dhikr', created_at TEXT NOT NULL);" +
         "CREATE TABLE IF NOT EXISTS adhkar_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);" +
-        "INSERT OR IGNORE INTO adhkar_meta(key, value) VALUES('initialized', '0');"
+        "INSERT OR IGNORE INTO adhkar_meta(key, value) VALUES('initialized', '0');" +
+        "DROP TABLE IF EXISTS adhkar_suggestions;"
       );
     });
   }
@@ -698,10 +673,15 @@ export class AdhkarStore {
 
   mapEntry(row) {
     return {
-      id: row.id, group: row.group_name, title: row.title, text: row.text,
+      id: row.id,
+      group: row.group_name,
+      title: row.title,
+      text: row.text,
       count: row.count == null ? null : Number(row.count),
-      occasion: row.occasion || "", source: row.source || "",
-      sourceUrl: row.source_url || "", kind: row.kind === "note" ? "note" : "dhikr"
+      occasion: row.occasion || "",
+      source: row.source || "",
+      sourceUrl: row.source_url || "",
+      kind: row.kind === "note" ? "note" : "dhikr"
     };
   }
 
@@ -752,50 +732,6 @@ export class AdhkarStore {
     if (deleteEntry && method === "DELETE") {
       this.ctx.storage.sql.exec("DELETE FROM adhkar_entries WHERE id = ?", deleteEntry[1]);
       return this.json({ deleted: true });
-    }
-
-    if (path === "/suggestions" && method === "POST") {
-      const item = await request.json();
-      this.ctx.storage.sql.exec(
-        "INSERT INTO adhkar_suggestions (id, group_name, title, text, count, occasion, source, source_url, kind, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        item.id, item.group, item.title, item.text, item.count, item.occasion,
-        item.source, item.sourceUrl, item.kind, item.createdAt
-      );
-      return this.json({ accepted: true });
-    }
-
-    if (path === "/suggestions" && method === "GET") {
-      const rows = this.ctx.storage.sql.exec(
-        "SELECT id, group_name, title, text, count, occasion, source, source_url, kind, created_at FROM adhkar_suggestions ORDER BY created_at ASC"
-      ).toArray();
-      return this.json({ suggestions: rows.map(row => ({ ...this.mapEntry(row), createdAt: row.created_at })) });
-    }
-
-    const approve = /^\/suggestion\/([a-f0-9-]{1,80})\/approve$/i.exec(path);
-    if (approve && method === "POST") {
-      if (!this.initialized()) return this.json({ error: "initialize_library_first" }, 409);
-      const body = await request.json();
-      const rows = this.ctx.storage.sql.exec(
-        "SELECT id, group_name, title, text, count, occasion, source, source_url, kind FROM adhkar_suggestions WHERE id = ?",
-        approve[1]
-      ).toArray();
-      if (!rows.length) return this.json({ error: "suggestion_not_found" }, 404);
-      const item = this.mapEntry(rows[0]);
-      if (!item.source) return this.json({ error: "source_required_before_approval" }, 400);
-      const now = new Date().toISOString();
-      this.ctx.storage.sql.exec(
-        "INSERT INTO adhkar_entries (id, group_name, title, text, count, occasion, source, source_url, kind, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        body.entryId, item.group, item.title, item.text, item.count, item.occasion,
-        item.source, item.sourceUrl, item.kind, now, now
-      );
-      this.ctx.storage.sql.exec("DELETE FROM adhkar_suggestions WHERE id = ?", approve[1]);
-      return this.json({ approved: true, entry: { ...item, id: body.entryId } });
-    }
-
-    const reject = /^\/suggestion\/([a-f0-9-]{1,80})\/reject$/i.exec(path);
-    if (reject && method === "POST") {
-      this.ctx.storage.sql.exec("DELETE FROM adhkar_suggestions WHERE id = ?", reject[1]);
-      return this.json({ rejected: true });
     }
 
     return this.json({ error: "not_found" }, 404);

@@ -59,7 +59,7 @@ jobs:
         run: node scripts/test-service-dashboard.mjs
       - name: Test protective adhkar content, sources and counters
         run: node scripts/test-protective-adhkar.mjs
-      - name: Test private adhkar suggestions, admin publishing and moderation
+      - name: Test owner-only adhkar reading, publishing and access control
         run: node scripts/test-adhkar-workflow.mjs
       - name: Test adhkar management UI privacy and offline integration
         run: node scripts/test-adhkar-ui.mjs

@@ -1,4 +1,4 @@
-/* Secure shared adhkar publishing and anonymous visitor suggestions.
+/* Owner-only shared adhkar library management.
  * The admin bearer token exists only in this page's memory and is never persisted.
  */
 (() => {
@@ -15,9 +15,7 @@
   }
  })();
 
- const suggestionDialog = $('adhkarSuggestionDialog');
  const adminDialog = $('adhkarAdminDialog');
- const suggestionForm = $('adhkarSuggestionForm');
  const loginForm = $('adhkarAdminLogin');
  const adminWorkspace = $('adhkarAdminWorkspace');
  const officialForm = $('adhkarOfficialForm');
@@ -25,7 +23,6 @@
  let adminToken = null;
  let sessionTimer = null;
  let officialEntries = [];
- let pendingSuggestions = [];
  let libraryInitialized = false;
 
  function status(node, message) {
@@ -58,9 +55,7 @@
    if (response.status === 401 && options.token) clearAdminSession();
    const messages = {
     already_initialized: 'تم تهيئة المكتبة من قبل.',
-    initialize_library_first: 'ابدأ بتهيئة القائمة الحالية قبل تعديلها.',
-    source_required_before_approval: 'لا يمكن اعتماد هذا الاقتراح قبل إضافة مصدر موثوق.',
-    suggestion_not_found: 'لم يعد هذا الاقتراح متاحًا.'
+    initialize_library_first: 'ابدأ بتهيئة القائمة الحالية قبل تعديلها.'
    };
    throw new Error(data.message || messages[data.error] || 'تعذّر إكمال الطلب (' + response.status + ').');
   }
@@ -95,7 +90,6 @@
   const countText = String(data.get('count') || '').trim();
   return {
    id: String(data.get('id') || '').trim() || undefined,
-   suggestionId: String(data.get('suggestionId') || '').trim(),
    group: String(data.get('group') || '').trim(),
    title: String(data.get('title') || '').trim(),
    text: String(data.get('text') || '').trim(),
@@ -167,48 +161,15 @@
   });
  }
 
- function renderSuggestions() {
-  const host = $('adhkarPendingList');
-  if (!host) return;
-  host.replaceChildren();
-  if (!pendingSuggestions.length) {
-   appendText(host, 'p', 'لا توجد اقتراحات جديدة للمراجعة.');
-   return;
-  }
-  pendingSuggestions.forEach(item => {
-   const card = document.createElement('article');
-   card.className = 'adhkar-admin-suggestion';
-   appendText(card, 'strong', item.title);
-   appendText(card, 'small', item.group + ' · ' + (item.count == null ? 'دون عدد محدد' : item.count + ' مرات'));
-   appendText(card, 'p', item.text);
-   if (item.occasion) appendText(card, 'small', item.occasion);
-   sourceLink(card, item.source || 'لم يذكر مصدر', item.sourceUrl);
-   const actions = document.createElement('div');
-   actions.className = 'adhkar-admin-item-actions';
-   const edit = createAction('تحرير ثم نشر', 'edit', item.id);
-   const approve = createAction('اعتماد ونشر', 'approve', item.id);
-   approve.disabled = !item.source || !libraryInitialized;
-   approve.title = !libraryInitialized ? 'هيّئ المكتبة أولًا' : item.source ? 'نشر الذكر بعد المراجعة' : 'أضف مصدرًا موثوقًا قبل الاعتماد';
-   actions.append(edit, approve, createAction('رفض وحذف الاقتراح', 'reject', item.id));
-   card.append(actions);
-   host.append(card);
-  });
- }
-
  async function loadAdminData() {
-  const [library, queue] = await Promise.all([
-   api('/v1/admin/adhkar', { token: adminToken }),
-   api('/v1/admin/suggestions', { token: adminToken })
-  ]);
+  const library = await api('/v1/admin/adhkar', { token: adminToken });
   libraryInitialized = Boolean(library.initialized);
   officialEntries = Array.isArray(library.entries) ? library.entries : [];
-  pendingSuggestions = Array.isArray(queue.suggestions) ? queue.suggestions : [];
   const initialize = $('adhkarInitialize');
   if (initialize) initialize.hidden = libraryInitialized;
   renderOfficialEntries();
-  renderSuggestions();
   if (libraryInitialized) setEntries(officialEntries);
-  else status($('adhkarAdminStatus'), 'المكتبة المشتركة فارغة. اضغط «تهيئة المكتبة الحالية» لنقل الأذكار الحالية إلى المخزن المشترك مرة واحدة.');
+  else status($('adhkarAdminStatus'), 'المكتبة المشتركة فارغة. اضغط «تهيئة القائمة الحالية» لنقل الأذكار الحالية إلى المكتبة مرة واحدة.');
  }
 
  function clearAdminSession() {
@@ -218,9 +179,7 @@
   if (loginForm) loginForm.hidden = false;
   if (adminWorkspace) adminWorkspace.hidden = true;
   if ($('adhkarOfficialList')) $('adhkarOfficialList').replaceChildren();
-  if ($('adhkarPendingList')) $('adhkarPendingList').replaceChildren();
   officialEntries = [];
-  pendingSuggestions = [];
   libraryInitialized = false;
  }
 
@@ -228,12 +187,6 @@
   if (!dialog) return;
   if (typeof dialog.showModal === 'function' && !dialog.open) dialog.showModal();
  }
-
- $('adhkarSuggestOpen')?.addEventListener('click', () => {
-  if (!requireApi()) return;
-  status($('adhkarSuggestionStatus'), '');
-  openDialog(suggestionDialog);
- });
 
  $('adhkarAdminOpen')?.addEventListener('click', () => {
   if (!requireApi()) return;
@@ -243,26 +196,6 @@
 
  document.querySelectorAll('[data-adhkar-close]').forEach(button => {
   button.addEventListener('click', () => button.closest('dialog')?.close());
- });
-
- suggestionForm?.addEventListener('submit', async event => {
-  event.preventDefault();
-  if (!requireApi()) return;
-  const submit = suggestionForm.querySelector('[type="submit"]');
-  submit.disabled = true;
-  status($('adhkarSuggestionStatus'), 'جارٍ إرسال الاقتراح للمراجعة...');
-  try {
-   const payload = formData(suggestionForm);
-   payload.website = String(new FormData(suggestionForm).get('website') || '');
-   delete payload.id;
-   await api('/v1/adhkar/suggestions', { method: 'POST', body: payload });
-   suggestionForm.reset();
-   status($('adhkarSuggestionStatus'), 'وصل اقتراحك. لن يظهر للزوار قبل مراجعته واعتماده.');
-  } catch (error) {
-   status($('adhkarSuggestionStatus'), error.message);
-  } finally {
-   submit.disabled = false;
-  }
  });
 
  loginForm?.addEventListener('submit', async event => {
@@ -283,7 +216,7 @@
     status($('adhkarLoginStatus'), 'انتهت جلسة الإدارة. سجّل الدخول مجددًا.');
    }, Math.max(1, Number(data.expiresIn) || 1200) * 1000);
    await loadAdminData();
-   status($('adhkarAdminStatus'), 'تم الدخول. لا تُنشر الاقتراحات إلا بعد اعتمادك.');
+   status($('adhkarAdminStatus'), 'تم الدخول. يمكنك إضافة الأذكار الرسمية أو تعديلها أو حذفها.');
   } catch (error) {
    status($('adhkarLoginStatus'), error.message);
   } finally {
@@ -327,8 +260,6 @@
    return;
   }
   const payload = formData(officialForm);
-  const suggestionId = payload.suggestionId;
-  delete payload.suggestionId;
   const isEdit = Boolean(payload.id);
   const submit = officialForm.querySelector('[type="submit"]');
   submit.disabled = true;
@@ -339,15 +270,6 @@
     body: payload
    });
    officialForm.reset();
-   if (suggestionId) {
-    try {
-     await api('/v1/admin/suggestions/' + encodeURIComponent(suggestionId) + '/reject', {
-      method: 'POST', token: adminToken, body: {}
-     });
-    } catch (cleanupError) {
-     console.warn('Published suggestion could not be cleared from the private queue:', cleanupError);
-    }
-   }
    await loadAdminData();
    await refreshPublicLibrary();
    status($('adhkarAdminStatus'), isEdit ? 'تم تحديث الذكر في المكتبة العامة.' : 'تمت إضافة الذكر إلى المكتبة العامة.');
@@ -384,53 +306,6 @@
    } finally {
     button.disabled = false;
    }
-  }
- });
-
- $('adhkarPendingList')?.addEventListener('click', async event => {
-  const button = event.target.closest('[data-action]');
-  if (!button || !adminToken) return;
-  const id = button.dataset.id;
-  const action = button.dataset.action;
-  const item = pendingSuggestions.find(entry => entry.id === id);
-  if (!item) return;
-  if (action === 'edit') {
-   for (const key of ['group','title','text','count','occasion','source','sourceUrl','kind']) {
-    const field = officialForm.elements.namedItem(key);
-    if (field) field.value = item[key] == null ? '' : String(item[key]);
-   }
-   const idField = officialForm.elements.namedItem('id');
-   const proposalField = officialForm.elements.namedItem('suggestionId');
-   if (idField) idField.value = '';
-   if (proposalField) proposalField.value = item.id;
-   officialForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
-   status($('adhkarAdminStatus'), 'راجع النص وأضف المصدر الصحيح ثم احفظه للنشر. سيُحذف الاقتراح الخاص بعد نجاح النشر.');
-   return;
-  }
-  if (action === 'approve' && !item.source) {
-   status($('adhkarAdminStatus'), 'لا تعتمد هذا الاقتراح قبل التحقق من مصدره وإضافته.');
-   return;
-  }
-  const message = action === 'approve'
-   ? 'اعتماد هذا الذكر ونشر نصه ومصدره لجميع الزوار؟'
-   : 'رفض هذا الاقتراح وحذفه نهائيًا من صندوق المراجعة؟';
-  if (!window.confirm(message)) return;
-  button.disabled = true;
-  try {
-   await api('/v1/admin/suggestions/' + encodeURIComponent(id) + '/' + action, {
-    method: 'POST',
-    token: adminToken,
-    body: {}
-   });
-   await loadAdminData();
-   await refreshPublicLibrary();
-   status($('adhkarAdminStatus'), action === 'approve'
-    ? 'تم الاعتماد والنشر دون إظهار هوية صاحب الاقتراح.'
-    : 'تم رفض الاقتراح وحذفه من صندوق المراجعة.');
-  } catch (error) {
-   status($('adhkarAdminStatus'), error.message);
-  } finally {
-   button.disabled = false;
   }
  });
 
