@@ -9,6 +9,7 @@ const receiver = read('android/app/src/main/java/com/anwar/mofakira/alarm/Prayer
 const service = read('android/app/src/main/java/com/anwar/mofakira/playback/AdhanPlaybackService.kt');
 const calendar = read('android/app/src/main/java/com/anwar/mofakira/alarm/PrayerCalendarRepository.kt');
 const prayer = read('prayer-times.js');
+const voiceCatalog = read('android/app/src/main/java/com/anwar/mofakira/playback/VoiceCatalog.kt');
 
 assert.match(manifest, /SCHEDULE_EXACT_ALARM/);
 assert.match(manifest, /FOREGROUND_SERVICE_MEDIA_PLAYBACK/);
@@ -29,4 +30,10 @@ assert.match(calendar, /calendarByCity/);
 assert.match(prayer, /function syncNativeBackground\(\)/);
 assert.match(prayer, /bridge\.postMessage\(JSON\.stringify\(payload\)\)/);
 assert.match(prayer, /enabledInput\.addEventListener/);
+for (const key of ['aqsa', 'haram_makki', 'morocco_kamal']) {
+    assert.ok(prayer.includes("key:'" + key + "'"), 'PWA exposes direct voice ' + key);
+    assert.ok(voiceCatalog.includes('"' + key + '" to AdhanVoice'), 'Android exposes matching voice ' + key);
+}
+assert.doesNotMatch(prayer, /youtube\\.com|morocco_old|الحاج محمد العمري/);
+assert.doesNotMatch(voiceCatalog, /youtube\\.com|morocco_old|الحاج محمد العمري/);
 console.log('Native background adhan bridge and scheduling tests passed.');

@@ -12,7 +12,9 @@
  const API='https://api.aladhan.com/v1';
  const VOICES=[
   {key:'calm',label:'أذان هادئ · الافتراضي',url:'https://upload.wikimedia.org/wikipedia/commons/b/b0/Beautiful_adhan.ogg',page:'https://commons.wikimedia.org/wiki/File:Beautiful_adhan.ogg',credit:'Adam-synagda',license:'CC0 1.0'},
-  {key:'morocco_old',label:'الأذان المغربي القديم · الحاج محمد العمري',url:'https://www.youtube.com/watch?v=gOSnBo61v1w',page:'https://www.youtube.com/watch?v=gOSnBo61v1w',credit:'الحاج محمد العمري · الإذاعة الوطنية',license:'رابط للمصدر الأصلي على YouTube',note:'تسجيل الإذاعة الوطنية بتاريخ 18/02/1993 · يفتح للاستماع الخارجي',external:true},
+  {key:'aqsa',label:'المسجد الأقصى · ناجي قزاز',url:'https://raw.githubusercontent.com/Kiwifu/adhan-mp3/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/Najee_Qazaz_-_Al_Aqsa_Jerusalem_%28%D9%86%D8%A7%D8%AC%D9%8A_%D9%82%D8%B2%D8%A7%D8%B2_-_%D8%A7%D9%84%D9%85%D8%B3%D8%AC%D8%AF_%D8%A7%D9%84%D8%A3%D9%82%D8%B5%D9%89_%D8%A7%D9%84%D9%82%D8%AF%D8%B3%29.mp3',page:'https://github.com/Kiwifu/adhan-mp3',credit:'ناجي قزاز · المسجد الأقصى',license:'المصدر: مجموعة Kiwifu للأذان',note:'ملف MP3 مباشر · القدس'},
+  {key:'haram_makki',label:'الحرم المكي · علي بن أحمد ملا',url:'https://raw.githubusercontent.com/Kiwifu/adhan-mp3/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/Ali_Ibn_Ahmad_Mala_1_-_Al_Haram_Al_Maki_%28%D8%B9%D9%84%D9%8A_%D8%A8%D9%86_%D8%A3%D8%AD%D9%85%D8%AF_%D9%85%D9%84%D8%A7_-_%D8%A7%D9%84%D8%AD%D8%B1%D9%85_%D8%A7%D9%84%D9%85%D9%83%D9%8A%29.mp3',page:'https://github.com/Kiwifu/adhan-mp3',credit:'علي بن أحمد ملا · الحرم المكي',license:'المصدر: مجموعة Kiwifu للأذان',note:'ملف MP3 مباشر · مكة المكرمة'},
+  {key:'morocco_kamal',label:'أذان مغربي · كمال محمد المروش',url:'https://raw.githubusercontent.com/Kiwifu/adhan-mp3/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/Kamal_Muhammad_Al_Marush_2_-_Morocco_%28%D9%83%D9%85%D8%A7%D9%84_%D9%85%D8%AD%D9%85%D8%AF_%D8%A7%D9%84%D9%85%D8%B1%D8%B9%D9%88%D8%B4_-_%D8%A7%D9%84%D9%85%D8%BA%D8%B1%D8%A8%29.mp3',page:'https://github.com/Kiwifu/adhan-mp3',credit:'كمال محمد المروش · المغرب',license:'المصدر: مجموعة Kiwifu للأذان',note:'ملف MP3 مباشر · أذان مغربي'},
   {key:'madina',label:'المسجد النبوي · تسجيل ميداني',url:'https://upload.wikimedia.org/wikipedia/commons/7/7c/33937_ejaz215_call-to-prayer-from-the-prophet-s-mo.ogg',page:'https://commons.wikimedia.org/wiki/File:33937_ejaz215_call-to-prayer-from-the-prophet-s-mo.ogg',credit:'ejaz215',license:'CC BY 3.0'}
  ];
  const DEFAULT_VOICE='calm';
@@ -208,14 +210,8 @@
  apiLink.href='https://aladhan.com/prayer-times-api';apiLink.target='_blank';apiLink.rel='noopener noreferrer';
  const audioLink=el('a','','مصدر التسجيل');
  audioLink.target='_blank';audioLink.rel='noopener noreferrer';
- const qarawiyyinLink=el('a','','أذان القرويين');
- qarawiyyinLink.href='https://www.youtube.com/watch?v=jd69M_K9DTI';qarawiyyinLink.target='_blank';qarawiyyinLink.rel='noopener noreferrer';
- qarawiyyinLink.title='استماع خارجي إلى أذان جامع القرويين بصوت الحاج محمد السلاوي';
- const kurdLink=el('a','','مقام الكرد');
- kurdLink.href='https://www.youtube.com/watch?v=7G6XTZQ_D5U';kurdLink.target='_blank';kurdLink.rel='noopener noreferrer';
- kurdLink.title='نموذج أذان بمقام الكرد للاستماع الخارجي';
  const voiceCredit=el('small','anwar-prayer-note','');
- links.append(apiLink,audioLink,qarawiyyinLink,kurdLink);
+ links.append(apiLink,audioLink);
  details.append(summary,fields,actions,toggleLabel,volumeWrap,status,links,voiceCredit);
  details.addEventListener('toggle',()=>{
   const launcher=document.querySelector('[data-anwar-service="adhan"]');
@@ -224,7 +220,7 @@
  const audio=document.createElement('audio');
  audio.id='anwarPrayerAdhanAudio';audio.preload='none';audio.hidden=true;audio.controls=false;audio.setAttribute('playsinline','');audio.setAttribute('aria-label','صوت الأذان');
  const initialVoice=VOICES.find(item=>item.key===settings.voice)||VOICES[0];
- if(!initialVoice.external)audio.src=initialVoice.url;
+ audio.src=initialVoice.url;
  audio.volume=settings.volume;
  card.append(head,nextBox,timesGrid,dateLine,infoDetails,details,audio);
  const prayerMount=document.getElementById('anwarPrayerMount');
@@ -240,10 +236,10 @@
  function updateVoiceSource(){
   const voice=currentVoice();
   audioLink.href=voice.page;
-  audioLink.textContent=voice.external?'استماع خارجي للأذان':'مصدر التسجيل';
+  audioLink.textContent='مصدر التسجيل';
   audioLink.title=voice.credit+' · '+voice.license;
   voiceCredit.textContent=voice.credit+' · '+voice.license+(voice.note?' · '+voice.note:'');
-  testButton.textContent=voice.external?'استماع إلى الأذان المغربي':'تجربة الأذان';
+  testButton.textContent='تجربة الأذان';
  }
  updateVoiceSource();
  function syncNativeBackground(){
@@ -380,7 +376,6 @@
   try{localStorage.setItem(PLAYED_KEY,key)}catch(_e){}
  }
  async function playAdhan(prayer,isTest){
-  if(currentVoice().external){setStatus('هذا التسجيل متاح عبر YouTube من مصدره الأصلي؛ استخدم زر الاستماع الخارجي، واختر تسجيلًا مباشرًا لتشغيل الأذان تلقائيًا داخل المفكرة.');return false;}
   if(!isTest&&!settings.enabled)return false;
   if(!audio.paused&&!audio.ended){if(isTest)setStatus('الأذان يعمل الآن بالفعل.');return false;}
   audio.volume=settings.volume;
@@ -400,7 +395,7 @@
  audio.addEventListener('error',()=>setStatus('تعذّر تحميل تسجيل الأذان من المصدر الصوتي.'));
  function tick(){
   const now=Date.now(),events=eventList();
-  if(settings.enabled&&!currentVoice().external){
+  if(settings.enabled){
    events.forEach(event=>{
     const key=event.date+'|'+event.key+'|'+settings.city+'|'+settings.country;
     if(lastTick<event.at&&now>=event.at&&now-event.at<=180000&&!alreadyPlayed(key)){
@@ -462,8 +457,7 @@
    persist();renderTimes();lastDateCheck=todayText;
    const nativeBridgeReady=syncNativeBackground();
    if(!silent){
-    if(settings.enabled&&currentVoice().external)setStatus('هذا التسجيل الخارجي لا يدعم الأذان بعد إغلاق المفكرة؛ اختر تسجيلًا صوتيًا مباشرًا.');
-    else if(settings.enabled&&nativeBridgeReady)setStatus('أُرسلت إعدادات الأذان إلى تطبيق أنوار المرافق؛ أكمل أذونات الهاتف لتشغيله في الخلفية.');
+    if(settings.enabled&&nativeBridgeReady)setStatus('أُرسلت إعدادات الأذان إلى تطبيق أنوار المرافق؛ أكمل أذونات الهاتف لتشغيله في الخلفية.');
     else if(settings.enabled)setStatus('للتشغيل بعد إغلاق المفكرة، افتحها من تطبيق أندرويد المرافق.');
     else setStatus('تم تحديث مواقيت الصلاة. يمكنك تجربة الأذان ثم تفعيل التنبيه.');
    }
@@ -493,8 +487,7 @@
   settings.enabled=enabledInput.checked;persist();
   const nativeBridgeReady=syncNativeBackground();
   if(settings.enabled){
-   if(currentVoice().external)setStatus('هذا التسجيل الخارجي لا يدعم الأذان بعد إغلاق المفكرة؛ اختر صوتًا مباشرًا.');
-   else if(nativeBridgeReady)setStatus('أُرسلت إعدادات الأذان إلى تطبيق أنوار المرافق؛ أكمل أذونات الهاتف.');
+   if(nativeBridgeReady)setStatus('أُرسلت إعدادات الأذان إلى تطبيق أنوار المرافق؛ أكمل أذونات الهاتف.');
    else setStatus('فُعّل الأذان داخل المفكرة. للتشغيل بعد إغلاقها استخدم تطبيق أندرويد المرافق.');
   }else{
    if(!audio.paused)audio.pause();
@@ -509,20 +502,11 @@
   const next=VOICES.find(item=>item.key===voiceSelect.value);
   if(!next)return;
   settings.voice=next.key;audio.pause();
-  if(next.external)audio.removeAttribute('src');else audio.src=next.url;
+  audio.src=next.url;
   audio.load();persist();updateVoiceSource();syncNativeBackground();
-  setStatus(next.external?'تم اختيار التسجيل المغربي؛ لا يدعم التشغيل الخلفي في الإصدار الحالي.':'تم اختيار '+next.label+'.');
+  setStatus('تم اختيار '+next.label+'.');
  });
- testButton.addEventListener('click',()=>{
-  const voice=currentVoice();
-  if(voice.external){
-   const popup=window.open(voice.url,'_blank');
-   if(popup){try{popup.opener=null}catch(_e){}setStatus('فُتح مصدر تسجيل الأذان المغربي القديم في تبويب جديد.');}
-   else setStatus('منع المتصفح فتح نافذة جديدة؛ استخدم رابط «استماع خارجي للأذان».');
-   return;
-  }
-  playAdhan('اختبار',true);
- });
+ testButton.addEventListener('click',()=>playAdhan('اختبار',true));
  countryInput.addEventListener('change',()=>{
   if(settings.country==='Morocco'&&countryInput.value.trim()!=='Morocco'&&methodSelect.value==='21')methodSelect.value='auto';
  });
