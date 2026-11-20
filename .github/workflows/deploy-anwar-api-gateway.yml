@@ -31,7 +31,24 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Deploy Worker and set its HMAC secret
+      - name: Prepare temporary Worker secrets file
+        shell: bash
+        env:
+          IP_HASH_SECRET: ${{ secrets.IP_HASH_SECRET }}
+          ADHKAR_ADMIN_SECRET: ${{ secrets.ADHKAR_ADMIN_SECRET }}
+        run: |
+          set -euo pipefail
+          umask 077
+          test -n "$IP_HASH_SECRET"
+          test -n "$ADHKAR_ADMIN_SECRET"
+          jq -n \
+            --arg ip "$IP_HASH_SECRET" \
+            --arg admin "$ADHKAR_ADMIN_SECRET" \
+            '{IP_HASH_SECRET: $ip, ADHKAR_ADMIN_SECRET: $admin}' \
+            > "$RUNNER_TEMP/anwar-api-gateway-secrets.json"
+          chmod 600 "$RUNNER_TEMP/anwar-api-gateway-secrets.json"
+
+      - name: Deploy Worker and its secrets together
         id: deploy
         uses: cloudflare/wrangler-action@v4
         with:
@@ -39,13 +56,7 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: "4.164.0"
           workingDirectory: workers/anwar-api-gateway
-          command: deploy
-          secrets: |
-            IP_HASH_SECRET
-            ADHKAR_ADMIN_SECRET
-        env:
-          IP_HASH_SECRET: ${{ secrets.IP_HASH_SECRET }}
-          ADHKAR_ADMIN_SECRET: ${{ secrets.ADHKAR_ADMIN_SECRET }}
+          command: deploy --secrets-file ${{ runner.temp }}/anwar-api-gateway-secrets.json
 
       - name: Show deployment URL
         env:
@@ -56,3 +67,7 @@ jobs:
           else
             echo "Deployment completed. Find the workers.dev URL in the deploy output above."
           fi
+      - name: Remove temporary Worker secrets file
+        if: always()
+        shell: bash
+        run: rm -f "${{ runner.temp }}/anwar-api-gateway-secrets.json"
