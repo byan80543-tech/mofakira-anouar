@@ -1,6 +1,6 @@
 /* Prayer times and adhan for Anwar notebook.
  * Prayer data: AlAdhan API. Default adhan recording: Wikimedia Commons, CC0 1.0.
- * No GPS permission is requested; only the user-entered city/country are sent to the API.
+ * No GPS permission is requested; the chosen city, country and calculation settings are sent to the timings API.
  */
 (function(){
  'use strict';
@@ -10,7 +10,13 @@
  window.__anwarPrayerTimesReady=true;
 
  const API='https://api.aladhan.com/v1';
- const ADHAN_URL='https://upload.wikimedia.org/wikipedia/commons/b/b0/Beautiful_adhan.ogg';
+ const VOICES=[
+  {key:'calm',label:'أذان هادئ · الافتراضي',url:'https://upload.wikimedia.org/wikipedia/commons/b/b0/Beautiful_adhan.ogg',page:'https://commons.wikimedia.org/wiki/File:Beautiful_adhan.ogg',credit:'Adam-synagda',license:'CC0 1.0'},
+  {key:'morocco',label:'المغرب · مسجد الحسن الثاني',url:'https://upload.wikimedia.org/wikipedia/commons/transcoded/9/9c/Llamada_a_oraci%C3%B3n_Mezquita_Hassan_II.wav/Llamada_a_oraci%C3%B3n_Mezquita_Hassan_II.wav.mp3',page:'https://commons.wikimedia.org/wiki/File:Llamada_a_oraci%C3%B3n_Mezquita_Hassan_II.wav',credit:'Fraguando',license:'CC BY-SA 4.0',note:'تسجيل ميداني مع أجواء المسجد والمحيط'},
+  {key:'madina',label:'المسجد النبوي · تسجيل ميداني',url:'https://upload.wikimedia.org/wikipedia/commons/7/7c/33937_ejaz215_call-to-prayer-from-the-prophet-s-mo.ogg',page:'https://commons.wikimedia.org/wiki/File:33937_ejaz215_call-to-prayer-from-the-prophet-s-mo.ogg',credit:'ejaz215',license:'CC BY 3.0'},
+  {key:'maahur',label:'أذان فارسي · مقام ماهور',url:'https://upload.wikimedia.org/wikipedia/commons/a/ae/AzaanMaahur.ogg',page:'https://commons.wikimedia.org/wiki/File:AzaanMaahur.ogg',credit:'Saeed Hatamzadeh-Varmazyar',license:'CC BY-SA 4.0'}
+ ];
+ const DEFAULT_VOICE='calm';
  const SETTINGS_KEY='anwar_prayer_settings_v1';
  const PLAYED_KEY='anwar_prayer_last_adhan_v1';
  const PRAYERS=[
@@ -56,7 +62,7 @@
   ['12','اتحاد المنظمات الإسلامية — فرنسا']
  ];
  function readSettings(){
-  const defaults={country:'Morocco',city:'Meknes',method:'21',school:'0',enabled:false,volume:0.9,timezone:''};
+  const defaults={country:'Morocco',city:'Meknes',method:'21',school:'0',enabled:false,volume:0.9,timezone:'',voice:DEFAULT_VOICE};
   try{
    const value=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}');
    return {
@@ -66,7 +72,8 @@
     school:value.school==='1'?'1':'0',
     enabled:value.enabled===true,
     volume:Number.isFinite(Number(value.volume))?Math.max(0,Math.min(1,Number(value.volume))):defaults.volume,
-    timezone:typeof value.timezone==='string'?value.timezone.slice(0,90):''
+    timezone:typeof value.timezone==='string'?value.timezone.slice(0,90):'',
+    voice:VOICES.some(item=>item.key===value.voice)?value.voice:DEFAULT_VOICE
    };
   }catch(_e){return defaults;}
  }
@@ -129,9 +136,9 @@
  nextBox.append(nextCopy,countdown);
  const timesGrid=el('div','anwar-prayer-times');
  const dateLine=el('div','anwar-prayer-date','جارٍ تحميل مواقيت المدينة…');
- const privacyLine=el('small','anwar-prayer-note','لا نطلب موقعك الجغرافي؛ نرسل اسم المدينة والدولة والتاريخ وطريقة الحساب إلى خدمة المواقيت. وقد تختلف الدقائق عن توقيت مسجدك المحلي.');
+ const privacyLine=el('small','anwar-prayer-note','لا نطلب موقعك؛ نرسل المدينة والبلد وطريقة الحساب فقط.');
  const details=el('details','anwar-prayer-settings');
- const summary=el('summary','','إعداد المدينة والتنبيه الصوتي');
+ const summary=el('summary','','الإعدادات');
  const fields=el('div','anwar-prayer-fields');
  function makeField(label,control){
   const wrap=el('label','anwar-prayer-field',label);wrap.append(control);return wrap;
@@ -144,23 +151,27 @@
  const schoolSelect=el('select');schoolSelect.id='anwarPrayerSchool';
  [['0','العصر القياسي (شافعي / مالكي)'],['1','العصر الحنفي']].forEach(item=>{const op=el('option','',item[1]);op.value=item[0];schoolSelect.append(op)});
  schoolSelect.value=settings.school;
+ const voiceSelect=el('select');voiceSelect.id='anwarPrayerVoice';
+ VOICES.forEach(voice=>{const option=el('option','',voice.label);option.value=voice.key;voiceSelect.append(option)});
+ voiceSelect.value=settings.voice;
  fields.append(
   makeField('الدولة',countryInput),
   makeField('المدينة',cityInput),
   makeField('طريقة حساب المواقيت',methodSelect),
-  makeField('حساب وقت العصر',schoolSelect)
+  makeField('حساب العصر',schoolSelect),
+  makeField('صوت الأذان',voiceSelect)
  );
- const refreshButton=el('button','primary','تحديث المواقيت');
+ const refreshButton=el('button','primary','تحديث');
  refreshButton.type='button';
- const testButton=el('button','','تجربة الأذان');
+ const testButton=el('button','','تجربة الصوت');
  testButton.type='button';
  const actions=el('div','anwar-prayer-actions');actions.append(refreshButton,testButton);
  const toggleLabel=el('label','anwar-prayer-toggle');
  const enabledInput=el('input');enabledInput.type='checkbox';enabledInput.checked=settings.enabled;
- const enabledText=el('span','','تشغيل الأذان تلقائيًا عند دخول وقت الصلاة');
+ const enabledText=el('span','','الأذان تلقائيًا عند دخول الوقت');
  toggleLabel.append(enabledInput,enabledText);
  const volumeWrap=el('label','anwar-prayer-volume');
- const volumeLabel=el('span','','مستوى صوت الأذان');
+ const volumeLabel=el('span','','مستوى الصوت');
  const volumeInput=el('input');volumeInput.type='range';volumeInput.min='0';volumeInput.max='1';volumeInput.step='0.05';volumeInput.value=String(settings.volume);
  volumeWrap.append(volumeLabel,volumeInput);
  const status=el('div','anwar-prayer-status','اختر مدينتك ثم فعّل الأذان بعد اختبار الصوت.');
@@ -168,13 +179,20 @@
  const links=el('div','anwar-prayer-links');
  const apiLink=el('a','','مصدر المواقيت');
  apiLink.href='https://aladhan.com/prayer-times-api';apiLink.target='_blank';apiLink.rel='noopener noreferrer';
- const audioLink=el('a','','مصدر تسجيل الأذان · CC0');
- audioLink.href='https://commons.wikimedia.org/wiki/File:Beautiful_adhan.ogg';audioLink.target='_blank';audioLink.rel='noopener noreferrer';
- links.append(apiLink,audioLink);
- details.append(summary,fields,actions,toggleLabel,volumeWrap,status,links);
+ const audioLink=el('a','','مصدر التسجيل');
+ audioLink.target='_blank';audioLink.rel='noopener noreferrer';
+ const qarawiyyinLink=el('a','','أذان القرويين');
+ qarawiyyinLink.href='https://www.youtube.com/watch?v=jd69M_K9DTI';qarawiyyinLink.target='_blank';qarawiyyinLink.rel='noopener noreferrer';
+ qarawiyyinLink.title='استماع خارجي إلى أذان جامع القرويين بصوت الحاج محمد السلاوي';
+ const kurdLink=el('a','','مقام الكرد');
+ kurdLink.href='https://www.youtube.com/watch?v=7G6XTZQ_D5U';kurdLink.target='_blank';kurdLink.rel='noopener noreferrer';
+ kurdLink.title='نموذج أذان بمقام الكرد للاستماع الخارجي';
+ const voiceCredit=el('small','anwar-prayer-note','');
+ links.append(apiLink,audioLink,qarawiyyinLink,kurdLink);
+ details.append(summary,fields,actions,toggleLabel,volumeWrap,status,links,voiceCredit);
  const audio=document.createElement('audio');
  audio.id='anwarPrayerAdhanAudio';audio.preload='none';audio.hidden=true;audio.controls=false;audio.setAttribute('playsinline','');audio.setAttribute('aria-label','صوت الأذان');
- audio.src=ADHAN_URL;audio.volume=settings.volume;
+ audio.src=(VOICES.find(item=>item.key===settings.voice)||VOICES[0]).url;audio.volume=settings.volume;
  card.append(head,nextBox,timesGrid,dateLine,privacyLine,details,audio);
  const insertBefore=panel.querySelector('.radio-section-title');
  if(insertBefore)panel.insertBefore(card,insertBefore);else panel.append(card);
@@ -182,6 +200,17 @@
  function persist(){
   try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings))}catch(_e){}
  }
+ function currentVoice(){
+  return VOICES.find(item=>item.key===settings.voice)||VOICES[0];
+ }
+ function updateVoiceSource(){
+  const voice=currentVoice();
+  audioLink.href=voice.page;
+  audioLink.textContent='مصدر التسجيل';
+  audioLink.title=voice.credit+' · '+voice.license;
+  voiceCredit.textContent=voice.credit+' · '+voice.license+(voice.note?' · '+voice.note:'');
+ }
+ updateVoiceSource();
  function countryForApi(value){
   const trimmed=String(value||'').trim();
   return COUNTRY_ALIASES[trimmed]||trimmed;
@@ -253,7 +282,7 @@
   });
   const greg=todayData.date&&todayData.date.gregorian?todayData.date.gregorian.date:'';
   const hijri=todayData.date&&todayData.date.hijri?todayData.date.hijri.date:'';
-  dateLine.textContent=(greg?'التاريخ الميلادي: '+greg:'')+(hijri?' · الهجري: '+hijri:'')+' · '+timeZone;
+  dateLine.textContent=(greg?'ميلادي '+greg:'')+(hijri?' · هجري '+hijri:'');
   updateHeader();
  }
  function eventList(){
@@ -292,15 +321,15 @@
   try{
    const attempt=audio.play();
    if(attempt&&typeof attempt.then==='function')await attempt;
-   setStatus(isTest?'بدأ اختبار صوت الأذان.':'دخل وقت صلاة '+prayer+'؛ بدأ الأذان وخُفّض صوت إذاعة القرآن مؤقتًا.');
+   setStatus(isTest?'بدأ اختبار الصوت.':'حان وقت '+prayer+'؛ بدأ الأذان.');
    return true;
   }catch(error){
    const blocked=error&&error.name==='NotAllowedError';
-   setStatus(blocked?'المتصفح منع التشغيل التلقائي. اضغط «تجربة الأذان» مرة واحدة للسماح بالصوت.':'تعذّر تشغيل الأذان. تحقق من اتصال الإنترنت ثم جرّب الصوت يدويًا.');
+   setStatus(blocked?'اسمح بالصوت بالضغط على تجربة الصوت.':'تعذّر تحميل الأذان؛ تحقق من الاتصال.');
    return false;
   }
  }
- audio.addEventListener('ended',()=>setStatus('انتهى الأذان؛ عاد صوت الإذاعة إلى مستواه السابق.'));
+ audio.addEventListener('ended',()=>setStatus('انتهى الأذان.'));
  audio.addEventListener('error',()=>setStatus('تعذّر تحميل تسجيل الأذان من المصدر الصوتي.'));
  function tick(){
   const now=Date.now(),events=eventList();
@@ -356,12 +385,12 @@
    tomorrowData=await fetchDay(tomorrowText,token);
    if(token!==loadToken)return;
    persist();renderTimes();lastDateCheck=todayText;
-   if(!silent)setStatus('تم تحديث المواقيت. فعّل الأذان واختبر الصوت مرة للسماح بالتشغيل التلقائي.');
+   if(!silent)setStatus('تم تحديث المواقيت. جرّب الصوت للسماح بالتشغيل التلقائي.');
    tick();
   }catch(error){
    if(token===loadToken){
     if(!todayData)dateLine.textContent='لم تُحمّل المواقيت بعد.';
-    setStatus(error&&error.message?error.message:'تعذّر تحديث المواقيت. تحقق من الاتصال والمدينة.');
+    setStatus(error&&error.message?error.message:'تعذّر تحديث المواقيت.');
    }
   }finally{
    if(token===loadToken){loading=false;refreshButton.disabled=false;}
@@ -377,11 +406,16 @@
  });
  enabledInput.addEventListener('change',()=>{
   settings.enabled=enabledInput.checked;persist();
-  if(settings.enabled)setStatus('تم تفعيل التنبيه. اختبر الصوت الآن؛ التشغيل التلقائي يظل خاضعًا لسماح المتصفح.');
-  else{if(!audio.paused)audio.pause();setStatus('تم إيقاف الأذان التلقائي.');}
+  setStatus(settings.enabled?'الأذان التلقائي مفعّل.':'الأذان التلقائي متوقف.');
  });
  volumeInput.addEventListener('input',()=>{
   settings.volume=Math.max(0,Math.min(1,Number(volumeInput.value)||0));audio.volume=settings.volume;persist();
+ });
+ voiceSelect.addEventListener('change',()=>{
+  const next=VOICES.find(item=>item.key===voiceSelect.value);
+  if(!next)return;
+  settings.voice=next.key;audio.pause();audio.src=next.url;audio.load();
+  persist();updateVoiceSource();setStatus('تم اختيار '+next.label+'.');
  });
  testButton.addEventListener('click',()=>playAdhan('اختبار',true));
  countryInput.addEventListener('change',()=>{
