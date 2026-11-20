@@ -4277,3 +4277,79 @@ window.AnouarUpdateBridge = Object.freeze({
 if('serviceWorker' in navigator&&location.protocol==='https:'){
  window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js',{scope:'./'}).catch(error=>console.warn('تعذّر تسجيل عامل خدمة مفكرة أنوار',error)));
 }
+
+
+/* Anwar service dashboard: organize existing prayer, Quran, live radio and lesson controls. */
+(()=>{
+ 'use strict';
+ const panel=document.getElementById('rd');
+ const home=document.getElementById('anwarServiceHome');
+ const quranPage=document.getElementById('anwarQuranPage');
+ const radioPage=document.getElementById('anwarRadioPage');
+ const lessonsPage=document.getElementById('anwarLessonsPage');
+ if(!panel||!home||!quranPage||!radioPage||!lessonsPage)return;
+
+ const quranTitle=panel.querySelector('.radio-section-title');
+ const liveStation=document.getElementById('liveStationArea');
+ const lessonHub=document.getElementById('lessonHub');
+ if(!quranTitle||!liveStation||!lessonHub)return;
+
+ const pages={quran:quranPage,radio:radioPage,lessons:lessonsPage};
+ const serviceButtons=Array.from(panel.querySelectorAll('[data-anwar-service]'));
+ let lastOpener=null;
+
+ const existingChildren=Array.from(panel.children);
+ let insideQuran=false;
+ for(const node of existingChildren){
+  if(node===quranTitle)insideQuran=true;
+  if(node===lessonHub){
+   lessonsPage.append(node);
+   break;
+  }
+  if(!insideQuran)continue;
+  if(node===liveStation)radioPage.append(node);
+  else quranPage.append(node);
+ }
+
+ function showHome(restoreFocus){
+  home.hidden=false;
+  Object.values(pages).forEach(page=>{page.hidden=true});
+  serviceButtons.forEach(button=>button.setAttribute('aria-pressed','false'));
+  panel.scrollTo({top:0,behavior:'smooth'});
+  if(restoreFocus&&lastOpener){
+   lastOpener.focus({preventScroll:true});
+  }
+ }
+
+ function openService(name,button){
+  if(name==='adhan'){
+   const card=document.getElementById('anwarPrayerCard');
+   const settings=card&&card.querySelector('.anwar-prayer-settings');
+   if(settings)settings.open=true;
+   if(card)card.scrollIntoView({behavior:'smooth',block:'start'});
+   const summary=settings&&settings.querySelector('summary');
+   if(summary)summary.focus({preventScroll:true});
+   return;
+  }
+  const page=pages[name];
+  if(!page)return;
+  lastOpener=button||lastOpener;
+  home.hidden=true;
+  Object.entries(pages).forEach(([key,item])=>{item.hidden=key!==name});
+  serviceButtons.forEach(item=>item.setAttribute('aria-pressed',String(item===button)));
+  panel.scrollTo({top:0,behavior:'smooth'});
+  const back=page.querySelector('[data-anwar-service-back]');
+  if(back)back.focus({preventScroll:true});
+ }
+
+ serviceButtons.forEach(button=>{
+  button.addEventListener('click',()=>openService(button.dataset.anwarService,button));
+ });
+ panel.querySelectorAll('[data-anwar-service-back]').forEach(button=>{
+  button.addEventListener('click',()=>showHome(true));
+ });
+
+ // Opening the Tulip launcher always starts from the organized home screen.
+ const launcher=document.getElementById('rg');
+ if(launcher)launcher.addEventListener('click',()=>showHome(false));
+})();
