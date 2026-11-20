@@ -23,6 +23,14 @@ assert.ok(!toggleBody.includes('__anwarStopCountryAudio'),'toggling the radio do
 assert.ok(toggleBody.includes('radioShouldPlay=false'),'manual pause clears the resume intent');
 
 assert.ok(radio.includes('function syncRadioDucking()'),'radio ducking helper exists');
+assert.ok(radio.includes('function renderLiveStationOptions()'),'custom station card picker renderer exists');
+assert.ok(radio.includes("item.className='reciter-card live-station-option'"),'station choices reuse Quran-style tulip cards');
+assert.ok(radio.includes("flower.src='assets/tulip-cutout.svg'"),'station cards show the same tulip ornament as Quran cards');
+assert.ok(radio.includes("stationSelect.dispatchEvent(new Event('change',{bubbles:true}))"),'selecting a station card updates the existing audio selection pipeline');
+assert.ok(radio.includes("event.key==='Escape'&&!stationModal.hidden"),'custom station picker closes with Escape');
+assert.match(html,/id="liveStationPicker"[\s\S]*?aria-controls="liveStationModal"/,'station picker trigger is available to users');
+assert.match(html,/<select id="rl"[^>]*hidden/,'native station select remains hidden behind the custom picker');
+assert.match(html,/\.live-station-options\{display:grid/,'station cards render in a custom responsive grid');
 assert.ok(radio.includes('إذاعة زين بلادي للقرآن الكريم'),'Zine Bladi Quran Radio is listed in the in-app live station catalogue');
 assert.ok(radio.includes('https://asmaki.ma:8000/radio.mp3'),'Zine Bladi uses the HTTPS direct stream URL');
 assert.ok(radio.includes('محطة زين بلادي متاحة للاستماع'),'Zine Bladi remains available when the MP3Quran station catalogue fails');

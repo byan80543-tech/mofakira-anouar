@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.aladhan.com https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="preload" href="./app-core.js?v=20261120-23" as="script">
+<link rel="preload" href="./app-core.js?v=20261120-25" as="script">
 <script src="api-gateway-config.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>مفكرة أنوار | Anouar Oumlili</title>
@@ -2290,7 +2290,7 @@ dialog[open]>.float-head{display:none!important}
  </section>
  <b class="radio-section-title">القرآن الكريم · اختر صوتاً وابدأ فوراً</b>
  <section class="radio-hero" aria-label="المشغل الإذاعي"><div class="radio-orbit radio-vintage-icon" role="img" aria-label="مذياع قديم يرمز إلى إذاعة أنوار القرآنية"><svg viewBox="0 0 120 96" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="woodRadio" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f4c77b"/><stop offset=".45" stop-color="#9a5426"/><stop offset="1" stop-color="#542b19"/></linearGradient><linearGradient id="goldRadio" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff0b8"/><stop offset="1" stop-color="#bd8734"/></linearGradient><linearGradient id="glassRadio" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#203e4a"/><stop offset="1" stop-color="#091c2d"/></linearGradient></defs><path d="M25 20 88 4" stroke="#e7d5a4" stroke-width="3.5" stroke-linecap="round"/><path d="m25 20 63-16" stroke="#7b8586" stroke-width="1.2"/><circle cx="25" cy="20" r="4" fill="url(#goldRadio)" stroke="#714b25"/><rect x="9" y="21" width="102" height="67" rx="11" fill="#3b2118" stroke="#e6c47a" stroke-width="2.5"/><rect x="13" y="25" width="94" height="59" rx="8" fill="url(#woodRadio)" stroke="#4d2918" stroke-width="1.5"/><rect x="18" y="31" width="55" height="38" rx="5" fill="url(#glassRadio)" stroke="#f2d28a" stroke-width="2"/><rect x="21" y="34" width="49" height="32" rx="3" fill="#d9c39a"/><g fill="#8d704d" opacity=".9"><path d="M24 37h43v1H24zm0 4h43v1H24zm0 4h43v1H24zm0 4h43v1H24zm0 4h43v1H24zm0 4h43v1H24zm0 4h43v1H24z"/></g><g fill="#f6dda0"><circle cx="27" cy="39" r="1"/><circle cx="34" cy="39" r="1"/><circle cx="41" cy="39" r="1"/><circle cx="48" cy="39" r="1"/><circle cx="55" cy="39" r="1"/><circle cx="62" cy="39" r="1"/></g><rect x="22" y="71" width="49" height="7" rx="2" fill="#241c18"/><path d="M26 74h41" stroke="#e4c178" stroke-width="1"/><g fill="url(#goldRadio)" stroke="#68401f" stroke-width="1.4"><circle cx="88" cy="43" r="11"/><circle cx="88" cy="69" r="8"/></g><circle cx="88" cy="43" r="4" fill="#7c4a26"/><circle cx="88" cy="69" r="3" fill="#7c4a26"/><path d="M83 43h10M88 38v10M85 69h6" stroke="#f4d58d" stroke-width="1.2" stroke-linecap="round"/><path d="M14 83h92" stroke="#f3d28b" stroke-width="1" opacity=".65"/><circle cx="17" cy="78" r="1.4" fill="#f8e5ad"/><circle cx="103" cy="78" r="1.4" fill="#f8e5ad"/></svg></div><div class="radio-hero-copy"><small>إذاعة أنوار القرآنية</small><strong id="radioNow">اختر قارئك المفضّل</strong><span id="radioSub">لمسة واحدة تفصل بينك وبين التلاوة</span><div class="radio-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div><span class="radio-live-dot" id="radioLiveDot"></span></section>
- <div class="live-station" id="liveStationArea" hidden><div><b>محطات البث المباشر</b><small id="liveRadioStatus" role="status" aria-live="polite">اختر محطة للاستماع إليها داخل المفكرة.</small></div><label for="rl">اختر محطة البث</label><select id="rl" aria-label="اختر محطة البث المباشر"><option value="">جارٍ تجهيز المحطات…</option></select><button type="button" id="liveRadioPlay" aria-pressed="false">تشغيل المحطة المختارة　▶</button></div>
+ <div class="live-station" id="liveStationArea" hidden><div><b>محطات البث المباشر</b><small id="liveRadioStatus" role="status" aria-live="polite">اختر محطة للاستماع إليها داخل المفكرة.</small></div><label for="liveStationPicker">اختر محطة البث</label><button type="button" id="liveStationPicker" class="live-station-picker" aria-haspopup="dialog" aria-controls="liveStationModal" aria-expanded="false"><span class="reciter-seal" aria-hidden="true"><img src="assets/tulip-cutout.svg" alt=""></span><span id="liveStationChoice" class="live-station-picker-name">جارٍ تجهيز المحطات…</span><span class="live-station-picker-arrow" aria-hidden="true">⌄</span></button><select id="rl" aria-label="اختر محطة البث المباشر" hidden aria-hidden="true" tabindex="-1"><option value="">جارٍ تجهيز المحطات…</option></select><button type="button" id="liveRadioPlay" aria-pressed="false">تشغيل المحطة المختارة　▶</button></div>
  <input id="rq" type="search" placeholder="ابحث عن اسم القارئ…" aria-label="ابحث عن قارئ">
  <div class="reciter-list-head"><span class="reciter-list-title">موسوعة القرّاء والروايات</span><span class="reciter-count" id="reciterCount">جارٍ التحميل…</span></div>
  <small class="reciter-catalog-note">كل مصحف ورواية متاحة يظهران كخيار مستقل، وقد تختلف السور المتاحة من رواية إلى أخرى. والبحث أعلاه يخص قائمة التشغيل داخل أنوار.</small>
@@ -2579,7 +2579,7 @@ dialog[open]>.float-head{display:none!important}
 <script src="./vault-storage.js?v=20261120-1"></script>
 <script src="./vault-device-unlock.js?v=20261118-1"></script>
 <script src="./poetry-dictation.js?v=20261119-1" defer></script>
-<script src="./app-core.js?v=20261120-23" defer></script>
+<script src="./app-core.js?v=20261120-25" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
 <script src="./tasbih-controller.js?v=20261119-18" defer></script>
 <script src="./prayer-times.js?v=20261120-7" defer></script>
@@ -2938,6 +2938,39 @@ dialog[open]>.float-head{display:none!important}
 #rd .reciter-country-panel>label{display:block;color:var(--mu);font-size:11px}
 #rd .country-random-action{min-height:40px;padding:8px 12px;border:1px solid #c9a96a;border-radius:9px;background:linear-gradient(110deg,#fff7e3,var(--sf));color:var(--ac);font:inherit;font-size:12px;font-weight:700}
 #rd .country-random-action:disabled{opacity:.65}
+
+/* منتقي محطات البث: بطاقات أنيقة مع التوليب بدل قائمة النظام الأصلية */
+#rd .live-station select{display:none!important}
+#rd .live-station-picker{
+ display:flex;align-items:center;gap:10px;width:100%;min-width:0;min-height:54px;
+ padding:8px 10px;border:1px solid #c9a96a;border-radius:12px;
+ background:linear-gradient(125deg,var(--sf),var(--bg));color:var(--tx);
+ text-align:right;font:inherit;white-space:normal;box-shadow:0 2px 7px rgba(8,38,77,.05)
+}
+#rd .live-station-picker .reciter-seal{width:35px;height:35px}
+#rd .live-station-picker-name{flex:1;min-width:0;text-align:right;font-size:12px;font-weight:800;line-height:1.6}
+#rd .live-station-picker-arrow{flex:none;color:var(--ac);font-size:20px;line-height:1}
+.live-station-modal{position:fixed;inset:0;z-index:100900;display:grid;place-items:center;padding:12px;background:rgba(4,15,30,.72);backdrop-filter:blur(5px)}
+.live-station-modal[hidden]{display:none!important}
+.live-station-dialog{display:flex;flex-direction:column;width:min(94vw,620px);max-height:86vh;max-height:86dvh;overflow:hidden;border:1px solid #c9a96a;border-radius:20px;background:var(--sf);color:var(--tx);box-shadow:0 18px 55px rgba(0,0,0,.28)}
+.live-station-modal-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 15px;background:linear-gradient(115deg,#102f50,#1f5872);color:#fff;flex:none}
+.live-station-modal-head>div{display:grid;gap:2px}
+.live-station-modal-head strong{font-family:'Aref Ruqaa',Amiri,serif;font-size:18px;color:#fff2c5}
+.live-station-modal-head small{font-size:10px;color:#e5edf5}
+.live-station-modal-close{width:36px;height:36px;flex:none;border:1px solid #ffffff66;border-radius:50%;background:#ffffff18;color:#fff;font-size:20px}
+.live-station-modal-tools{display:flex;align-items:center;gap:8px;padding:10px 11px 6px}
+.live-station-modal-tools input{flex:1;min-width:0;min-height:42px;margin:0;padding:8px 11px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit;font-size:12px}
+.live-station-modal-count{flex:none;color:var(--ac);font-size:10px;font-weight:800}
+.live-station-modal-hint{padding:2px 12px 6px;color:var(--mu);font-size:10px;line-height:1.6}
+.live-station-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:8px;min-height:0;overflow:auto;overscroll-behavior:contain;padding:8px 11px 13px}
+.live-station-option{width:100%;min-height:58px;cursor:pointer;text-align:right}
+.live-station-option[aria-selected="true"]{border-color:#c9a96a;border-inline-start:3px solid #bd9145;background:linear-gradient(120deg,#fff5d9,#f2e2bd);color:#173d5c;box-shadow:inset 0 0 0 1px #d8bd7c,0 2px 7px rgba(8,38,77,.07)}
+.live-station-option .live-station-option-mark{width:27px;height:27px;display:grid;place-items:center;flex:none;border:1px solid var(--bd);border-radius:50%;color:var(--mu);font-size:14px}
+.live-station-option[aria-selected="true"] .live-station-option-mark{border-color:#b58a42;background:#fff1c9;color:#173d5c;font-weight:900}
+.live-station-options-empty{grid-column:1/-1;padding:18px;text-align:center;color:var(--mu);font-size:12px}
+@media(max-width:420px){.live-station-dialog{width:96vw;max-height:88dvh;border-radius:18px}.live-station-options{grid-template-columns:1fr;gap:7px;padding:7px 9px 12px}.live-station-option{min-height:56px}.live-station-modal-head{padding:11px 13px}}
+
 </style>
+<div id="liveStationModal" class="live-station-modal" hidden role="dialog" aria-modal="true" aria-label="محطات البث المباشر"></div>
 </body>
 </html>
