@@ -141,7 +141,7 @@
     city:changedFromSaved||!storedCity?defaultCity(country):storedCity,
     method:methodForCountry(country),
     countrySource:manualCountry?'manual':'auto',
-    school:value.school==='1'?'1':'0',
+    school:'0',
     enabled:value.enabled===true,
     volume:Number.isFinite(Number(value.volume))?Math.max(0,Math.min(1,Number(value.volume))):defaults.volume,
     timezone:changedFromSaved?'':(typeof value.timezone==='string'?value.timezone.slice(0,90):''),
@@ -227,13 +227,10 @@
  COUNTRY_OPTIONS.forEach(item=>{const option=el('option','',item.label);option.value=item.api;countrySelect.append(option)});
  countrySelect.value=settings.country;
  const cityInput=el('input');cityInput.id='anwarPrayerCity';cityInput.type='text';cityInput.setAttribute('aria-label','المدينة');cityInput.autocomplete='address-level2';cityInput.maxLength=90;cityInput.value=settings.city;cityInput.placeholder='المدينة';
- const schoolSelect=el('select');schoolSelect.id='anwarPrayerSchool';schoolSelect.setAttribute('aria-label','طريقة حساب العصر');
- [['0','قياسي'],['1','حنفي']].forEach(item=>{const op=el('option','',item[1]);op.value=item[0];schoolSelect.append(op)});
- schoolSelect.value=settings.school;
  const voiceSelect=el('select');voiceSelect.id='anwarPrayerVoice';voiceSelect.setAttribute('aria-label','صوت الأذان');
  VOICES.forEach(voice=>{const option=el('option','',voice.label);option.value=voice.key;voiceSelect.append(option)});
  voiceSelect.value=settings.voice;
- fields.append(countrySelect,cityInput,schoolSelect,voiceSelect);
+ fields.append(countrySelect,cityInput,voiceSelect);
  const refreshButton=el('button','primary','تحديث');
  refreshButton.type='button';refreshButton.setAttribute('aria-label','تحديث مواقيت الصلاة');
  const testButton=el('button','','تجربة الأذان');
@@ -503,7 +500,7 @@
  refreshButton.addEventListener('click',()=>{
   settings.country=normalizeCountry(countrySelect.value)||detectCountry();
   settings.method=methodForCountry(settings.country);
-  settings.city=cityInput.value.trim();settings.school=schoolSelect.value;
+  settings.city=cityInput.value.trim();settings.school='0';
   persist();todayData=null;tomorrowData=null;lastDateCheck='';
   timesGrid.replaceChildren(...PRAYERS.map(prayer=>{const item=el('div','anwar-prayer-time');item.append(el('b','',prayer.name),el('strong','','—'));return item;}));
   nextBox.hidden=true;nextName.textContent='';nextWhen.textContent='';countdown.textContent='';
