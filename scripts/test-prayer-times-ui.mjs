@@ -13,8 +13,8 @@ assert.match(prayer,/const infoDetails=el\('details','anwar-prayer-info'\)/,'pri
 assert.match(prayer,/infoDetails\.append\(infoSummary,privacyLine\)/,'complete original privacy explanation remains inside the disclosure');
 assert.match(prayer,/card\.append\(head,nextBox,timesGrid,dateLine,infoDetails,details,audio\)/,'prayer card keeps all original sections and the privacy disclosure');
 assert.match(prayer,/nextBox\.hidden=true/,'countdown starts hidden while prayer data is unavailable');
-assert.doesNotMatch(prayer,/el\('strong','','—'\)/,'upcoming prayer name has no fake dash placeholder');
-assert.doesNotMatch(prayer,/el\('span','','--:--:--'\)/,'countdown has no fake zero-time placeholder');
+assert.match(prayer,/const nextName=el\('strong','',''\)/,'upcoming prayer name starts empty rather than with a fake dash');
+assert.match(prayer,/const countdown=el\('span','',''\)/,'countdown starts empty rather than with a fake zero-time value');
 assert.match(prayer,/nextBox\.hidden=true/,'countdown starts hidden while prayer data is unavailable');
 assert.match(prayer,/nextBox\.hidden=false/,'countdown appears when a next prayer event is calculated');
 assert.match(prayer,/nextName\.textContent='';nextWhen\.textContent='';countdown\.textContent='';/,'unavailable countdown does not show placeholder dashes');
