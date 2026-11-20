@@ -83,10 +83,16 @@
   if(await readDatabase(key)!==null)throw new Error('لم يكتمل التحقق من حذف سجل الخزنة.');
  }
 
- function removeLegacyCopy(key){
+ function removeLegacyCopy(key,expectedValue){
   try{
    const legacy=root.localStorage.getItem(key);
    if(legacy===null)return true;
+   // During reads, remove only the exact legacy record confirmed in IndexedDB.
+   // A different legacy value may be the last recoverable copy of a damaged record.
+   if(typeof expectedValue==='string'&&legacy!==expectedValue){
+    if(root.console&&typeof root.console.warn==='function')root.console.warn('احتُفظ بالنسخة المشفرة القديمة لأن محتواها يختلف عن سجل IndexedDB.',key);
+    return false;
+   }
    root.localStorage.removeItem(key);
    return root.localStorage.getItem(key)===null;
   }catch(error){
@@ -99,8 +105,9 @@
   if(key!=='anwar_vault_v1'&&key!=='anwar_vault_backup_v1')throw new Error('مفتاح خزنة غير معروف.');
   const existing=await readDatabase(key);
   if(existing!==null){
-   removeLegacyCopy(key);
    if(typeof existing!=='string')throw new Error('سجل الخزنة المخزن ليس نصًا صالحًا.');
+   // Do not discard a differing local copy until the stored record is independently trusted.
+   removeLegacyCopy(key,existing);
    return existing;
   }
   let legacy=null;
@@ -110,8 +117,8 @@
   if(typeof legacy!=='string')throw new Error('سجل الخزنة القديم غير صالح.');
   await writeDatabase(key,legacy);
   // Keep the original until IndexedDB has committed and read-back matched exactly.
-  if(!removeLegacyCopy(key)){
-   if(root.console&&typeof root.console.warn==='function')root.console.warn('تم ترحيل الخزنة والتحقق منها، لكن بقيت نسختها المشفرة القديمة في localStorage.');
+  if(!removeLegacyCopy(key,legacy)){
+   if(root.console&&typeof root.console.warn==='function')root.console.warn('تم ترحيل الخزنة والتحقق منها، لكن بقيت نسخة محلية مختلفة أو تعذّر حذف النسخة القديمة.');
   }
   return legacy;
  }
