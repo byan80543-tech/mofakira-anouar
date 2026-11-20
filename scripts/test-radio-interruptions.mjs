@@ -43,9 +43,9 @@ assert.ok(radio.includes('radioShouldPlay=false;au.pause();started=false;ui()'),
 
 const preload=html.match(/<link rel="preload" href="([^"]*app-core[.]js[?]v=[^"]+)" as="script">/);
 const script=html.match(/<script src="([^"]*app-core[.]js[?]v=[^"]+)" defer><\/script>/);
-const bundleVersion=script&&script[1].match(/20261119-(\d+)$/);
+const bundleVersion=script&&script[1].match(/20\d{6}-(\d+)$/);
 assert.ok(preload&&script&&preload[1]===script[1]&&bundleVersion&&Number(bundleVersion[1])>=12,'preload and script use a current matching bundle version');
-const cacheVersion=worker.match(/const CACHE_NAME='anwar-shell-2026-11-19-v\d+';/);
+const cacheVersion=worker.match(/const CACHE_NAME='anwar-shell-20\d{2}-\d{2}-\d{2}-v\d+';/);
 assert.ok(cacheVersion&&Number(cacheVersion[0].match(/-v(\d+)/)[1])>=93,'service worker cache is bumped for the updated app shell');
 
 console.log('PASS radio continues while lesson and country audio play');
