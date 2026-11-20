@@ -30,7 +30,7 @@ const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const core=fs.readFileSync(path.join(root,'app-core.js'),'utf8');
 const worker=fs.readFileSync(path.join(root,'service-worker.js'),'utf8');
 assert.ok(html.includes('id="protectionTab"')&&html.includes('data-protection'),'the adhkar screen exposes the protection tab and counter controls');
-assert.ok(html.indexOf('protection-adhkar.js')<html.indexOf('app-core.js?v='),'the protection library loads before the app renderer');
+assert.ok(html.lastIndexOf('protection-adhkar.js')<html.lastIndexOf('<script src="./app-core.js'),'the protection library script loads before the app renderer');
 assert.ok(worker.includes("'./protection-adhkar.js'")&&worker.includes('anwar-shell-2026-11-20-v119'),'the protection library is included in the offline app shell');
 assert.match(core,/id==='protectionTab'\)renderAdhkar\('protection'\)/,'the protection tab is connected to the delegated click handler');
 assert.match(core,/window\.AnwarRenderAdhkar=function\(period\)\{if\(!\['morning','evening','protection'\]\.includes\(period\)\)/,'the public renderer accepts the protection section');
