@@ -70,7 +70,8 @@ const fakeStore = {
 const ipLimiter = {
   idFromName: name => name,
   get: () => ({
-    async fetch(request) {
+    async fetch(input, init) {
+      const request = input instanceof Request ? input : new Request(input, init);
       const body = await request.json();
       routeBuckets.push(body.buckets[2]);
       return new Response(JSON.stringify({ allowed: true }), {
