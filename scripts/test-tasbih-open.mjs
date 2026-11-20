@@ -35,6 +35,7 @@ assert.doesNotMatch(ownerDialog,/id="adhkarPanel"|id="tasbihPanel"/,'adhkar and 
 assert.ok(adhkarPage.includes('id="adhkarPanel"')&&adhkarPage.includes('id="morningTab"')&&adhkarPage.includes('id="eveningTab"')&&adhkarPage.includes('id="adhkarContent"'),'the dedicated adhkar page contains morning/evening navigation and existing content renderer');
 assert.ok(tasbihPage.includes('id="tasbihPanel"')&&tasbihPage.includes('id="tasbihCounterControl"')&&tasbihPage.includes('id="tasbihVoice"')&&tasbihPage.includes('id="tasbihThemePicker"'),'the standalone tasbih page keeps counter, voice and appearance controls');
 assert.ok(!tasbihPage.includes('adhkarTasbihToggle'),'the obsolete intermediate tasbih launcher is removed');
+assert.ok(!tasbihPage.includes('tasbihClose'),'the tasbih page uses one return control instead of a duplicate close action');
 for(const id of ['adhkarPanel','tasbihPanel','tasbihCount','tasbihVoice','morningTab','eveningTab']){
  assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,id+' remains unique after moving');
 }
