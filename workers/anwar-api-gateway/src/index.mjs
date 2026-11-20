@@ -451,6 +451,8 @@ function normalizeDhikr(value, options = {}) {
 }
 
 async function readJsonBody(request, limit = ADHKAR_BODY_LIMIT) {
+  const advertisedLength = Number(request.headers.get("Content-Length") || 0);
+  if (advertisedLength > limit) return null;
   const raw = await request.text();
   if (new TextEncoder().encode(raw).byteLength > limit) return null;
   try {
@@ -563,6 +565,7 @@ async function handleAdhkarApi(request, url, env, origin) {
   if (!isAdhkarApiPath(url.pathname)) return null;
   const method = request.method;
   const path = url.pathname;
+  if (url.search) return errorResponse("لا تُقبل معاملات إضافية لهذا المسار.", 400, origin);
   const adminSecret = String(env.ADHKAR_ADMIN_SECRET || "");
   if (!env.ADHKAR_STORE) return errorResponse("مخزن مكتبة الأذكار غير مهيأ.", 503, origin);
 
