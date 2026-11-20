@@ -79,7 +79,10 @@ ok(!appSource.includes('file_00000000670481f4ad879246afe6bae2.png'),'the oversiz
 ok(!manifest.icons.some(i=>String(i.src).includes('file_00000000670481f4ad879246afe6bae2.png')),'manifest excludes the oversized source icon');
 ok(appSource.includes('id="bookToolPanel"') && appSource.includes('id="bookToolContent" hidden'),'book creation is compact and collapsed inside the tools panel');
 ok(appSource.includes("setBookToolExpanded($('bookToolContent').hidden,true)"),'book panel toggle opens and closes correctly');
-const ribbonViewportFix=html.match(/<style id="anwar-ribbon-viewport-safe-v2">([\\s\\S]*?)<\\/style>/)?.[1]||'';
+const ribbonViewportStart=html.indexOf('<style id="anwar-ribbon-viewport-safe-v2">');
+const ribbonViewportEnd=html.indexOf('</style>',ribbonViewportStart);
+const ribbonViewportFix=ribbonViewportStart>=0&&ribbonViewportEnd>ribbonViewportStart
+ ?html.slice(ribbonViewportStart,ribbonViewportEnd):'';
 ok(
  ribbonViewportFix.includes('@media (max-width:800px)') &&
  ribbonViewportFix.includes('position:fixed!important') &&
