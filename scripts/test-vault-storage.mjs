@@ -117,5 +117,22 @@ await assert.rejects(
 );
 assert.equal(h.localValues.get(mainKey),legacyPrimary,'legacy copy is preserved when IndexedDB verification fails');
 
+const damagedRecord=makeHarness();
+damagedRecord.records.set(mainKey,{unexpected:'non-string'});
+damagedRecord.localValues.set(mainKey,legacyPrimary);
+await assert.rejects(
+ ()=>damagedRecord.api.get(mainKey),
+ /ليس نصًا صالحًا/,
+ 'non-string IndexedDB records are rejected'
+);
+assert.equal(damagedRecord.localValues.get(mainKey),legacyPrimary,'a recoverable legacy copy is retained when the IndexedDB record has the wrong type');
+
+const differingRecord=makeHarness();
+const damagedEnvelope=JSON.stringify({format:'anwar-vault',ciphertext:'damaged-idb-value'});
+differingRecord.records.set(mainKey,damagedEnvelope);
+differingRecord.localValues.set(mainKey,legacyPrimary);
+assert.equal(await differingRecord.api.get(mainKey),damagedEnvelope,'a string IndexedDB record remains the primary read result');
+assert.equal(differingRecord.localValues.get(mainKey),legacyPrimary,'a differing legacy envelope is preserved until the IndexedDB record is independently trusted');
+
 await assert.rejects(()=>h.api.get('anwar_v1'),/مفتاح خزنة غير معروف/,'unrecognized storage keys are rejected');
 console.log('All verified IndexedDB vault storage tests passed.');
