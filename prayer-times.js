@@ -10,7 +10,7 @@
  window.__anwarPrayerTimesReady=true;
 
  const API='https://api.aladhan.com/v1';
- const ADHAN_URL='https://upload.wikimedia.org/wikipedia/commons/e/e7/Adhan.ogg';
+ const ADHAN_URL='https://upload.wikimedia.org/wikipedia/commons/b/b0/Beautiful_adhan.ogg';
  const SETTINGS_KEY='anwar_prayer_settings_v1';
  const PLAYED_KEY='anwar_prayer_last_adhan_v1';
  const PRAYERS=[
@@ -82,16 +82,16 @@
  };
  const style=el('style');
  style.textContent=[
-  '.anwar-prayer-card{display:grid;gap:10px;padding:12px;border:1px solid #c9a96a;border-radius:14px;background:linear-gradient(145deg,#fff9e9,var(--bg));color:var(--tx);box-shadow:0 3px 12px rgba(8,38,77,.07)}',
+  '.anwar-prayer-card{display:grid;gap:10px;padding:12px;border:1px solid #c9a96a;border-radius:14px;background:linear-gradient(145deg,var(--sf),var(--bg));color:var(--tx);box-shadow:0 3px 12px rgba(8,38,77,.07)}',
   '.anwar-prayer-head{display:flex;align-items:center;justify-content:space-between;gap:8px}',
-  '.anwar-prayer-head strong{font-family:"Aref Ruqaa",Amiri,serif;font-size:18px;color:#173d5c}',
+  '.anwar-prayer-head strong{font-family:"Aref Ruqaa",Amiri,serif;font-size:18px;color:var(--ac)}',
   '.anwar-prayer-head small,.anwar-prayer-date,.anwar-prayer-note{font-size:10px;color:var(--mu);line-height:1.7}',
   '.anwar-prayer-next{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 10px;padding:10px 12px;border-radius:11px;background:linear-gradient(115deg,#0b3159,#1c6077);color:#fff}',
   '.anwar-prayer-next small{font-size:11px;color:#f1dca9}.anwar-prayer-next strong{font-size:17px;color:#fff2c5}.anwar-prayer-next span{font-size:12px;color:#fff;direction:ltr;text-align:left;font-variant-numeric:tabular-nums}',
   '.anwar-prayer-times{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}',
   '.anwar-prayer-time{display:grid;gap:3px;min-width:0;padding:8px 3px;text-align:center;border:1px solid var(--bd);border-radius:9px;background:var(--sf)}',
   '.anwar-prayer-time b{font-size:10px;color:var(--mu);white-space:nowrap}.anwar-prayer-time strong{font-size:12px;color:var(--ac);direction:ltr;font-variant-numeric:tabular-nums}',
-  '.anwar-prayer-time.is-next{border-color:#c9a96a;background:#fff1c8;box-shadow:inset 0 0 0 1px #e1c77f}',
+  '.anwar-prayer-time.is-next{border-color:#c9a96a;background:var(--ac2);box-shadow:inset 0 0 0 1px #e1c77f}',
   '.anwar-prayer-settings{border-top:1px solid #d9c99e;padding-top:8px}',
   '.anwar-prayer-settings summary{cursor:pointer;color:var(--ac);font-size:12px;font-weight:700;padding:3px 0}',
   '.anwar-prayer-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding-top:9px}',
@@ -128,6 +128,7 @@
  nextBox.append(nextCopy,countdown);
  const timesGrid=el('div','anwar-prayer-times');
  const dateLine=el('div','anwar-prayer-date','جارٍ تحميل مواقيت المدينة…');
+ const privacyLine=el('small','anwar-prayer-note','لا نطلب موقعك الجغرافي؛ نرسل اسم المدينة والدولة فقط إلى خدمة المواقيت. وقد تختلف الدقائق عن توقيت مسجدك المحلي.');
  const details=el('details','anwar-prayer-settings');
  const summary=el('summary','','إعداد المدينة والتنبيه الصوتي');
  const fields=el('div','anwar-prayer-fields');
@@ -167,13 +168,13 @@
  const apiLink=el('a','','مصدر المواقيت');
  apiLink.href='https://aladhan.com/prayer-times-api';apiLink.target='_blank';apiLink.rel='noopener noreferrer';
  const audioLink=el('a','','مصدر تسجيل الأذان · CC0');
- audioLink.href='https://commons.wikimedia.org/wiki/File:Adhan.ogg';audioLink.target='_blank';audioLink.rel='noopener noreferrer';
+ audioLink.href='https://commons.wikimedia.org/wiki/File:Beautiful_adhan.ogg';audioLink.target='_blank';audioLink.rel='noopener noreferrer';
  links.append(apiLink,audioLink);
  details.append(summary,fields,actions,toggleLabel,volumeWrap,status,links);
  const audio=document.createElement('audio');
  audio.id='anwarPrayerAdhanAudio';audio.preload='none';audio.hidden=true;audio.controls=false;audio.setAttribute('playsinline','');audio.setAttribute('aria-label','صوت الأذان');
  audio.src=ADHAN_URL;audio.volume=settings.volume;
- card.append(head,nextBox,timesGrid,dateLine,details,audio);
+ card.append(head,nextBox,timesGrid,dateLine,privacyLine,details,audio);
  const insertBefore=panel.querySelector('.radio-section-title');
  if(insertBefore)panel.insertBefore(card,insertBefore);else panel.append(card);
 
@@ -308,7 +309,7 @@
     }
    });
   }
-  lastTick=now;
+  if(todayData)lastTick=now;
   const next=events.find(event=>event.at>now);
   if(next){
    nextName.textContent=next.name;
@@ -363,7 +364,10 @@
  refreshButton.addEventListener('click',()=>{
   settings.country=countryInput.value.trim();settings.city=cityInput.value.trim();
   settings.method=methodSelect.value;settings.school=schoolSelect.value;
-  persist();lastTick=Date.now();refreshTimes(false);
+  persist();todayData=null;tomorrowData=null;lastDateCheck='';
+  timesGrid.replaceChildren(...PRAYERS.map(prayer=>{const item=el('div','anwar-prayer-time');item.append(el('b','',prayer.name),el('strong','','—'));return item;}));
+  nextName.textContent='—';countdown.textContent='--:--:--';dateLine.textContent='جارٍ تحديث مواقيت المدينة…';
+  lastTick=Date.now();refreshTimes(false);
  });
  enabledInput.addEventListener('change',()=>{
   settings.enabled=enabledInput.checked;persist();
