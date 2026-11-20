@@ -16,7 +16,7 @@ const publicPage = html.slice(publicPageStart, publicPageEnd);
 
 assert.ok(html.includes('id="adhkarAdminOpen"') && html.includes('إدارة المالك'),
   'the protection page exposes only the owner management entry');
-assert.ok(html.includes('القراءة العامة') && html.includes('صاحب المفكرة وحده'),
+assert.ok(html.includes('للزوار القراءة فقط') && html.includes('صاحب المفكرة وحده'),
   'the visitor-facing notice clearly states read-only access');
 assert.equal(publicPage.includes('adhkarSuggestOpen'), false,
   'there is no visitor suggestion control on the protection page');
