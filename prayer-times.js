@@ -136,9 +136,9 @@
  nextBox.append(nextCopy,countdown);
  const timesGrid=el('div','anwar-prayer-times');
  const dateLine=el('div','anwar-prayer-date','جارٍ تحميل مواقيت المدينة…');
- const privacyLine=el('small','anwar-prayer-note','لا نطلب موقعك؛ نرسل المدينة والبلد وطريقة الحساب فقط.');
+ const privacyLine=el('small','anwar-prayer-note','لا نطلب موقعك الجغرافي؛ نرسل المدينة والدولة وتاريخ المواقيت وطريقة الحساب واختيار العصر إلى خدمة المواقيت. وقد تختلف الدقائق عن توقيت مسجدك المحلي.');
  const details=el('details','anwar-prayer-settings');
- const summary=el('summary','','الإعدادات');
+ const summary=el('summary','','إعدادات المواقيت والأذان');
  const fields=el('div','anwar-prayer-fields');
  function makeField(label,control){
   const wrap=el('label','anwar-prayer-field',label);wrap.append(control);return wrap;
@@ -158,23 +158,23 @@
   makeField('الدولة',countryInput),
   makeField('المدينة',cityInput),
   makeField('طريقة حساب المواقيت',methodSelect),
-  makeField('حساب العصر',schoolSelect),
+  makeField('طريقة حساب العصر',schoolSelect),
   makeField('صوت الأذان',voiceSelect)
  );
- const refreshButton=el('button','primary','تحديث');
+ const refreshButton=el('button','primary','تحديث مواقيت الصلاة');
  refreshButton.type='button';
- const testButton=el('button','','تجربة الصوت');
+ const testButton=el('button','','تجربة الأذان');
  testButton.type='button';
  const actions=el('div','anwar-prayer-actions');actions.append(refreshButton,testButton);
  const toggleLabel=el('label','anwar-prayer-toggle');
  const enabledInput=el('input');enabledInput.type='checkbox';enabledInput.checked=settings.enabled;
- const enabledText=el('span','','الأذان تلقائيًا عند دخول الوقت');
+ const enabledText=el('span','','تشغيل الأذان تلقائيًا عند دخول وقت الصلاة');
  toggleLabel.append(enabledInput,enabledText);
  const volumeWrap=el('label','anwar-prayer-volume');
- const volumeLabel=el('span','','مستوى الصوت');
+ const volumeLabel=el('span','','مستوى صوت الأذان');
  const volumeInput=el('input');volumeInput.type='range';volumeInput.min='0';volumeInput.max='1';volumeInput.step='0.05';volumeInput.value=String(settings.volume);
  volumeWrap.append(volumeLabel,volumeInput);
- const status=el('div','anwar-prayer-status','اختر مدينتك ثم فعّل الأذان بعد اختبار الصوت.');
+ const status=el('div','anwar-prayer-status','اختر مدينتك، ثم جرّب الأذان واسمح للمتصفح بتشغيل الصوت قبل تفعيل التنبيه التلقائي.');
  status.setAttribute('role','status');status.setAttribute('aria-live','polite');
  const links=el('div','anwar-prayer-links');
  const apiLink=el('a','','مصدر المواقيت');
@@ -321,15 +321,15 @@
   try{
    const attempt=audio.play();
    if(attempt&&typeof attempt.then==='function')await attempt;
-   setStatus(isTest?'بدأ اختبار الصوت.':'حان وقت '+prayer+'؛ بدأ الأذان.');
+   setStatus(isTest?'بدأ اختبار الأذان.':'حان وقت صلاة '+prayer+'؛ بدأ الأذان وخُفّض صوت الإذاعة مؤقتًا.');
    return true;
   }catch(error){
    const blocked=error&&error.name==='NotAllowedError';
-   setStatus(blocked?'اسمح بالصوت بالضغط على تجربة الصوت.':'تعذّر تحميل الأذان؛ تحقق من الاتصال.');
+   setStatus(blocked?'منع المتصفح التشغيل التلقائي. اضغط «تجربة الأذان» واسمح بتشغيل الصوت.':'تعذّر تحميل الأذان؛ تحقق من اتصال الإنترنت ثم أعد التجربة.');
    return false;
   }
  }
- audio.addEventListener('ended',()=>setStatus('انتهى الأذان.'));
+ audio.addEventListener('ended',()=>setStatus('انتهى الأذان؛ عاد صوت إذاعة القرآن إلى مستواه السابق.'));
  audio.addEventListener('error',()=>setStatus('تعذّر تحميل تسجيل الأذان من المصدر الصوتي.'));
  function tick(){
   const now=Date.now(),events=eventList();
@@ -385,7 +385,7 @@
    tomorrowData=await fetchDay(tomorrowText,token);
    if(token!==loadToken)return;
    persist();renderTimes();lastDateCheck=todayText;
-   if(!silent)setStatus('تم تحديث المواقيت. جرّب الصوت للسماح بالتشغيل التلقائي.');
+   if(!silent)setStatus('تم تحديث مواقيت الصلاة. جرّب الأذان واسمح للمتصفح بتشغيل الصوت تلقائيًا.');
    tick();
   }catch(error){
    if(token===loadToken){
@@ -406,7 +406,8 @@
  });
  enabledInput.addEventListener('change',()=>{
   settings.enabled=enabledInput.checked;persist();
-  setStatus(settings.enabled?'الأذان التلقائي مفعّل.':'الأذان التلقائي متوقف.');
+  if(settings.enabled)setStatus('تم تفعيل الأذان التلقائي. جرّب الأذان أولًا واسمح للمتصفح بتشغيل الصوت.');
+  else{if(!audio.paused)audio.pause();setStatus('تم إيقاف الأذان التلقائي وإيقاف الصوت الجاري.');}
  });
  volumeInput.addEventListener('input',()=>{
   settings.volume=Math.max(0,Math.min(1,Number(volumeInput.value)||0));audio.volume=settings.volume;persist();
