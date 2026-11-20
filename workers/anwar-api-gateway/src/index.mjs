@@ -187,6 +187,10 @@ function isAllowedUpstreamHost(hostname) {
     hostname === "www.way2quran.com";
 }
 
+function isJsonUpstreamHost(hostname) {
+  return hostname === "mp3quran.net" || hostname === "www.mp3quran.net";
+}
+
 function validateUpstreamUrl(target) {
   if (!(target instanceof URL)) {
     throw new Error("Upstream URL must be parsed before use");
@@ -216,7 +220,7 @@ async function fetchSameOriginOnly(target) {
         redirect: "manual",
         signal: controller.signal,
         headers: {
-          Accept: current.hostname.endsWith("mp3quran.net")
+          Accept: isJsonUpstreamHost(current.hostname)
             ? "application/json"
             : "text/html"
         }
@@ -647,9 +651,8 @@ export default {
 
       const body = await readTextWithLimit(upstream, route.maxBytes);
       if (route.kind === "html") {
-        if (body.length < 300 ||
-            (!body.includes("/ar/reciters") && !body.includes("media.way2quran.com"))) {
-          return errorResponse("تعذّر التحقق من صفحة المصدر.", 502, origin);
+        if (body.length < 300) {
+          return errorResponse("استجابة المصدر أقصر من الحد المتوقع.", 502, origin);
         }
       } else {
         let parsed;
