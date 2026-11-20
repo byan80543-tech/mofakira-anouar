@@ -7,7 +7,7 @@
  function init(){
   if(window.__ANWAR_TASBIH_CONTROLLER_READY__)return;
   const $=id=>document.getElementById(id);
-  const panel=$('tasbihPanel'),closeButton=$('tasbihClose');
+  const panel=$('tasbihPanel');
   const countNode=$('tasbihCount'),phraseNode=$('tasbihPhrase'),select=$('tasbihDhikr');
   const counterControl=panel&&panel.querySelector('.anwar-tasbih-counter');
   const themeToggle=$('tasbihThemeToggle'),themePicker=$('tasbihThemePicker');
@@ -21,7 +21,7 @@
   const voicePanel=$('tasbihVoicePanel'),voiceButton=$('tasbihVoice');
   const voiceState=$('tasbihVoiceState'),voiceStatus=$('tasbihVoiceStatus');
   const voiceButtonLabel=$('tasbihVoiceButtonLabel'),voiceTranscript=$('tasbihVoiceTranscript');
-  const required={panel,closeButton,select,countNode,phraseNode,counterControl,tap,minus,reset,cards,dhikrToggle,dhikrList,customInput,customAdd,customStatus,removeButton,restoreButton,voicePanel,voiceButton,voiceState,voiceStatus,voiceButtonLabel,voiceTranscript,themeToggle,themePicker,...Object.fromEntries(themeButtons.map(item=>['theme'+item.name,item.button]))};
+  const required={panel,select,countNode,phraseNode,counterControl,tap,minus,reset,cards,dhikrToggle,dhikrList,customInput,customAdd,customStatus,removeButton,restoreButton,voicePanel,voiceButton,voiceState,voiceStatus,voiceButtonLabel,voiceTranscript,themeToggle,themePicker,...Object.fromEntries(themeButtons.map(item=>['theme'+item.name,item.button]))};
   const missing=Object.keys(required).filter(key=>!required[key]);
   if(missing.length){
    console.error('تعذر تهيئة السبحة؛ عناصر الواجهة الناقصة:',missing);
@@ -381,7 +381,7 @@
    requestAnimationFrame(()=>{
     try{panel.scrollIntoView({behavior:'smooth',block:'nearest'})}catch(error){}
    });
-   closeButton.focus();
+   counterControl.focus();
    return true;
   }
   function closePanel(restoreFocus){
@@ -405,7 +405,6 @@
 
   // The service dashboard opens this standalone panel directly; its counter and preferences remain independent.
 
-  closeButton.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();closePanel()});
   themeToggle.addEventListener('click',()=>{
    themePicker.hidden=!themePicker.hidden;
    themeToggle.setAttribute('aria-expanded',themePicker.hidden?'false':'true');
