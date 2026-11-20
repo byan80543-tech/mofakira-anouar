@@ -21,7 +21,6 @@ jobs:
           CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           IP_HASH_SECRET: ${{ secrets.IP_HASH_SECRET }}
           ADHKAR_ADMIN_SECRET: ${{ secrets.ADHKAR_ADMIN_SECRET }}
-          ADHKAR_ADMIN_SECRET: ${{ secrets.ADHKAR_ADMIN_SECRET }}
         run: |
           test -n "$CF_API_TOKEN" || { echo "::error::Missing CLOUDFLARE_API_TOKEN repository secret"; exit 1; }
           test -n "$CF_ACCOUNT_ID" || { echo "::error::Missing CLOUDFLARE_ACCOUNT_ID repository secret"; exit 1; }
@@ -46,6 +45,7 @@ jobs:
             ADHKAR_ADMIN_SECRET
         env:
           IP_HASH_SECRET: ${{ secrets.IP_HASH_SECRET }}
+          ADHKAR_ADMIN_SECRET: ${{ secrets.ADHKAR_ADMIN_SECRET }}
 
       - name: Show deployment URL
         env:
