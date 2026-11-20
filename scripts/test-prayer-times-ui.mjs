@@ -66,6 +66,6 @@ assert.match(html,/#rd \.curtain-head #ownerBtn\.radio-owner-pen[\s\S]*?width:34
 assert.match(html,/<div class="curtain-head"><button type="button" id="ownerBtn"/,'purple radio header contains only its functional controls');
 assert.doesNotMatch(html,/<div class="curtain-head"><b>الخدمات القرآنية والدينية<\/b>/,'duplicate services title is removed from purple radio header');
 assert.match(html,/prayer-times\.js\?v=20261120-11/,'HTML loads the prayer controller after radio header title removal');
-assert.match(worker,/anwar-shell-2026-11-20-v119/,'service worker cache is bumped for the reorganized adhkar and tasbih pages');
+assert.match(worker,/anwar-shell-2026-11-20-v120/,'service worker cache is bumped for direct protection navigation');
 
 console.log('Prayer card compact layout, loading states, Arabic location and header controls tests passed.');
