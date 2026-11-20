@@ -136,7 +136,7 @@
  nextBox.append(nextCopy,countdown);
  const timesGrid=el('div','anwar-prayer-times');
  const dateLine=el('div','anwar-prayer-date','جارٍ تحميل مواقيت المدينة…');
- const privacyLine=el('small','anwar-prayer-note','لا نطلب موقعك الجغرافي؛ نرسل اسم المدينة والدولة وتاريخ اليوم وطريقة حساب المواقيت إلى الخدمة. وقد تختلف الدقائق عن توقيت مسجدك المحلي.');
+ const privacyLine=el('small','anwar-prayer-note','لا نطلب موقعك الجغرافي؛ نرسل المدينة والدولة وتاريخ المواقيت وطريقة الحساب واختيار العصر إلى خدمة المواقيت. وقد تختلف الدقائق عن توقيت مسجدك المحلي.');
  const details=el('details','anwar-prayer-settings');
  const summary=el('summary','','إعدادات المواقيت والأذان');
  const fields=el('div','anwar-prayer-fields');
@@ -329,7 +329,7 @@
    return false;
   }
  }
- audio.addEventListener('ended',()=>setStatus('انتهى الأذان.'));
+ audio.addEventListener('ended',()=>setStatus('انتهى الأذان؛ عاد صوت إذاعة القرآن إلى مستواه السابق.'));
  audio.addEventListener('error',()=>setStatus('تعذّر تحميل تسجيل الأذان من المصدر الصوتي.'));
  function tick(){
   const now=Date.now(),events=eventList();
@@ -385,7 +385,7 @@
    tomorrowData=await fetchDay(tomorrowText,token);
    if(token!==loadToken)return;
    persist();renderTimes();lastDateCheck=todayText;
-   if(!silent)setStatus('تم تحديث المواقيت. جرّب الصوت للسماح بالتشغيل التلقائي.');
+   if(!silent)setStatus('تم تحديث مواقيت الصلاة. جرّب الأذان واسمح للمتصفح بتشغيل الصوت تلقائيًا.');
    tick();
   }catch(error){
    if(token===loadToken){
