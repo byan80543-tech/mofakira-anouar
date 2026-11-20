@@ -84,7 +84,7 @@ assert.ok(deploy.includes('umask 077') && deploy.includes('chmod 600') &&
   deploy.includes('if: always()') && deploy.includes('rm -f'),
   'the temporary secrets file is permission-restricted and removed even after a failed deployment');
 assert.ok(serviceWorker.includes("'./adhkar-management.js'") &&
-  serviceWorker.includes('anwar-shell-2026-11-20-v123'),
-  'the owner management module remains in the offline shell');
+  /const CACHE_NAME='anwar-shell-\d{4}-\d{2}-\d{2}-v\d+';/.test(serviceWorker),
+  'the owner management module remains in the versioned offline shell');
 
 console.log('Owner-only adhkar UI, privacy and offline integration tests passed.');
