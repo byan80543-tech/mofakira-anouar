@@ -63,7 +63,9 @@ assert.doesNotMatch(prayer,/\.anwar-prayer-card\{gap:7px;padding:10px 11px\}/,'c
 assert.match(prayer,/\.anwar-prayer-next\[hidden\]\{display:none!important\}/,'hidden countdown is not forced visible by the grid rule');
 assert.match(html,/<small>أصوات الأذان<\/small><strong>اختيار الصوت والتنبيهات<\/strong>/,'section card distinguishes adhan sounds from the prayer timetable');
 assert.match(html,/#rd \.curtain-head #ownerBtn\.radio-owner-pen[\s\S]*?width:34px!important;height:34px!important/,'ownership button matches the close button dimensions');
-assert.match(html,/prayer-times\.js\?v=20261120-10/,'HTML loads the prayer controller without Asr method selector');
-assert.match(worker,/anwar-shell-2026-11-20-v116/,'service worker cache is bumped after removing the Asr selector');
+assert.match(html,/<div class="curtain-head"><button type="button" id="ownerBtn"/,'purple radio header contains only its functional controls');
+assert.doesNotMatch(html,/<div class="curtain-head"><b>الخدمات القرآنية والدينية<\/b>/,'duplicate services title is removed from purple radio header');
+assert.match(html,/prayer-times\.js\?v=20261120-11/,'HTML loads the prayer controller after radio header title removal');
+assert.match(worker,/anwar-shell-2026-11-20-v117/,'service worker cache is bumped after radio header title removal');
 
 console.log('Prayer card compact layout, loading states, Arabic location and header controls tests passed.');
