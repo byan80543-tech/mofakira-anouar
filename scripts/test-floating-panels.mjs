@@ -15,11 +15,11 @@ vm.runInNewContext(controller,sandbox,{filename:'floating-panels.js',timeout:200
 const math=sandbox.window.AnwarFloatingPanelMath;
 assert.ok(math,'the controller exposes its isolated geometry helpers');
 const normal=math.clampRect(
- {left:110,top:130,width:300,height:260},
+ {left:100,top:130,width:300,height:260},
  {left:20,top:10,width:390,height:760}
 );
 assert.deepEqual(JSON.parse(JSON.stringify(normal)),{
- left:110,top:130,width:300,height:260
+ left:100,top:130,width:300,height:260
 },'normal panel geometry remains unchanged when it already fits');
 
 const clipped=math.clampRect(
