@@ -4731,6 +4731,11 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
     return true;
    }
   }
+  const stationModal=document.getElementById('liveStationModal');
+  if(stationModal&&!stationModal.hidden){
+   stationModal.querySelector('.live-station-modal-close')?.click();
+   return true;
+  }
   const dialogs=Array.from(document.querySelectorAll('dialog[open]'));
   const activeDialog=dialogs[dialogs.length-1];
   if(activeDialog){activeDialog.close();return true}
