@@ -106,6 +106,15 @@
       }
     }
 
+    const liveStationModal = byId('liveStationModal');
+    if (liveStationModal && !liveStationModal.hidden) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      liveStationModal.querySelector('.live-station-modal-close')?.click();
+      syncBackButton();
+      return;
+    }
+
     // Back inside a religious service must stay within the service dashboard.
     // Cancel an active adhkar edit first; only the next back returns to the
     // religious sections grid.
