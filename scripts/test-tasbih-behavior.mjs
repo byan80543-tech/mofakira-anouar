@@ -275,7 +275,7 @@ assert.doesNotMatch(html,/<span>عدد التسبيحات<\/span>/,'the counter 
 assert.doesNotMatch(html,/<span class="lesson-series-button-copy"><small>السبحة<\/small><strong>التسبيح والعدّ الصوتي<\/strong><\/span>/,'the tasbih service card displays only the word السبحة');
 assert.match(html,/#rd:has\(#anwarTasbihPage:not\(\[hidden\]\)\)\{overflow:hidden!important\}/,'the tasbih view locks the surrounding radio panel against whole-page scrolling');
 assert.match(html,/anwar-tasbih-stage::before\{\s*content:none!important/,'the overlapping mosque ornament above the counter is removed');
-assert.ok(core.includes('family=IBM+Plex+Sans+Arabic:wght@400;500;600;700'),'IBM Plex Sans Arabic is included in the base font bundle');
+assert.ok(appCore.includes('family=IBM+Plex+Sans+Arabic:wght@400;500;600;700'),'IBM Plex Sans Arabic is included in the base font bundle');
 assert.ok(html.includes('font-family:"IBM Plex Sans Arabic",sans-serif!important'),'the main dhikr inscription uses IBM Plex Sans Arabic');
 assert.ok(html.includes('font-family:Cairo,sans-serif!important'),'tasbih controls and headings use Cairo');
 assert.ok(html.includes('box-shadow:inset 0 1px 3px rgba(95,47,67,.08)'),'the dhikr inscription is visually integrated with the tasbih surface');
