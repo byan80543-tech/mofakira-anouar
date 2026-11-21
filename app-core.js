@@ -3623,7 +3623,15 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  $('closeRadioPanel').addEventListener('click',()=>setRadioPanel(false));
  $('ownerBtn').addEventListener('click',e=>{e.stopPropagation();const dialog=$('ownerDialog');if(dialog&&!dialog.open)dialog.showModal();});
  radioPanel.addEventListener('click',e=>e.stopPropagation());
- document.addEventListener('click',e=>{if(!e.target.closest('#rd,#rg'))setRadioPanel(false)});
+   // Service pickers and management dialogs are mounted beside #rd so they can
+  // cover the viewport. Treat their clicks as inside the religious workspace;
+  // otherwise the outside-click handler closes the panel while a choice is made.
+  const radioPanelInteractionSelector='#rd,#rg,#surahPickerModal,#lessonSeriesModal,#liveStationModal,#reciterCountryModal,#ownerDialog,#adhkarPersonalManager';
+  document.addEventListener('click',e=>{
+   const target=e.target;
+   const isPanelInteraction=target&&typeof target.closest==='function'&&target.closest(radioPanelInteractionSelector);
+   if(!isPanelInteraction)setRadioPanel(false);
+  });
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&radioPanel.classList.contains('o'))setRadioPanel(false)});
  window.addEventListener('resize',()=>{if(radioPanel.classList.contains('o'))radioPanel.style.setProperty('--curtain-top','0px')});
  $('rnx').addEventListener('click',()=>moveSurah(1));
