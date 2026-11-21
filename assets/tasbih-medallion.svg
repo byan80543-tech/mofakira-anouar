@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">
+<defs>
+ <pattern id="floral" width="120" height="120" patternUnits="userSpaceOnUse">
+  <g fill="none" stroke="#c8a35d" stroke-width="2" opacity=".22">
+   <path d="M60 8C75 28 75 42 60 60 45 42 45 28 60 8ZM112 60C92 75 78 75 60 60 78 45 92 45 112 60ZM60 112C45 92 45 78 60 60 75 78 75 92 60 112ZM8 60C28 45 42 45 60 60 42 75 28 75 8 60Z"/>
+   <circle cx="60" cy="60" r="25"/>
+   <path d="M60 25 70 47 95 60 70 73 60 95 50 73 25 60 50 47Z"/>
+  </g>
+ </pattern>
+ <clipPath id="disc"><circle cx="300" cy="300" r="292"/></clipPath>
+</defs>
+<g clip-path="url(#disc)">
+ <rect width="600" height="600" fill="url(#floral)"/>
+ <circle cx="300" cy="300" r="280" fill="none" stroke="#d5b56f" stroke-width="3" opacity=".42"/>
+ <circle cx="300" cy="300" r="244" fill="none" stroke="#d5b56f" stroke-width="2" opacity=".36"/>
+ <circle cx="300" cy="300" r="208" fill="none" stroke="#d5b56f" stroke-width="1.5" opacity=".25"/>
+ <g fill="none" stroke="#d5b56f" stroke-width="2" opacity=".22">
+  <path d="M300 24 330 70 386 51 367 107 413 137 367 167 386 223 330 204 300 250 270 204 214 223 233 167 187 137 233 107 214 51 270 70Z"/>
+  <path d="M300 350 318 377 350 366 339 398 366 416 339 434 350 466 318 455 300 482 282 455 250 466 261 434 234 416 261 398 250 366 282 377Z"/>
+ </g>
+</g>
+</svg>

@@ -18,7 +18,9 @@
     count:Number.isSafeInteger(count)?Math.max(0,Math.min(1000000000,count)):0,
     dhikr:typeof tasbih.dhikr==='string'&&tasbih.dhikr.trim()?tasbih.dhikr.trim().slice(0,200):DEFAULT_DHIKR,
     customDhikrs:Array.isArray(tasbih.customDhikrs)?[...new Set(tasbih.customDhikrs.filter(item=>typeof item==='string').map(item=>item.trim().replace(/\s+/g,' ').slice(0,200)).filter(Boolean))].slice(0,30):[],
-    removedOfficialDhikrs:Array.isArray(tasbih.removedOfficialDhikrs)?[...new Set(tasbih.removedOfficialDhikrs.filter(item=>typeof item==='string').map(item=>item.trim().replace(/\s+/g,' ').slice(0,200)).filter(Boolean))].slice(0,60):[]
+    removedOfficialDhikrs:Array.isArray(tasbih.removedOfficialDhikrs)?[...new Set(tasbih.removedOfficialDhikrs.filter(item=>typeof item==='string').map(item=>item.trim().replace(/\s+/g,' ').slice(0,200)).filter(Boolean))].slice(0,60):[],
+     theme:['emerald','dark','pink','night','heritage','glass'].includes(tasbih.theme)?tasbih.theme:'emerald',
+     designVersion:typeof tasbih.designVersion==='string'?tasbih.designVersion.slice(0,40):''
    }
   };
  }

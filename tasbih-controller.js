@@ -30,19 +30,21 @@
   }
   const preferences=globalThis.AnwarPrivatePreferences;
   // لا نفترض أن الخزنة تحتوي tasbih؛ قد تكون أول زيارة أو بيانات قديمة.
-  const defaultTasbih={count:0,dhikr:select.value,customDhikrs:[],removedOfficialDhikrs:[],theme:'emerald'};
+  const DESIGN_VERSION='royal-reference-1';
+  const defaultTasbih={count:0,dhikr:select.value,customDhikrs:[],removedOfficialDhikrs:[],theme:'emerald',designVersion:DESIGN_VERSION};
   let initial=defaultTasbih;
   try{
    const stored=preferences&&typeof preferences.get==='function'?preferences.get():null;
    if(stored&&stored.tasbih&&typeof stored.tasbih==='object')initial=stored.tasbih;
   }catch(error){console.warn('تعذر قراءة إعدادات السبحة؛ سيبدأ العداد بإعداداته الافتراضية.',error)}
+  if(initial.designVersion!==DESIGN_VERSION&&initial.dhikr==='أستغفر الله العظيم وأتوب إليه')initial={...initial,dhikr:select.value};
   const MAX_COUNT=1000000000;
   const cleanDhikrList=(items,limit,maxLength=200)=>Array.isArray(items)
    ?[...new Set(items.filter(item=>typeof item==='string').map(item=>item.trim().slice(0,maxLength)).filter(Boolean))].slice(0,limit)
    :[];
   let count=Number.isSafeInteger(initial.count)?Math.max(0,Math.min(MAX_COUNT,initial.count)):0;
   const allowedThemes=new Set(themeIds);
-  let theme=allowedThemes.has(initial.theme)?initial.theme:'emerald';
+  let theme=initial.designVersion===DESIGN_VERSION&&allowedThemes.has(initial.theme)?initial.theme:'emerald';
   let customDhikrs=cleanDhikrList(initial.customDhikrs,30,200);
   let removedOfficialDhikrs=cleanDhikrList(initial.removedOfficialDhikrs,60,4000);
   let recognition=null,voiceActive=false,voiceRequested=false,writingPreferences=false,voiceTargetPhrase='';
@@ -95,7 +97,7 @@
    if(!preferences||typeof preferences.set!=='function')return;
    writingPreferences=true;
    try{
-    preferences.set('tasbih',{count:count,dhikr:select.value,customDhikrs:customDhikrs,removedOfficialDhikrs:removedOfficialDhikrs,theme:theme});
+    preferences.set('tasbih',{count:count,dhikr:select.value,customDhikrs:customDhikrs,removedOfficialDhikrs:removedOfficialDhikrs,theme:theme,designVersion:DESIGN_VERSION});
    }catch(error){
     console.warn('تعذر حفظ إعدادات السبحة المشفرة',error);
     customStatus.textContent='تعذر حفظ التغيير في الخزنة المشفرة. تحقق من فتح المفكرة ثم أعد المحاولة.';
@@ -374,6 +376,8 @@
   if(savedOption)select.value=savedOption.value;
   else if(!visibleOptions().some(option=>option.value===select.value))select.value=firstVisible()?firstVisible().value:'';
   update();
+  // Migrate old preferences to the approved emerald style once; future color choices remain saved.
+  if(initial.designVersion!==DESIGN_VERSION)persist();
 
   // The service dashboard opens this standalone panel directly; its counter and preferences remain independent.
 

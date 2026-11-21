@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1200">
+<defs>
+  <pattern id="arabesque" width="92" height="92" patternUnits="userSpaceOnUse">
+    <path d="M46 5 57 23 77 15 69 35 87 46 69 57 77 77 57 69 46 87 35 69 15 77 23 57 5 46 23 35 15 15 35 23Z" fill="none" stroke="#bca878" stroke-width="1.25" opacity=".18"/>
+    <circle cx="46" cy="46" r="9" fill="none" stroke="#c5b286" stroke-width="1" opacity=".16"/>
+    <path d="M0 46Q23 23 46 0Q69 23 92 46Q69 69 46 92Q23 69 0 46Z" fill="none" stroke="#d3c29d" stroke-width=".8" opacity=".12"/>
+  </pattern>
+  <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fffaf0" stop-opacity="0"/><stop offset=".7" stop-color="#b9a27b" stop-opacity=".08"/><stop offset="1" stop-color="#a68c5d" stop-opacity=".15"/></linearGradient>
+</defs>
+<rect width="800" height="1200" fill="url(#arabesque)"/>
+<rect width="800" height="1200" fill="url(#fade)"/>
+<g fill="#b5a17c" opacity=".15" stroke="#b5a17c" stroke-width="3" stroke-linejoin="round">
+  <g transform="translate(20 670)">
+    <path d="M0 530V130H28V530Z M-7 130H35L28 111H0Z M5 111V83Q14 67 23 83V111Z M12 83V43H17V83Z M9 43 14.5 27 20 43Z"/>
+    <path d="M45 530V330Q45 278 105 258Q165 278 165 330V530Z"/>
+    <path d="M63 330Q105 236 147 330Z"/>
+    <path d="M95 258V226Q105 212 115 226V258Z M100 226V202H110V226Z M98 202 105 185 112 202Z"/>
+    <path d="M176 530V382H194V530Z M171 382H199L194 365H176Z M181 365V342Q185 332 190 342V365Z"/>
+  </g>
+  <g transform="translate(800 670) scale(-1 1)">
+    <path d="M0 530V130H28V530Z M-7 130H35L28 111H0Z M5 111V83Q14 67 23 83V111Z M12 83V43H17V83Z M9 43 14.5 27 20 43Z"/>
+    <path d="M45 530V330Q45 278 105 258Q165 278 165 330V530Z"/>
+    <path d="M63 330Q105 236 147 330Z"/>
+    <path d="M95 258V226Q105 212 115 226V258Z M100 226V202H110V226Z M98 202 105 185 112 202Z"/>
+    <path d="M176 530V382H194V530Z M171 382H199L194 365H176Z M181 365V342Q185 332 190 342V365Z"/>
+  </g>
+</g>
+<g fill="none" stroke="#bca878" stroke-width="2" opacity=".11">
+  <path d="M0 1130Q120 1035 230 1130T460 1130T690 1130T920 1130"/>
+  <path d="M0 1152Q120 1057 230 1152T460 1152T690 1152T920 1152"/>
+</g>
+</svg>
