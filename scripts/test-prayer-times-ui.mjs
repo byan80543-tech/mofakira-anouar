@@ -78,7 +78,7 @@ assert.match(design,/#rd #anwarPrayerCard \.anwar-prayer-settings summary\{color
 assert.match(design,/min-height:104px/,'the blue banner height is tuned closer to the reference');
 assert.match(design,/#rd #anwarPrayerCard\{gap:8px!important/,'mobile spacing is tightened to match the reference card proportions');
 assert.match(design,/\.anwar-prayer-next\{min-height:98px;padding:8px 11px!important/,'the blue banner vertical padding is tuned for the reference mobile proportions');
-assert.match(design,/\.anwar-prayer-time\\{min-height:61px;padding:6px 2px!important/,'the five prayer tiles use the reference compact mobile height');
+assert.match(design,/\.anwar-prayer-time\{min-height:61px;padding:6px 2px!important/,'the five prayer tiles use the reference compact mobile height');
 assert.match(design,/anwar-prayer-info summary\{[^}]*font-size:14px!important/,'the privacy heading is raised to the reference text scale');
 assert.match(design,/#rd #anwarPrayerCard\{[^}]*padding:12px 12px 10px!important/,'the prayer card lower spacing is slightly reduced without changing its layout');
 assert.match(html,/prayer-card-design\.css\?v=20261121-4/,'the canonical prayer stylesheet is versioned');
