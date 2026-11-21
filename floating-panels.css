@@ -1,8 +1,8 @@
 
 /* Movable, resizable tool panels */
-#app #anwar-floating-panels-layer>.rib-pop.is-floating-panel[hidden]{display:none!important}
+html body #anwar-floating-panels-layer#anwar-floating-panels-layer>.rib-pop.is-floating-panel[hidden]{display:none!important}
 
-#app #anwar-floating-panels-layer>.rib-pop.is-floating-panel{
+html body #anwar-floating-panels-layer#anwar-floating-panels-layer>.rib-pop.is-floating-panel{
   position:fixed!important;
   inset:auto!important;
   left:var(--anwar-fp-left,8px)!important;
@@ -33,7 +33,7 @@
   z-index:220000!important;
   isolation:isolate;
 }
-#app #anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-head{
+html body #anwar-floating-panels-layer#anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-head{
   display:flex;
   flex:none;
   align-items:center;
@@ -47,7 +47,7 @@
   background:var(--ac2);
   color:var(--tx);
 }
-#app #anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-drag{
+html body #anwar-floating-panels-layer#anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-drag{
   display:flex;
   align-items:center;
   flex:1 1 auto;
@@ -64,30 +64,30 @@
   user-select:none;
   -webkit-user-select:none;
 }
-#app #anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-drag:focus-visible{
+html body #anwar-floating-panels-layer#anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-drag:focus-visible{
   outline:2px solid var(--ac);
   outline-offset:1px;
   border-radius:7px;
 }
-#app #anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-grip{
+html body #anwar-floating-panels-layer#anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-grip{
   flex:none;
   color:var(--ac);
   font:700 18px/1 Arial,sans-serif;
 }
-#app #anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-title{
+html body #anwar-floating-panels-layer#anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-title{
   overflow:hidden;
   color:var(--ac);
   font:700 12px Cairo,Tahoma,sans-serif;
   text-overflow:ellipsis;
   white-space:nowrap;
 }
-#app #anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-actions{
+html body #anwar-floating-panels-layer#anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-actions{
   display:flex;
   flex:none;
   align-items:center;
   gap:3px;
 }
-#app #anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-actions button{
+html body #anwar-floating-panels-layer#anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-actions button{
   display:grid;
   place-items:center;
   flex:none;
@@ -103,15 +103,15 @@
   cursor:pointer;
   touch-action:manipulation;
 }
-#app #anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-actions button:last-child{
+html body #anwar-floating-panels-layer#anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-actions button:last-child{
   color:#9e3434;
 }
-#app #anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-actions button:focus-visible,
-#app #anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-resize:focus-visible{
+html body #anwar-floating-panels-layer#anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-actions button:focus-visible,
+html body #anwar-floating-panels-layer#anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-resize:focus-visible{
   outline:2px solid var(--ac);
   outline-offset:2px;
 }
-#app #anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-content{
+html body #anwar-floating-panels-layer#anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-content{
   display:grid;
   grid-auto-rows:max-content;
   align-content:start;
@@ -125,8 +125,8 @@
   overscroll-behavior:contain;
   scrollbar-gutter:stable;
 }
-#app #anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-content>*{min-width:0}
-#app #anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-resize{
+html body #anwar-floating-panels-layer#anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-content>*{min-width:0}
+html body #anwar-floating-panels-layer#anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-resize{
   position:absolute;
   right:6px;
   bottom:6px;
@@ -148,38 +148,38 @@
   user-select:none;
   -webkit-user-select:none;
 }
-#app #anwar-floating-panels-layer>.rib-pop.is-floating-panel.is-minimized{
+html body #anwar-floating-panels-layer#anwar-floating-panels-layer>.rib-pop.is-floating-panel.is-minimized{
   height:var(--anwar-fp-min-height,54px)!important;
   min-height:54px!important;
   overflow:hidden!important;
 }
-#app #anwar-floating-panels-layer>.rib-pop.is-floating-panel.is-minimized .float-panel-content,
-#app #anwar-floating-panels-layer>.rib-pop.is-floating-panel.is-minimized .float-panel-resize{display:none!important}
-#app #anwar-floating-panels-layer>.rib-pop.is-floating-panel.is-maximized{
+html body #anwar-floating-panels-layer#anwar-floating-panels-layer>.rib-pop.is-floating-panel.is-minimized .float-panel-content,
+html body #anwar-floating-panels-layer#anwar-floating-panels-layer>.rib-pop.is-floating-panel.is-minimized .float-panel-resize{display:none!important}
+html body #anwar-floating-panels-layer#anwar-floating-panels-layer>.rib-pop.is-floating-panel.is-maximized{
   border-radius:12px!important;
 }
 @media(max-width:420px){
-  #app #anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-head{gap:3px;padding:3px}
-  #app #anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-actions{gap:2px}
-  #app #anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-actions button{width:28px;height:28px;min-height:28px}
-  #app #anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-title{font-size:11px}
+  html body #anwar-floating-panels-layer#anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-head{gap:3px;padding:3px}
+  html body #anwar-floating-panels-layer#anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-actions{gap:2px}
+  html body #anwar-floating-panels-layer#anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-actions button{width:28px;height:28px;min-height:28px}
+  html body #anwar-floating-panels-layer#anwar-floating-panels-layer>.rib-pop.is-floating-panel .float-panel-title{font-size:11px}
 }
 @media(prefers-reduced-motion:no-preference){
-  #app #anwar-floating-panels-layer>.rib-pop.is-floating-panel{transition:box-shadow .15s ease}
-  #app #anwar-floating-panels-layer>.rib-pop.is-floating-panel.is-maximized{transition:none}
+  html body #anwar-floating-panels-layer#anwar-floating-panels-layer>.rib-pop.is-floating-panel{transition:box-shadow .15s ease}
+  html body #anwar-floating-panels-layer#anwar-floating-panels-layer>.rib-pop.is-floating-panel.is-maximized{transition:none}
 }
 
 
 /* Keep the editor and its purple status strip in place while tools open. */
 .app.ed.ribbon-menu-open #rib{padding-top:0!important;align-items:stretch!important;}
-#app #anwar-floating-panels-layer>.rib-pop.is-floating-panel{position:fixed!important;transform:none!important;display:flex!important;background:var(--sf)!important;}
-#app #anwar-floating-panels-layer>.rib-pop.is-floating-panel[hidden]{display:none!important;}
+html body #anwar-floating-panels-layer#anwar-floating-panels-layer>.rib-pop.is-floating-panel{position:fixed!important;transform:none!important;display:flex!important;background:var(--sf)!important;}
+html body #anwar-floating-panels-layer#anwar-floating-panels-layer>.rib-pop.is-floating-panel[hidden]{display:none!important;}
 
 
 /* Portal host is outside the ribbon, so its clipping/scrolling cannot crop a panel. */
-#app #anwar-floating-panels-layer{
+html body #anwar-floating-panels-layer#anwar-floating-panels-layer{
  position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;
  margin:0!important;padding:0!important;overflow:visible!important;pointer-events:none!important;
  z-index:220000!important;isolation:isolate!important;transform:none!important;contain:none!important;
 }
-#app #anwar-floating-panels-layer>.rib-pop.is-floating-panel{pointer-events:auto!important;position:fixed!important;}
+html body #anwar-floating-panels-layer#anwar-floating-panels-layer>.rib-pop.is-floating-panel{pointer-events:auto!important;position:fixed!important;}
