@@ -2625,40 +2625,6 @@ document.addEventListener('click',e=>{
  else if(id==='shareTab')showOwnerPanel('share');
 });
 
-const ADHKAR_PAGE_THEME_KEY='anwar_adhkar_page_theme';
-const ADHKAR_PAGE_THEMES=[
- {id:'white',label:'الأبيض'},
- {id:'rose',label:'الوردي'},
- {id:'blue',label:'الأزرق'},
- {id:'yellow',label:'الأصفر'},
- {id:'purple',label:'البنفسجي'},
- {id:'gold',label:'الذهبي'}
-];
-function initAdhkarPageTheme(){
- const page=$('anwarAdhkarPage'),button=$('adhkarPageThemeToggle');
- if(!page||!button)return false;
- let saved='white';
- try{saved=localStorage.getItem(ADHKAR_PAGE_THEME_KEY)||'white'}catch(error){console.warn('تعذّرت قراءة لون صفحة الأذكار المحفوظ',error)}
- let currentIndex=ADHKAR_PAGE_THEMES.findIndex(theme=>theme.id===saved);
- if(currentIndex<0)currentIndex=0;
- const applyTheme=()=>{
-  const theme=ADHKAR_PAGE_THEMES[currentIndex];
-  page.dataset.adhkarTheme=theme.id;
-  button.setAttribute('aria-label','تغيير لون صفحة الأذكار. اللون الحالي: '+theme.label);
-  button.title='تغيير لون صفحة الأذكار — الحالي: '+theme.label;
- };
- if(button.dataset.themeCycleReady!=='true'){
-  button.dataset.themeCycleReady='true';
-  button.addEventListener('click',()=>{
-   currentIndex=(currentIndex+1)%ADHKAR_PAGE_THEMES.length;
-   applyTheme();
-   try{localStorage.setItem(ADHKAR_PAGE_THEME_KEY,ADHKAR_PAGE_THEMES[currentIndex].id)}
-   catch(error){console.warn('تعذّر حفظ لون صفحة الأذكار',error)}
-  });
- }
- applyTheme();
- return true;
-}
 function makeAdhkarNotice(text,key,className){
  try{if(localStorage.getItem('anwar_adhkar_notice_'+key)==='dismissed')return null}catch(error){console.warn('تعذّر قراءة حالة إرشاد الأذكار',error)}
  const note=document.createElement('div');note.className='adhkar-dismissible-note '+className;
@@ -4427,7 +4393,6 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
   home.hidden=true;
   Object.entries(pages).forEach(([key,item])=>{item.hidden=key!==name});
   serviceButtons.forEach(item=>item.setAttribute('aria-pressed',String(item===button)));
-  if(name==='adhkar')initAdhkarPageTheme();
   if(name==='adhkar'&&typeof window.AnwarRenderAdhkar==='function'){
    try{window.AnwarRenderAdhkar('protection')}catch(error){console.warn('تعذر عرض أذكار التحصين',error)}
   }
