@@ -16,6 +16,7 @@ import android.os.Looper
 import android.provider.Settings
 import android.view.Gravity
 import android.view.View
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -76,6 +77,7 @@ class NativePrayerActivity : Activity() {
     private lateinit var countdownText: TextView
 
     private var refreshing = false
+    private var selectedCountryPosition = -1
     private var waitingForExactAlarmSettings = false
     private var nextPrayerTimestamp: Long? = null
 
@@ -307,6 +309,16 @@ class NativePrayerActivity : Activity() {
         countryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         countrySpinner.adapter = countryAdapter
         countrySpinner.setSelection(countries.indexOfFirst { it.api == config.country }.coerceAtLeast(0))
+        selectedCountryPosition = countrySpinner.selectedItemPosition
+        countrySpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (position != selectedCountryPosition) {
+                    selectedCountryPosition = position
+                    cityInput.setText(countries[position].defaultCity)
+                }
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+        }
 
         val voiceAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, voices.map { it.label })
         voiceAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
