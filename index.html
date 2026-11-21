@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.aladhan.com https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="preload" href="./app-core.js?v=20261121-43" as="script">
+<link rel="preload" href="./app-core.js?v=20261121-44" as="script">
 <script src="api-gateway-config.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>مفكرة أنوار | Anouar Oumlili</title>
@@ -160,19 +160,19 @@ dialog textarea{width:100%;height:140px;background:var(--bg);color:var(--tx);bor
 #rd .lesson-tulip{width:30px;height:30px;display:grid;place-items:center;flex:none;overflow:hidden;border-radius:50%;border:1px solid #dfc58d;background:linear-gradient(145deg,#fffaf0,#f0e2c1);box-shadow:inset 0 1px 2px #ffffffb8,0 1px 3px #18334b12}#rd .lesson-tulip img{display:block;width:25px;height:29px;object-fit:contain;object-position:center bottom}
 #rd .lesson-item-name{flex:1;min-width:0;font-size:12px;font-weight:700}
 /* زهرة أنوار الحرة: بلا قرص أو خلفية، وتفتح دائري متوازن */
-#rb,#rpp,.reciter-play,.country-reader-play,#lessonPlay{position:relative;display:inline-grid;place-items:center;flex:none;border:0!important;border-radius:0!important;background:transparent!important;color:transparent!important;font-size:0!important;box-shadow:none!important;overflow:visible;padding:0!important}
-#rb::before,#rpp::before,.reciter-play::before,.country-reader-play::before,#lessonPlay::before{content:'';display:block;width:31px;height:31px;border:0!important;background:url('assets/royal-rose-closed.svg') center/contain no-repeat!important;transform:scale(.94);transform-origin:center;transition:transform .36s cubic-bezier(.2,.7,.25,1),filter .36s ease;filter:drop-shadow(0 1px 1px #233c3020)}
+#rb,#rpp,.reciter-play,#lessonPlay{position:relative;display:inline-grid;place-items:center;flex:none;border:0!important;border-radius:0!important;background:transparent!important;color:transparent!important;font-size:0!important;box-shadow:none!important;overflow:visible;padding:0!important}
+#rb::before,#rpp::before,.reciter-play::before::before,#lessonPlay::before{content:'';display:block;width:31px;height:31px;border:0!important;background:url('assets/royal-rose-closed.svg') center/contain no-repeat!important;transform:scale(.94);transform-origin:center;transition:transform .36s cubic-bezier(.2,.7,.25,1),filter .36s ease;filter:drop-shadow(0 1px 1px #233c3020)}
 
 /* زر التشغيل الأخضر مدمج هندسياً في SVG الخاص ببرعم الوردة */
-#rb[data-playing="true"]::before,#rpp[data-playing="true"]::before,.reciter-play[data-playing="true"]::before,.country-reader-play[data-playing="true"]::before,#lessonPlay[data-playing="true"]::before{width:31px;height:31px;background-image:url('assets/royal-rose-open.svg')!important;animation:anwarFlowerBloom .58s cubic-bezier(.18,.78,.22,1.12) both;filter:drop-shadow(0 1px 1.5px #a83d6a30)}
+#rb[data-playing="true"]::before,#rpp[data-playing="true"]::before,.reciter-play[data-playing="true"]::before[data-playing="true"]::before,#lessonPlay[data-playing="true"]::before{width:31px;height:31px;background-image:url('assets/royal-rose-open.svg')!important;animation:anwarFlowerBloom .58s cubic-bezier(.18,.78,.22,1.12) both;filter:drop-shadow(0 1px 1.5px #a83d6a30)}
 @keyframes anwarFlowerBloom{0%{transform:perspective(120px) rotateX(38deg) scale(.34);opacity:.35;filter:blur(1.2px)}48%{transform:perspective(120px) rotateX(-5deg) scale(1.12);opacity:1;filter:blur(0)}76%{transform:perspective(120px) rotateX(2deg) scale(.97)}100%{transform:perspective(120px) rotateX(0) scale(1);opacity:1;filter:blur(0)}}
 #rb.on{background:transparent!important;color:transparent!important;animation:pl 1.6s infinite}
-#rb:focus-visible,#rpp:focus-visible,.reciter-play:focus-visible,.country-reader-play:focus-visible,#lessonPlay:focus-visible{outline:2px solid #d8bd7c;outline-offset:3px;border-radius:50%!important}
-#rb{width:38px;height:38px}#rpp{width:42px;height:42px}.reciter-play,.country-reader-play,#lessonPlay{width:38px;height:38px}
+#rb:focus-visible,#rpp:focus-visible,.reciter-play:focus-visible:focus-visible,#lessonPlay:focus-visible{outline:2px solid #d8bd7c;outline-offset:3px;border-radius:50%!important}
+#rb{width:38px;height:38px}#rpp{width:42px;height:42px}.reciter-play,#lessonPlay{width:38px;height:38px}
 #rd .reciter-version{display:flex;align-items:center;justify-content:flex-start;gap:8px}
 #rd .reciter-version::before{content:'';display:inline-block;flex:none;width:25px;height:25px;background:url('assets/royal-rose-closed.svg') center/contain no-repeat;filter:drop-shadow(0 1px 1px #233c3020);transition:transform .36s ease,filter .36s ease}
 #rd .reciter-version[data-playing="true"]::before{background-image:url('assets/royal-rose-open.svg');animation:anwarFlowerBloom .58s cubic-bezier(.18,.78,.22,1.12) both;filter:drop-shadow(0 1px 1.5px #a83d6a30)}
-@media(prefers-reduced-motion:reduce){#rb::before,#rpp::before,.reciter-play::before,.country-reader-play::before,#lessonPlay::before,#rd .reciter-version::before{animation:none!important;transition:none!important}}
+@media(prefers-reduced-motion:reduce){#rb::before,#rpp::before,.reciter-play::before::before,#lessonPlay::before,#rd .reciter-version::before{animation:none!important;transition:none!important}}
 
 #rd .lesson-empty{padding:12px;text-align:center;color:var(--mu);font-size:12px}#rd .lesson-box a{display:block;color:var(--ac);text-decoration:none;border:1px solid var(--bd);border-radius:7px;padding:8px;background:var(--sf);font-size:12px}#rd .lesson-box audio{width:100%;height:38px}#rd .lesson-note{font-size:11px;color:var(--mu);line-height:1.7}
 #rd select{border:1px solid var(--bd);border-radius:6px;padding:5px;background:var(--bg);color:var(--tx)}
@@ -575,35 +575,6 @@ dialog[open]>.float-head{display:none!important}
 
 
 .reciter-count{padding:4px 9px;border:1px solid #ddc995;border-radius:999px;background:#fffdf6;color:#72572e;font-size:10px;font-weight:700;white-space:nowrap}
-.reciter-country-controls{display:flex;align-items:stretch;gap:8px;min-width:0}
-.reciter-country-controls select{flex:1;min-width:0;min-height:42px;padding:7px 10px;border:1px solid var(--bd);border-radius:9px;background:var(--sf);color:var(--tx);font:inherit;font-size:12px}
-.reciter-country-open{display:flex;align-items:center;justify-content:center;flex:none;min-width:104px;padding:8px 10px;border-radius:9px;background:linear-gradient(110deg,#12395f,#1b6680);color:#fff;text-decoration:none;text-align:center;font-size:11px;font-weight:800}
-.reciter-country-status{display:block;color:var(--mu);font-size:10px;line-height:1.7}
-.reciter-country-open{border:0;cursor:pointer;font-family:inherit}
-.reciter-country-open:disabled{opacity:.48;cursor:not-allowed}
-.country-reader-modal{position:fixed;inset:0;z-index:100500;display:grid;place-items:stretch;padding:0;background:rgba(4,15,30,.86);backdrop-filter:blur(6px)}
-.country-reader-modal[hidden]{display:none!important}
-.country-reader-dialog{display:flex;flex-direction:column;width:100%;height:100vh;height:100dvh;max-height:100vh;max-height:100dvh;overflow:hidden;border:0;border-radius:0;background:var(--sf);color:var(--tx);box-shadow:none;outline:none;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-.country-reader-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;background:linear-gradient(115deg,#102f50,#1f5872);color:#fff;flex:none}
-.country-reader-header>div{display:grid;gap:2px}
-.country-reader-header strong{font-size:16px}
-.country-reader-header small{font-size:10px;opacity:.82}
-.country-modal-close{width:38px;height:38px;flex:none;border:1px solid #ffffff66;border-radius:10px;background:#ffffff18;color:#fff;font-size:18px}
-.country-reader-tools{display:flex;align-items:center;gap:8px;padding:11px 12px 7px}
-.country-reader-tools input{flex:1;min-width:0;min-height:42px;margin:0;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);padding:8px 11px;font:inherit;font-size:12px}
-.country-reader-count{flex:none;padding:6px 9px;border:1px solid var(--bd);border-radius:9px;color:var(--ac);font-size:11px;font-weight:800}
-.country-reader-status{min-height:31px;padding:3px 13px 7px;color:var(--mu);font-size:11px;line-height:1.65}
-.country-reader-list{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:8px;padding:8px 12px 14px;overscroll-behavior:contain}
-.country-reader-item{display:flex;flex-wrap:wrap;align-items:center;gap:10px;min-width:0;min-height:62px;padding:10px 12px;border:1px solid var(--bd);border-inline-start:3px solid #c9a96a;border-radius:13px;background:linear-gradient(145deg,var(--sf),var(--bg));color:var(--tx);text-align:right;box-shadow:0 2px 7px rgba(8,38,77,.055)}
-.country-reader-item .country-reader-seal{width:35px;height:35px;display:grid;place-items:center;flex:none;border:1px solid #e7c6a9;border-radius:50%;background:linear-gradient(145deg,#fff4ed,#f1c8ce);font-size:19px;line-height:1}.country-reader-item .country-reader-name{flex:1;min-width:0;font-size:12px;font-weight:700;line-height:1.6;overflow-wrap:anywhere}
-.country-reader-item small{flex:none;padding:4px 7px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--mu);font-size:9px;white-space:nowrap}.country-reader-play{width:38px;height:38px;display:grid;place-items:center;flex:none;border:1px solid #c9a96a;border-radius:50%;background:linear-gradient(145deg,#fff3cf,#dfbf78);color:#173b58;font-size:16px;box-shadow:0 2px 6px #0001}.country-reader-play:disabled{opacity:.55}.country-reader-audio{grid-column:1/-1;width:100%;height:38px;margin-top:5px}.country-reader-audio-wrap{flex:1 0 100%;width:100%;min-width:0}.country-reader-play:active{transform:scale(.94)}
-.country-reader-empty{grid-column:1/-1;padding:24px 12px;text-align:center;color:var(--mu);font-size:12px}
-.country-reader-footer{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:7px;padding:9px 12px;border-top:1px solid var(--bd);background:var(--sf)}
-.country-reader-footer button{min-height:36px;padding:7px 12px;border:1px solid var(--bd);border-radius:9px;background:var(--bg);color:var(--tx);font:inherit;font-size:11px;font-weight:700}
-.country-reader-footer button:disabled{opacity:.4}
-.country-reader-footer span{min-width:58px;text-align:center;color:var(--mu);font-size:10px}
-#countryReaderRetry{border-color:#c8a763;background:#fff5da;color:#624819}
-.country-reader-source{padding:0 12px 10px;color:var(--mu);font-size:9px;line-height:1.6;text-align:center}
 .reciter-body{flex:1;min-width:0;display:flex;align-items:center;gap:8px}
 .reciter-name{display:block;flex:1;min-width:0;overflow-wrap:anywhere}
 .reciter-variants-menu{position:relative;flex:none;width:21px;height:21px}
@@ -617,15 +588,6 @@ dialog[open]>.float-head{display:none!important}
 .reciter-version{display:block;width:100%;max-width:100%;min-width:0;min-height:32px;padding:6px 9px;border:1px solid #d8c28f;border-radius:8px;background:linear-gradient(145deg,#fffaf0,#f2e5c7);color:#263b50;font:700 11px Cairo,Tahoma,sans-serif;text-align:right;white-space:normal;overflow-wrap:anywhere;word-break:normal;line-height:1.55;box-sizing:border-box}
 .reciter-version{min-height:36px;border-radius:9px}
 .reciter-version:active{transform:scale(.99)}
-@media(max-width:520px){
- .country-reader-modal{padding:0}
- .country-reader-dialog{width:100%;height:100dvh;max-height:100dvh;border:0;border-radius:0}
- .country-reader-list{grid-template-columns:1fr}
- .country-reader-footer{padding-bottom:max(9px,env(safe-area-inset-bottom))}
-}
-
-@media(max-width:420px){.reciter-country-controls{flex-direction:column}.reciter-country-open{min-height:38px;width:100%}}
-
 .reciter-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-height:min(48dvh,460px);min-height:200px;padding:4px 3px 10px;scrollbar-gutter:stable;scroll-padding-block:8px}
 .reciter-card{min-height:62px;gap:10px;padding:10px 12px;border-radius:13px;background:linear-gradient(145deg,var(--sf),var(--bg));box-shadow:0 2px 7px rgba(8,38,77,.055);transition:border-color .18s,box-shadow .18s,transform .18s}
 .reciter-card:has(.reciter-play:active){transform:scale(.99)}
@@ -650,38 +612,8 @@ dialog[open]>.float-head{display:none!important}
 /* أيقونة مذياع كلاسيكي بدلاً من الرمز النجمي */
 .radio-vintage-icon{width:68px;height:60px;flex:none;border:0!important;border-radius:12px!important;background:linear-gradient(145deg,#fff0c8,#c99d4c)!important;box-shadow:0 0 0 4px #ffffff16,0 5px 12px #071b2c66!important;padding:4px;overflow:hidden}.radio-vintage-icon svg{width:100%;height:100%;display:block;filter:drop-shadow(0 2px 2px #24150955)}
 
-/* قوائم الدول على الهاتف: شرائط كاملة العرض وأسهل للمس */
-@media(max-width:640px){
- .country-reader-list{grid-template-columns:minmax(0,1fr);gap:7px;padding-inline:10px}
- .country-reader-item{min-height:58px;padding:9px 11px;gap:9px}
- .country-reader-item .country-reader-name{font-size:13px}
- .country-reader-play{width:40px;height:40px}
-}
-
-.country-reader-audio-wrap{display:grid;grid-column:1/-1;gap:6px;flex:1 0 100%;width:100%;min-width:0;padding-top:5px}
-.country-reader-audio{display:block;width:100%;height:42px;min-width:0}
-.country-reader-track-label{font-size:10px;color:var(--mu);font-weight:700}
-.country-reader-track{width:100%;min-height:36px;padding:5px 8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit;font-size:11px}
-
 .reciter-more{display:block;width:100%;min-height:40px;margin:8px 0;padding:8px 12px;border:1px solid #c9a96a;border-radius:10px;background:linear-gradient(110deg,#fff7e5,#ead39a);color:#173b58;font:700 12px Cairo,Tahoma,sans-serif}
 .reciter-more[hidden]{display:none!important}
-.country-reader-status{line-height:1.6}
-
-/* فهرس قرّاء الدول: نقطة دخول واحدة لا تزاحم قائمة القرّاء */
-.reciter-country-quick{display:grid;gap:7px;margin:7px 0 9px}
-.country-quick-trigger{display:inline-flex;align-items:center;justify-content:flex-start;gap:8px;justify-self:start;min-height:37px;padding:6px 11px;border:1px solid #d8c28f;border-radius:10px;background:linear-gradient(115deg,#fff8e8,#f0e1bd);color:#173b58;font:700 12px Cairo,Tahoma,sans-serif;cursor:pointer;box-shadow:0 1px 4px #0000000b}
-.country-quick-icon{font-size:17px;line-height:1}
-.country-quick-chevron{margin-inline-start:4px;font-size:14px;transition:transform .18s ease}
-.country-quick-trigger.is-open .country-quick-chevron{transform:rotate(180deg)}
-.country-quick-panel{display:grid;gap:8px;padding:10px;border:1px solid var(--bd);border-radius:11px;background:var(--sf);box-shadow:0 3px 10px #0000000b}
-.country-quick-panel[hidden]{display:none!important}
-.country-random-button{width:100%;min-height:39px;padding:8px 12px;border:1px solid #c9a96a;border-radius:9px;background:linear-gradient(110deg,#173c5f,#286b7d);color:#fff;font:700 12px Cairo,Tahoma,sans-serif}
-.country-random-button:disabled{opacity:.6;cursor:wait}
-.country-quick-panel .reciter-country-controls{display:flex;gap:7px;min-width:0}
-.country-quick-panel .reciter-country-controls select{flex:1;min-width:0;min-height:39px}
-.country-quick-panel .reciter-country-open{min-width:82px;min-height:39px}
-.country-quick-panel .reciter-country-status{font-size:10px;line-height:1.6}
-@media(max-width:520px){.country-quick-panel{padding:8px}.country-quick-panel .reciter-country-controls{gap:6px}.country-quick-panel .reciter-country-open{min-width:76px;padding-inline:7px}}
 
 /* مكتبة أنوار: مساحة مستقلة تحافظ على هدوء واجهة الكتابة */
 .lesson-launch-row{position:relative}
@@ -3197,41 +3129,12 @@ dialog[open]>.float-head{display:none!important}
   </select>
  </div>
 
- <div hidden aria-hidden="true"><button type="button" id="countryQuickToggle" aria-expanded="false"></button><div id="countryQuickPanel" hidden></div></div>
- <section id="reciterCountryModal" class="country-reader-modal" hidden aria-modal="true" role="dialog" aria-labelledby="countryModalTitle">
-  <div class="country-reader-dialog" tabindex="-1">
-   <header class="country-reader-header">
-    <div><strong id="countryModalTitle">قرّاء الدولة</strong><small id="countryModalSub">قائمة الأسماء</small></div>
-    <button type="button" id="countryModalClose" class="country-modal-close" aria-label="إغلاق قائمة قرّاء الدولة">✕</button>
-   </header>
-   <div class="country-reader-tools">
-    <input type="search" id="countryReaderSearch" placeholder="ابحث في هذه الصفحة فقط…" aria-label="ابحث في صفحة قراء الدولة الحالية">
-    <span id="countryReaderCount" class="country-reader-count">—</span>
-   </div>
-   <div id="countryReaderStatus" class="country-reader-status" aria-live="polite">اختر دولة للبدء.</div>
-   <div id="countryReaderList" class="country-reader-list" role="list" aria-label="أسماء قراء الدولة"></div>
-   <footer class="country-reader-footer">
-    <button type="button" id="countryReaderPrev" disabled>السابق</button>
-    <span id="countryReaderPage">—</span>
-    <button type="button" id="countryReaderNext" disabled>التالي</button>
-    <button type="button" id="countryReaderRetry" hidden>إعادة تحميل الصفحات الناقصة</button>
-   </footer>
-   <small class="country-reader-source">تُعرض الأسماء داخل مفكرة أنوار، وتُحمّل ملفات MP3 إلى المشغّل الداخلي من الطريق إلى القرآن.</small>
-  </div>
- </section>
+ 
+ 
 
  <div id="reciterGrid" class="reciter-grid" role="list" aria-label="قائمة القراء"><div class="reciter-loading">جارٍ تجهيز قائمة القراء…</div></div>
  <button type="button" id="reciterMore" class="reciter-more" hidden>عرض المزيد من القراء</button>
- <section id="anwarCountryReaders" class="reciter-country-panel" aria-label="قرّاء القرآن حسب البلد">
-  <div class="reciter-list-head"><span class="reciter-list-title">قرّاء من مختلف البلدان</span></div>
-  <label for="reciterCountry">اختر البلد لعرض القرّاء</label>
-  <div class="reciter-country-controls">
-   <select id="reciterCountry" aria-label="اختر بلد القرّاء"><option value="">جارٍ تجهيز قائمة البلدان…</option></select>
-   <button type="button" id="reciterCountryOpen" class="reciter-country-open" aria-haspopup="dialog" aria-controls="reciterCountryModal" aria-expanded="false" disabled>عرض القائمة</button>
-  </div>
-  <small id="reciterCountryStatus" class="reciter-country-status" role="status" aria-live="polite">اختر بلدًا لعرض القرّاء المتاحين.</small>
-  <button type="button" id="countryRandomPlay" class="country-random-action">استمع إلى قارئ عشوائي</button>
- </section>
+ 
  <select id="rr" aria-label="القارئ" hidden></select><select id="rsu" aria-label="السورة" hidden></select>
  <label hidden><input type="radio" name="rm" value="c" checked> إذاعة متواصلة</label><label hidden><input type="radio" name="rm" value="s"> سورة واحدة</label><label id="rlb" hidden><input type="radio" name="rm" value="l"> بث مباشر</label>
  <div class="rc radio-controls"><button id="rpv" title="السورة السابقة">⏮</button><button id="rpp" aria-label="إيقاف مؤقت أو متابعة">▶</button><button id="rnx" title="السورة التالية">⏭</button><input type="range" id="rv" min="0" max="1" step=".05" value=".8" aria-label="مستوى الصوت"></div>
@@ -3391,7 +3294,7 @@ dialog[open]>.float-head{display:none!important}
 <script src="./vault-device-unlock.js?v=20261118-1"></script>
 <script src="./poetry-dictation.js?v=20261119-1" defer></script>
 <script src="./protective-adhkar.js?v=20261121-1" defer></script>
-<script src="./app-core.js?v=20261121-43" defer></script>
+<script src="./app-core.js?v=20261121-44" defer></script>
 <script src="./ibtihalat-radio.js?v=20261121-1" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
 <script src="./tasbih-controller.js?v=20261121-reference1" defer></script>
@@ -3749,11 +3652,6 @@ dialog[open]>.float-head{display:none!important}
 #rd .live-station select{display:block!important;width:100%;min-width:0;min-height:42px;border:1px solid #c9a96a;border-radius:9px;background:var(--sf);color:var(--tx);padding:8px 10px}
 #rd .live-station>label{display:block;color:var(--mu);font-size:11px}
 #rd .live-station button{width:100%;white-space:normal}
-#rd .reciter-country-panel{display:grid;gap:8px;min-width:0;padding:10px;border:1px solid var(--bd);border-radius:11px;background:var(--bg)}
-#rd .reciter-country-panel>label{display:block;color:var(--mu);font-size:11px}
-#rd .country-random-action{min-height:40px;padding:8px 12px;border:1px solid #c9a96a;border-radius:9px;background:linear-gradient(110deg,#fff7e3,var(--sf));color:var(--ac);font:inherit;font-size:12px;font-weight:700}
-#rd .country-random-action:disabled{opacity:.65}
-
 /* منتقي محطات البث: بطاقات أنيقة مع التوليب بدل قائمة النظام الأصلية */
 #rd .live-station select{display:none!important}
 #rd .live-station-picker{
