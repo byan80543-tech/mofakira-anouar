@@ -2546,11 +2546,17 @@ function dismissAdhkarNotice(button,key){
  note.remove();
  return true;
 }
-const privacyDismissButton=document.querySelector('#anwarAdhkarPage .adhkar-note-dismiss[data-dismiss-adhkar-notice="privacy"]');
-if(privacyDismissButton)privacyDismissButton.addEventListener('click',event=>{
- event.preventDefault();event.stopPropagation();
- dismissAdhkarNotice(privacyDismissButton,'privacy');
-});
+// Capture taps for both static and dynamically-created instruction cards.
+document.addEventListener('click',event=>{
+ const target=event.target;
+ const button=target&&typeof target.closest==='function'
+  ?target.closest('.adhkar-note-dismiss[data-dismiss-adhkar-notice]')
+  :null;
+ if(!button||!button.closest('#anwarAdhkarPage'))return;
+ event.preventDefault();
+ event.stopPropagation();
+ dismissAdhkarNotice(button,button.dataset.dismissAdhkarNotice);
+},true);
 
 document.addEventListener('click',e=>{
  const t=e.target.closest('button,summary,.card,#fl div,.archive-card');
@@ -2616,11 +2622,73 @@ function makeAdhkarNotice(text,key,className){
  const note=document.createElement('div');note.className='adhkar-dismissible-note '+className;
  const message=document.createElement('p');message.textContent=text;
  const close=document.createElement('button');close.type='button';close.className='adhkar-note-dismiss';close.dataset.dismissAdhkarNotice=key;close.setAttribute('aria-label','إخفاء هذا الإرشاد');close.title='إخفاء الإرشاد';close.textContent='×';
- close.addEventListener('click',event=>{
-  event.preventDefault();event.stopPropagation();
-  dismissAdhkarNotice(close,key);
- });
  note.append(message,close);return note;
+}
+function getPersonalAdhkarManager(){
+ let dialog=$('adhkarPersonalManager');
+ if(dialog)return dialog;
+ dialog=document.createElement('dialog');
+ dialog.id='adhkarPersonalManager';
+ dialog.className='adhkar-management-dialog protective-adhkar-manager';
+ dialog.setAttribute('aria-labelledby','adhkarPersonalManagerTitle');
+ dialog.addEventListener('click',event=>{
+  if(event.target===dialog)dialog.close();
+ });
+ document.body.append(dialog);
+ return dialog;
+}
+function openPersonalAdhkarManager(){
+ const dialog=getPersonalAdhkarManager();
+ dialog.replaceChildren();
+
+ const head=document.createElement('header');head.className='adhkar-dialog-head';
+ const title=document.createElement('h3');title.id='adhkarPersonalManagerTitle';title.textContent='إدارة الأذكار المحفوظة';
+ const close=document.createElement('button');close.type='button';close.textContent='×';
+ close.setAttribute('aria-label','إغلاق إدارة الأذكار');close.title='إغلاق';
+ close.addEventListener('click',()=>dialog.close());
+ head.append(title,close);
+
+ const list=document.createElement('div');list.className='adhkar-personal-manager-list';
+ if(!S.customAdhkar.length){
+  const empty=document.createElement('p');empty.className='adhkar-sync-status';
+  empty.textContent='لا توجد أذكار محفوظة لإدارتها.';list.append(empty);
+ }
+ S.customAdhkar.forEach(item=>{
+  const entry=document.createElement('article');entry.className='adhkar-admin-entry protective-manager-entry';
+  const body=document.createElement('p');body.textContent=item.text;
+  const actions=document.createElement('div');actions.className='adhkar-admin-item-actions';
+  const edit=document.createElement('button');edit.type='button';edit.textContent='تعديل';
+  edit.addEventListener('click',()=>{
+   const form=$('adhkarContent')?.querySelector('.protective-personal-form');
+   const input=form?.querySelector('textarea');
+   const submit=form?.querySelector('button[type="submit"]');
+   const cancel=form?.querySelector('.adhkar-dialog-actions button[type="button"]');
+   if(!form||!input||!submit)return;
+   input.value=item.text;
+   form.dataset.editId=item.id;
+   submit.textContent='حفظ التعديل';
+   if(cancel)cancel.hidden=false;
+   dialog.close();
+   form.scrollIntoView({behavior:'smooth',block:'center'});
+   input.focus({preventScroll:true});
+  });
+  const remove=document.createElement('button');remove.type='button';remove.textContent='حذف';
+  remove.addEventListener('click',()=>{
+   if(!window.confirm('حذف هذا الذكر من مفكرتك؟'))return;
+   S.customAdhkar=S.customAdhkar.filter(saved=>saved.id!==item.id);
+   save();
+   renderProtectiveAdhkar();
+   toast('تم حذف هذا الذكر من مفكرتك.');
+   if(S.customAdhkar.length)openPersonalAdhkarManager();
+   else dialog.close();
+  });
+  actions.append(edit,remove);
+  entry.append(body,actions);
+  list.append(entry);
+ });
+ dialog.append(head,list);
+ if(!dialog.open)dialog.showModal();
+ return true;
 }
 function renderProtectiveAdhkar(){
  const host=$('adhkarContent');
@@ -2633,16 +2701,14 @@ function renderProtectiveAdhkar(){
  const form=document.createElement('form');
  form.className='adhkar-form protective-personal-form';
  form.setAttribute('aria-label','كتابة ذكر التحصين');
- const textLabel=document.createElement('label');
- textLabel.textContent='اكتب الذكر';
  const textInput=document.createElement('textarea');
  textInput.name='text';textInput.rows=5;textInput.maxLength=3000;textInput.required=true;
+ textInput.setAttribute('aria-label','نص الذكر');
  textInput.placeholder='اكتب ذكر التحصين هنا...';
- textLabel.append(textInput);
  const actions=document.createElement('div');actions.className='adhkar-dialog-actions';
  const submit=document.createElement('button');submit.type='submit';submit.textContent='حفظ الذكر';
  const cancel=document.createElement('button');cancel.type='button';cancel.textContent='إلغاء التعديل';cancel.hidden=true;
- actions.append(submit,cancel);form.append(textLabel,actions);
+ actions.append(submit,cancel);form.append(textInput,actions);
  cancel.addEventListener('click',()=>{
   form.reset();delete form.dataset.editId;
   submit.textContent='حفظ الذكر';cancel.hidden=true;
@@ -2669,32 +2735,24 @@ function renderProtectiveAdhkar(){
  });
  fragment.append(form);
 
- if(!S.customAdhkar.length){
+ if(S.customAdhkar.length){
+  const manage=document.createElement('button');
+  manage.type='button';manage.className='protective-manage-button';
+  manage.textContent='إدارة الأذكار المحفوظة ('+S.customAdhkar.length+')';
+  manage.setAttribute('aria-haspopup','dialog');
+  manage.addEventListener('click',openPersonalAdhkarManager);
+  fragment.append(manage);
+ }else{
   const empty=document.createElement('p');
   empty.className='protective-intro';
   empty.textContent='لا توجد أذكار محفوظة بعد. اكتب الذكر في المساحة أعلاه ثم اضغط «حفظ الذكر».';
   fragment.append(empty);
  }
+
  S.customAdhkar.forEach(item=>{
   const card=document.createElement('article');card.className='protective-card';
-  const body=document.createElement('p');body.className='protective-text';body.textContent=item.text;card.append(body);
-  const menu=document.createElement('details');menu.className='protective-entry-menu';
-  const summary=document.createElement('summary');summary.textContent='خيارات الذكر';
-  const actions=document.createElement('div');actions.className='protective-actions';
-  const edit=document.createElement('button');edit.type='button';edit.textContent='تعديل';
-  edit.addEventListener('click',()=>{
-   menu.open=false;
-   textInput.value=item.text;form.dataset.editId=item.id;
-   submit.textContent='حفظ التعديل';cancel.hidden=false;textInput.focus();
-   form.scrollIntoView({behavior:'smooth',block:'nearest'});
-  });
-  const remove=document.createElement('button');remove.type='button';remove.textContent='حذف';
-  remove.addEventListener('click',()=>{
-   if(!window.confirm('حذف هذا الذكر من مفكرتك؟'))return;
-   S.customAdhkar=S.customAdhkar.filter(entry=>entry.id!==item.id);
-   save();renderProtectiveAdhkar();toast('تم حذف هذا الذكر من مفكرتك.');
-  });
-  actions.append(edit,remove);menu.append(summary,actions);card.append(menu);fragment.append(card);
+  const body=document.createElement('p');body.className='protective-text';body.textContent=item.text;
+  card.append(body);fragment.append(card);
  });
  host.replaceChildren(fragment);
  return true;
