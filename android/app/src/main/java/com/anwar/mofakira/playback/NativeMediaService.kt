@@ -23,17 +23,15 @@ class NativeMediaService : MediaSessionService() {
     override fun onCreate() {
         super.onCreate()
 
-        val exoPlayer = ExoPlayer.Builder(this)
-            .setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setUsage(C.USAGE_MEDIA)
-                    .setContentType(C.AUDIO_CONTENT_TYPE_SPEECH)
-                    .build(),
-                true
-            )
-            .setHandleAudioBecomingNoisy(true)
-            .build()
-
+        val exoPlayer = ExoPlayer.Builder(this).build()
+        exoPlayer.setAudioAttributes(
+            AudioAttributes.Builder()
+                .setUsage(C.USAGE_MEDIA)
+                .setContentType(C.AUDIO_CONTENT_TYPE_SPEECH)
+                .build(),
+            true
+        )
+        exoPlayer.setHandleAudioBecomingNoisy(true)
         exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
         player = exoPlayer
         mediaSession = MediaSession.Builder(this, exoPlayer)
