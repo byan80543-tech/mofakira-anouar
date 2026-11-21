@@ -182,6 +182,13 @@
   '.anwar-prayer-actions .primary{border-color:#173d5c;background:#173d5c;color:#fff}',
   '.anwar-prayer-toggle{display:flex;align-items:center;gap:8px;margin-top:9px;padding:9px;border:1px solid var(--bd);border-radius:9px;background:var(--sf);font-size:12px;color:var(--tx)}',
   '.anwar-prayer-toggle input{width:18px;height:18px;accent-color:var(--ac)}',
+  '.anwar-prayer-permission-wrap{display:grid;gap:4px;margin:2px 0 8px}',
+  '.anwar-prayer-background-access{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:42px;padding:8px 12px;border:1px solid #c9a96a;border-radius:9px;background:linear-gradient(130deg,#fff8e6,#f1e4c7);color:#173d5c;font-size:12px;font-weight:800;touch-action:manipulation}',
+  '.anwar-prayer-background-access:active{filter:brightness(.97)}',
+  '.anwar-prayer-background-access:focus-visible{outline:2px solid var(--ac);outline-offset:2px}',
+  '.anwar-prayer-access-icon{display:inline-grid;place-items:center;flex:none;width:25px;height:25px;border:1px solid #c9a96a;border-radius:7px;background:#fffdf6;color:#173d5c}',
+  '.anwar-prayer-access-icon svg{display:block;width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}',
+  '.anwar-prayer-permission-hint{padding-inline:4px;font-size:10px;line-height:1.7;color:var(--mu)}',
   '.anwar-prayer-volume{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center;margin-top:8px;font-size:11px;color:var(--mu)}',
   '.anwar-prayer-volume input{width:100%;accent-color:var(--ac)}',
   '.anwar-prayer-status{font-size:11px;line-height:1.7;color:var(--ac);min-height:18px}',
@@ -240,6 +247,18 @@
  const enabledInput=el('input');enabledInput.type='checkbox';enabledInput.checked=settings.enabled;
  const enabledText=el('span','','تشغيل الأذان تلقائيًا عند دخول وقت الصلاة');
  toggleLabel.append(enabledInput,enabledText);
+ const backgroundPermissionWrap=el('div','anwar-prayer-permission-wrap');
+ const backgroundPermissionButton=el('button','anwar-prayer-background-access');
+ backgroundPermissionButton.type='button';
+ backgroundPermissionButton.setAttribute('aria-label','طلب إذن الأذان خارج التطبيق');
+ backgroundPermissionButton.title='طلب إذن تشغيل الأذان بعد مغادرة المفكرة';
+ const backgroundPermissionIcon=el('span','anwar-prayer-access-icon');
+ backgroundPermissionIcon.setAttribute('aria-hidden','true');
+ backgroundPermissionIcon.innerHTML='<svg viewBox="0 0 24 24"><circle cx="12" cy="14" r="7.5"></circle><path d="M12 10v4l2.5 1.5M5 3 2.5 5.5M19 3l2.5 2.5M8 21l-1 1.5M16 21l1 1.5"></path></svg>';
+ const backgroundPermissionText=el('span','','طلب إذن الأذان خارج التطبيق');
+ backgroundPermissionButton.append(backgroundPermissionIcon,backgroundPermissionText);
+ const backgroundPermissionHint=el('small','anwar-prayer-permission-hint','يُطلب الإذن من داخل تطبيق أنوار المرافق على Android؛ نسخة Chrome وحدها لا تضمن استمرار الأذان بعد إغلاق المفكرة.');
+ backgroundPermissionWrap.append(backgroundPermissionButton,backgroundPermissionHint);
  const volumeWrap=el('label','anwar-prayer-volume');
  const volumeLabel=el('span','','مستوى صوت الأذان');
  const volumeInput=el('input');volumeInput.type='range';volumeInput.min='0';volumeInput.max='1';volumeInput.step='0.05';volumeInput.value=String(settings.volume);
@@ -256,7 +275,7 @@
  const initialVoice=VOICES.find(item=>item.key===settings.voice)||VOICES[0];
  audio.src=initialVoice.url;
  audio.volume=settings.volume;
- card.append(head,nextBox,timesGrid,dateLine,infoDetails,details,audio);
+ card.append(head,nextBox,timesGrid,dateLine,infoDetails,backgroundPermissionWrap,details,audio);
  const prayerMount=document.getElementById('anwarPrayerMount');
  if(prayerMount)prayerMount.append(card);
  else{const insertBefore=panel.querySelector('.radio-section-title');if(insertBefore)panel.insertBefore(card,insertBefore);else panel.append(card);}
@@ -265,7 +284,7 @@
   try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings))}catch(_e){}
  }
  testButton.textContent='تجربة الأذان';
- function syncNativeBackground(){
+ function syncNativeBackground(requestPermissions){
   const bridge=window.AnwarAdhanBridge;
   if(!bridge||typeof bridge.postMessage!=='function')return false;
   const payload={
@@ -278,6 +297,7 @@
    voice:currentVoice().key,
    volume:settings.volume
   };
+  if(requestPermissions===true)payload.requestPermissions=true;
   try{bridge.postMessage(JSON.stringify(payload));return true}catch(_e){return false}
  }
  function countryForApi(value){
@@ -571,6 +591,21 @@
   timesGrid.replaceChildren(...PRAYERS.map(prayer=>{const item=el('div','anwar-prayer-time');item.append(el('b','',prayer.name),el('strong','','—'));return item;}));
   dateLine.textContent='جارٍ تحميل المواقيت…';dateLine.dataset.state='loading';
   lastTick=Date.now();refreshTimes(false);
+ });
+ backgroundPermissionButton.addEventListener('click',()=>{
+  const bridge=window.AnwarAdhanBridge;
+  if(!bridge||typeof bridge.postMessage!=='function'){
+   setStatus('لا يمكن لنسخة Chrome أو PWA طلب إذن «المنبهات والتذكيرات» الخاص بنظام Android. افتح مفكرة أنوار من تطبيق Android المرافق ثم اضغط هذا الزر؛ عندها سيظهر طلب الإذن الحقيقي.');
+   return;
+  }
+  settings.enabled=true;
+  enabledInput.checked=true;
+  persist();
+  if(syncNativeBackground(true)){
+   setStatus('أُرسل طلب الإذن إلى تطبيق أنوار المرافق. اتبع نافذة Android للسماح بالإشعارات والمنبهات والتذكيرات؛ وإذا كانت الأذونات ممنوحة بالفعل فسيُحدّث التطبيق جدول الأذان.');
+  }else{
+   setStatus('تعذّر إرسال طلب الإذن إلى تطبيق Android. أغلق لوحة الأذان وافتحها مجددًا داخل تطبيق أنوار المرافق.');
+  }
  });
  enabledInput.addEventListener('change',()=>{
   settings.enabled=enabledInput.checked;persist();
