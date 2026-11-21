@@ -35,6 +35,9 @@ assert.match(prayer,/function cityForDisplay\(value\)/,'city display helper exis
 assert.match(prayer,/const CITY_API_AR=\{/,'Arabic Moroccan city names have explicit API equivalents');
 assert.match(prayer,/function cityForApi\(value,country\)/,'city names are normalized before requesting prayer times');
 assert.match(prayer,/CITY_API_AR\[key\]\|\|city/,'Arabic city input is converted to the Latin city name expected by the city timings service');
+assert.match(prayer,/'الحسيمة':'Al Hoceima'/,'Al Hoceima has an explicit Arabic-to-API city mapping');
+assert.match(prayer,/'اكادير':'Agadir'/,'Arabic hamza normalization is compatible with the Agadir city mapping');
+assert.match(prayer,/'اسفي':'Safi'/,'Arabic madda normalization is compatible with the Safi city mapping');
 assert.match(prayer,/url\.searchParams\.set\('city',cityForApi\(settings\.city,settings\.country\)\)/,'the API receives a normalized city name, not raw Arabic input');
 assert.match(prayer,/window\.setTimeout\(\(\)=>\{if\(controller\)controller\.abort\(\);\},12000\)/,'a stalled timings request is cancelled after twelve seconds');
 assert.match(prayer,/showNextPrayerPlaceholder\('تعذّر التحميل؛ تحقق من المدينة والاتصال ثم اضغط تحديث'\)/,'a failed request leaves a clear recovery instruction in the card');
