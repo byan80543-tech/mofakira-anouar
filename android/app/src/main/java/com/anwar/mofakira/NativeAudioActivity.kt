@@ -645,7 +645,7 @@ class NativeAudioActivity : Activity() {
         }
         val duration = c.duration
         val position = c.currentPosition.coerceAtLeast(0L)
-        val knownDuration = duration > 0L && duration != Player.TIME_UNSET
+        val knownDuration = duration > 0L && duration != C.TIME_UNSET
         seekBar.isEnabled = knownDuration
         if (!isSeeking) {
             seekBar.progress = if (knownDuration) {
