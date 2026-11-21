@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
+function cleanSavedCards(source){
+ const start=source.indexOf('function renderProtectiveAdhkar()');
+ const end=source.indexOf('window.AnwarRenderAdhkar=function()',start);
+ const renderer=source.slice(start,end);
+ return start>=0&&end>start&&renderer.includes('card.append(body);fragment.append(card)')&&!renderer.includes('protective-entry-menu');
+}
 
 const dataSource=fs.readFileSync(new URL('../protective-adhkar.js',import.meta.url),'utf8');
 const window={};
@@ -15,7 +21,7 @@ assert.ok(html.includes('data-anwar-service="adhkar"')&&html.includes('class="pr
 assert.ok(html.includes('id="adhkarContent"')&&!html.includes('id="adhkarAdminOpen"'),'the page provides a personal content area, not an owner-only control');
 assert.ok(app.includes('function cleanCustomAdhkar(value)')&&app.includes('customAdhkar:cleanCustomAdhkar(d.customAdhkar)'),'personal entries are normalized as part of notebook storage');
 assert.ok(app.includes('S.customAdhkar.push({id,text,ts:Date.now()})')&&app.includes('save();form.reset()'),'a visitor can add a text-only entry and save it through notebook persistence');
-assert.ok(app.includes('entry.text=text;entry.ts=Date.now()')&&app.includes('S.customAdhkar=S.customAdhkar.filter(entry=>entry.id!==item.id)'),'personal entries can be edited and removed');
+assert.ok(app.includes('entry.text=text;entry.ts=Date.now()')&&app.includes('S.customAdhkar=S.customAdhkar.filter(saved=>saved.id!==item.id)'),'personal entries can be edited and removed through the private manager');
 assert.ok(app.includes("textInput.name='text'")&&app.includes('textInput.maxLength=3000')&&app.includes('S.customAdhkar.length>=100'),'the single text field and collection size are bounded');
 const renderer=app.slice(app.indexOf('function renderProtectiveAdhkar()'),app.indexOf('window.AnwarRenderAdhkar=function()'));
 assert.ok(!renderer.includes('titleInput')&&!renderer.includes('titleLabel')&&!renderer.includes('عنوان الذكر'),'the protection editor contains no title field or title metadata');
@@ -26,6 +32,6 @@ assert.ok(app.includes('customAdhkar:[]'),'fresh storage begins with an empty pe
 assert.ok(worker.includes("const CACHE_NAME='anwar-shell-2026-11-21-v132';")&&worker.includes("'./protective-adhkar.js'"),'the empty starter data ships in the new offline shell');
 assert.ok(html.includes('data-dismiss-adhkar-notice="privacy"')&&app.includes('function makeAdhkarNotice(text,key,className)'),'privacy and writing guidance have independent dismissible controls');
 assert.ok(app.includes('function dismissAdhkarNotice(button,key)')&&app.includes("localStorage.setItem('anwar_adhkar_notice_'+noticeKey,'dismissed')")&&app.includes("localStorage.getItem('anwar_adhkar_notice_'+key)==='dismissed'"),'dismissal is remembered across visits and renderer refreshes');
-assert.ok(app.includes("privacyDismissButton.addEventListener('click'")&&app.includes("close.addEventListener('click',event=>")&&app.includes('dismissAdhkarNotice(close,key)'),'both close controls run a direct dismiss action');
-assert.ok(app.includes("menu.className='protective-entry-menu'")&&app.includes("summary.textContent='خيارات الذكر'")&&app.includes('menu.append(summary,actions);card.append(menu)'),'saved entry edit and delete actions stay hidden in a collapsed menu');
+assert.ok(app.includes("document.addEventListener('click',event=>")&&app.includes("target.closest('.adhkar-note-dismiss[data-dismiss-adhkar-notice]')")&&app.includes("button.closest('#anwarAdhkarPage')")&&app.includes('dismissAdhkarNotice(button,button.dataset.dismissAdhkarNotice)')&&app.includes('},true);'),'one capture-phase delegated handler dismisses static and dynamically-created notices');
+assert.ok(app.includes("dialog.id='adhkarPersonalManager'")&&app.includes('function openPersonalAdhkarManager()')&&app.includes("manage.textContent='إدارة الأذكار المحفوظة ('")&&cleanSavedCards(app),'saved cards remain free of controls while edit and delete are available in a separate manager');
 console.log('PASS: one text field only; guidance notices can be dismissed permanently on this device.');
