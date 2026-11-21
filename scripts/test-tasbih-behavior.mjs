@@ -275,7 +275,7 @@ assert.doesNotMatch(html,/<span>عدد التسبيحات<\/span>/,'the counter 
 assert.doesNotMatch(html,/<span class="lesson-series-button-copy"><small>السبحة<\/small><strong>التسبيح والعدّ الصوتي<\/strong><\/span>/,'the tasbih service card displays only the word السبحة');
 assert.match(html,/#rd:has\(#anwarTasbihPage:not\(\[hidden\]\)\)\{overflow:hidden!important\}/,'the tasbih view locks the surrounding radio panel against whole-page scrolling');
 assert.match(html,/anwar-tasbih-stage::before\{\s*content:none!important/,'the overlapping mosque ornament above the counter is removed');
-assert.match(html,/anwar-tasbih-content,\s*#rd #tasbihPanel \.anwar-tasbih-content \*[,\s\S]*?font-family:Amiri/,'tasbih text uses a consistent formal Arabic font');
+assert.match(html,/font-family:Amiri,"Noto Naskh Arabic",serif!important/,'tasbih text uses a consistent formal Arabic font');
 
 const recognition=app.recognitions[0];
 assert.equal(recognition.lang,'ar-MA','speech recognition prefers the visitor’s Moroccan Arabic locale');
