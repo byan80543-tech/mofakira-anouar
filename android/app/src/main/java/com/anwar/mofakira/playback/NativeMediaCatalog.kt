@@ -210,7 +210,7 @@ object NativeMediaCatalog {
             requestMethod = "GET"
             setRequestProperty("Accept", "application/json")
             setRequestProperty("User-Agent", "MofakiraAnwarAndroid/0.2")
-            instanceFollowRedirects = false
+            instanceFollowRedirects = true
         }
         try {
             if (connection.responseCode !in 200..299) {
