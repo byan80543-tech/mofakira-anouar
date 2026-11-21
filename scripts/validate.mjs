@@ -36,6 +36,10 @@ ok(html.includes('id="sp"')&&html.includes('id="speakRead"'),'poetry dictation a
 ok(html.indexOf('<script src="./poetry-dictation.js')<html.indexOf('<script src="./app-core.js'),'poetry dictation controller loads before the notebook application');
 ok(appCore.includes("else if(id==='sp')togglePoetryDictation()")&&appCore.includes("else if(id==='speakRead')speakText()"),'dictation and speech playback are routed to their own actions');
 ok(appCore.includes('function appendPoetryDictationText')&&appCore.includes('touch();'),'dictated final speech is inserted into the current editable note and triggers persistence');
+ok(appCore.includes('function poetryDictationCellForNode')&&appCore.includes('function poetryDictationRangeInCell')&&appCore.includes('poetryDictationRangeInCell(saved)'),
+ 'poetry dictation restores the last saved caret inside a verse cell when toolbar focus moves away');
+ok(appCore.includes("if(cur.paper==='poetry'&&!pg.querySelector('.v'))insertPoetryVerse();")&&appCore.includes('saved=range.cloneRange();'),
+ 'poetry dictation creates a verse row when needed and keeps every committed phrase anchored in its current cell');
 ok(serviceWorker.includes("'./poetry-dictation.js'")&&/const CACHE_NAME='anwar-shell-[0-9]{4}-[0-9]{2}-[0-9]{2}-v[0-9]+';/.test(serviceWorker),'poetry dictation is part of the versioned offline app shell');
 
 ok(appCore.includes('window.AnwarRenderAdhkar=function(){return renderProtectiveAdhkar();}') && appCore.includes('window.AnwarShowOwnerPanel=function(which)'), 'notebook exposes narrow bridges for direct protection rendering and owner/publication selection');
