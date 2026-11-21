@@ -65,4 +65,32 @@ for (const key of ['aqsa', 'haram_makki', 'morocco_kamal']) {
 }
 assert.doesNotMatch(prayer, /youtube\.com|morocco_old|الحاج محمد العمري/);
 assert.doesNotMatch(voiceCatalog, /youtube\.com|morocco_old|الحاج محمد العمري/);
-console.log('Native Android launcher, legacy compatibility, background adhan bridge and scheduling tests passed.');
+const nativePrayer = read('android/app/src/main/java/com/anwar/mofakira/NativePrayerActivity.kt');
+const prayerSettings = read('android/app/src/main/java/com/anwar/mofakira/PrayerSettings.kt');
+assert.match(manifest, /android:name="\.NativePrayerActivity"[\\s\\S]*?android:exported="false"/,
+  'native prayer times screen is registered as an internal activity');
+assert.match(nativeHome, /NativePrayerActivity::class\.java/,
+  'the prayer tile opens the native prayer screen');
+assert.match(nativePrayer, /class NativePrayerActivity : Activity\(\)/);
+assert.doesNotMatch(nativePrayer, /WebView|WEB_MESSAGE_LISTENER|mofakira-anouar\.pages\.dev/,
+  'native prayer times screen must not depend on the web notebook');
+assert.match(nativePrayer, /الدولة/);
+assert.match(nativePrayer, /المدينة/);
+assert.match(nativePrayer, /مستوى الصوت/);
+assert.match(nativePrayer, /تشغيل الأذان تلقائيًا عند دخول وقت الصلاة/);
+assert.match(nativePrayer, /PrayerCalendarRepository\.refreshAndSchedule\(this\)/,
+  'the native prayer screen refreshes and stores its own calendar');
+assert.match(nativePrayer, /Settings\.ACTION_REQUEST_SCHEDULE_EXACT_ALARM/,
+  'the native screen can request Android exact-alarm access itself');
+assert.match(nativePrayer, /Manifest\.permission\.POST_NOTIFICATIONS/,
+  'the native screen can request Android notification permission itself');
+assert.match(nativePrayer, /LegacyWebActivity::class\.java/,
+  'all remaining legacy services stay reachable from the native prayer screen');
+assert.match(prayerSettings, /fun updateNative\(/,
+  'native controls persist to the same prayer preference store as the legacy bridge');
+assert.match(calendar, /PrayerSettings\.saveEvents\(context, events\.toString\(\)\)/);
+assert.match(calendar, /if \(config\.enabled && VoiceCatalog\.supports\(config\.voiceKey\)\)/,
+  'prayer times are fetched and stored even when automatic adhan is switched off');
+assert.match(calendar, /PrayerAlarmScheduler\.cancel\(context\)/,
+  'turning automatic adhan off cancels the scheduled alarm without erasing prayer times');
+\nconsole.log('Native Android launcher, legacy compatibility, background adhan bridge and scheduling tests passed.');
