@@ -106,6 +106,31 @@
       }
     }
 
+    // Back inside a religious service must stay within the service dashboard.
+    // Cancel an active adhkar edit first; only the next back returns to the
+    // religious sections grid.
+    const servicePage = document.querySelector('#rd .anwar-service-page:not([hidden])');
+    if (servicePage) {
+      const editingForm = servicePage.querySelector('#adhkarContent .protective-personal-form[data-edit-id]');
+      const cancelEdit = editingForm?.querySelector('.adhkar-dialog-actions button[type="button"]');
+      if (cancelEdit && !cancelEdit.hidden) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        cancelEdit.click();
+        syncBackButton();
+        return;
+      }
+
+      const serviceBack = servicePage.querySelector('[data-anwar-service-back]');
+      if (serviceBack) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        serviceBack.click();
+        syncBackButton();
+        return;
+      }
+    }
+
     const paperStyle = byId('paperStylePanel');
     if (paperStyle && !paperStyle.hidden) {
       event.preventDefault();
