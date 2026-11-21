@@ -19,7 +19,10 @@ assert.match(prayer,/raw\.githubusercontent\.com\/Kiwifu\/adhan-mp3/,'new adhan 
 assert.doesNotMatch(prayer,/key:'maahur'/,'Persian adhan option is removed');
 assert.doesNotMatch(prayer,/مسجد الحسن الثاني/,'modern Hassan II field recording is removed');
 assert.match(prayer,/infoDetails\.append\(infoSummary,privacyLine\)/,'complete original privacy explanation remains inside the disclosure');
-assert.match(prayer,/card\.append\(head,nextBox,timesGrid,dateLine,infoDetails,backgroundPermissionWrap,details,audio\)/,'prayer card keeps the permission action beside its original sections and privacy disclosure');
+assert.match(prayer,/card\.append\(head,nextBox,timesGrid,dateLine,infoDetails,backgroundPermissionWrap,status,details,audio\)/,'status feedback sits immediately after the permission control and outside the collapsed settings panel');
+assert.match(prayer,/details\.append\(summary,fields,actions,toggleLabel,volumeWrap\)/,'collapsed settings no longer contain the only permission feedback');
+assert.match(prayer,/\.anwar-prayer-status:not\(:empty\)\{display:block;margin:7px 0 0/,'permission feedback is visibly styled beside the control');
+assert.match(prayer,/data-anwar-prayer-permission/,'the permission control is protected from global click-burst cancellation');
 assert.match(prayer,/showNextPrayerPlaceholder\('بانتظار تحميل المواقيت'\)/,'the upcoming-prayer panel remains visible while timings are pending');
 assert.match(prayer,/nextName\.textContent='—'/,'the pending state uses a neutral placeholder instead of inventing a prayer name');
 assert.match(prayer,/countdown\.textContent='--:--:--'/,'the pending state uses a neutral countdown placeholder');
@@ -96,8 +99,8 @@ assert.match(html,/<small>أصوات الأذان<\/small><strong>اختيار �
 assert.match(html,/#rd \.curtain-head #ownerBtn\.radio-owner-pen[\s\S]*?width:34px!important;height:34px!important/,'ownership button matches the close button dimensions');
 assert.match(html,/<div class="curtain-head"><button type="button" id="ownerBtn"/,'purple radio header contains only its functional controls');
 assert.doesNotMatch(html,/<div class="curtain-head"><b>الخدمات القرآنية والدينية<\/b>/,'duplicate services title is removed from purple radio header');
-assert.match(html,/prayer-times\.js\?v=20261121-7/,'HTML loads the updated prayer controller after radio header title removal');
-assert.match(worker,/const CACHE_NAME='anwar-shell-2026-11-21-v156'/,'the updated prayer controller has a refreshed offline shell version');
+assert.match(html,/prayer-times\.js\?v=20261121-8/,'HTML loads the updated prayer controller after radio header title removal');
+assert.match(worker,/const CACHE_NAME='anwar-shell-2026-11-21-v157'/,'the updated prayer controller has a refreshed offline shell version');
 assert.match(worker,/\.\/prayer-card-design\.css/,'service worker precaches the canonical prayer card stylesheet');
 
 console.log('Prayer card compact layout, loading states, Arabic location and header controls tests passed.');

@@ -199,7 +199,10 @@
  ].join('');
  style.textContent += [
   '.anwar-prayer-next[hidden]{display:none!important}',
-  '.anwar-prayer-status:empty{display:none!important}'
+  '.anwar-prayer-status:empty{display:none!important}',
+  '.anwar-prayer-status:not(:empty){display:block;margin:7px 0 0;padding:8px 10px;border:1px solid #c9a96a;border-radius:9px;background:linear-gradient(135deg,#fff9ea,#f4ecd9);color:#173d5c;font-size:11px;line-height:1.8;white-space:pre-line}',
+  '.anwar-prayer-status[data-state="error"]{border-color:#d49a83;background:#fff3ee;color:#843a2a}',
+  '.anwar-prayer-status[data-state="success"]{border-color:#a9cbb1;background:#f0f8f0;color:#285b36}'
  ].join('');
  document.head.append(style);
 
@@ -252,6 +255,7 @@
  backgroundPermissionButton.type='button';
  backgroundPermissionButton.setAttribute('aria-label','طلب إذن الأذان خارج التطبيق');
  backgroundPermissionButton.title='طلب إذن تشغيل الأذان بعد مغادرة المفكرة';
+  backgroundPermissionButton.setAttribute('data-anwar-prayer-permission','true');
  const backgroundPermissionIcon=el('span','anwar-prayer-access-icon');
  backgroundPermissionIcon.setAttribute('aria-hidden','true');
  backgroundPermissionIcon.innerHTML='<svg viewBox="0 0 24 24"><circle cx="12" cy="14" r="7.5"></circle><path d="M12 10v4l2.5 1.5M5 3 2.5 5.5M19 3l2.5 2.5M8 21l-1 1.5M16 21l1 1.5"></path></svg>';
@@ -265,7 +269,7 @@
  volumeWrap.append(volumeLabel,volumeInput);
  const status=el('div','anwar-prayer-status','');
  status.setAttribute('role','status');status.setAttribute('aria-live','polite');
- details.append(summary,fields,actions,toggleLabel,volumeWrap,status);
+ details.append(summary,fields,actions,toggleLabel,volumeWrap);
  details.addEventListener('toggle',()=>{
   const launcher=document.querySelector('[data-anwar-service="adhan"]');
   if(launcher)launcher.setAttribute('aria-expanded',String(details.open));
@@ -275,7 +279,7 @@
  const initialVoice=VOICES.find(item=>item.key===settings.voice)||VOICES[0];
  audio.src=initialVoice.url;
  audio.volume=settings.volume;
- card.append(head,nextBox,timesGrid,dateLine,infoDetails,backgroundPermissionWrap,details,audio);
+ card.append(head,nextBox,timesGrid,dateLine,infoDetails,backgroundPermissionWrap,status,details,audio);
  const prayerMount=document.getElementById('anwarPrayerMount');
  if(prayerMount)prayerMount.append(card);
  else{const insertBefore=panel.querySelector('.radio-section-title');if(insertBefore)panel.insertBefore(card,insertBefore);else panel.append(card);}
@@ -452,7 +456,13 @@
   const hours=Math.floor(total/3600),minutes=Math.floor((total%3600)/60),seconds=total%60;
   return [hours,minutes,seconds].map(n=>String(n).padStart(2,'0')).join(':');
  }
- function setStatus(message){status.textContent=message}
+ function setStatus(message){
+   status.textContent=String(message||'');
+   if(!status.textContent)status.removeAttribute('data-state');
+   else if(/تعذّر|لا يمكن|يتطلب|لم يُمنح|منع المتصفح|غير متاح/i.test(status.textContent))status.dataset.state='error';
+   else if(/تم|بدأ|أُرسل|وصلت|مفعّل|مفعلة/i.test(status.textContent))status.dataset.state='success';
+   else status.removeAttribute('data-state');
+  }
  function showNextPrayerPlaceholder(message){
   nextBox.hidden=false;
   nextLabel.textContent='الصلاة القادمة';
