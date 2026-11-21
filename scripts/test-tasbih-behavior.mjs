@@ -11,6 +11,7 @@ class FakeElement {
  constructor(id='',tagName='DIV'){
   this.id=id;this.tagName=tagName.toUpperCase();this.children=[];this.parentElement=null;
   this.dataset={};this.attributes={};this.listeners={};this.className='';this.textContent='';
+  this.style={setProperty:(name,value)=>{this.style[name]=value}};
   this.value='';this.hidden=false;this.disabled=false;this.open=false;this.selected=false;
   this.classList={
    toggle:(name,force)=>{const set=new Set(String(this.className).split(/\s+/).filter(Boolean));if(force===undefined)force=!set.has(name);if(force)set.add(name);else set.delete(name);this.className=[...set].join(' ')},
@@ -73,7 +74,7 @@ function buildApp(options={}){
   'ownerTab','adhkarTab','shareTab','tasbihCount','tasbihPhrase','tasbihDhikr','tasbihTap','tasbihMinus',
   'tasbihReset','tasbihDhikrCards','tasbihCustomDhikrInput','tasbihAddCustomDhikr','tasbihCustomDhikrStatus',
   'tasbihRemoveDhikr','tasbihRestoreOfficial','tasbihVoicePanel','tasbihVoice','tasbihVoiceState',
-  'tasbihVoiceStatus','tasbihVoiceButtonLabel','tasbihVoiceTranscript','morningTab','eveningTab',
+  'tasbihVoiceStatus','tasbihVoiceButtonLabel','tasbihBeads','morningTab','eveningTab',
   'tasbihCounterControl','tasbihThemeToggle','tasbihThemePicker','tasbihThemeEmerald','tasbihThemeDark','tasbihThemePink','tasbihThemeNight','tasbihThemeHeritage','tasbihThemeGlass'
  ];
  for(const id of ids)nodes[id]=id==='tasbihDhikr'?new FakeSelect(id):new FakeElement(id,id==='ownerDialog'?'DIALOG':'DIV');
@@ -140,6 +141,8 @@ function count(app){return app.state.tasbih.count}
 const counterInput=buildApp();
 counterInput.nodes.tasbihCounterControl.click();
 assert.equal(count(counterInput),1,'tapping the circular counter itself increments the count');
+assert.equal(counterInput.nodes.tasbihBeads.children.length,33,'the royal tasbih ring renders exactly 33 beads');
+assert.equal(counterInput.nodes.tasbihBeads.children.filter(bead=>bead.classList.contains('is-counted')).length,1,'one tap lights the first bead');
 counterInput.nodes.tasbihCounterControl.dispatch('keydown',{key:'Enter'});
 assert.equal(count(counterInput),2,'the circular counter supports Enter from the keyboard');
 counterInput.nodes.tasbihCounterControl.dispatch('keydown',{key:' '});
@@ -192,6 +195,8 @@ const app=buildApp();
 assert.equal(app.sandbox.__ANWAR_TASBIH_CONTROLLER_READY__,true,'the controller initializes when the required UI is present');
 assert.equal(app.sandbox.AnwarTasbihController.open(),true,'the public tasbih controller opens the panel');
 assert.equal(app.nodes.tasbihPanel.hidden,false,'the tasbih panel becomes visible when opened');
+assert.equal(app.nodes.tasbihBeads.children.length,33,'the royal ring contains 33 beads');
+assert.equal(app.nodes.tasbihBeads.children.filter(bead=>bead.classList.contains('is-counted')).length,0,'the bead ring begins uncounted');
 assert.equal(app.nodes.ownerDialog.open,false,'opening the tasbih no longer opens the ownership dialog');
 assert.equal(app.sandbox.AnwarTasbihController.close(),true,'the public tasbih controller closes the panel');
 assert.equal(app.nodes.tasbihPanel.hidden,true,'the tasbih panel hides when closed');
@@ -259,14 +264,14 @@ app.nodes.tasbihRestoreOfficial.click();
 assert.deepEqual(app.state.tasbih.removedOfficialDhikrs,[],'restoring clears the official-dhikr exclusions');
 assert.ok(app.nodes.tasbihDhikr.options.some(option=>option.value==='سبحان الله'),'the official dhikr is available again');
 
-// Arabic speech recognition displays interim text, combines split final results,
-// checks alternatives and counts each completed selected phrase only once.
+// Voice counting performs transient matching in memory only. The UI shows the number, not spoken words.
+assert.doesNotMatch(html,/tasbihVoiceTranscript|anwar-tasbih-transcript/,'the tasbih page has no transcript element or transcript panel');
 const recognition=app.recognitions[0];
 assert.equal(recognition.lang,'ar-MA','speech recognition prefers the visitor’s Moroccan Arabic locale');
 app.nodes.tasbihDhikr.value='سبحان الله';
 app.nodes.tasbihDhikr.dispatch('change');
 app.nodes.tasbihVoice.click();
-assert.equal(recognition.started,1,'the recording button starts the speech recognition service');
+assert.equal(recognition.started,1,'the voice-count button starts speech recognition');
 recognition.onstart();
 recognition.onspeechstart();
 const incompleteInterim={0:{transcript:'سُبْحَانَ'},length:1,isFinal:false};
@@ -274,32 +279,26 @@ recognition.onresult({resultIndex:0,results:[incompleteInterim]});
 assert.equal(count(app),0,'an incomplete interim phrase does not increment the counter');
 const interim={0:{transcript:'سُبْحَانَ الله'},length:1,isFinal:false};
 recognition.onresult({resultIndex:0,results:[interim]});
-assert.equal(app.nodes.tasbihVoiceTranscript.textContent,'سُبْحَانَ الله','interim recognized words are shown immediately in the transcript');
-assert.equal(count(app),1,'the counter increments as soon as the complete dhikr appears in the live interim transcript');
+assert.equal(count(app),1,'a complete spoken dhikr increments the counter immediately');
+assert.doesNotMatch(app.nodes.tasbihVoiceStatus.textContent,/سبحان الله/,'the status never displays recognized speech');
 const spoken={0:{transcript:'سُبْحَانَ الله، سبحان الله'},length:1,isFinal:true};
 recognition.onresult({resultIndex:0,results:[spoken]});
-assert.equal(count(app),2,'the finalized result counts only the additional phrase; the interim phrase is not counted twice');
-assert.equal(app.pendingTimers.length,0,'the transcript does not fade while rapid speech is still being detected');
-assert.equal(app.nodes.tasbihVoiceTranscript.textContent,'سبحان الله','a completed phrase replaces interim text instead of adding to a growing transcript');
-assert.ok(app.nodes.tasbihVoiceTranscript.classList.contains('is-temporary'),'recognized words are marked for temporary display');
+assert.equal(count(app),2,'a finalized result counts only the additional repetition');
+assert.equal(app.pendingTimers.length,0,'speech matching creates no transcript timers');
 const duplicateFinalEvent={resultIndex:0,results:[spoken]};
 recognition.onresult(duplicateFinalEvent);
 recognition.onresult(duplicateFinalEvent);
-assert.equal(count(app),2,'a duplicate delivery of the same final event is not counted twice');
+assert.equal(count(app),2,'duplicate recognition events are not counted twice');
 const punctuated={0:{transcript:'سبحان الله؛'},length:1,isFinal:true};
 recognition.onresult({resultIndex:1,results:[spoken,punctuated]});
-assert.equal(count(app),3,'Arabic punctuation and cumulative final results do not prevent a correct match');
-assert.equal(app.nodes.tasbihVoiceTranscript.textContent,'سبحان الله؛','even when the browser returns cumulative results, only the latest recognized dhikr remains visible with its captured punctuation');
-assert.equal(app.pendingTimers.length,0,'every complete repetition increments the count immediately without waiting for the speaker to pause');
+assert.equal(count(app),3,'Arabic punctuation and cumulative final results are counted correctly');
+assert.doesNotMatch(app.nodes.tasbihVoiceStatus.textContent,/سبحان الله/,'recognized text remains absent from the status');
 recognition.onspeechend();
-assert.equal(app.pendingTimers[0].delay,650,'a real speech pause starts the short fade delay');
+assert.equal(app.pendingTimers.length,0,'speech-end does not schedule transcript removal');
 recognition.onspeechstart();
-assert.equal(app.pendingTimers.length,0,'resuming speech cancels a pending fade so rapid repetition stays visible');
-assert.equal(app.nodes.tasbihVoiceTranscript.textContent,'سبحان الله؛','the last recognized phrase and its punctuation remain visible when speech resumes before the pause delay ends');
-recognition.onspeechend();
-app.flushTimers();
-assert.equal(app.nodes.tasbihVoiceTranscript.textContent,'','the recognized phrase clears after its fade-out interval');
-assert.ok(!app.nodes.tasbihVoiceTranscript.classList.contains('is-temporary'),'the transcript styling resets after clearing');
+assert.equal(app.pendingTimers.length,0,'resuming speech needs no transcript cleanup');
+assert.equal(app.state.tasbih.count,3,'only the numeric count is retained in private tasbih preferences');
+assert.ok(!Object.keys(app.state.tasbih).some(key=>/transcript|speechText|audio/i.test(key)),'recognized words and audio are absent from saved tasbih preferences');
 
 const alternativeApp=buildApp();
 alternativeApp.nodes.tasbihDhikr.value='أستغفر الله';
@@ -309,7 +308,7 @@ const alternativeRecognition=alternativeApp.recognitions[0];
 alternativeRecognition.onstart();
 const alternatives={0:{transcript:'استغفر بالله'},1:{transcript:'أستغفر الله'},length:2,isFinal:true};
 alternativeRecognition.onresult({resultIndex:0,results:[alternatives]});
-assert.equal(alternativeApp.nodes.tasbihVoiceTranscript.textContent,'أستغفر الله','the recognized transcript uses the alternative that best matches the selected dhikr');
+assert.doesNotMatch(alternativeApp.nodes.tasbihVoiceStatus.textContent,/أستغفر الله/,'the best matching recognition alternative is never displayed as text');
 assert.equal(count(alternativeApp),1,'the matching second Arabic recognition alternative increments the counter');
 
 const splitApp=buildApp();
@@ -324,7 +323,7 @@ assert.equal(count(splitApp),0,'a partial final segment is not counted as a comp
 const secondPart={0:{transcript:'وأتوب إليه'},length:1,isFinal:true};
 splitRecognition.onresult({resultIndex:1,results:[firstPart,secondPart]});
 assert.equal(count(splitApp),1,'the controller joins multiple final segments before matching a complete dhikr');
-assert.equal(splitApp.nodes.tasbihVoiceTranscript.textContent,'أستغفر الله العظيم وأتوب إليه','the complete spoken phrase is retained visibly');
+assert.doesNotMatch(splitApp.nodes.tasbihVoiceStatus.textContent,/أستغفر الله/,'joined speech segments are matched internally without displaying the words');
 
 // Some Android speech services send a new one-result batch for each spoken phrase
 // instead of keeping the full cumulative result list for the whole session.
@@ -377,4 +376,4 @@ assert.equal(count(brokenVoice),1,'the manual counter still works when voice rec
 const unsupportedVoice=buildApp({noRecognition:true});
 assert.equal(unsupportedVoice.nodes.tasbihVoice.disabled,true,'unsupported browsers get a clear disabled voice control');
 
-console.log('Tasbih behavior tests passed: official morning/evening texts, repetition/source metadata, long official hide/restore persistence, themes, counter, custom dhikr management, transient speech preview, speech matching and microphone fallback.');
+console.log('Tasbih behavior tests passed: 33-bead ring, official dhikr data, themes, counter, custom dhikr management, count-only speech matching and microphone fallback.');
