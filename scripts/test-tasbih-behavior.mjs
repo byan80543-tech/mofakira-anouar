@@ -270,6 +270,13 @@ assert.ok(app.nodes.tasbihDhikr.options.some(option=>option.value==='سبحان 
 
 // Voice counting performs transient matching in memory only. The UI shows the number, not spoken words.
 assert.doesNotMatch(html,/tasbihVoiceTranscript|anwar-tasbih-transcript/,'the tasbih page has no transcript element or transcript panel');
+
+assert.doesNotMatch(html,/<span>عدد التسبيحات<\/span>/,'the counter face shows only the numeric count');
+assert.doesNotMatch(html,/<span class="lesson-series-button-copy"><small>السبحة<\/small><strong>التسبيح والعدّ الصوتي<\/strong><\/span>/,'the tasbih service card displays only the word السبحة');
+assert.match(html,/#rd:has\(#anwarTasbihPage:not\(\[hidden\]\)\)\{overflow:hidden!important\}/,'the tasbih view locks the surrounding radio panel against whole-page scrolling');
+assert.match(html,/anwar-tasbih-stage::before\{\s*content:none!important/,'the overlapping mosque ornament above the counter is removed');
+assert.match(html,/font-family:Amiri,"Noto Naskh Arabic",serif!important/,'tasbih text uses a consistent formal Arabic font');
+
 const recognition=app.recognitions[0];
 assert.equal(recognition.lang,'ar-MA','speech recognition prefers the visitor’s Moroccan Arabic locale');
 app.nodes.tasbihDhikr.value='سبحان الله';
