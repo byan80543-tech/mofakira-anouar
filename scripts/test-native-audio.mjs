@@ -22,7 +22,16 @@ assert.match(audioService, /MediaSession\.Builder\(this, exoPlayer\)/);
 assert.match(audioService, /controllerInfo\.isTrusted/,
   'only trusted controllers such as the app and Android system can control the shared media session');
 assert.match(audioService, /setHandleAudioBecomingNoisy\(true\)/);
-assert.match(audioActivity, /MediaController\.Builder\(this, token\)\.buildAsync\(\)/);
+
+assert.match(audioService, /persistPlaybackState\\(\\)/,
+  'native playback saves the current queue and listening position');
+assert.match(audioService, /restorePlaybackState\\(exoPlayer\\)/,
+  'native playback restores the last listening queue after service recreation');
+assert.match(audioService, /KEY_POSITION/);
+assert.match(audioService, /PERSIST_INTERVAL_MS = 15_000L/,
+  'playback progress is checkpointed periodically while audio is active');
+assert.match(audioService, /Deliberately do not call prepare\\(\\) or play\\(\\)/,
+  'restored playback never starts automatically');assert.match(audioActivity, /MediaController\.Builder\(this, token\)\.buildAsync\(\)/);
 assert.match(audioActivity, /c\.setMediaItems\(items, index, 0L\)/,
   'Quran and lesson queues support starting at the selected track');
 assert.match(audioActivity, /MODE_QURAN/);
