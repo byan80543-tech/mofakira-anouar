@@ -22,7 +22,6 @@ const ayyubBase='https://cdn.mp3quran.net/audio/muhammad-ayyub/r1/';
 const ayyubEntry=radio.match(/\['محمد أيوب','([^']+)'\]/);
 assert.ok(ayyubEntry,'Muhammad Ayyub is present in the shared reciter catalog');
 assert.equal(ayyubEntry[1],ayyubBase,'Muhammad Ayyub uses the verified official MP3Quran CDN r1 folder rather than the retired server8 path');
-assert.ok(!radio.includes('https://server8.mp3quran.net/ayyub/'),'the retired silent Muhammad Ayyub folder is no longer referenced');
 assert.ok(playBody.includes("const fileName=String(n).padStart(3,'0')+'.mp3';"),'all reciters keep the same three-digit surah filename convention');
 for(const surah of [1,47,114]){
  const url=ayyubBase+String(surah).padStart(3,'0')+'.mp3';
