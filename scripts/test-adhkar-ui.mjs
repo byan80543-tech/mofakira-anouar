@@ -11,13 +11,15 @@ const page=html.slice(start,end);
 
 assert.ok(start>=0&&end>start,'the protection page remains a separate service');
 assert.ok(page.includes('class="protective-page-title">أذكار التحصين</h2>'),'the page keeps its familiar title');
-assert.ok(page.includes('id="adhkarContent"')&&page.includes('أضف أذكارك'),'the page explains the visitor-owned workflow');
+assert.ok(page.includes('id="adhkarContent"')&&page.includes('أذكارك محفوظة في مفكرتك على هذا الجهاز.'),'the page keeps a concise private-storage note');
 assert.doesNotMatch(page,/adhkarAdminOpen|إدارة المالك|للزوار القراءة فقط/,'the old read-only/owner-only surface is removed');
 assert.doesNotMatch(html,/adhkarAdminDialog|adhkarOfficialForm|adhkarOfficialList/,'the retired shared-library dialog and form are removed');
 assert.doesNotMatch(html,/adhkar-management\.js/,'the owner-only library client is no longer loaded');
 assert.ok(core.includes('customAdhkar:cleanCustomAdhkar(d.customAdhkar)')&&core.includes('save();form.reset()'),'the visitor list is saved with notebook data');
 assert.ok(core.includes('body.textContent=item.text')&&core.includes("window.confirm('حذف هذا الذكر من مفكرتك؟')"),'entry text is inert and deletion is confirmed');
 const renderer=core.slice(core.indexOf('function renderProtectiveAdhkar()'),core.indexOf('window.AnwarRenderAdhkar=function()'));
+assert.ok(renderer.includes("fontButton.dataset.adhkarFontPicker='true'")&&core.includes('function setAdhkarFont(form,value)')&&core.includes('font:safeFontName(item.font)')&&core.includes('S.customAdhkar.push({id,text,font,ts:Date.now()})'),'adhkar font selection is validated, saved, and restored');
+assert.doesNotMatch(renderer,/اكتب أذكار التحصين التي تريد الاحتفاظ بها|اكتب الذكر في المساحة أعلاه/,'repeated writing instructions are removed');
 assert.ok(renderer.includes("textInput.name='text'")&&renderer.includes("textInput.setAttribute('aria-label','نص الذكر')")&&!renderer.includes("textLabel.textContent='اكتب الذكر'")&&!renderer.includes('titleInput')&&!renderer.includes('titleLabel'),'the protection editor has one accessible text input without a visible side label or title field');
 assert.ok(core.includes("submit.textContent='حفظ الذكر'")&&core.includes("submit.textContent='حفظ التعديل'"),'the single field has clear save and edit actions');
 assert.ok(!serviceWorker.includes("'./adhkar-management.js'"),'the retired admin client is not precached');

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.aladhan.com https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="preload" href="./app-core.js?v=20261121-37" as="script">
+<link rel="preload" href="./app-core.js?v=20261121-38" as="script">
 <script src="api-gateway-config.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>مفكرة أنوار | Anouar Oumlili</title>
@@ -144,8 +144,8 @@ dialog textarea{width:100%;height:140px;background:var(--bg);color:var(--tx);bor
 .curtain-head button{border:1px solid rgba(255,255,255,.42);border-radius:7px;background:rgba(255,255,255,.12);color:#fff;padding:5px 10px;font-size:12px}
 .curtain-head .radio-close-button{flex:none;display:grid;place-items:center;width:34px;height:34px;min-width:34px;padding:0;border:1px solid rgba(255,255,255,.36);border-radius:50%;background:rgba(255,255,255,.12);color:#fff;font:300 25px/1 Arial,sans-serif;text-align:center}
 .curtain-head .radio-close-button:active{background:rgba(255,255,255,.23)}
-.curtain-head .radio-owner-pen{flex:none;display:grid;place-items:center;width:34px;height:34px;padding:5px;border:1px solid rgba(224,210,255,.3);border-radius:10px;background:#30265f;color:#fff0c5;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 2px 5px rgba(0,0,0,.18)}
-.curtain-head .radio-owner-pen svg{display:block;width:22px;height:22px;transform:rotate(90deg)}
+.curtain-head .radio-owner-pen{flex:none;display:grid;place-items:center;width:34px;height:34px;padding:3px;border:1px solid #e5c77b;border-radius:50%;background:#c1272d;color:#006233;box-shadow:inset 0 1px 0 #ffffff55,0 2px 5px rgba(0,0,0,.18)}
+.curtain-head .radio-owner-pen svg{display:block;width:26px;height:26px;transform:none}
 .curtain-head .radio-owner-pen:focus-visible{outline:2px solid #fff0c5;outline-offset:2px}
 #rd{padding-bottom:14px}#rd select{width:100%;min-width:0;max-width:100%;min-height:40px}#rr{max-height:42vh}#rd .lesson-box{border:1px solid var(--bd);border-radius:9px;padding:9px;background:var(--bg);display:grid;gap:7px}
 #rd .lesson-heading{display:flex;align-items:center;gap:12px;padding:8px 10px;border:1px solid #d7bd83;border-radius:11px;background:linear-gradient(120deg,#fff8e7,#f0dfb8);color:#243d56}
@@ -196,7 +196,6 @@ dialog textarea{width:100%;height:140px;background:var(--bg);color:var(--tx);bor
 .adhkar-dismissible-note p{margin:0;flex:1;min-width:0}
 .adhkar-note-dismiss{position:absolute;top:6px;right:6px;display:grid;place-items:center;width:27px;height:27px;padding:0;border:1px solid var(--bd);border-radius:50%;background:var(--sf);color:var(--mu);font:700 19px/1 Arial,sans-serif;cursor:pointer}
 .adhkar-note-dismiss:focus-visible{outline:2px solid #c6a86b;outline-offset:2px}
-#adhkarContent .protective-intro{margin:0 0 8px;padding:10px 12px;border:1px solid var(--bd);border-radius:10px;background:linear-gradient(135deg,var(--bg),var(--sf));color:var(--mu);font-size:11px;line-height:1.85}
 #adhkarContent .protective-group-title{margin:12px 2px 3px;color:var(--ac);font:700 16px 'Aref Ruqaa',Amiri,serif}
 #adhkarContent .protective-card{display:grid;gap:8px;padding:13px;border:1px solid var(--bd);border-radius:12px;background:var(--bg);box-shadow:0 2px 8px #243b3210}
 #adhkarContent .protective-card-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -2239,20 +2238,19 @@ dialog[open]>.float-head{display:none!important}
  #adhkarPersonalManager{padding:12px}
 }
 </style>
-<style id="anwar-owner-pen-icon-v1">
-#rd .curtain-head #ownerBtn.radio-owner-pen .owner-pen-icon{
- display:block;width:22px;height:22px;transform:none!important;
- filter:drop-shadow(0 1px 1px rgba(20,25,40,.3));
-}
-#ownerDialog .owner-mark{
- background:linear-gradient(145deg,#fff5d9,#e8d3a1);
- border:1px solid #c9a96a;
- box-shadow:0 3px 10px rgba(35,48,64,.12),inset 0 1px 0 #fff;
-}
-#ownerDialog .owner-mark .owner-pen-icon{
- display:block;width:34px;height:34px;transform:none!important;
- filter:drop-shadow(0 2px 2px rgba(50,35,18,.18));
-}
+<style id="anwar-moroccan-owner-mark-v1">
+#rd .curtain-head #ownerBtn.radio-owner-pen{display:grid;place-items:center;width:34px;height:34px;min-width:34px;padding:3px!important;border:1px solid #e5c77b;border-radius:50%;background:#c1272d;color:#006233;box-shadow:inset 0 1px 0 #ffffff55,0 2px 5px rgba(0,0,0,.18)}
+#rd .curtain-head #ownerBtn.radio-owner-pen .morocco-flag-icon{display:block;width:26px;height:26px;transform:none!important;filter:drop-shadow(0 1px 1px rgba(20,25,40,.3))}
+#ownerDialog .owner-mark{background:linear-gradient(145deg,#fff5d9,#e8d3a1);border:1px solid #c9a96a;box-shadow:0 3px 10px rgba(35,48,64,.12),inset 0 1px 0 #fff}
+#ownerDialog .owner-mark .morocco-flag-icon{display:block;width:38px;height:38px;transform:none!important;filter:drop-shadow(0 2px 2px rgba(50,35,18,.18))}
+</style>
+<style id="anwar-adhkar-font-picker-v1">
+#adhkarContent .adhkar-font-row{display:flex;align-items:center;justify-content:flex-start;margin:0 0 3px}
+#adhkarContent .adhkar-font-picker{display:inline-flex;align-items:center;gap:7px;min-height:32px;padding:4px 10px;border:1px solid var(--bd);border-radius:18px;background:var(--sf);color:var(--mu);font:600 11px Cairo,Tahoma,sans-serif;box-shadow:none}
+#adhkarContent .adhkar-font-picker:active{background:var(--ac2)}
+#adhkarContent .adhkar-font-glyph{font:700 16px/1 Georgia,serif;direction:ltr;color:var(--ac)}
+#adhkarContent .adhkar-font-name{font:500 10px Cairo,Tahoma,sans-serif;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#adhkarContent .adhkar-empty-state{margin:10px 0 2px;text-align:center;color:var(--mu);font-size:12px;line-height:1.7}
 </style>
 </head>
 <body>
@@ -2423,7 +2421,7 @@ dialog[open]>.float-head{display:none!important}
 <div id="fm"><input id="fq" placeholder="ابحث عن خط…"><div id="fl"></div></div>
 <div id="pa"></div>
 <div id="rd" aria-label="لوحة الإذاعة">
- <div class="curtain-head"><button type="button" id="ownerBtn" class="radio-owner-pen" aria-label="الملكية وبطاقة النشر" title="الملكية وبطاقة النشر"><svg class="owner-pen-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M5.1 20.9 18.6 7.4l5 5L10.1 25.9l-6 1.9 1-6.9Z" fill="#f5e3b8" stroke="#fff2d1" stroke-width="1.1" stroke-linejoin="round"/><path d="m18.6 7.4 2.8-2.8a2.8 2.8 0 0 1 4 4l-2.8 2.8-4-4Z" fill="#d7aa5b" stroke="#fff0c5" stroke-width="1.1" stroke-linejoin="round"/><path d="m5.1 20.9 5 5M14.4 11.6l5 5" fill="none" stroke="#80603a" stroke-width="1.2" stroke-linecap="round"/><path d="m4.1 27.8 6.1-1.9-4.9-4.9-1.2 6.8Z" fill="#d5a75b" stroke="#fff0c5" stroke-width=".9" stroke-linejoin="round"/><path d="m4.1 27.8 2.2-2.2" stroke="#60452b" stroke-width="1" stroke-linecap="round"/></svg></button><button type="button" id="closeRadioPanel" class="radio-close-button" aria-label="إغلاق لوحة الإذاعة">×</button></div>
+ <div class="curtain-head"><button type="button" id="ownerBtn" class="radio-owner-pen" aria-label="الملكية وبطاقة النشر" title="الملكية وبطاقة النشر"><svg class="morocco-flag-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><circle cx="16" cy="16" r="14.4" fill="#c1272d" stroke="#e5c77b" stroke-width="1.2"/><path d="M16 7 L21 23 L8 13 L24 13 L11 23 Z" fill="none" stroke="#006233" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button type="button" id="closeRadioPanel" class="radio-close-button" aria-label="إغلاق لوحة الإذاعة">×</button></div>
  <section id="anwarServiceHome" class="anwar-service-home" aria-label="الأقسام الرئيسية">
   <div id="anwarPrayerMount"></div>
   <div id="anwarServiceGrid" class="anwar-service-grid" aria-label="الأقسام">
@@ -2467,7 +2465,7 @@ dialog[open]>.float-head{display:none!important}
   <div class="anwar-service-page-head"><button type="button" class="anwar-service-back" data-anwar-service-back>‹　العودة إلى الأقسام</button></div>
   <section id="adhkarPanel" class="anwar-adhkar-page-content" aria-label="أذكار التحصين">
   <h2 class="protective-page-title">أذكار التحصين</h2>
-  <div class="adhkar-dismissible-note adhkar-privacy-note"><p>أضف أذكارك كما تحب، واحفظها مع أعمال مفكرتك. تبقى أذكارك خاصة على هذا الجهاز ولا تُنشر للزوار الآخرين تلقائيًا.</p><button type="button" class="adhkar-note-dismiss" data-dismiss-adhkar-notice="privacy" aria-label="إخفاء هذا الإرشاد" title="إخفاء الإرشاد">×</button></div>
+  <div class="adhkar-dismissible-note adhkar-privacy-note"><p>أذكارك محفوظة في مفكرتك على هذا الجهاز.</p><button type="button" class="adhkar-note-dismiss" data-dismiss-adhkar-notice="privacy" aria-label="إخفاء هذا الإرشاد" title="إخفاء الإرشاد">×</button></div>
   <div id="adhkarContent" class="adhkar-list"></div>
  </section>
  </section>
@@ -2665,7 +2663,7 @@ dialog[open]>.float-head{display:none!important}
 
 
 <dialog id="ownerDialog">
- <div class="owner-mark"><svg class="owner-pen-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M5.1 20.9 18.6 7.4l5 5L10.1 25.9l-6 1.9 1-6.9Z" fill="#f5e3b8" stroke="#fff2d1" stroke-width="1.1" stroke-linejoin="round"/><path d="m18.6 7.4 2.8-2.8a2.8 2.8 0 0 1 4 4l-2.8 2.8-4-4Z" fill="#d7aa5b" stroke="#fff0c5" stroke-width="1.1" stroke-linejoin="round"/><path d="m5.1 20.9 5 5M14.4 11.6l5 5" fill="none" stroke="#80603a" stroke-width="1.2" stroke-linecap="round"/><path d="m4.1 27.8 6.1-1.9-4.9-4.9-1.2 6.8Z" fill="#d5a75b" stroke="#fff0c5" stroke-width=".9" stroke-linejoin="round"/><path d="m4.1 27.8 2.2-2.2" stroke="#60452b" stroke-width="1" stroke-linecap="round"/></svg></div>
+ <div class="owner-mark"><svg class="morocco-flag-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><circle cx="16" cy="16" r="14.4" fill="#c1272d" stroke="#e5c77b" stroke-width="1.2"/><path d="M16 7 L21 23 L8 13 L24 13 L11 23 Z" fill="none" stroke="#006233" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
  <h2>مفكرة أنوار</h2>
  <div class="owner-tabs">
   <button type="button" class="active" id="ownerTab">الملكية</button>
@@ -2754,7 +2752,7 @@ dialog[open]>.float-head{display:none!important}
 <script src="./vault-device-unlock.js?v=20261118-1"></script>
 <script src="./poetry-dictation.js?v=20261119-1" defer></script>
 <script src="./protective-adhkar.js?v=20261121-1" defer></script>
-<script src="./app-core.js?v=20261121-37" defer></script>
+<script src="./app-core.js?v=20261121-38" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
 <script src="./tasbih-controller.js?v=20261120-2" defer></script>
 <script src="./prayer-times.js?v=20261120-11" defer></script>
