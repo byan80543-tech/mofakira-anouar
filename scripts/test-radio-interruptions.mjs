@@ -53,11 +53,8 @@ assert.ok(radio.includes('function resumeRadioAfterReturn()'),'safe foreground r
 assert.ok(radio.includes('!radioShouldPlay||!au.src||au.ended||!au.paused||radioResumePending'),'resume avoids manual pauses, ended tracks, and duplicate attempts');
 assert.ok(radio.includes("document.addEventListener('visibilitychange'")&&radio.includes("window.addEventListener('focus',resumeRadioAfterReturn)")&&radio.includes("window.addEventListener('pageshow',resumeRadioAfterReturn)"),'resume is attempted after returning to the app');
 
-const countryStart=app.indexOf('function mountCountryAudio');
-const countryEnd=app.indexOf('function countryProfileAudio',countryStart);
-assert.ok(countryStart>=0&&countryEnd>countryStart,'country reader audio module is present');
-const countryMount=app.slice(countryStart,countryEnd);
-assert.ok(!countryMount.includes('mainRadio.pause()')&&!countryMount.includes('started=false;ui()'),'country reader playback no longer silences the main radio');
+assert.ok(!app.includes('function mountCountryAudio')&&!app.includes('function countryProfileAudio'),'country-specific audio code is removed with the country panel');
+assert.ok(!html.includes('id="anwarCountryReaders"')&&!html.includes('id="reciterCountryModal"'),'the country-based reader panel and its modal are absent');
 
 const lesson=app.slice(lessonStart);
 assert.ok(!lesson.includes('radio.pause()'),'lesson playback no longer pauses the radio');
@@ -72,7 +69,7 @@ assert.ok(preload&&script&&preload[1]===script[1]&&bundleVersion&&Number(bundleV
 const cacheVersion=worker.match(/const CACHE_NAME='anwar-shell-20\d{2}-\d{2}-\d{2}-v\d+';/);
 assert.ok(cacheVersion&&Number(cacheVersion[0].match(/-v(\d+)/)[1])>=111,'service worker cache is bumped for the updated app shell');
 
-console.log('PASS radio continues while lesson and country audio play');
+console.log('PASS radio continues while lesson audio plays; country-only playback is removed');
 console.log('PASS radio volume is ducked temporarily and restored after competing audio stops');
 console.log('PASS manual pause and sleep timer do not trigger automatic resume');
 console.log('PASS foreground return can resume radio after a browser interruption');
