@@ -7,6 +7,7 @@ const root=process.cwd();
 const prayer=fs.readFileSync(path.join(root,'prayer-times.js'),'utf8');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const worker=fs.readFileSync(path.join(root,'service-worker.js'),'utf8');
+const design=fs.readFileSync(path.join(root,'prayer-card-design.css'),'utf8');
 
 assert.doesNotThrow(()=>new vm.Script(prayer,{filename:'prayer-times.js'}),'prayer controller syntax');
 assert.match(prayer,/const infoDetails=el\('details','anwar-prayer-info'\)/,'privacy explanation has a details disclosure');
@@ -19,12 +20,12 @@ assert.doesNotMatch(prayer,/key:'maahur'/,'Persian adhan option is removed');
 assert.doesNotMatch(prayer,/مسجد الحسن الثاني/,'modern Hassan II field recording is removed');
 assert.match(prayer,/infoDetails\.append\(infoSummary,privacyLine\)/,'complete original privacy explanation remains inside the disclosure');
 assert.match(prayer,/card\.append\(head,nextBox,timesGrid,dateLine,infoDetails,details,audio\)/,'prayer card keeps all original sections and the privacy disclosure');
-assert.match(prayer,/nextBox\.hidden=true/,'countdown starts hidden while prayer data is unavailable');
-assert.match(prayer,/const nextName=el\('strong','',''\)/,'upcoming prayer name starts empty rather than with a fake dash');
-assert.match(prayer,/const countdown=el\('span','',''\)/,'countdown starts empty rather than with a fake zero-time value');
-assert.match(prayer,/nextBox\.hidden=true/,'countdown starts hidden while prayer data is unavailable');
+assert.match(prayer,/showNextPrayerPlaceholder\('بانتظار تحميل المواقيت'\)/,'the upcoming-prayer panel remains visible while timings are pending');
+assert.match(prayer,/nextName\.textContent='—'/,'the pending state uses a neutral placeholder instead of inventing a prayer name');
+assert.match(prayer,/countdown\.textContent='--:--:--'/,'the pending state uses a neutral countdown placeholder');
+
 assert.match(prayer,/nextBox\.hidden=false/,'countdown appears when a next prayer event is calculated');
-assert.match(prayer,/nextName\.textContent='';nextWhen\.textContent='';countdown\.textContent='';/,'unavailable countdown does not show placeholder dashes');
+
 assert.match(prayer,/جارٍ تحميل مواقيت الصلاة…/,'initial loading state is clear and visible');
 assert.match(prayer,/تعذّر تحميل المواقيت؛ تحقق من اسم المدينة أو الاتصال/,'failed loading state tells the user what to check');
 assert.match(prayer,/dateLine\.dataset\.state='ready'/,'successful timings mark the card ready');
@@ -60,12 +61,17 @@ assert.doesNotMatch(prayer,/el\('strong','','مواقيت الصلاة'\)/,'redu
 assert.match(prayer,/const refreshButton=el\('button','primary','تحديث'\)/,'refresh action uses a concise visible label');
 assert.match(prayer,/\.anwar-prayer-time\{display:grid;gap:3px;min-width:0;padding:8px 3px/,'original larger five prayer tiles are preserved');
 assert.doesNotMatch(prayer,/\.anwar-prayer-card\{gap:7px;padding:10px 11px\}/,'compact override that shrinks the original design is absent');
-assert.match(prayer,/\.anwar-prayer-next\[hidden\]\{display:none!important\}/,'hidden countdown is not forced visible by the grid rule');
+assert.match(prayer,/showNextPrayerPlaceholder\(todayData&&tomorrowData\?/,'missing timing data preserves the prayer banner layout');
+assert.match(design,/#rd #anwarPrayerCard \.anwar-prayer-next\{/,'the approved prayer banner has a dedicated high-specificity responsive design');
+assert.match(design,/grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/,'the five prayer tiles keep their stable five-column layout');
+assert.match(design,/background:linear-gradient\(115deg,#0b3159/,'the approved blue gradient is fixed independently from device theme');
+assert.match(html,/prayer-card-design\.css\?v=20261121-1/,'the canonical prayer stylesheet is versioned');
 assert.match(html,/<small>أصوات الأذان<\/small><strong>اختيار الصوت والتنبيهات<\/strong>/,'section card distinguishes adhan sounds from the prayer timetable');
 assert.match(html,/#rd \.curtain-head #ownerBtn\.radio-owner-pen[\s\S]*?width:34px!important;height:34px!important/,'ownership button matches the close button dimensions');
 assert.match(html,/<div class="curtain-head"><button type="button" id="ownerBtn"/,'purple radio header contains only its functional controls');
 assert.doesNotMatch(html,/<div class="curtain-head"><b>الخدمات القرآنية والدينية<\/b>/,'duplicate services title is removed from purple radio header');
-assert.match(html,/prayer-times\.js\?v=20261120-11/,'HTML loads the prayer controller after radio header title removal');
-assert.match(worker,/const CACHE_NAME='anwar-shell-\d{4}-\d{2}-\d{2}-v\d+';/,'service worker uses a versioned offline cache for current app resources');
+assert.match(html,/prayer-times\.js\?v=20261121-2/,'HTML loads the prayer controller after radio header title removal');
+assert.match(worker,/const CACHE_NAME='anwar-shell-2026-11-21-v147'/,'the canonical prayer card has a new offline shell version');
+assert.match(worker,/\.\/prayer-card-design\.css/,'service worker precaches the canonical prayer card stylesheet');
 
 console.log('Prayer card compact layout, loading states, Arabic location and header controls tests passed.');
