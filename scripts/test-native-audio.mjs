@@ -41,6 +41,8 @@ assert.match(audioActivity, /MODE_IBTIHALAT/);
 assert.match(audioActivity, /NativeMediaService::class\.java/);
 assert.doesNotMatch(audioActivity, /WebView|WEB_MESSAGE_LISTENER|mofakira-anouar\.pages\.dev/,
   'the native audio screen does not depend on the web notebook');
+assert.match(audioActivity, /if \(c\.playbackState == Player\.STATE_IDLE\) c\.prepare\(\)/,
+  'resuming a restored queue prepares ExoPlayer before starting playback');
 assert.match(audioActivity, /seekToPreviousMediaItem/);
 assert.match(audioActivity, /seekToNextMediaItem/);
 assert.match(audioActivity, /setMediaItem\(item\)/,
