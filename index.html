@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.aladhan.com https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="preload" href="./app-core.js?v=20261120-31" as="script">
+<link rel="preload" href="./app-core.js?v=20261121-32 as="script">
 <script src="api-gateway-config.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>مفكرة أنوار | Anouar Oumlili</title>
@@ -2348,13 +2348,8 @@ dialog[open]>.float-head{display:none!important}
   <div class="anwar-service-page-head"><button type="button" class="anwar-service-back" data-anwar-service-back>‹　العودة إلى الأقسام</button></div>
   <section id="adhkarPanel" class="anwar-adhkar-page-content" aria-label="أذكار التحصين">
   <h2 class="protective-page-title">أذكار التحصين</h2>
-  <div class="adhkar-library-actions" role="group" aria-label="إدارة مكتبة الأذكار">
-   <button type="button" id="adhkarAdminOpen">إدارة المالك</button>
-  </div>
-  <p class="adhkar-privacy-note">للزوار القراءة فقط. لا نجمع أسماءهم أو بريدهم أو بيانات حساباتهم؛ وتستخدم الحماية بصمة مشفرة مؤقتة للحد من الطلبات الآلية. الإضافة والتعديل والحذف لصاحب المفكرة وحده.</p>
-  <p id="adhkarSyncStatus" class="adhkar-sync-status" role="status" aria-live="polite"></p>
+  <p class="adhkar-privacy-note">أضف أذكارك كما تحب، واحفظها مع أعمال مفكرتك. تبقى أذكارك خاصة على هذا الجهاز ولا تُنشر للزوار الآخرين تلقائيًا.</p>
   <div id="adhkarContent" class="adhkar-list"></div>
-  <small style="display:block;color:var(--mu);margin-top:8px;line-height:1.8">مراجعة المصدر: الآية من القرآن الكريم، والأذكار النبوية تُعزى إلى مصادرها الحديثية. لا تُعرض هذه القائمة على أنها حصر كامل للأذكار. للتحقق من نصوص الكتب وأبوابها: <a href="https://sunna.alifta.gov.sa/Book/IndexMatnBooks" target="_blank" rel="noopener noreferrer">مكتبة الحديث التابعة للرئاسة العامة للبحوث العلمية والإفتاء</a>، وتشمل الصحيحين والسنن وموطأ مالك ومسند أحمد. كما يمكن مراجعة التخريج والحكم عبر <a href="https://dorar.net/" target="_blank" rel="noopener noreferrer">الموسوعة الحديثية بالدرر السنية</a>. وعند إضافة أذكار أخرى يُذكر الكتاب ورقم الحديث ودرجة الحديث حيث يلزم.</small>
  </section>
  </section>
  <section id="anwarTasbihPage" class="anwar-service-page" aria-label="السبحة" hidden>
@@ -2548,32 +2543,7 @@ dialog[open]>.float-head{display:none!important}
 <dialog id="historyDialog"><h3 style="margin-top:0">سجل إصدارات العمل</h3><p style="color:var(--mu);font-size:12px">تُحفظ لقطات سابقة تلقائيًا عند تعديل العمل. نحتفظ بآخر 15 إصدارًا.</p><div id="historyItems"></div><div class="dialog-actions" style="margin-top:12px"><button type="button" id="closeHistory">إغلاق</button></div></dialog>
 
 
-<dialog id="adhkarAdminDialog" class="adhkar-management-dialog" aria-labelledby="adhkarAdminTitle">
- <header class="adhkar-dialog-head"><h3 id="adhkarAdminTitle">إدارة مكتبة التحصين</h3><button type="button" data-adhkar-close aria-label="إغلاق">×</button></header>
- <form id="adhkarAdminLogin" class="adhkar-form">
-  <p class="adhkar-privacy-note">لوحة خاصة بصاحب المفكرة. رمز الإدارة محفوظ في سرّ الخادم، ولا يُحفظ داخل التطبيق أو المتصفح. تنتهي الجلسة تلقائيًا بعد 20 دقيقة أو عند إغلاقها.</p>
-  <label>رمز الإدارة<input name="password" type="password" minlength="32" maxlength="512" autocomplete="current-password" required></label>
-  <p id="adhkarLoginStatus" class="adhkar-form-status" role="status" aria-live="polite"></p>
-  <button type="submit">دخول آمن</button>
- </form>
- <section id="adhkarAdminWorkspace" hidden>
-  <div class="adhkar-admin-bar"><button type="button" id="adhkarAdminLogout">إنهاء الجلسة</button><button type="button" id="adhkarInitialize" hidden>تهيئة المكتبة الحالية</button></div>
-  <p id="adhkarAdminStatus" class="adhkar-form-status" role="status" aria-live="polite"></p>
-  <form id="adhkarOfficialForm" class="adhkar-form">
-   <h4>إضافة ذكر رسمي أو تعديل ذكر</h4><input name="id" type="hidden">
-   <label>المجموعة<input name="group" maxlength="80" required></label>
-   <label>العنوان<input name="title" maxlength="120" required></label>
-   <label>نص الذكر<textarea name="text" rows="4" maxlength="5000" required></textarea></label>
-   <label>عدد التكرار إن ورد<input name="count" type="number" min="1" max="100000" inputmode="numeric" placeholder="فارغ إذا لم يحدد عدد"></label>
-   <label>المناسبة<input name="occasion" maxlength="300"></label>
-   <label>المصدر<input name="source" maxlength="240" required></label>
-   <label>رابط المصدر<input name="sourceUrl" type="url" maxlength="500" placeholder="https://..."></label>
-   <label>نوع المحتوى<select name="kind"><option value="dhikr">ذكر</option><option value="note">تنبيه أو تذكير</option></select></label>
-   <div class="adhkar-dialog-actions"><button type="submit">حفظ في المكتبة العامة</button><button type="reset">تفريغ الحقول</button></div>
-  </form>
-  <section class="adhkar-admin-section"><h4>الأذكار الرسمية المنشورة</h4><div id="adhkarOfficialList"></div></section>
- </section>
-</dialog>
+
 
 <dialog id="ownerDialog">
  <div class="owner-mark">✒</div>
@@ -2664,9 +2634,8 @@ dialog[open]>.float-head{display:none!important}
 <script src="./vault-storage.js?v=20261120-1"></script>
 <script src="./vault-device-unlock.js?v=20261118-1"></script>
 <script src="./poetry-dictation.js?v=20261119-1" defer></script>
-<script src="./protective-adhkar.js?v=20261120-2" defer></script>
-<script src="./app-core.js?v=20261120-31" defer></script>
-<script src="./adhkar-management.js?v=20261120-2" defer></script>
+<script src="./protective-adhkar.js?v=20261121-1" defer></script>
+<script src="./app-core.js?v=20261121-32 defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
 <script src="./tasbih-controller.js?v=20261120-2" defer></script>
 <script src="./prayer-times.js?v=20261120-11" defer></script>
