@@ -37,6 +37,7 @@
    const stored=preferences&&typeof preferences.get==='function'?preferences.get():null;
    if(stored&&stored.tasbih&&typeof stored.tasbih==='object')initial=stored.tasbih;
   }catch(error){console.warn('تعذر قراءة إعدادات السبحة؛ سيبدأ العداد بإعداداته الافتراضية.',error)}
+  if(initial.designVersion!==DESIGN_VERSION&&initial.dhikr==='أستغفر الله العظيم وأتوب إليه')initial={...initial,dhikr:select.value};
   const MAX_COUNT=1000000000;
   const cleanDhikrList=(items,limit,maxLength=200)=>Array.isArray(items)
    ?[...new Set(items.filter(item=>typeof item==='string').map(item=>item.trim().slice(0,maxLength)).filter(Boolean))].slice(0,limit)
