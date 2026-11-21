@@ -213,7 +213,7 @@
  const countdown=el('span','','');
  countdownCopy.append(countdownLabel,countdown);
  nextBox.append(nextCopy,countdownCopy);
- nextBox.hidden=true;
+ showNextPrayerPlaceholder('بانتظار تحميل المواقيت');
  const timesGrid=el('div','anwar-prayer-times');
  const dateLine=el('div','anwar-prayer-date','جارٍ تحميل مواقيت المدينة…');
  const privacyLine=el('small','anwar-prayer-note','نحدد الدولة تلقائيًا من المنطقة الزمنية وإعدادات لغة الجهاز دون طلب GPS أو الموقع الدقيق. تُرسل المدينة والدولة إلى خدمة المواقيت لحساب الصلاة، ويمكنك تغييرهما متى شئت.');
@@ -392,6 +392,13 @@
   return [hours,minutes,seconds].map(n=>String(n).padStart(2,'0')).join(':');
  }
  function setStatus(message){status.textContent=message}
+ function showNextPrayerPlaceholder(message){
+  nextBox.hidden=false;
+  nextLabel.textContent='الصلاة القادمة';
+  nextName.textContent='—';
+  nextWhen.textContent=message||'بانتظار تحميل المواقيت';
+  countdown.textContent='--:--:--';
+ }
  function alreadyPlayed(key){
   try{return localStorage.getItem(PLAYED_KEY)===key}catch(_e){return false}
  }
@@ -440,8 +447,7 @@
    nextWhen.textContent=(next.date===todayDate?'اليوم':'غدًا')+' · '+timeLabel(next.at);
    timesGrid.querySelectorAll('.anwar-prayer-time').forEach(item=>item.classList.toggle('is-next',item.dataset.prayer===next.key&&next.date===(todayData&&todayData.date&&todayData.date.gregorian&&todayData.date.gregorian.date)));
   }else{
-   nextBox.hidden=true;
-   nextName.textContent='';nextWhen.textContent='';countdown.textContent='';
+   showNextPrayerPlaceholder(todayData&&tomorrowData?'لا يوجد موعد متاح الآن':'بانتظار تحميل المواقيت');
   }
   if(todayData&&timeZone){
    const todayHere=dateString(new Date(now),timeZone);
@@ -454,7 +460,7 @@
   if(!silent){
    setStatus('جارٍ تحديث مواقيت الصلاة…');
    dateLine.textContent='جارٍ تحميل مواقيت الصلاة…';dateLine.dataset.state='loading';
-   nextBox.hidden=true;
+   showNextPrayerPlaceholder('جارٍ تحديث مواقيت الصلاة');
   }
   refreshButton.disabled=true;
   try{
@@ -489,7 +495,7 @@
    if(token===loadToken){
     if(!todayData){
      dateLine.textContent='تعذّر تحميل المواقيت؛ تحقق من اسم المدينة أو الاتصال.';
-     dateLine.dataset.state='error';nextBox.hidden=true;
+     dateLine.dataset.state='error';showNextPrayerPlaceholder('ستظهر التفاصيل عند توفر المواقيت');
     }
     setStatus(error&&error.message?error.message:'تعذّر تحديث المواقيت.');
    }
@@ -503,7 +509,7 @@
   settings.city=cityInput.value.trim();settings.school='0';
   persist();todayData=null;tomorrowData=null;lastDateCheck='';
   timesGrid.replaceChildren(...PRAYERS.map(prayer=>{const item=el('div','anwar-prayer-time');item.append(el('b','',prayer.name),el('strong','','—'));return item;}));
-  nextBox.hidden=true;nextName.textContent='';nextWhen.textContent='';countdown.textContent='';
+  showNextPrayerPlaceholder('بانتظار تحميل المواقيت');
   dateLine.textContent='جارٍ تحميل مواقيت الصلاة…';dateLine.dataset.state='loading';
   lastTick=Date.now();refreshTimes(false);
  });
@@ -519,7 +525,7 @@
   settings.timezone='';
   persist();updateHeader();
   todayData=null;tomorrowData=null;lastDateCheck='';
-  nextBox.hidden=true;
+  showNextPrayerPlaceholder('بانتظار تحميل المواقيت');
   timesGrid.replaceChildren(...PRAYERS.map(prayer=>{const item=el('div','anwar-prayer-time');item.append(el('b','',prayer.name),el('strong','','—'));return item;}));
   dateLine.textContent='جارٍ تحميل المواقيت…';dateLine.dataset.state='loading';
   lastTick=Date.now();refreshTimes(false);
