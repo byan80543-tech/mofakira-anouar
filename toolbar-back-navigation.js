@@ -115,6 +115,16 @@
       return;
     }
 
+    const prayerSettings = document.querySelector('#anwarPrayerCard .anwar-prayer-settings');
+    if (prayerSettings?.open) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      prayerSettings.open = false;
+      document.querySelector('[data-anwar-service="adhan"]')?.setAttribute('aria-expanded', 'false');
+      syncBackButton();
+      return;
+    }
+
     // Back inside a religious service must stay within the service dashboard.
     // Cancel an active adhkar edit first; only the next back returns to the
     // religious sections grid.
