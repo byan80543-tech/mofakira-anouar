@@ -298,6 +298,20 @@
   berkane:'بركان',larache:'العرائش',essaouira:'الصويرة',
   taroudant:'تارودانت',guelmim:'كلميم',dakhla:'الداخلة'
  };
+ const CITY_API_AR={
+  'مكناس':'Meknes','فاس':'Fes','الدار البيضاء':'Casablanca','الرباط':'Rabat',
+  'طنجة':'Tangier','مراكش':'Marrakech','أكادير':'Agadir','وجدة':'Oujda',
+  'تطوان':'Tetouan','القنيطرة':'Kenitra','آسفي':'Safi','تازة':'Taza',
+  'الحسيمة':'Al Hoceima','الناظور':'Nador','بني ملال':'Beni Mellal',
+  'خريبكة':'Khouribga','سطات':'Settat','بركان':'Berkane','العرائش':'Larache',
+  'الصويرة':'Essaouira','تارودانت':'Taroudant','كلميم':'Guelmim','الداخلة':'Dakhla'
+ };
+ function cityForApi(value,country){
+  const city=trimmedCountry(value);
+  if(countryForApi(country)!=='Morocco')return city;
+  const key=city.replace(/[أإآ]/g,'ا').replace(/\s+/g,' ').trim();
+  return CITY_API_AR[key]||city;
+ }
  function cityForDisplay(value){
   const city=trimmedCountry(value);
   const key=city.toLowerCase().replace(/[éèê]/g,'e').replace(/[àâ]/g,'a').replace(/[îï]/g,'i').replace(/[ô]/g,'o').replace(/[ùû]/g,'u').replace(/\s+/g,' ').trim();
@@ -340,11 +354,23 @@
  }
  async function fetchDay(dateText,token){
   const url=new URL(API+'/timingsByCity/'+dateText);
-  url.searchParams.set('city',settings.city.trim());
+  url.searchParams.set('city',cityForApi(settings.city,settings.country));
   url.searchParams.set('country',countryForApi(settings.country));
   if(settings.method!=='auto')url.searchParams.set('method',settings.method);
   url.searchParams.set('school',settings.school);
-  const response=await fetch(url.href,{method:'GET',headers:{'Accept':'application/json'},cache:'no-store'});
+  const controller=typeof AbortController==='function'?new AbortController():null;
+  const timeoutId=window.setTimeout(()=>{if(controller)controller.abort();},12000);
+  let response;
+  try{
+   const request={method:'GET',headers:{'Accept':'application/json'},cache:'no-store'};
+   if(controller)request.signal=controller.signal;
+   response=await fetch(url.href,request);
+  }catch(error){
+   if(error&&error.name==='AbortError')throw new Error('انتهت مهلة الاتصال بخدمة المواقيت. تحقق من الإنترنت ثم اضغط تحديث.');
+   throw new Error('تعذّر الاتصال بخدمة المواقيت. تحقق من الإنترنت ثم أعد المحاولة.');
+  }finally{
+   window.clearTimeout(timeoutId);
+  }
   if(!response.ok)throw new Error('تعذّر جلب المواقيت (HTTP '+response.status+').');
   const json=await response.json();
   if(token!==loadToken)return null;
@@ -510,7 +536,8 @@
    if(token===loadToken){
     if(!todayData){
      dateLine.textContent=fallbackDateLabel()||'التاريخ المحلي';
-     dateLine.dataset.state='fallback';showNextPrayerPlaceholder('ستظهر التفاصيل عند توفر المواقيت');
+     dateLine.dataset.state='fallback';
+     showNextPrayerPlaceholder('تعذّر التحميل؛ تحقق من المدينة والاتصال ثم اضغط تحديث');
     }
     setStatus(error&&error.message?error.message:'تعذّر تحديث المواقيت.');
    }
