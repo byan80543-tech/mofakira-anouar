@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.aladhan.com https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="preload" href="./app-core.js?v=20261121-66" as="script">
+<link rel="preload" href="./app-core.js?v=20261121-67" as="script">
 <script src="api-gateway-config.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>مفكرة أنوار | Anouar Oumlili</title>
@@ -2825,6 +2825,42 @@ dialog[open]>.float-head{display:none!important}
 #rd #anwarAdhkarPage .adhkar-theme-toggle:focus-visible{outline:2px solid var(--ac);outline-offset:3px}
 @media(prefers-reduced-motion:reduce){#rd #anwarAdhkarPage{transition:none}#rd #anwarAdhkarPage .adhkar-theme-toggle{transition:none}}
 </style>
+<style id="anwar-adhkar-editor-frame-v1">
+
+/* إطار محرر أذكار التحصين وأيقونة خط واضحة وبسيطة. */
+#rd #anwarAdhkarPage #adhkarContent .protective-personal-form{
+ width:min(100%,620px);max-width:100%;margin:14px auto 16px;padding:12px;
+ border:1px solid var(--bd);border-radius:16px;background:var(--sf);
+ box-shadow:0 3px 13px rgba(33,48,66,.07);
+}
+#rd #anwarAdhkarPage #adhkarContent .protective-personal-form>textarea{
+ min-height:clamp(170px,25vh,220px);max-height:48vh;
+ padding:12px 10px;border:0;border-radius:9px;background:transparent;
+ color:var(--tx);box-shadow:none;outline-offset:2px;
+}
+#rd #anwarAdhkarPage #adhkarContent .adhkar-font-row{margin:0 0 8px}
+#rd #anwarAdhkarPage #adhkarContent .adhkar-font-picker{
+ display:grid;place-items:center;width:36px;height:34px;min-height:34px;
+ padding:4px;border:1px solid var(--bd);border-radius:9px;
+ background:var(--bg);color:var(--ac);box-shadow:none;
+}
+#rd #anwarAdhkarPage #adhkarContent .adhkar-font-glyph{
+ position:relative;display:block;width:23px;height:21px;font-size:0;line-height:0;
+}
+#rd #anwarAdhkarPage #adhkarContent .adhkar-font-glyph::before{
+ content:"A";position:absolute;inset-inline-start:0;top:0;
+ color:var(--ac);font:700 15px/20px Arial,sans-serif;
+}
+#rd #anwarAdhkarPage #adhkarContent .adhkar-font-glyph::after{
+ content:"";position:absolute;inset-inline-end:0;top:5px;width:9px;height:11px;
+ background:repeating-linear-gradient(to bottom,var(--ac) 0 1.4px,transparent 1.4px 4px);
+ opacity:.85;
+}
+#rd #anwarAdhkarPage #adhkarContent .adhkar-font-name{display:none}
+#rd #anwarAdhkarPage #adhkarContent .adhkar-font-picker:focus-visible{
+ outline:2px solid var(--ac);outline-offset:2px;
+}
+</style>
 </head>
 <body>
 <div class="app" id="app">
@@ -3337,8 +3373,8 @@ dialog[open]>.float-head{display:none!important}
 <script src="./vault-device-unlock.js?v=20261118-1"></script>
 <script src="./poetry-dictation.js?v=20261119-1" defer></script>
 <script src="./protective-adhkar.js?v=20261121-1" defer></script>
-<script src="./app-core.js?v=20261121-66" defer></script>
-<script src="./adhkar-page-theme.js?v=20261121-1" defer></script>
+<script src="./app-core.js?v=20261121-67" defer></script>
+<script src="./adhkar-page-theme.js?v=20261121-2" defer></script>
 <script src="./ibtihalat-radio.js?v=20261121-1" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
 <script src="./tasbih-controller.js?v=20261121-reference1" defer></script>
