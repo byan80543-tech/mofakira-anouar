@@ -53,16 +53,18 @@
  let layouts=readLayouts();
 
  function viewport(){
+  /* Keep floating tools inside the writing surface, not across the page. */
+  const area=doc.getElementById('area');
+  const rect=area&&area.getBoundingClientRect();
+  if(rect&&rect.width>0&&rect.height>0){
+   return {left:rect.left+(area.clientLeft||0),top:rect.top+(area.clientTop||0),
+    width:Math.max(1,Math.min(rect.width,area.clientWidth||rect.width)),
+    height:Math.max(1,Math.min(rect.height,area.clientHeight||rect.height))};
+  }
   const vv=root.visualViewport;
-  const width=vv&&Number.isFinite(vv.width)&&vv.width>0
-   ?vv.width:(doc.documentElement.clientWidth||root.innerWidth||1);
-  const height=vv&&Number.isFinite(vv.height)&&vv.height>0
-   ?vv.height:(doc.documentElement.clientHeight||root.innerHeight||1);
-  return {
-   left:vv&&Number.isFinite(vv.offsetLeft)?vv.offsetLeft:0,
-   top:vv&&Number.isFinite(vv.offsetTop)?vv.offsetTop:0,
-   width:Math.max(1,width),height:Math.max(1,height)
-  };
+  const width=vv&&Number.isFinite(vv.width)&&vv.width>0?vv.width:(doc.documentElement.clientWidth||root.innerWidth||1);
+  const height=vv&&Number.isFinite(vv.height)&&vv.height>0?vv.height:(doc.documentElement.clientHeight||root.innerHeight||1);
+  return {left:vv&&Number.isFinite(vv.offsetLeft)?vv.offsetLeft:0,top:vv&&Number.isFinite(vv.offsetTop)?vv.offsetTop:0,width:Math.max(1,width),height:Math.max(1,height)};
  }
 
  function readLayouts(){
@@ -127,11 +129,9 @@
   const vv=viewport(),measured=measure(panel);
   const width=reset?Math.min(340,vv.width-EDGE*2):Math.min(Math.max(measured.width,Math.min(280,vv.width-EDGE*2)),vv.width-EDGE*2,540);
   const height=reset?Math.min(280,vv.height*0.52,vv.height-EDGE*2):Math.min(Math.max(measured.height,Math.min(220,vv.height*0.46)),vv.height-EDGE*2,Math.min(380,vv.height*0.72));
-  const footer=doc.querySelector('.app.ed #rib')||rib;
-  const footerHeight=footer.getBoundingClientRect().height||64;
   return clampRect({
    left:vv.left+(vv.width-width)/2,
-   top:vv.top+vv.height-height-Math.min(footerHeight+8,90),
+   top:vv.top+(vv.height-height)/2,
    width,height
   },vv);
  }
