@@ -23,6 +23,10 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".NativeAudioActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
+            android:exported="false" />
+        <activity
             android:name=".NativePrayerActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
             android:exported="false" />
