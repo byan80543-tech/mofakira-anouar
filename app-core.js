@@ -135,12 +135,11 @@ function cleanCustomAdhkar(value){
  value.slice(-100).forEach(item=>{
   if(!item||typeof item!=='object'||Array.isArray(item))return;
   const id=typeof item.id==='string'?item.id.trim().slice(0,80):'';
-  const title=typeof item.title==='string'?item.title.trim().slice(0,120):'';
   const text=typeof item.text==='string'?item.text.trim().slice(0,3000):'';
-  if(!id||!title||!text||seen.has(id))return;
+  if(!id||!text||seen.has(id))return;
   seen.add(id);
   const stamp=Number(item.ts);
-  clean.push({id,title,text,ts:Number.isFinite(stamp)&&Math.abs(stamp)<=8640000000000000?stamp:Date.now()});
+  clean.push({id,text,ts:Number.isFinite(stamp)&&Math.abs(stamp)<=8640000000000000?stamp:Date.now()});
  });
  return clean;
 }
@@ -2603,51 +2602,44 @@ function renderProtectiveAdhkar(){
  const fragment=document.createDocumentFragment();
  const intro=document.createElement('p');
  intro.className='protective-intro';
- intro.textContent='هذه مساحتك الخاصة. أضف أذكار التحصين التي تختارها، وعدّلها أو احذفها متى شئت. لا توجد أذكار جاهزة؛ وما تحفظه هنا يبقى ضمن بيانات مفكرتك على هذا الجهاز.';
+ intro.textContent='اكتب أذكار التحصين التي تريد الاحتفاظ بها. تُحفظ مع مفكرتك على هذا الجهاز، ويمكنك تعديلها أو حذفها متى شئت.';
  fragment.append(intro);
 
  const form=document.createElement('form');
  form.className='adhkar-form protective-personal-form';
- form.setAttribute('aria-label','إضافة ذكر تحصين');
- const titleLabel=document.createElement('label');
- titleLabel.textContent='عنوان الذكر';
- const titleInput=document.createElement('input');
- titleInput.type='text';titleInput.name='title';titleInput.maxLength=120;titleInput.required=true;
- titleInput.placeholder='عنوان تختاره للذكر';
- titleLabel.append(titleInput);
+ form.setAttribute('aria-label','كتابة ذكر التحصين');
  const textLabel=document.createElement('label');
- textLabel.textContent='نص الذكر';
+ textLabel.textContent='اكتب الذكر';
  const textInput=document.createElement('textarea');
- textInput.name='text';textInput.rows=4;textInput.maxLength=3000;textInput.required=true;
- textInput.placeholder='اكتب الذكر هنا...';
+ textInput.name='text';textInput.rows=5;textInput.maxLength=3000;textInput.required=true;
+ textInput.placeholder='اكتب ذكر التحصين هنا...';
  textLabel.append(textInput);
  const actions=document.createElement('div');actions.className='adhkar-dialog-actions';
- const submit=document.createElement('button');submit.type='submit';submit.textContent='إضافة الذكر إلى مفكرتي';
+ const submit=document.createElement('button');submit.type='submit';submit.textContent='حفظ الذكر';
  const cancel=document.createElement('button');cancel.type='button';cancel.textContent='إلغاء التعديل';cancel.hidden=true;
- actions.append(submit,cancel);form.append(titleLabel,textLabel,actions);
+ actions.append(submit,cancel);form.append(textLabel,actions);
  cancel.addEventListener('click',()=>{
   form.reset();delete form.dataset.editId;
-  submit.textContent='إضافة الذكر إلى مفكرتي';cancel.hidden=true;
+  submit.textContent='حفظ الذكر';cancel.hidden=true;
  });
  form.addEventListener('submit',event=>{
   event.preventDefault();
   if(storageRecoveryBlocked||!vaultUnlocked){toast('افتح المفكرة أولًا قبل حفظ الأذكار.');return}
-  const title=titleInput.value.trim().slice(0,120);
   const text=textInput.value.trim().slice(0,3000);
-  if(!title||!text){toast('اكتب عنوان الذكر ونصه أولًا.');return}
+  if(!text){toast('اكتب الذكر أولًا.');return}
   const editId=form.dataset.editId||'';
   if(editId){
    const entry=S.customAdhkar.find(item=>item.id===editId);
    if(!entry){toast('تعذّر العثور على الذكر المطلوب تعديله.');return}
-   entry.title=title;entry.text=text;entry.ts=Date.now();
+   entry.text=text;entry.ts=Date.now();
   }else{
    if(S.customAdhkar.length>=100){toast('بلغت الحد الأقصى: 100 ذكر في هذه المساحة.');return}
    const id=typeof globalThis.crypto?.randomUUID==='function'?globalThis.crypto.randomUUID():Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10);
-   S.customAdhkar.push({id,title,text,ts:Date.now()});
+   S.customAdhkar.push({id,text,ts:Date.now()});
   }
   S.customAdhkar=cleanCustomAdhkar(S.customAdhkar);
   save();form.reset();delete form.dataset.editId;
-  submit.textContent='إضافة الذكر إلى مفكرتي';cancel.hidden=true;
+  submit.textContent='حفظ الذكر';cancel.hidden=true;
   renderProtectiveAdhkar();toast(editId?'تم حفظ تعديل الذكر.':'تم حفظ الذكر في مفكرتك.');
  });
  fragment.append(form);
@@ -2655,21 +2647,17 @@ function renderProtectiveAdhkar(){
  if(!S.customAdhkar.length){
   const empty=document.createElement('p');
   empty.className='protective-intro';
-  empty.textContent='لم تضف أي ذكر بعد. ابدأ بكتابة ما تريد حفظه في النموذج أعلاه.';
+  empty.textContent='لا توجد أذكار محفوظة بعد. اكتب الذكر في المساحة أعلاه ثم اضغط «حفظ الذكر».';
   fragment.append(empty);
  }
  S.customAdhkar.forEach(item=>{
   const card=document.createElement('article');card.className='protective-card';
-  const head=document.createElement('div');head.className='protective-card-head';
-  const title=document.createElement('strong');title.textContent=item.title;
-  const tag=document.createElement('span');tag.className='protective-tag';tag.textContent='ذكر محفوظ';
-  head.append(title,tag);card.append(head);
   const body=document.createElement('p');body.className='protective-text';body.textContent=item.text;card.append(body);
   const actions=document.createElement('div');actions.className='protective-actions';
   const edit=document.createElement('button');edit.type='button';edit.textContent='تعديل';
   edit.addEventListener('click',()=>{
-   titleInput.value=item.title;textInput.value=item.text;form.dataset.editId=item.id;
-   submit.textContent='حفظ التعديل';cancel.hidden=false;titleInput.focus();
+   textInput.value=item.text;form.dataset.editId=item.id;
+   submit.textContent='حفظ التعديل';cancel.hidden=false;textInput.focus();
    form.scrollIntoView({behavior:'smooth',block:'nearest'});
   });
   const remove=document.createElement('button');remove.type='button';remove.textContent='حذف';
