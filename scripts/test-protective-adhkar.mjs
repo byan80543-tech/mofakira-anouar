@@ -21,7 +21,7 @@ assert.ok(html.includes('data-anwar-service="adhkar"')&&html.includes('class="pr
 assert.ok(html.includes('id="adhkarContent"')&&!html.includes('id="adhkarAdminOpen"'),'the page provides a personal content area, not an owner-only control');
 assert.ok(app.includes('function cleanCustomAdhkar(value)')&&app.includes('customAdhkar:cleanCustomAdhkar(d.customAdhkar)'),'personal entries are normalized as part of notebook storage');
 assert.ok(app.includes('S.customAdhkar.push({id,text,font,ts:Date.now()})')&&app.includes('save();form.reset()'),'a visitor can save an entry and its selected font through notebook persistence');
-assert.ok(app.includes('entry.text=text;entry.ts=Date.now()')&&app.includes('S.customAdhkar=S.customAdhkar.filter(saved=>saved.id!==item.id)'),'personal entries can be edited and removed through the private manager');
+assert.ok(app.includes('entry.text=text;entry.font=font;entry.ts=Date.now()')&&app.includes('S.customAdhkar=S.customAdhkar.filter(saved=>saved.id!==item.id)'),'personal entries can be edited with their selected font and removed through the private manager');
 assert.ok(app.includes("textInput.name='text'")&&app.includes('textInput.maxLength=3000')&&app.includes('S.customAdhkar.length>=100')&&app.includes('font:safeFontName(item.font)'),'the single text field, selected font and collection size are bounded');
 const renderer=app.slice(app.indexOf('function renderProtectiveAdhkar()'),app.indexOf('window.AnwarRenderAdhkar=function()'));
 assert.ok(!renderer.includes('titleInput')&&!renderer.includes('titleLabel')&&!renderer.includes('عنوان الذكر'),'the protection editor contains no title field or title metadata');
