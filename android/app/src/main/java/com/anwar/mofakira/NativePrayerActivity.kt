@@ -258,9 +258,13 @@ class NativePrayerActivity : Activity() {
         val refresh = makeButton("حفظ وتحديث المواقيت", gold, navy) { saveAndRefresh() }
         root.addView(refresh, marginTop(dp(13)))
         val permission = makeButton("إعداد أذونات الأذان الخلفي", navy, Color.WHITE) {
-            if (!adhanSwitch.isChecked) adhanSwitch.isChecked = true
-            saveSettings()
-            requestRequiredAccess()
+            if (!adhanSwitch.isChecked) {
+                // The switch listener saves the setting and starts the permission flow.
+                adhanSwitch.isChecked = true
+            } else {
+                saveSettings()
+                requestRequiredAccess()
+            }
         }
         root.addView(permission, marginTop(dp(9)))
 
