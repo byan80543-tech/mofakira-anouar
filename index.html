@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.aladhan.com https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="preload" href="./app-core.js?v=20261121-41" as="script">
+<link rel="preload" href="./app-core.js?v=20261121-42" as="script">
 <script src="api-gateway-config.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>مفكرة أنوار | Anouar Oumlili</title>
@@ -2774,6 +2774,85 @@ dialog[open]>.float-head{display:none!important}
 }
 </style>
 
+
+<style id="anwar-tasbih-ibm-plex-cairo-v1">
+/* خطان متكاملان للسبحة: IBM Plex للنصوص، وCairo للعناوين وأدوات التحكم */
+#rd #tasbihPanel #tasbihTitle{
+ font-family:Cairo,sans-serif!important;
+ font-size:clamp(19px,5.1vw,22px)!important;
+ font-weight:700!important;
+}
+#rd #tasbihPanel .anwar-tasbih-content .anwar-tasbih-phrase{
+ display:block;width:min(100%,540px);max-width:100%;margin:0 auto!important;
+ padding:3px 12px 4px!important;
+ border:1px solid color-mix(in srgb,var(--tasbih-border) 34%,transparent);
+ border-radius:13px;
+ background:linear-gradient(145deg,
+  color-mix(in srgb,var(--tasbih-surface) 78%,transparent),
+  color-mix(in srgb,var(--tasbih-accent-soft) 12%,transparent));
+ box-shadow:inset 0 1px 3px rgba(95,47,67,.08),0 1px 2px rgba(75,42,55,.05);
+ color:var(--tasbih-text)!important;
+ font-family:"IBM Plex Sans Arabic",sans-serif!important;
+ font-size:clamp(16px,4.4vw,19px)!important;
+ font-weight:600!important;
+ line-height:1.55!important;
+ letter-spacing:0;
+ text-align:center;
+ text-wrap:balance;
+ overflow-wrap:anywhere;
+ text-shadow:0 1px 0 rgba(255,255,255,.68),0 1px 1px rgba(75,42,55,.09);
+}
+#rd #tasbihPanel .anwar-tasbih-content .tasbih-adhkar-toggle{
+ font-family:Cairo,sans-serif!important;font-size:16px!important;font-weight:700!important
+}
+#rd #tasbihPanel .tasbih-dhikr-category,
+#rd #tasbihPanel .tasbih-adhkar-list .tasbih-dhikr-category{
+ font-family:Cairo,sans-serif!important;font-size:13px!important;font-weight:700!important
+}
+#rd #tasbihPanel .tasbih-dhikr-card{
+ font-family:"IBM Plex Sans Arabic",sans-serif!important;
+ font-size:15px!important;font-weight:500!important;line-height:1.65!important
+}
+#rd #tasbihPanel .tasbih-dhikr-card .tasbih-dhikr-card-name{
+ font-family:"IBM Plex Sans Arabic",sans-serif!important;
+ font-size:16px!important;font-weight:600!important;line-height:1.55!important
+}
+#rd #tasbihPanel .tasbih-dhikr-card .tasbih-dhikr-card-text{
+ font-family:"IBM Plex Sans Arabic",sans-serif!important;
+ font-size:15px!important;font-weight:500!important;line-height:1.75!important
+}
+#rd #tasbihPanel .tasbih-dhikr-card .tasbih-dhikr-card-meta{
+ font-family:Cairo,sans-serif!important;font-size:11px!important;font-weight:500!important
+}
+#rd #tasbihPanel .anwar-custom-dhikr label,
+#rd #tasbihPanel .anwar-custom-dhikr small{
+ font-family:Cairo,sans-serif!important;font-size:12px!important;line-height:1.55!important
+}
+#rd #tasbihPanel .anwar-custom-dhikr input{
+ font-family:"IBM Plex Sans Arabic",sans-serif!important;font-size:14px!important;font-weight:500!important
+}
+#rd #tasbihPanel .anwar-custom-dhikr button,
+#rd #tasbihPanel .anwar-tasbih-actions button,
+#rd #tasbihPanel .anwar-tasbih-voice button{
+ font-family:Cairo,sans-serif!important;font-weight:700!important
+}
+#rd #tasbihPanel .anwar-tasbih-actions .anwar-tasbih-reset{font-size:14px!important}
+#rd #tasbihPanel .anwar-tasbih-counter strong{
+ font-family:"IBM Plex Sans Arabic",sans-serif!important;
+ font-size:clamp(52px,14vw,76px)!important;font-weight:600!important
+}
+#rd #tasbihPanel .anwar-tasbih-voice-label strong{
+ font-family:Cairo,sans-serif!important;font-size:13px!important;font-weight:700!important
+}
+#rd #tasbihPanel .anwar-tasbih-voice-label small,
+#rd #tasbihPanel .anwar-tasbih-voice-hint{
+ font-family:Cairo,sans-serif!important;font-size:11px!important;line-height:1.5!important
+}
+#rd #tasbihPanel .anwar-tasbih-footer strong{
+ font-family:Cairo,sans-serif!important;font-size:13px!important;font-weight:600!important
+}
+</style>
+
 </head>
 <body>
 <div class="app" id="app">
@@ -3312,7 +3391,7 @@ dialog[open]>.float-head{display:none!important}
 <script src="./vault-device-unlock.js?v=20261118-1"></script>
 <script src="./poetry-dictation.js?v=20261119-1" defer></script>
 <script src="./protective-adhkar.js?v=20261121-1" defer></script>
-<script src="./app-core.js?v=20261121-41" defer></script>
+<script src="./app-core.js?v=20261121-42" defer></script>
 <script src="./ibtihalat-radio.js?v=20261121-1" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
 <script src="./tasbih-controller.js?v=20261121-reference1" defer></script>

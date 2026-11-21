@@ -275,7 +275,16 @@ assert.doesNotMatch(html,/<span>عدد التسبيحات<\/span>/,'the counter 
 assert.doesNotMatch(html,/<span class="lesson-series-button-copy"><small>السبحة<\/small><strong>التسبيح والعدّ الصوتي<\/strong><\/span>/,'the tasbih service card displays only the word السبحة');
 assert.match(html,/#rd:has\(#anwarTasbihPage:not\(\[hidden\]\)\)\{overflow:hidden!important\}/,'the tasbih view locks the surrounding radio panel against whole-page scrolling');
 assert.match(html,/anwar-tasbih-stage::before\{\s*content:none!important/,'the overlapping mosque ornament above the counter is removed');
-assert.match(html,/font-family:Amiri,"Noto Naskh Arabic",serif!important/,'tasbih text uses a consistent formal Arabic font');
+assert.ok(appCore.includes('family=IBM+Plex+Sans+Arabic:wght@400;500;600;700'),'IBM Plex Sans Arabic is included in the base font bundle');
+assert.ok(html.includes('font-family:"IBM Plex Sans Arabic",sans-serif!important'),'the main dhikr inscription uses IBM Plex Sans Arabic');
+assert.ok(html.includes('font-family:Cairo,sans-serif!important'),'tasbih controls and headings use Cairo');
+assert.ok(html.includes('box-shadow:inset 0 1px 3px rgba(95,47,67,.08)'),'the dhikr inscription is visually integrated with the tasbih surface');
+assert.ok(html.includes('app-core.js?v=20261121-42'),'the updated base font bundle has a fresh cache version');
+const fontLayerStart=html.indexOf('<style id="anwar-tasbih-ibm-plex-cairo-v1">');
+const fontLayerEnd=html.indexOf('</style>',fontLayerStart);
+assert.ok(fontLayerStart>=0&&fontLayerEnd>fontLayerStart,'the dedicated typography layer exists');
+const fontLayer=html.slice(fontLayerStart,fontLayerEnd);
+assert.ok(!fontLayer.includes('#rd #tasbihPanel{'),'the stable tasbih frame geometry is not overridden by the typography layer');
 
 const recognition=app.recognitions[0];
 assert.equal(recognition.lang,'ar-MA','speech recognition prefers the visitor’s Moroccan Arabic locale');
