@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.aladhan.com https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="preload" href="./app-core.js?v=20261121-40" as="script">
+<link rel="preload" href="./app-core.js?v=20261121-41" as="script">
 <script src="api-gateway-config.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>مفكرة أنوار | Anouar Oumlili</title>
@@ -2437,6 +2437,67 @@ dialog[open]>.float-head{display:none!important}
 #rd #tasbihPanel .anwar-tasbih-footer strong{color:var(--tasbih-text)!important}
 </style>
 
+
+<style id="anwar-tasbih-final-polish-v1">
+/* قرص عدّ دائري فعلي: إزالة الارتفاع الثابت القديم الذي كان يضغطه أفقياً */
+#rd #tasbihPanel .anwar-tasbih-counter{
+ width:min(76%,282px)!important;
+ height:auto!important;
+ min-height:0!important;
+ aspect-ratio:1 / 1!important;
+ border-radius:50%!important;
+ padding:clamp(12px,4vw,18px)!important;
+}
+/* منظومة رموز موحّدة: مركز واحد، حجم بصري واحد، وسماكة خط متقاربة */
+#rd #tasbihPanel #tasbihThemeToggle svg{
+ width:24px!important;height:24px!important;
+ fill:currentColor!important;stroke:none!important;
+ display:block;flex:none;
+}
+#rd #tasbihPanel .anwar-tasbih-actions .anwar-tasbih-delete{
+ display:grid;place-items:center;
+ width:58px;height:58px;min-height:58px;
+ padding:0;font-size:0;
+}
+#rd #tasbihPanel .anwar-tasbih-actions .anwar-tasbih-delete::before{content:none!important;display:none!important}
+#rd #tasbihPanel .anwar-tasbih-actions .anwar-tasbih-delete svg,
+#rd #tasbihPanel .anwar-tasbih-actions .anwar-tasbih-step svg{
+ display:block;width:24px;height:24px;flex:none;
+ fill:none;stroke:currentColor;stroke-width:2;
+ stroke-linecap:round;stroke-linejoin:round;
+}
+#rd #tasbihPanel .anwar-tasbih-actions .anwar-tasbih-step{
+ display:grid;place-items:center;
+ width:58px;height:58px;min-height:58px;
+ padding:0;font-size:0;
+}
+#rd #tasbihPanel .anwar-tasbih-actions #tasbihMinus svg{width:25px;height:25px;stroke-width:2.4}
+#rd #tasbihPanel .anwar-tasbih-actions #tasbihTap svg{width:22px;height:22px}
+#rd #tasbihPanel .anwar-tasbih-actions .anwar-tasbih-reset svg{
+ display:block;width:22px;height:22px;flex:none;
+ fill:none;stroke:currentColor;stroke-width:2;
+ stroke-linecap:round;stroke-linejoin:round;
+}
+#rd #tasbihPanel .tasbih-book-icon{width:26px;height:26px}
+#rd #tasbihPanel .tasbih-adhkar-chevron{width:32px;height:32px;font-size:21px}
+#rd #tasbihPanel .anwar-tasbih-voice button svg{width:22px;height:22px}
+#rd #tasbihPanel .anwar-tasbih-voice-shield,
+#rd #tasbihPanel .anwar-tasbih-voice-shield svg{width:36px;height:40px}
+#rd #tasbihPanel #tasbihThemeToggle:focus-visible,
+#rd #tasbihPanel .anwar-tasbih-actions button:focus-visible,
+#rd #tasbihPanel .anwar-tasbih-voice button:focus-visible{
+ outline:2px solid var(--tasbih-border);outline-offset:3px;
+}
+@media(max-width:430px){
+ #rd #tasbihPanel .anwar-tasbih-counter{width:min(76%,282px)!important;height:auto!important;aspect-ratio:1/1!important}
+ #rd #tasbihPanel .anwar-tasbih-actions .anwar-tasbih-delete,
+ #rd #tasbihPanel .anwar-tasbih-actions .anwar-tasbih-step{width:48px;height:48px;min-height:48px}
+ #rd #tasbihPanel .anwar-tasbih-actions .anwar-tasbih-delete svg,
+ #rd #tasbihPanel .anwar-tasbih-actions .anwar-tasbih-step svg{width:22px;height:22px}
+ #rd #tasbihPanel #tasbihThemeToggle svg{width:22px!important;height:22px!important}
+}
+</style>
+
 </head>
 <body>
 <div class="app" id="app">
@@ -2666,7 +2727,7 @@ dialog[open]>.float-head{display:none!important}
   <section id="tasbihPanel" class="anwar-tasbih-inline" hidden aria-labelledby="tasbihTitle">
    <header class="anwar-tasbih-inline-head">
     <button type="button" id="tasbihThemeToggle" class="anwar-tasbih-theme-toggle" aria-label="إعدادات السبحة" title="إعدادات السبحة" aria-controls="tasbihThemePicker" aria-expanded="false">
-     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.1a3.9 3.9 0 1 0 0 7.8 3.9 3.9 0 0 0 0-7.8Z"/><path d="m19.4 13.6 1.3 1-1.8 3.1-1.6-.6a7.7 7.7 0 0 1-1.5.9l-.2 1.7h-3.6l-.3-1.7a7.7 7.7 0 0 1-1.5-.9l-1.6.6-1.8-3.1 1.3-1a7.7 7.7 0 0 1 0-1.8l-1.3-1 1.8-3.1 1.6.6a7.7 7.7 0 0 1 1.5-.9l.3-1.7h3.6l.2 1.7a7.7 7.7 0 0 1 1.5.9l1.6-.6 1.8 3.1-1.3 1a7.7 7.7 0 0 1 0 1.8Z"/></svg>
+     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M19.14 12.94a7.5 7.5 0 0 0 .05-.94 7.5 7.5 0 0 0-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a7.28 7.28 0 0 0-1.63-.94l-.36-2.54A.49.49 0 0 0 13.88 2h-3.76a.49.49 0 0 0-.49.42L9.27 4.96a7.28 7.28 0 0 0-1.63.94l-2.39-.96a.5.5 0 0 0-.61.22L2.72 8.48a.5.5 0 0 0 .12.64l2.03 1.58a7.5 7.5 0 0 0-.05.94 7.5 7.5 0 0 0 .06.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .61.22l2.39-.96a7.28 7.28 0 0 0 1.63.94l.36 2.54a.49.49 0 0 0 .49.42h3.76a.49.49 0 0 0 .49-.42l.36-2.54a7.28 7.28 0 0 0 1.63-.94l2.39.96a.5.5 0 0 0 .61-.22l1.92-3.32a.5.5 0 0 0-.12-.64zM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z"/></svg>
     </button>
     <strong id="tasbihTitle">السبحة الإلكترونية</strong>
     <span class="anwar-tasbih-mosque" aria-hidden="true"><img src="assets/tasbih-mosque-emblem.svg" alt=""></span>
@@ -2714,10 +2775,10 @@ dialog[open]>.float-head{display:none!important}
      <div class="anwar-tasbih-counter" id="tasbihCounterControl" role="button" tabindex="0" aria-label="زيادة التسبيح" aria-live="polite"><strong id="tasbihCount">0</strong><span>عدد التسبيحات</span></div>
     </div>
     <div class="anwar-tasbih-actions" role="group" aria-label="أزرار العداد">
-     <button type="button" id="tasbihRemoveDhikr" class="anwar-tasbih-delete" aria-label="إزالة الذكر المختار" title="إزالة الذكر المختار">إزالة الذكر</button>
+     <button type="button" id="tasbihRemoveDhikr" class="anwar-tasbih-delete" aria-label="إزالة الذكر المختار" title="إزالة الذكر المختار"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M9 7V4h6v3m-9 0 1 14h10l1-14M10 11v6m4-6v6"/></svg></button>
      <button type="button" id="tasbihReset" class="anwar-tasbih-reset" aria-label="تصفير العداد" title="تصفير العداد"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4.5 10a7.5 7.5 0 0 1 13-3L20 12M4 17v-5h5m-5 0a7.5 7.5 0 0 0 13 3l-2.5-2.5"/></svg><span>تصفير العداد</span></button>
-     <button type="button" id="tasbihMinus" class="anwar-tasbih-step" aria-label="إنقاص العدد" title="إنقاص العدد">−</button>
-     <button type="button" id="tasbihTap" class="anwar-tasbih-step" aria-label="إضافة تسبيحة" title="إضافة تسبيحة" hidden>+</button>
+     <button type="button" id="tasbihMinus" class="anwar-tasbih-step" aria-label="إنقاص العدد" title="إنقاص العدد"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14"/></svg></button>
+     <button type="button" id="tasbihTap" class="anwar-tasbih-step" aria-label="إضافة تسبيحة" title="إضافة تسبيحة" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg></button>
     </div>
     <section class="anwar-tasbih-voice" id="tasbihVoicePanel" data-state="idle" aria-label="العد الصوتي للذكر">
      <span class="anwar-tasbih-voice-shield" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2.8 20 6v5.4c0 4.8-3.3 8-8 9.8-4.7-1.8-8-5-8-9.8V6z"/><path d="m8 12.1 2.6 2.6L16.5 9"/></svg></span>
@@ -2945,7 +3006,7 @@ dialog[open]>.float-head{display:none!important}
 <script src="./vault-device-unlock.js?v=20261118-1"></script>
 <script src="./poetry-dictation.js?v=20261119-1" defer></script>
 <script src="./protective-adhkar.js?v=20261121-1" defer></script>
-<script src="./app-core.js?v=20261121-40" defer></script>
+<script src="./app-core.js?v=20261121-41" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
 <script src="./tasbih-controller.js?v=20261121-reference1" defer></script>
 <script src="./prayer-times.js?v=20261120-11" defer></script>
