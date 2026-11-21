@@ -37,6 +37,12 @@ assert.match(prayer, /bridge\.postMessage\(JSON\.stringify\(payload\)\)/);
 assert.match(prayer, /enabledInput\.addEventListener/);
 assert.match(companionReadme, /Chrome.*PWA/);
 assert.match(companionReadme, /المنبهات والتذكيرات/);
+assert.match(activity, /تفعيل الأذان خارج المفكرة/);
+assert.match(activity, /requestNotificationAccess\\(\\)/);
+assert.match(activity, /requestExactAlarmAccessIfNeeded\\(\\)/);
+assert.match(activity, /waitingForExactAlarmSettings/);
+assert.match(activity, /hasExactAlarmAccess\\(\\)/);
+assert.match(prayer, /لا يضمن استمرار الصوت بعد إغلاق الصفحة/);
 for (const key of ['aqsa', 'haram_makki', 'morocco_kamal']) {
     assert.ok(prayer.includes("key:'" + key + "'"), 'PWA exposes direct voice ' + key);
     assert.ok(voiceCatalog.includes('"' + key + '" to AdhanVoice'), 'Android exposes matching voice ' + key);
