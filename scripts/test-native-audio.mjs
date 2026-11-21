@@ -5,12 +5,15 @@ const read = (path) => fs.readFileSync(new URL('../' + path, import.meta.url), '
 const manifest = read('android/app/src/main/AndroidManifest.xml');
 const gradle = read('android/app/build.gradle.kts');
 const rootGradle = read('android/build.gradle.kts');
+const androidAppGradle = gradle;
 const home = read('android/app/src/main/java/com/anwar/mofakira/MainActivity.kt');
 const audioActivity = read('android/app/src/main/java/com/anwar/mofakira/NativeAudioActivity.kt');
 const audioService = read('android/app/src/main/java/com/anwar/mofakira/playback/NativeMediaService.kt');
 const catalog = read('android/app/src/main/java/com/anwar/mofakira/playback/NativeMediaCatalog.kt');
 const legacy = read('android/app/src/main/java/com/anwar/mofakira/LegacyWebActivity.kt');
 
+assert.match(androidAppGradle, /versionCode = 2/);
+assert.match(androidAppGradle, /versionName = "0.2.0"/);
 assert.match(gradle, /androidx\.media3:media3-exoplayer:1\.11\.1/);
 assert.match(gradle, /androidx\.media3:media3-session:1\.11\.1/);
 
