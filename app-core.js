@@ -2259,11 +2259,62 @@ function downloadAppIcon(){
  img.src=href;
 }
 function downloadQRPoster(){const box=$('qrPreview'),qr=box.querySelector('canvas')||box.querySelector('img');if(!qr){toast('أنشئ رمز QR أولًا');return}const c=document.createElement('canvas');c.width=1080;c.height=1350;const x=c.getContext('2d');x.fillStyle='#f8f3e8';x.fillRect(0,0,c.width,c.height);x.strokeStyle='#b58a43';x.lineWidth=18;x.strokeRect(35,35,1010,1280);x.strokeStyle='#173b58';x.lineWidth=4;x.strokeRect(58,58,964,1234);x.fillStyle='#102f4b';x.textAlign='center';x.direction='rtl';x.font='bold 70px serif';x.fillText('مفكرة أنوار',540,175);x.font='34px serif';x.fillStyle='#76562a';x.fillText('الكلمة والقرآن رفيقان في كل وقت',540,235);x.fillStyle='#fff';x.fillRect(330,310,420,420);x.strokeStyle='#c29a50';x.lineWidth=12;x.strokeRect(320,300,440,440);if(qr.tagName==='CANVAS')x.drawImage(qr,350,330,380,380);else{x.drawImage(qr,350,330,380,380)}x.fillStyle='#173b58';x.font='bold 42px serif';x.fillText('امسح الرمز لزيارة المفكرة',540,825);x.font='34px serif';x.fillText('المطوّر وصاحب المشروع: Anouar Oumlili',540,910);x.fillText('أنوار أومليلي · الحسيمة · المملكة المغربية',540,970);x.font='28px serif';x.fillStyle='#80602f';x.fillText('المملكة المغربية',540,1080);x.font='25px serif';x.fillText('مفكرة أدبية · إذاعة القرآن · الأذكار',540,1150);const a=document.createElement('a');a.download='بطاقة-مفكرة-أنوار.png';a.href=c.toDataURL('image/png');a.click();toast('تم تجهيز بطاقة النشر PNG')}
+function poetryDictationCellForNode(node){
+ let element=node&&node.nodeType===1?node:node&&node.parentElement;
+ while(element&&element!==pg){
+  if(element.parentElement&&element.parentElement.classList&&element.parentElement.classList.contains('v')&&
+     element.tagName&&element.tagName.toLowerCase()==='span')return element;
+  element=element.parentElement;
+ }
+ return null;
+}
+function poetryDictationRangeInCell(range){
+ if(!range||!range.startContainer||!range.endContainer||
+    !pg.contains(range.startContainer)||!pg.contains(range.endContainer))return false;
+ const startCell=poetryDictationCellForNode(range.startContainer);
+ return Boolean(startCell&&startCell===poetryDictationCellForNode(range.endContainer));
+}
+function poetryDictationRangeAtCellEnd(cell){
+ const range=document.createRange();
+ range.selectNodeContents(cell);
+ range.collapse(false);
+ return range;
+}
 function capturePoetryDictationRange(){
  const selection=window.getSelection();
+ let current=null;
  if(selection&&selection.rangeCount&&pg.contains(selection.anchorNode)&&pg.contains(selection.focusNode)){
-  return selection.getRangeAt(0).cloneRange();
+  current=selection.getRangeAt(0).cloneRange();
  }
+ if(cur&&cur.paper==='poetry'){
+  /* A toolbar tap can move browser focus away from the editable verse.
+     Prefer the live caret, then the editor's last saved caret, but only
+     when both ends are inside the same hemistich cell. */
+  if(poetryDictationRangeInCell(current))return current;
+  if(poetryDictationRangeInCell(saved))return saved.cloneRange();
+  let rows=Array.from(pg.querySelectorAll('.v'));
+  if(!rows.length){
+   insertPoetryVerse();
+   rows=Array.from(pg.querySelectorAll('.v'));
+  }
+  let target=null;
+  if(rows.length){
+   const last=rows[rows.length-1];
+   const cells=Array.from(last.children).filter(cell=>cell.tagName&&cell.tagName.toLowerCase()==='span');
+   const first=cells[0]||null,second=cells[1]||null;
+   target=first&&!first.textContent.trim()?first:
+    second&&!second.textContent.trim()?second:second||first;
+   if(first&&second&&first.textContent.trim()&&second.textContent.trim()){
+    insertPoetryVerse(last);
+    const next=pg.querySelector('.v:last-child span:first-child');
+    if(next)target=next;
+   }
+  }
+  if(target)return poetryDictationRangeAtCellEnd(target);
+ }
+ if(current)return current;
+ if(saved&&saved.startContainer&&saved.endContainer&&
+    pg.contains(saved.startContainer)&&pg.contains(saved.endContainer))return saved.cloneRange();
  const range=document.createRange();
  range.selectNodeContents(pg);
  range.collapse(false);
@@ -2281,8 +2332,9 @@ function appendPoetryDictationText(value){
  const text=String(value||'').replace(/\u200b/g,' ').replace(/\s+/g,' ').trim();
  if(!text||!cur||storageRecoveryBlocked)return;
  try{
-  const range=poetryDictationRange&&pg.contains(poetryDictationRange.startContainer)
-   ?poetryDictationRange.cloneRange():capturePoetryDictationRange();
+  let range=poetryDictationRange&&pg.contains(poetryDictationRange.startContainer)&&
+   pg.contains(poetryDictationRange.endContainer)?poetryDictationRange.cloneRange():capturePoetryDictationRange();
+  if(cur.paper==='poetry'&&!poetryDictationRangeInCell(range))range=capturePoetryDictationRange();
   const punctuation=/^[،؛.!؟:»)]/.test(text);
   const insertion=(poetryDictationNeedsSpace&&!punctuation?' ':'')+text;
   range.deleteContents();
@@ -2291,6 +2343,7 @@ function appendPoetryDictationText(value){
   range.setStartAfter(node);
   range.collapse(true);
   poetryDictationRange=range.cloneRange();
+  saved=range.cloneRange();
   poetryDictationNeedsSpace=true;
   const selection=window.getSelection();
   if(selection){selection.removeAllRanges();selection.addRange(range);}
@@ -2342,6 +2395,7 @@ function togglePoetryDictation(){
   try{window.speechSynthesis?.cancel()}catch(error){}
   $('speakRead').textContent='🔊 قراءة';
  }
+ if(cur.paper==='poetry'&&!pg.querySelector('.v'))insertPoetryVerse();
  poetryDictationRange=capturePoetryDictationRange();
  const previous=poetryDictationPreviousCharacter(poetryDictationRange);
  poetryDictationNeedsSpace=Boolean(previous&&!/\s/.test(previous));
