@@ -73,7 +73,7 @@ assert.match(prayer,/showNextPrayerPlaceholder\(todayData&&tomorrowData\?/,'miss
 assert.match(design,/#rd #anwarPrayerCard \.anwar-prayer-next\{/,'the approved prayer banner has a dedicated high-specificity responsive design');
 assert.match(design,/grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/,'the five prayer tiles keep their stable five-column layout');
 assert.match(design,/background:linear-gradient\(115deg,#0b3159/,'the approved blue gradient is fixed independently from device theme');
-assert.match(design,/#rd #anwarPrayerCard \.anwar-prayer-info summary\{[^}]*color:#252525!important;[^}]*font-size:13px!important;[^}]*font-weight:500!important/,'the privacy accordion title is calm black regular text like the reference');
+assert.match(design,/#rd #anwarPrayerCard \.anwar-prayer-info summary\{[^}]*color:#252525!important;[^}]*font-size:14px!important;[^}]*font-weight:500!important/,'the privacy accordion title is calm black regular text like the reference');
 assert.match(design,/#rd #anwarPrayerCard \.anwar-prayer-settings summary\{color:#284f7b!important;font-weight:750!important\}/,'the prayer settings accordion remains blue and emphasized');
 assert.match(design,/min-height:104px/,'the blue banner height is tuned closer to the reference');
 assert.match(design,/#rd #anwarPrayerCard\{gap:8px!important/,'mobile spacing is tightened to match the reference card proportions');
