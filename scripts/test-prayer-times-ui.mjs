@@ -76,10 +76,10 @@ assert.match(design,/background:linear-gradient\(115deg,#0b3159/,'the approved b
 assert.match(design,/#rd #anwarPrayerCard \.anwar-prayer-info summary\{[^}]*color:#252525!important;[^}]*font-size:13px!important;[^}]*font-weight:500!important/,'the privacy accordion title is calm black regular text like the reference');
 assert.match(design,/#rd #anwarPrayerCard \.anwar-prayer-settings summary\{color:#284f7b!important;font-weight:750!important\}/,'the prayer settings accordion remains blue and emphasized');
 assert.match(design,/min-height:104px/,'the blue banner height is tuned closer to the reference');
-assert.match(design,/#rd #anwarPrayerCard\\{gap:8px!important/,'mobile spacing is tightened to match the reference card proportions');
-assert.match(design,/\.anwar-prayer-next\\{min-height:98px;padding:8px 11px!important/,'the blue banner vertical padding is tuned for the reference mobile proportions');
+assert.match(design,/#rd #anwarPrayerCard\{gap:8px!important/,'mobile spacing is tightened to match the reference card proportions');
+assert.match(design,/\.anwar-prayer-next\{min-height:98px;padding:8px 11px!important/,'the blue banner vertical padding is tuned for the reference mobile proportions');
 assert.match(design,/\.anwar-prayer-time\\{min-height:61px;padding:6px 2px!important/,'the five prayer tiles use the reference compact mobile height');
-assert.match(design,/anwar-prayer-info summary\\{[^}]*font-size:14px!important/,'the privacy heading is raised to the reference text scale');
+assert.match(design,/anwar-prayer-info summary\{[^}]*font-size:14px!important/,'the privacy heading is raised to the reference text scale');
 assert.match(design,/#rd #anwarPrayerCard\{[^}]*padding:12px 12px 10px!important/,'the prayer card lower spacing is slightly reduced without changing its layout');
 assert.match(html,/prayer-card-design\.css\?v=20261121-4/,'the canonical prayer stylesheet is versioned');
 assert.match(html,/<small>أصوات الأذان<\/small><strong>اختيار الصوت والتنبيهات<\/strong>/,'section card distinguishes adhan sounds from the prayer timetable');
