@@ -5,6 +5,8 @@ import vm from 'node:vm';
 
 const root=process.cwd();
 const appCore=fs.readFileSync(path.join(root,'app-core.js'),'utf8');
+const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+const backNavigation=fs.readFileSync(path.join(root,'toolbar-back-navigation.js'),'utf8');
 const marker='/* Anwar service dashboard: organize prayer, Quran, radio, lessons, adhkar and tasbih. */';
 const start=appCore.indexOf(marker);
 assert.notEqual(start,-1,'service dashboard initializer exists');
@@ -258,4 +260,9 @@ assert.equal(lessonsPage.hidden,true,'opening the Tulip launcher hides stale les
 assert.equal(adhkarPage.hidden,true,'opening the Tulip launcher hides stale adhkar content');
 assert.equal(tasbihPage.hidden,true,'opening the Tulip launcher hides stale tasbih content');
 
+assert.ok(dashboardSource.includes("const SERVICE_HISTORY_KEY='anwarServiceView'")&&dashboardSource.includes("window.addEventListener('popstate',handleServicePopState)")&&dashboardSource.includes('historyApi.pushState(serviceState(name)'), 'service pages create browser history entries and listen for Android/browser back');
+assert.ok(dashboardSource.includes('function returnToServiceHome()')&&dashboardSource.includes('historyApi.back()')&&dashboardSource.includes('button.addEventListener(\'click\',returnToServiceHome)'), 'the in-page section back control consumes only its service history entry');
+assert.ok(dashboardSource.includes('function closeNestedServiceLayer()')&&dashboardSource.includes("'surahPickerModal','surahPickerClose'")&&dashboardSource.includes("'lessonSeriesModal','lessonSeriesClose'")&&dashboardSource.includes('.protective-personal-form[data-edit-id]'), 'system back first closes a nested picker/dialog or cancels adhkar editing');
+assert.ok(backNavigation.includes("document.querySelector('#rd .anwar-service-page:not([hidden])')")&&backNavigation.includes("servicePage.querySelector('[data-anwar-service-back]')")&&backNavigation.includes("cancelEdit.click()"), 'the toolbar back button stays inside the religious dashboard and cancels edit mode before leaving the section');
+assert.ok(html.includes('id="ownerBtn" class="radio-owner-pen"')&&html.includes('class="owner-pen-icon"')&&(html.match(/class="owner-pen-icon"/g)||[]).length>=2&&!html.includes('M7 3.5 20.5 17'), 'the ownership shortcut and ownership section share the new clear pen emblem');
 console.log('Service dashboard navigation, section placement, and return-focus tests passed.');
