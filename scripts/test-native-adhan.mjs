@@ -67,7 +67,7 @@ assert.doesNotMatch(prayer, /youtube\.com|morocco_old|الحاج محمد الع
 assert.doesNotMatch(voiceCatalog, /youtube\.com|morocco_old|الحاج محمد العمري/);
 const nativePrayer = read('android/app/src/main/java/com/anwar/mofakira/NativePrayerActivity.kt');
 const prayerSettings = read('android/app/src/main/java/com/anwar/mofakira/PrayerSettings.kt');
-assert.match(manifest, /android:name="\.NativePrayerActivity"[\\s\\S]*?android:exported="false"/,
+assert.match(manifest, /android:name="\.NativePrayerActivity"[\s\S]*?android:exported="false"/,
   'native prayer times screen is registered as an internal activity');
 assert.match(nativeHome, /NativePrayerActivity::class\.java/,
   'the prayer tile opens the native prayer screen');
