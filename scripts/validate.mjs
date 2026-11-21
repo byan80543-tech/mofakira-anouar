@@ -38,16 +38,17 @@ ok(appCore.includes("else if(id==='sp')togglePoetryDictation()")&&appCore.includ
 ok(appCore.includes('function appendPoetryDictationText')&&appCore.includes('touch();'),'dictated final speech is inserted into the current editable note and triggers persistence');
 ok(appCore.includes('function poetryDictationCellForNode')&&appCore.includes('function poetryDictationRangeInCell')&&appCore.includes('poetryDictationRangeInCell(saved)'),
  'poetry dictation restores the last saved caret inside a verse cell when toolbar focus moves away');
+ok(appCore.includes('function advancePoetryDictationCell()') && appCore.includes('function schedulePoetryDictationAdvance()') && appCore.includes('},1000);') && appCore.includes('clearPoetryDictationAdvanceTimer();'), 'poetry dictation advances between hemistichs after a one-second pause and cancels stale timers');
 ok(appCore.includes("if(cur.paper==='poetry'&&!pg.querySelector('.v'))insertPoetryVerse();")&&appCore.includes('saved=range.cloneRange();'),
  'poetry dictation creates a verse row when needed and keeps every committed phrase anchored in its current cell');
 ok(serviceWorker.includes("'./poetry-dictation.js'")&&/const CACHE_NAME='anwar-shell-[0-9]{4}-[0-9]{2}-[0-9]{2}-v[0-9]+';/.test(serviceWorker),'poetry dictation is part of the versioned offline app shell');
 
 ok(appCore.includes('window.AnwarRenderAdhkar=function(){return renderProtectiveAdhkar();}') && appCore.includes('window.AnwarShowOwnerPanel=function(which)'), 'notebook exposes narrow bridges for direct protection rendering and owner/publication selection');
-ok(html.includes('class="protective-page-title">أذكار التحصين</h2>') && !html.includes('id="morningTab"') && !html.includes('id="eveningTab"') && !html.includes('id="protectionTab"'), 'the adhkar page is a single direct protection view without duplicate tabs');
-ok(appCore.includes("window.AnwarRenderAdhkar('protection')") && appCore.includes('function renderProtectiveAdhkar()') && appCore.includes('protectiveProgress'), 'the dashboard opens the direct protection renderer with per-item progress');
-ok(appCore.includes('dataset.protectiveAction') && appCore.includes('protectiveProgress') && appCore.includes('item.count'), 'protective adhkar cards include per-item repeat tracking without inventing fixed counts');
-ok(protectiveAdhkar.includes('ANWAR_PROTECTIVE_ADHKAR') && protectiveAdhkar.includes('صحيح البخاري 3371') && protectiveAdhkar.includes('صحيح مسلم 2186'), 'protective adhkar data carries hadith text and source references');
-ok(html.includes('./protective-adhkar.js?v=20261120-2') && html.indexOf('<script src="./protective-adhkar.js')<html.indexOf('<script src="./app-core.js'), 'protective adhkar data loads before the renderer');
+ok(html.includes('class="protective-page-title">أذكار التحصين</h2>') && !html.includes('adhkarAdminDialog') && !html.includes('id="morningTab"') && !html.includes('id="eveningTab"'),'the adhkar screen is a blank personal page without preset or owner-library tabs');
+ok(appCore.includes("window.AnwarRenderAdhkar('protection')") && appCore.includes('function renderProtectiveAdhkar()') && appCore.includes('customAdhkar:cleanCustomAdhkar(d.customAdhkar)'), 'the dashboard opens the personal adhkar renderer and persists visitor-owned entries');
+ok(appCore.includes('S.customAdhkar.push({id,title,text,ts:Date.now()})') && appCore.includes('save();form.reset()') && appCore.includes('body.textContent=item.text'), 'visitors can save adhkar safely as inert text within notebook persistence');
+ok(protectiveAdhkar.includes('Object.freeze([])') && !protectiveAdhkar.includes('صحيح البخاري 3371'), 'the starter adhkar collection is deliberately empty');
+ok(html.includes('./protective-adhkar.js?v=20261121-1') && html.indexOf('<script src="./protective-adhkar.js')<html.indexOf('<script src="./app-core.js'), 'the empty adhkar starter file loads before the personal renderer');
 ok(serviceWorker.includes("'./protective-adhkar.js'") && /const CACHE_NAME='anwar-shell-[0-9]{4}-[0-9]{2}-[0-9]{2}-v[0-9]+';/.test(serviceWorker), 'protective adhkar data is included in the versioned offline shell');
 ok(!appCore.includes("const $=id=>document.getElementById(id),panel=$('tasbihPanel')"), 'tasbih runtime is removed from the delayed notebook initializer');
 ok(tasbihController.includes('window.AnwarTasbihController=Object.freeze({') && tasbihController.includes('open(){') && tasbihController.includes('panel.hidden=false') && !tasbihController.includes('ownerDialog') && !tasbihController.includes('ownerPanel'), 'standalone tasbih controller opens directly without depending on ownership navigation');
@@ -87,7 +88,7 @@ ok(!manifest.icons.some(i=>String(i.src).includes('file_00000000670481f4ad879246
 ok(appSource.includes('id="bookToolPanel"') && appSource.includes('id="bookToolContent" hidden'),'book creation is compact and collapsed inside the tools panel');
 ok(appSource.includes("setBookToolExpanded($('bookToolContent').hidden,true)"),'book panel toggle opens and closes correctly');
 ok(html.includes('<link rel="stylesheet" href="./floating-panels.css?v=20261121-3">') && html.includes('<script src="./floating-panels.js?v=20261121-3" defer></script>'),'floating panel styles and controller are loaded from same-origin files');
-ok(serviceWorker.includes("'./floating-panels.js'") && serviceWorker.includes("'./floating-panels.css'") && serviceWorker.includes("anwar-shell-2026-11-21-v128"),'floating panel code and styles are included in the updated offline app shell');
+ok(serviceWorker.includes("'./floating-panels.js'") && serviceWorker.includes("'./floating-panels.css'") && serviceWorker.includes("anwar-shell-2026-11-21-v129"),'floating panel code and styles are included in the updated offline app shell');
 ok(floatingPanels.includes('pointerdown') && floatingPanels.includes('pointermove') && floatingPanels.includes('pointercancel') && floatingPanels.includes('setPointerCapture'),'floating panels use pointer capture for reliable touch and mouse drag/resize');
 ok(floatingPanels.includes('function panelKey(menu,index)') && floatingPanels.includes('raw.length>4096') && floatingPanels.includes('visualViewport'),'floating panel preferences use stable keys, bounded parsing and viewport-aware positioning');
 ok(!floatingPanels.includes('innerHTML') && !floatingPanels.includes('eval(') && !floatingPanels.includes('new Function('),'floating panel UI does not use HTML injection or dynamic code execution');
@@ -268,7 +269,7 @@ ok(html.includes('id="anwarServiceHome"') && ['adhan','quran','radio','lessons']
 ok(prayerTimes.includes("document.getElementById('anwarPrayerMount')") && prayerTimes.includes('prayerMount.append(card)'),'prayer times retain their original card and mount it in the dashboard home');
 ok(appCore.includes('Anwar service dashboard') && appCore.includes('showHome(true)') && appCore.includes("button.dataset.anwarService"),'service dashboard navigation returns to the home view without replacing existing controls');
 ok(html.includes('class="protective-page-title">أذكار التحصين</h2>') && !html.includes('id="morningTab"') && !html.includes('id="eveningTab"') && !html.includes('id="protectionTab"'),'the adhkar screen is a single unified protection page without duplicate period tabs');
-ok(appCore.includes("window.AnwarRenderAdhkar('protection')") && appCore.includes('window.AnwarRenderAdhkar=function(){return renderProtectiveAdhkar();}'),'the adhkar service card opens the protection renderer directly');
+ok(appCore.includes("window.AnwarRenderAdhkar('protection')") && appCore.includes('window.AnwarRenderAdhkar=function(){return renderProtectiveAdhkar();}') && appCore.includes('schedulePoetryDictationAdvance()'),'the adhkar card opens the personal editor and poetry dictation has timed hemistich navigation');
 ok(html.includes('id="reciterGrid"') && html.includes('id="surahPickerButton"') && html.includes('id="liveRadioPlay"') && html.includes('id="lessonHub"') && html.includes('id="lessonPlay"'),'original Quran reader, live-radio and lesson playback controls remain present');
 
 
