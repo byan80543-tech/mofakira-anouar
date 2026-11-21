@@ -79,6 +79,9 @@ class MainActivity : Activity() {
     }
 
     private fun onPrayerSettingsFromWeb(payload: String) {
+        val explicitPermissionRequest = runCatching {
+            org.json.JSONObject(payload).optBoolean("requestPermissions", false)
+        }.getOrDefault(false)
         val config = runCatching { PrayerSettings.updateFromWeb(this, payload) }.getOrNull()
             ?: return
         if (!config.enabled) {
@@ -90,6 +93,13 @@ class MainActivity : Activity() {
         }
         if (!lastAdhanEnabled) permissionPromptDeferred = false
         lastAdhanEnabled = true
+
+        // The visible web button is an explicit retry path, including after an
+        // earlier denial or a deferred permission prompt.
+        runOnUiThread {
+            if (explicitPermissionRequest) permissionPromptDeferred = false
+            requestRequiredAccess()
+        }
 
         if (!VoiceCatalog.supports(config.voiceKey)) {
             if (!unsupportedVoiceToastShown) {
@@ -106,7 +116,6 @@ class MainActivity : Activity() {
             return
         }
 
-        runOnUiThread { requestRequiredAccess() }
         PrayerRefreshWorker.ensurePeriodic(this)
         PrayerRefreshWorker.enqueueNow(this)
     }
