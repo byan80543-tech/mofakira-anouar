@@ -3717,6 +3717,36 @@ dialog[open]>.float-head{display:none!important}
 }
 </style>
 
+<style id="anwar-unified-icon-touch-v1">
+/* لمسة ذهبية موحدة للأيقونات التفاعلية، دون تغيير ألوانها أو مقاساتها. */
+:where(
+ button:not(:disabled):not([aria-disabled="true"]):has(svg),
+ button:not(:disabled):not([aria-disabled="true"]):has(img),
+ button:not(:disabled):not([aria-disabled="true"])[aria-label],
+ button:not(:disabled):not([aria-disabled="true"])[title],
+ a[href][aria-label],
+ a[href][title],
+ [role="button"]:not([aria-disabled="true"]):has(svg),
+ [role="button"]:not([aria-disabled="true"])[aria-label]
+){
+ -webkit-tap-highlight-color:rgba(201,169,106,.22)!important;
+}
+:where(
+ button:not(:disabled):not([aria-disabled="true"]):has(svg),
+ button:not(:disabled):not([aria-disabled="true"]):has(img),
+ button:not(:disabled):not([aria-disabled="true"])[aria-label],
+ button:not(:disabled):not([aria-disabled="true"])[title],
+ a[href][aria-label],
+ a[href][title],
+ [role="button"]:not([aria-disabled="true"]):has(svg),
+ [role="button"]:not([aria-disabled="true"])[aria-label]
+):active{
+ outline:2px solid rgba(201,169,106,.46)!important;
+ outline-offset:1px!important;
+ filter:brightness(.97) saturate(1.08);
+}
+</style>
+
 <script src="./floating-panels.js?v=20261121-3" defer></script>
 </body>
 </html>
