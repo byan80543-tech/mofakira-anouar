@@ -1,5 +1,7 @@
 
 /* Movable, resizable tool panels */
+#rib .rib-pop.is-floating-panel[hidden]{display:none!important}
+
 #rib .rib-menu[open]>.rib-pop.is-floating-panel{
   position:fixed!important;
   inset:auto!important;
