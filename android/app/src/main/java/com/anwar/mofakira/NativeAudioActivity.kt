@@ -24,6 +24,7 @@ import android.widget.SeekBar
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
@@ -232,7 +233,7 @@ class NativeAudioActivity : Activity() {
                     isSeeking = false
                     val player = controller ?: return
                     val duration = player.duration
-                    if (duration > 0L && duration != Player.TIME_UNSET) {
+                    if (duration > 0L && duration != C.TIME_UNSET) {
                         player.seekTo((duration * ((bar?.progress ?: 0) / 1_000.0)).toLong())
                     }
                 }
@@ -629,7 +630,7 @@ class NativeAudioActivity : Activity() {
             else -> "$title · $artist"
         }
         playPauseButton.text = if (c?.isPlaying == true) "إيقاف مؤقت" else "استئناف"
-        playPauseButton.alpha = if (c?.mediaItemCount ?: 0 > 0) 1f else 0.55f
+        playPauseButton.alpha = if ((c?.mediaItemCount ?: 0) > 0) 1f else 0.55f
         updateProgress()
     }
 
