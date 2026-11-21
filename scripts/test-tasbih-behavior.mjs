@@ -95,7 +95,7 @@ function buildApp(options={}){
   nodes.tasbihDhikr.appendChild(group);
  }
  const listeners=new Set();
- let state={tasbih:{count:options.initialCount??0,dhikr:nodes.tasbihDhikr.value,customDhikrs:[],removedOfficialDhikrs:options.initialRemoved??[],theme:options.initialTheme??'emerald'}};
+ let state={tasbih:{count:options.initialCount??0,dhikr:nodes.tasbihDhikr.value,customDhikrs:[],removedOfficialDhikrs:options.initialRemoved??[],theme:options.initialTheme??'emerald',designVersion:options.initialVersion??'royal-reference-1'}};
  const preferences={
   get(){return clone(state)},
   set(section,value){state={...state,[section]:clone(value)};for(const listener of listeners)listener(clone(state));return clone(state)},
