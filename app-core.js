@@ -61,6 +61,7 @@ const PROMPTS=['اكتب عن رائحة المطر على أول تراب بع�
 let S={notes:[],customAdhkar:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[],preferences:globalThis.AnwarPrivatePreferences.normalize({})},cur=null,draftNote=null,flt='all',tm,speaking=false,poetryDictationController=null,poetryDictationRange=null,poetryDictationNeedsSpace=false,poetryDictationAdvanceTimer=null,saved=null,storageRecoveryBlocked=false,storageRecoveryRaw=null,storageRecoveryExported=false,storageRecoveryMode='none',storageRecoveryBackupAvailable=false;
 const $=id=>document.getElementById(id),pg=$('pg');
 const VAULT_STORAGE_KEY='anwar_vault_v1',VAULT_BACKUP_KEY='anwar_vault_backup_v1',VAULT_MODE_KEY='anwar_vault_mode_v1';
+let adhkarFontTarget=null;
 let vaultKey=null,vaultTemplate=null,vaultUnlocked=false,vaultGateMode='setup',vaultReady=false,vaultDisableAfterUnlock=false;
 let vaultSaveQueue=Promise.resolve(),vaultLastWriteError=null,vaultBackupWarningShown=false,vaultLegacyCleanupWarningShown=false;
 const VAULT_IDLE_LOCK_MS=0; // القفل التلقائي معطّل؛ القفل يدوي باختيار صاحب المفكرة.
@@ -139,7 +140,7 @@ function cleanCustomAdhkar(value){
   if(!id||!text||seen.has(id))return;
   seen.add(id);
   const stamp=Number(item.ts);
-  clean.push({id,text,ts:Number.isFinite(stamp)&&Math.abs(stamp)<=8640000000000000?stamp:Date.now()});
+  clean.push({id,text,font:safeFontName(item.font),ts:Number.isFinite(stamp)&&Math.abs(stamp)<=8640000000000000?stamp:Date.now()});
  });
  return clean;
 }
@@ -2560,7 +2561,8 @@ document.addEventListener('click',event=>{
 
 document.addEventListener('click',e=>{
  const t=e.target.closest('button,summary,.card,#fl div,.archive-card');
- if(!e.target.closest('#fm')&&t?.id!=='fb')$('fm').classList.remove('o');
+ if(!e.target.closest('#fm')&&t?.id!=='fb'&&t?.dataset.adhkarFontPicker===undefined)$('fm').classList.remove('o');
+ if(adhkarFontTarget&&!t?.dataset.f&&t?.dataset.adhkarFontPicker===undefined&&!e.target.closest('.protective-personal-form'))adhkarFontTarget=null;
  if(!e.target.closest('#paperStylePanel')&&t?.id!=='paperStyleBtn'){$('paperStylePanel').hidden=true;$('paperStyleBtn').setAttribute('aria-expanded','false')}
  if(!t)return;
  if(t.dataset.archiveFilter!==undefined){archiveFilter=t.dataset.archiveFilter;renderArchive(true);return}
@@ -2569,7 +2571,23 @@ document.addEventListener('click',e=>{
  if(t.id==='archiveMore'){archiveRenderLimit+=LIST_PAGE_SIZE;renderArchive();return}
  if(t.id==='archiveBtn'){stopPoetryDictation(false);openArchive();return}
  if(t.id==='closeArchive'){$('archiveDialog').close();return}
- if(t.dataset.f){applyFont(t.dataset.f);return}
+ if(t.dataset.adhkarFontPicker!==undefined){
+  const form=t.closest('.protective-personal-form');
+  if(!form)return;
+  adhkarFontTarget=form;
+  const r=t.getBoundingClientRect(),m=$('fm');
+  m.style.top=r.bottom+4+'px';m.style.left=Math.max(6,Math.min(r.left,innerWidth-266))+'px';
+  fontList('');$('fq').value='';m.classList.add('o');
+  loadFontStylesheets(true).catch(error=>{console.warn(error);toast('بعض الخطوط تحتاج إلى اتصال بالإنترنت',3500)});
+  return;
+ }
+ if(t.dataset.f){
+  const target=adhkarFontTarget;
+  if(target&&target.isConnected&&target.closest('#anwarAdhkarPage'))setAdhkarFont(target,t.dataset.f);
+  else applyFont(t.dataset.f);
+  adhkarFontTarget=null;
+  return;
+ }
  if(t.classList.contains('chip')){flt=t.dataset.k;chips();renderList(true);return}
  if(t.classList.contains('card')){stopPoetryDictation(false);openNote(S.notes.find(n=>n.id===t.dataset.id));return}
  if(t.dataset.c){cmd(t.dataset.c);return}
@@ -2593,7 +2611,7 @@ document.addEventListener('click',e=>{
  else if(id==='word')doWord();
  else if(id==='sp')togglePoetryDictation();
  else if(id==='speakRead')speakText();
- else if(id==='fb'){const r=t.getBoundingClientRect(),m=$('fm');m.style.top=r.bottom+4+'px';m.style.left=Math.max(6,Math.min(r.left,innerWidth-266))+'px';fontList('');$('fq').value='';m.classList.toggle('o');loadFontStylesheets(true).catch(error=>{console.warn(error);toast('بعض الخطوط تحتاج إلى اتصال بالإنترنت',3500)})}
+ else if(id==='fb'){adhkarFontTarget=null;const r=t.getBoundingClientRect(),m=$('fm');m.style.top=r.bottom+4+'px';m.style.left=Math.max(6,Math.min(r.left,innerWidth-266))+'px';fontList('');$('fq').value='';m.classList.toggle('o');loadFontStylesheets(true).catch(error=>{console.warn(error);toast('بعض الخطوط تحتاج إلى اتصال بالإنترنت',3500)})}
  else if(id==='vs'&&cur)insertPoetryVerse();
  else if(id==='exitFocus'){$('app').classList.remove('focus');requestAnimationFrame(()=>$('fo')?.focus())}
   else if(id==='fo'){$('app').classList.add('focus');toast('اضغط Esc للخروج من التركيز')}
@@ -2655,7 +2673,7 @@ function openPersonalAdhkarManager(){
  }
  S.customAdhkar.forEach(item=>{
   const entry=document.createElement('article');entry.className='adhkar-admin-entry protective-manager-entry';
-  const body=document.createElement('p');body.textContent=item.text;
+  const body=document.createElement('p');body.textContent=item.text;body.style.fontFamily=`'${safeFontName(item.font)}',Amiri,serif`;
   const actions=document.createElement('div');actions.className='adhkar-admin-item-actions';
   const edit=document.createElement('button');edit.type='button';edit.textContent='تعديل';
   edit.addEventListener('click',()=>{
@@ -2665,6 +2683,7 @@ function openPersonalAdhkarManager(){
    const cancel=form?.querySelector('.adhkar-dialog-actions button[type="button"]');
    if(!form||!input||!submit)return;
    input.value=item.text;
+   setAdhkarFont(form,item.font);
    form.dataset.editId=item.id;
    submit.textContent='حفظ التعديل';
    if(cancel)cancel.hidden=false;
@@ -2690,17 +2709,33 @@ function openPersonalAdhkarManager(){
  if(!dialog.open)dialog.showModal();
  return true;
 }
+function setAdhkarFont(form,value){
+ const font=safeFontName(value);
+ form.dataset.font=font;
+ const input=form.querySelector('textarea[name="text"]');
+ if(input)input.style.fontFamily=`'${font}',Amiri,serif`;
+ const button=form.querySelector('[data-adhkar-font-picker]');
+ if(button){
+  const name=button.querySelector('.adhkar-font-name');
+  if(name)name.textContent=font;
+  button.title='الخط الحالي: '+font+' — تغيير الخط';
+  button.setAttribute('aria-label','اختيار الخط. الحالي: '+font);
+ }
+ return font;
+}
 function renderProtectiveAdhkar(){
  const host=$('adhkarContent');
  if(!host)return false;
  S.customAdhkar=cleanCustomAdhkar(S.customAdhkar);
  const fragment=document.createDocumentFragment();
- const intro=makeAdhkarNotice('اكتب أذكار التحصين التي تريد الاحتفاظ بها. تُحفظ مع مفكرتك على هذا الجهاز، ويمكنك تعديلها أو حذفها متى شئت.','writing','protective-intro');
- if(intro)fragment.append(intro);
-
  const form=document.createElement('form');
  form.className='adhkar-form protective-personal-form';
  form.setAttribute('aria-label','كتابة ذكر التحصين');
+ const fontRow=document.createElement('div');fontRow.className='adhkar-font-row';
+ const fontButton=document.createElement('button');fontButton.type='button';fontButton.className='adhkar-font-picker';fontButton.dataset.adhkarFontPicker='true';
+ const fontGlyph=document.createElement('span');fontGlyph.className='adhkar-font-glyph';fontGlyph.textContent='Aa';
+ const fontName=document.createElement('span');fontName.className='adhkar-font-name';
+ fontButton.append(fontGlyph,fontName);fontRow.append(fontButton);
  const textInput=document.createElement('textarea');
  textInput.name='text';textInput.rows=5;textInput.maxLength=3000;textInput.required=true;
  textInput.setAttribute('aria-label','نص الذكر');
@@ -2708,9 +2743,9 @@ function renderProtectiveAdhkar(){
  const actions=document.createElement('div');actions.className='adhkar-dialog-actions';
  const submit=document.createElement('button');submit.type='submit';submit.textContent='حفظ الذكر';
  const cancel=document.createElement('button');cancel.type='button';cancel.textContent='إلغاء التعديل';cancel.hidden=true;
- actions.append(submit,cancel);form.append(textInput,actions);
+ actions.append(submit,cancel);form.append(fontRow,textInput,actions);setAdhkarFont(form,'Amiri');
  cancel.addEventListener('click',()=>{
-  form.reset();delete form.dataset.editId;
+  form.reset();delete form.dataset.editId;setAdhkarFont(form,'Amiri');
   submit.textContent='حفظ الذكر';cancel.hidden=true;
  });
  form.addEventListener('submit',event=>{
@@ -2719,17 +2754,18 @@ function renderProtectiveAdhkar(){
   const text=textInput.value.trim().slice(0,3000);
   if(!text){toast('اكتب الذكر أولًا.');return}
   const editId=form.dataset.editId||'';
+  const font=safeFontName(form.dataset.font);
   if(editId){
    const entry=S.customAdhkar.find(item=>item.id===editId);
    if(!entry){toast('تعذّر العثور على الذكر المطلوب تعديله.');return}
-   entry.text=text;entry.ts=Date.now();
+   entry.text=text;entry.font=font;entry.ts=Date.now();
   }else{
    if(S.customAdhkar.length>=100){toast('بلغت الحد الأقصى: 100 ذكر في هذه المساحة.');return}
    const id=typeof globalThis.crypto?.randomUUID==='function'?globalThis.crypto.randomUUID():Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10);
-   S.customAdhkar.push({id,text,ts:Date.now()});
+   S.customAdhkar.push({id,text,font,ts:Date.now()});
   }
   S.customAdhkar=cleanCustomAdhkar(S.customAdhkar);
-  save();form.reset();delete form.dataset.editId;
+  save();form.reset();delete form.dataset.editId;setAdhkarFont(form,font);
   submit.textContent='حفظ الذكر';cancel.hidden=true;
   renderProtectiveAdhkar();toast(editId?'تم حفظ تعديل الذكر.':'تم حفظ الذكر في مفكرتك.');
  });
@@ -2744,14 +2780,14 @@ function renderProtectiveAdhkar(){
   fragment.append(manage);
  }else{
   const empty=document.createElement('p');
-  empty.className='protective-intro';
-  empty.textContent='لا توجد أذكار محفوظة بعد. اكتب الذكر في المساحة أعلاه ثم اضغط «حفظ الذكر».';
+  empty.className='adhkar-empty-state';
+  empty.textContent='لا توجد أذكار محفوظة بعد.';
   fragment.append(empty);
  }
 
  S.customAdhkar.forEach(item=>{
   const card=document.createElement('article');card.className='protective-card';
-  const body=document.createElement('p');body.className='protective-text';body.textContent=item.text;
+  const body=document.createElement('p');body.className='protective-text';body.textContent=item.text;body.style.fontFamily=`'${safeFontName(item.font)}',Amiri,serif`;
   card.append(body);fragment.append(card);
  });
  host.replaceChildren(fragment);
