@@ -2499,6 +2499,126 @@ dialog[open]>.float-head{display:none!important}
 }
 </style>
 
+
+<style id="anwar-tasbih-layout-refinement-v1">
+/* قائمة الأذكار: عرض كامل، وبطاقات نصية بعمود واحد بدلاً من أعمدة فارغة تضغط الكتابة */
+#rd #tasbihPanel .tasbih-adhkar-picker{
+  position:relative;z-index:20;width:100%;max-width:none!important;min-width:0
+}
+#rd #tasbihPanel .tasbih-adhkar-list{
+  position:absolute;top:calc(100% + 6px);inset-inline:0;z-index:25;
+  width:100%;max-width:none;margin:0!important;padding:9px;
+  max-height:min(42svh,360px);overflow:auto;overscroll-behavior:contain;
+  border:1px solid var(--tasbih-border);border-radius:15px;
+  background:var(--tasbih-surface);
+  box-shadow:0 12px 28px rgba(12,42,32,.2)
+}
+#rd #tasbihPanel .tasbih-dhikr-cards{
+  display:grid;width:100%;max-width:none;max-height:none;overflow:visible;
+  gap:9px;padding:2px;scrollbar-width:thin
+}
+#rd #tasbihPanel .tasbih-dhikr-group{width:100%;min-width:0;gap:6px}
+#rd #tasbihPanel .tasbih-dhikr-category{
+  padding:3px 6px 6px;text-align:right;
+  font:700 18px/1.35 "Aref Ruqaa",Amiri,serif
+}
+#rd #tasbihPanel .tasbih-dhikr-card{
+  display:grid;grid-template-columns:minmax(0,1fr)!important;grid-auto-flow:row;
+  justify-items:stretch;align-items:center;gap:3px;
+  width:100%;min-width:0;min-height:0;padding:10px 12px;
+  text-align:center;font-family:Amiri,"Aref Ruqaa",serif;
+  font-size:18px;line-height:1.65
+}
+#rd #tasbihPanel .tasbih-dhikr-card>span{
+  grid-column:1;display:block;width:100%;min-width:0;overflow-wrap:anywhere
+}
+#rd #tasbihPanel .tasbih-dhikr-card-name{
+  font:700 20px/1.35 "Aref Ruqaa",Amiri,serif
+}
+#rd #tasbihPanel .tasbih-dhikr-card-text{
+  font:400 18px/1.7 Amiri,"Aref Ruqaa",serif
+}
+#rd #tasbihPanel .tasbih-dhikr-card-meta{
+  display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:5px 12px;
+  padding-top:3px;color:var(--tasbih-muted);
+  font:600 10px/1.5 Cairo,Tahoma,sans-serif
+}
+#rd #tasbihPanel .anwar-custom-dhikr,
+#rd #tasbihPanel .tasbih-dhikr-management,
+#rd #tasbihPanel .tasbih-dhikr-note{
+  width:100%;max-width:none
+}
+/* تقليل الارتفاع العمودي للإطار مع إبقاء القرص دائرياً وكامل الظهور */
+#rd #tasbihPanel{padding:9px 12px 9px!important;margin-bottom:4px!important}
+#rd #tasbihPanel .anwar-tasbih-content{gap:7px;padding:4px 2px 5px!important}
+#rd #tasbihPanel .anwar-tasbih-phrase-wrap{gap:3px}
+#rd #tasbihPanel .anwar-tasbih-ornament{height:27px;margin:0 auto}
+#rd #tasbihPanel .anwar-tasbih-ornament img{width:29px;height:27px}
+#rd #tasbihPanel .anwar-tasbih-stage{
+  width:min(100%,max(230px,38svh),330px)!important;
+  margin:1px auto!important;aspect-ratio:1
+}
+#rd #tasbihPanel .anwar-tasbih-footer{margin:5px 2px 0;padding:5px 4px 0}
+#rd #tasbihPanel .anwar-tasbih-footer-ornament{height:23px}
+#rd #tasbihPanel .anwar-tasbih-footer-ornament img{width:23px;height:22px}
+@media(max-width:430px){
+  #rd #tasbihPanel{padding:8px 9px 7px!important;border-radius:21px!important}
+  #rd #tasbihPanel .anwar-tasbih-inline-head{
+    min-height:58px;margin:-8px -9px 6px!important;
+    padding:6px 10px!important;grid-template-columns:38px minmax(0,1fr) 38px
+  }
+  #rd #tasbihPanel #tasbihThemeToggle{width:36px;height:36px;min-height:36px;padding:6px}
+  #rd #tasbihPanel #tasbihTitle{font-size:clamp(18px,5.6vw,22px)}
+  #rd #tasbihPanel .anwar-tasbih-mosque,
+  #rd #tasbihPanel .anwar-tasbih-mosque img{width:36px;height:36px}
+  #rd #tasbihPanel .anwar-tasbih-content{gap:5px;padding:2px 1px 3px!important}
+  #rd #tasbihPanel .anwar-tasbih-phrase{
+    margin:0!important;font-size:clamp(20px,6vw,25px)!important;line-height:1.4!important
+  }
+  #rd #tasbihPanel .anwar-tasbih-ornament{height:21px;gap:8px}
+  #rd #tasbihPanel .anwar-tasbih-ornament img{width:24px;height:21px}
+  #rd #tasbihPanel .tasbih-adhkar-toggle{
+    min-height:44px;padding:6px 11px;
+    font:700 clamp(17px,4.8vw,19px)/1.25 "Aref Ruqaa",Amiri,serif
+  }
+  #rd #tasbihPanel .tasbih-book-icon{width:23px;height:23px}
+  #rd #tasbihPanel .tasbih-adhkar-chevron{width:27px;height:27px;font-size:19px}
+  #rd #tasbihPanel .anwar-tasbih-stage{
+    width:min(100%,max(218px,38svh),300px)!important;margin:0 auto!important
+  }
+  #rd #tasbihPanel .anwar-tasbih-bead{
+    transform:rotate(calc(var(--bead-index)*10.9090909deg)) translateY(-clamp(96px,28vw,116px))
+  }
+  #rd #tasbihPanel .anwar-tasbih-counter{width:min(76%,230px)!important;padding:10px!important}
+  #rd #tasbihPanel .anwar-tasbih-actions{gap:7px;margin:0}
+  #rd #tasbihPanel .anwar-tasbih-actions .anwar-tasbih-delete,
+  #rd #tasbihPanel .anwar-tasbih-actions .anwar-tasbih-step{width:46px;height:46px;min-height:46px}
+  #rd #tasbihPanel .anwar-tasbih-actions .anwar-tasbih-reset{min-height:46px;padding-inline:8px}
+  #rd #tasbihPanel .anwar-tasbih-voice{margin:0;padding:6px 7px}
+  #rd #tasbihPanel .anwar-tasbih-voice button{min-height:40px;padding:5px 8px}
+  #rd #tasbihPanel .anwar-tasbih-footer{margin-top:3px;padding-top:3px}
+  #rd #tasbihPanel .anwar-tasbih-footer-ornament{height:18px}
+  #rd #tasbihPanel .anwar-tasbih-footer-ornament img{width:19px;height:18px}
+  #rd #tasbihPanel .anwar-tasbih-footer strong{font-size:13px}
+  #rd #tasbihPanel .tasbih-adhkar-list{max-height:min(42svh,300px)}
+}
+@media(max-height:690px) and (max-width:800px){
+  #rd #tasbihPanel .anwar-tasbih-inline-head{min-height:54px}
+  #rd #tasbihPanel .anwar-tasbih-content{gap:4px}
+  #rd #tasbihPanel .anwar-tasbih-phrase{font-size:20px!important}
+  #rd #tasbihPanel .anwar-tasbih-stage{
+    width:min(100%,max(205px,34svh),270px)!important
+  }
+  #rd #tasbihPanel .anwar-tasbih-bead{
+    transform:rotate(calc(var(--bead-index)*10.9090909deg)) translateY(-clamp(91px,26vw,106px))
+  }
+  #rd #tasbihPanel .anwar-tasbih-footer{margin-top:2px;padding-top:2px}
+}
+@media(prefers-reduced-motion:reduce){
+  #rd #tasbihPanel .tasbih-dhikr-card{transition:none!important}
+}
+</style>
+
 </head>
 <body>
 <div class="app" id="app">
