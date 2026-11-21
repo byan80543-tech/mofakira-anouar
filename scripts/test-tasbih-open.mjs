@@ -34,7 +34,8 @@ assert.doesNotMatch(ownerTabs,/adhkarTab/,'the adhkar tab is removed from owners
 assert.doesNotMatch(ownerDialog,/id="adhkarPanel"|id="tasbihPanel"/,'adhkar and tasbih are no longer nested inside ownership dialog');
 assert.ok(adhkarPage.includes('id="adhkarPanel"')&&adhkarPage.includes('class="protective-page-title">أذكار التحصين</h2>')&&adhkarPage.includes('id="adhkarContent"'),'the dedicated adhkar page opens the unified protection collection directly');
 assert.doesNotMatch(adhkarPage,/id="morningTab"|id="eveningTab"|id="protectionTab"/,'the old morning/evening tabs and secondary protection tab are removed');
-assert.ok(tasbihPage.includes('id="tasbihPanel"')&&tasbihPage.includes('id="tasbihCounterControl"')&&tasbihPage.includes('id="tasbihVoice"')&&tasbihPage.includes('id="tasbihThemePicker"'),'the standalone tasbih page keeps counter, voice and appearance controls');
+assert.ok(tasbihPage.includes('id="tasbihPanel"')&&tasbihPage.includes('id="tasbihCounterControl"')&&tasbihPage.includes('id="tasbihVoice"')&&tasbihPage.includes('id="tasbihThemePicker"')&&tasbihPage.includes('id="tasbihBeads"'),'the standalone tasbih page keeps its royal counter, 33-bead ring, voice and appearance controls');
+assert.doesNotMatch(tasbihPage,/tasbihVoiceTranscript|anwar-tasbih-transcript/,'spoken words are not rendered in the tasbih page');
 assert.ok(!tasbihPage.includes('adhkarTasbihToggle'),'the obsolete intermediate tasbih launcher is removed');
 assert.ok(!tasbihPage.includes('tasbihClose'),'the tasbih page uses one return control instead of a duplicate close action');
 for(const id of ['adhkarPanel','tasbihPanel','tasbihCount','tasbihVoice']){
