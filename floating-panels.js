@@ -22,6 +22,17 @@
   };
  }
 
+ function intersectViewport(workspace,screen){
+  if(!workspace||!screen||!Number.isFinite(workspace.left)||!Number.isFinite(workspace.top)||
+   !Number.isFinite(workspace.right)||!Number.isFinite(workspace.bottom))return screen;
+  const left=Math.max(screen.left,workspace.left);
+  const top=Math.max(screen.top,workspace.top);
+  const right=Math.min(screen.left+screen.width,workspace.right);
+  const bottom=Math.min(screen.top+screen.height,workspace.bottom);
+  if(right-left<Math.min(MIN_WIDTH+EDGE*2,screen.width)||bottom-top<Math.min(MIN_HEIGHT+EDGE*2,screen.height))return screen;
+  return {left,top,width:right-left,height:bottom-top};
+ }
+
  function normalizeSavedLayout(value){
   if(!value||typeof value!=='object'||Array.isArray(value))return null;
   const keys=['x','y','width','height'];
@@ -34,7 +45,7 @@
   };
  }
 
- root.AnwarFloatingPanelMath=Object.freeze({clampRect,normalizeSavedLayout});
+ root.AnwarFloatingPanelMath=Object.freeze({clampRect,normalizeSavedLayout,intersectViewport});
  const doc=root.document;
  if(!doc||!doc.getElementById)return;
 
@@ -76,12 +87,10 @@
   const rect=area&&area.getBoundingClientRect();
   if(!rect||rect.width<=0||rect.height<=0)return screen;
   /* Intersect the writing workspace with the actually visible mobile viewport. */
-  const left=Math.max(screen.left,rect.left+(area.clientLeft||0));
-  const top=Math.max(screen.top,rect.top+(area.clientTop||0));
-  const right=Math.min(screen.left+screen.width,rect.right-(area.clientLeft||0));
-  const bottom=Math.min(screen.top+screen.height,rect.bottom-(area.clientTop||0));
-  if(right-left<Math.min(MIN_WIDTH+EDGE*2,screen.width)||bottom-top<Math.min(MIN_HEIGHT+EDGE*2,screen.height))return screen;
-  return {left,top,width:right-left,height:bottom-top};
+  return intersectViewport({
+   left:rect.left+(area.clientLeft||0),top:rect.top+(area.clientTop||0),
+   right:rect.right-(area.clientLeft||0),bottom:rect.bottom-(area.clientTop||0)
+  },screen);
  }
 
  function readLayouts(){
