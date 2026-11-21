@@ -95,7 +95,7 @@ function buildApp(options={}){
   nodes.tasbihDhikr.appendChild(group);
  }
  const listeners=new Set();
- let state={tasbih:{count:options.initialCount??0,dhikr:nodes.tasbihDhikr.value,customDhikrs:[],removedOfficialDhikrs:options.initialRemoved??[],theme:options.initialTheme??'emerald',designVersion:options.initialVersion??'royal-reference-1'}};
+ let state={tasbih:{count:options.initialCount??0,dhikr:options.initialDhikr??nodes.tasbihDhikr.value,customDhikrs:[],removedOfficialDhikrs:options.initialRemoved??[],theme:options.initialTheme??'emerald',designVersion:options.initialVersion??'royal-reference-1'}};
  const preferences={
   get(){return clone(state)},
   set(section,value){state={...state,[section]:clone(value)};for(const listener of listeners)listener(clone(state));return clone(state)},
@@ -147,6 +147,10 @@ counterInput.nodes.tasbihCounterControl.dispatch('keydown',{key:'Enter'});
 assert.equal(count(counterInput),2,'the circular counter supports Enter from the keyboard');
 counterInput.nodes.tasbihCounterControl.dispatch('keydown',{key:' '});
 assert.equal(count(counterInput),3,'the circular counter supports Space from the keyboard');
+
+const legacyDefault=buildApp({initialDhikr:'أستغفر الله العظيم وأتوب إليه',initialVersion:''});
+assert.equal(legacyDefault.nodes.tasbihDhikr.value,'سبوح قدوس رب الملائكة والروح.','the old generic dhikr default migrates to the selected royal reference phrase');
+assert.equal(legacyDefault.state.tasbih.designVersion,'royal-reference-1','the new design version is saved after the one-time migration');
 
 const officialApp=buildApp();
 const officialOptions=officialApp.nodes.tasbihDhikr.options.filter(option=>option.dataset.anwarOfficialDhikr==='true');
