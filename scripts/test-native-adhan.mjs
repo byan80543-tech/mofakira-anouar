@@ -93,4 +93,5 @@ assert.match(calendar, /if \(config\.enabled && VoiceCatalog\.supports\(config\.
   'prayer times are fetched and stored even when automatic adhan is switched off');
 assert.match(calendar, /PrayerAlarmScheduler\.cancel\(context\)/,
   'turning automatic adhan off cancels the scheduled alarm without erasing prayer times');
-\nconsole.log('Native Android launcher, legacy compatibility, background adhan bridge and scheduling tests passed.');
+
+console.log('Native Android launcher, legacy compatibility, background adhan bridge and scheduling tests passed.');
