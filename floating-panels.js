@@ -50,7 +50,6 @@
   ?root.requestAnimationFrame.bind(root)
   :callback=>root.setTimeout(callback,16);
  const normalRects=new WeakMap();
- const pointerStates=new WeakMap();
  let layouts=readLayouts();
 
  function viewport(){
@@ -354,6 +353,7 @@
   resize.textContent='⤢';
   resize.title='اسحب لتغيير الحجم؛ استخدم الأسهم';
   resize.setAttribute('aria-label','تغيير حجم الإطار');
+  resize.setAttribute('aria-keyshortcuts','ArrowLeft ArrowRight ArrowUp ArrowDown');
 
   panel.append(head,content,resize);
   panel.dataset.floatPanelKey=String(key);
