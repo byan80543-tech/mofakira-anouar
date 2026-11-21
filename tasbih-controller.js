@@ -30,8 +30,7 @@
   }
   const preferences=globalThis.AnwarPrivatePreferences;
   // لا نفترض أن الخزنة تحتوي tasbih؛ قد تكون أول زيارة أو بيانات قديمة.
-  const DESIGN_VERSION='royal-reference-1';
-  const defaultTasbih={count:0,dhikr:select.value,customDhikrs:[],removedOfficialDhikrs:[],theme:'emerald',designVersion:DESIGN_VERSION};
+  const defaultTasbih={count:0,dhikr:select.value,customDhikrs:[],removedOfficialDhikrs:[],theme:'emerald'};
   let initial=defaultTasbih;
   try{
    const stored=preferences&&typeof preferences.get==='function'?preferences.get():null;
@@ -43,7 +42,7 @@
    :[];
   let count=Number.isSafeInteger(initial.count)?Math.max(0,Math.min(MAX_COUNT,initial.count)):0;
   const allowedThemes=new Set(themeIds);
-  let theme=initial.designVersion===DESIGN_VERSION&&allowedThemes.has(initial.theme)?initial.theme:'emerald';
+  let theme=allowedThemes.has(initial.theme)&&initial.theme!=='glass'?initial.theme:'emerald';
   let customDhikrs=cleanDhikrList(initial.customDhikrs,30,200);
   let removedOfficialDhikrs=cleanDhikrList(initial.removedOfficialDhikrs,60,4000);
   let recognition=null,voiceActive=false,voiceRequested=false,writingPreferences=false,voiceTargetPhrase='';
@@ -96,7 +95,7 @@
    if(!preferences||typeof preferences.set!=='function')return;
    writingPreferences=true;
    try{
-    preferences.set('tasbih',{count:count,dhikr:select.value,customDhikrs:customDhikrs,removedOfficialDhikrs:removedOfficialDhikrs,theme:theme,designVersion:DESIGN_VERSION});
+    preferences.set('tasbih',{count:count,dhikr:select.value,customDhikrs:customDhikrs,removedOfficialDhikrs:removedOfficialDhikrs,theme:theme});
    }catch(error){
     console.warn('تعذر حفظ إعدادات السبحة المشفرة',error);
     customStatus.textContent='تعذر حفظ التغيير في الخزنة المشفرة. تحقق من فتح المفكرة ثم أعد المحاولة.';
@@ -375,7 +374,8 @@
   if(savedOption)select.value=savedOption.value;
   else if(!visibleOptions().some(option=>option.value===select.value))select.value=firstVisible()?firstVisible().value:'';
   update();
-  if(initial.designVersion!==DESIGN_VERSION)persist();
+  // The previous glass preset is intentionally migrated once to the approved emerald reference design.
+  if(initial.theme==='glass'||!allowedThemes.has(initial.theme))persist();
 
   // The service dashboard opens this standalone panel directly; its counter and preferences remain independent.
 
