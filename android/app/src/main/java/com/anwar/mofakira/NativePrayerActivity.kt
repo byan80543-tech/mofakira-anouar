@@ -155,6 +155,10 @@ class NativePrayerActivity : Activity() {
                 Toast.makeText(this, "لم يُفعّل إذن المنبهات الدقيقة؛ قد يتأخر التنبيه في وضع السكون.", Toast.LENGTH_LONG).show()
             }
         }
+        if (PrayerSettings.read(this).enabled) {
+            PrayerAlarmScheduler.scheduleNext(this)
+            PrayerRefreshWorker.ensurePeriodic(this)
+        }
     }
 
     override fun onPause() {
