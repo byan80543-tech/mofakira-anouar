@@ -4716,7 +4716,10 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
   if(hasOwnedEntry&&typeof historyApi.back==='function')historyApi.back();
  }
  function activeServiceName(){
-  return Object.keys(pages).find(name=>!pages[name].hidden)||'';
+  const current=Object.keys(pages).find(name=>!pages[name].hidden);
+  if(current)return current;
+  const prayerSettings=document.querySelector('#anwarPrayerCard .anwar-prayer-settings');
+  return prayerSettings&&prayerSettings.open?'adhan':'';
  }
  function closeNestedServiceLayer(){
   const customOverlays=[
@@ -4734,6 +4737,12 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
   const stationModal=document.getElementById('liveStationModal');
   if(stationModal&&!stationModal.hidden){
    stationModal.querySelector('.live-station-modal-close')?.click();
+   return true;
+  }
+  const prayerSettings=document.querySelector('#anwarPrayerCard .anwar-prayer-settings');
+  if(prayerSettings&&prayerSettings.open){
+   prayerSettings.open=false;
+   document.querySelector('[data-anwar-service="adhan"]')?.setAttribute('aria-expanded','false');
    return true;
   }
   const dialogs=Array.from(document.querySelectorAll('dialog[open]'));
@@ -4819,6 +4828,8 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
 
  function openService(name,button,fromHistory=false){
   if(name==='adhan'){
+   if(fromHistory)serviceHistoryActive=true;
+   else pushServiceHistory('adhan');
    const card=document.getElementById('anwarPrayerCard');
    const settings=card&&card.querySelector('.anwar-prayer-settings');
    if(settings)settings.open=true;
