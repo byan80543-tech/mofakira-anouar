@@ -2561,8 +2561,7 @@ document.addEventListener('click',event=>{
 
 document.addEventListener('click',e=>{
  const t=e.target.closest('button,summary,.card,#fl div,.archive-card');
- if(!e.target.closest('#fm')&&t?.id!=='fb'&&t?.dataset.adhkarFontPicker===undefined)$('fm').classList.remove('o');
- if(adhkarFontTarget&&!t?.dataset.f&&t?.dataset.adhkarFontPicker===undefined&&!e.target.closest('.protective-personal-form'))adhkarFontTarget=null;
+ if(!e.target.closest('#fm')&&t?.id!=='fb')$('fm').classList.remove('o');
  if(!e.target.closest('#paperStylePanel')&&t?.id!=='paperStyleBtn'){$('paperStylePanel').hidden=true;$('paperStyleBtn').setAttribute('aria-expanded','false')}
  if(!t)return;
  if(t.dataset.archiveFilter!==undefined){archiveFilter=t.dataset.archiveFilter;renderArchive(true);return}
@@ -2571,16 +2570,6 @@ document.addEventListener('click',e=>{
  if(t.id==='archiveMore'){archiveRenderLimit+=LIST_PAGE_SIZE;renderArchive();return}
  if(t.id==='archiveBtn'){stopPoetryDictation(false);openArchive();return}
  if(t.id==='closeArchive'){$('archiveDialog').close();return}
- if(t.dataset.adhkarFontPicker!==undefined){
-  const form=t.closest('.protective-personal-form');
-  if(!form)return;
-  adhkarFontTarget=form;
-  const r=t.getBoundingClientRect(),m=$('fm');
-  m.style.top=r.bottom+4+'px';m.style.left=Math.max(6,Math.min(r.left,innerWidth-266))+'px';
-  fontList('');$('fq').value='';m.classList.add('o');
-  loadFontStylesheets(true).catch(error=>{console.warn(error);toast('بعض الخطوط تحتاج إلى اتصال بالإنترنت',3500)});
-  return;
- }
  if(t.dataset.f){
   const target=adhkarFontTarget;
   if(target&&target.isConnected&&target.closest('#anwarAdhkarPage'))setAdhkarFont(target,t.dataset.f);
@@ -2611,7 +2600,7 @@ document.addEventListener('click',e=>{
  else if(id==='word')doWord();
  else if(id==='sp')togglePoetryDictation();
  else if(id==='speakRead')speakText();
- else if(id==='fb'){adhkarFontTarget=null;const r=t.getBoundingClientRect(),m=$('fm');m.style.top=r.bottom+4+'px';m.style.left=Math.max(6,Math.min(r.left,innerWidth-266))+'px';fontList('');$('fq').value='';m.classList.toggle('o');loadFontStylesheets(true).catch(error=>{console.warn(error);toast('بعض الخطوط تحتاج إلى اتصال بالإنترنت',3500)})}
+ else if(id==='fb'){const r=t.getBoundingClientRect(),m=$('fm');m.style.top=r.bottom+4+'px';m.style.left=Math.max(6,Math.min(r.left,innerWidth-266))+'px';fontList('');$('fq').value='';m.classList.toggle('o');loadFontStylesheets(true).catch(error=>{console.warn(error);toast('بعض الخطوط تحتاج إلى اتصال بالإنترنت',3500)})}
  else if(id==='vs'&&cur)insertPoetryVerse();
  else if(id==='exitFocus'){$('app').classList.remove('focus');requestAnimationFrame(()=>$('fo')?.focus())}
   else if(id==='fo'){$('app').classList.add('focus');toast('اضغط Esc للخروج من التركيز')}
@@ -2723,6 +2712,60 @@ function setAdhkarFont(form,value){
  }
  return font;
 }
+function renderAdhkarFontOptions(query=''){
+ const host=$('adhkarFontOptions');
+ if(!host)return false;
+ const needle=String(query||'').trim().toLowerCase();
+ const current=safeFontName(adhkarFontTarget?.dataset.font);
+ const fragment=document.createDocumentFragment();
+ const matches=FONTS.filter(font=>!needle||font.toLowerCase().includes(needle));
+ if(!matches.length){
+  const empty=document.createElement('p');empty.className='adhkar-font-empty';empty.textContent='لا توجد خطوط مطابقة.';
+  fragment.append(empty);
+ }else{
+  matches.forEach(font=>{
+   const option=document.createElement('button');option.type='button';option.className='adhkar-font-option';
+   option.setAttribute('aria-pressed',String(font===current));
+   const preview=document.createElement('span');preview.className='adhkar-font-option-preview';
+   preview.textContent='بسم الله الرحمن الرحيم';preview.style.fontFamily=`'${font}',Amiri,serif`;
+   const name=document.createElement('span');name.className='adhkar-font-option-name';name.textContent=font;
+   option.append(preview,name);
+   option.addEventListener('click',()=>{
+    const target=adhkarFontTarget;
+    if(target&&target.isConnected)setAdhkarFont(target,font);
+    const dialog=$('adhkarFontDialog');
+    if(dialog?.open)dialog.close();
+   });
+   fragment.append(option);
+  });
+ }
+ host.replaceChildren(fragment);
+ return matches.length;
+}
+function initAdhkarFontDialog(){
+ const dialog=$('adhkarFontDialog'),search=$('adhkarFontSearch');
+ if(!dialog||dialog.dataset.initialized==='true')return false;
+ dialog.dataset.initialized='true';
+ $('adhkarFontDialogClose')?.addEventListener('click',()=>dialog.close());
+ search?.addEventListener('input',()=>renderAdhkarFontOptions(search.value));
+ dialog.addEventListener('click',event=>{if(event.target===dialog)dialog.close()});
+ dialog.addEventListener('close',()=>{adhkarFontTarget=null});
+ return true;
+}
+function openAdhkarFontDialog(form){
+ const dialog=$('adhkarFontDialog'),search=$('adhkarFontSearch');
+ if(!dialog||!search||!form)return false;
+ initAdhkarFontDialog();
+ adhkarFontTarget=form;
+ search.value='';
+ renderAdhkarFontOptions('');
+ if(!dialog.open)dialog.showModal();
+ loadFontStylesheets(true).then(()=>{if(dialog.open)renderAdhkarFontOptions(search.value)}).catch(error=>{
+  console.warn(error);toast('قد لا تتوفر بعض الخطوط دون اتصال بالإنترنت',3500);
+ });
+ requestAnimationFrame(()=>search.focus({preventScroll:true}));
+ return true;
+}
 function renderProtectiveAdhkar(){
  const host=$('adhkarContent');
  if(!host)return false;
@@ -2736,6 +2779,7 @@ function renderProtectiveAdhkar(){
  const fontGlyph=document.createElement('span');fontGlyph.className='adhkar-font-glyph';fontGlyph.textContent='Aa';
  const fontName=document.createElement('span');fontName.className='adhkar-font-name';
  fontButton.append(fontGlyph,fontName);fontRow.append(fontButton);
+ fontButton.addEventListener('click',()=>openAdhkarFontDialog(form));
  const textInput=document.createElement('textarea');
  textInput.name='text';textInput.rows=5;textInput.maxLength=3000;textInput.required=true;
  textInput.setAttribute('aria-label','نص الذكر');

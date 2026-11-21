@@ -11,6 +11,8 @@ const tasbihVoiceTarget={inside:true,closest(selector){return selector.includes(
 const tasbihInputTarget={inside:true,closest(selector){return selector.includes('#tasbihPanel input')}};
 const tasbihCounterTarget={inside:true,closest(selector){return selector.includes('#tasbihPanel [role="button"]')}};
 const tasbihToggleTarget={inside:true,closest(selector){return selector.includes('#adhkarTasbihToggle')}};
+const adhkarFontPickerTarget={inside:true,closest(selector){return selector.includes('#adhkarContent .adhkar-font-picker')}};
+const adhkarFontDialogTarget={inside:true,closest(selector){return selector.includes('#adhkarFontDialog')}};
 const outsideTarget={inside:false,closest(){return null}};
 const body={
  children:[],
@@ -109,7 +111,15 @@ assert.equal(notice.style.opacity,'1','the anti-repeat warning becomes visible')
 now=2500;
 assert.equal(tap({target:tasbihToggleTarget}).defaultPrevented,false,'tasbih launch icon remains usable during cooldown');
 
-// Further repeated taps are suppressed for the complete cooldown.
+// The font chooser remains usable during cooldown so it cannot become a dead control.
+for(const target of [adhkarFontPickerTarget,adhkarFontDialogTarget]){
+ for(let i=0;i<15;i++){
+  now=2500+i*20;
+  assert.equal(tap({target}).defaultPrevented,false,'adhkar font control remains usable during cooldown');
+ }
+}
+
+// Further repeated ordinary taps are suppressed for the complete cooldown.
 now=2500;
 assert.equal(tap().defaultPrevented,true,'repeated taps remain blocked during cooldown');
 assert.equal(notice.style.opacity,'1','one warning remains visible rather than spawning repeated notices');
@@ -117,4 +127,4 @@ assert.equal(notice.style.opacity,'1','one warning remains visible rather than s
 // Normal interaction resumes after the cooldown.
 now=6000;
 assert.equal(tap().defaultPrevented,false,'clicking resumes after the cooldown');
-console.log('Click guard checks passed: burst limit, cooldown, keyboard exemption, trusted-event handling, and tasbih counter exemption.');
+console.log('Click guard checks passed: burst limit, cooldown, keyboard exemption, trusted-event handling, and tasbih/font-picker exemptions.');
