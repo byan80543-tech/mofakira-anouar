@@ -32,6 +32,7 @@
 <link rel="manifest" href="manifest.webmanifest?v=20261117-3">
 <link rel="icon" type="image/png" href="icon-192.png?v=20261118-clarity1" sizes="192x192">
 <link rel="apple-touch-icon" href="icon-192.png?v=20261118-clarity1">
+<link rel="stylesheet" href="./ibtihalat-radio.css?v=20261121-1">
 
 <meta name="apple-mobile-web-app-title" content="مفكرة أنوار">
 <meta name="theme-color" content="#09264d">
@@ -2703,6 +2704,36 @@ dialog[open]>.float-head{display:none!important}
  <section id="anwarRadioPage" class="anwar-service-page" aria-label="الإذاعات المباشرة" hidden>
   <div class="anwar-service-page-head"><button type="button" class="anwar-service-back" data-anwar-service-back>‹　العودة إلى الأقسام</button></div>
   <b class="radio-section-title">الإذاعات المباشرة</b>
+  <section id="anwarIbtihalat" class="anwar-ibtihalat" aria-labelledby="anwarIbtihalatTitle">
+   <header class="anwar-ibtihalat-head">
+    <div class="anwar-ibtihalat-head-copy">
+     <small>مختارات صوتية من التراث</small>
+     <h2 id="anwarIbtihalatTitle">ابتهالات الشيخ سيد النقشبندي</h2>
+    </div>
+    <span class="anwar-ibtihalat-count">ابتهالان</span>
+   </header>
+   <div class="anwar-ibtihalat-list" aria-label="الابتهالات المختارة">
+    <button type="button" class="anwar-ibtihalat-item" data-ibtihalat-track="ya-rab" aria-pressed="false">
+     <span class="anwar-ibtihalat-index" aria-hidden="true">01</span>
+     <span class="anwar-ibtihalat-copy"><strong>يا رب إن عظمت ذنوبي</strong><small>تسجيل مستقل · الملف 004</small></span>
+     <span class="anwar-ibtihalat-play" aria-hidden="true">▶</span>
+    </button>
+    <button type="button" class="anwar-ibtihalat-item" data-ibtihalat-track="aghayb" aria-pressed="false">
+     <span class="anwar-ibtihalat-index" aria-hidden="true">02</span>
+     <span class="anwar-ibtihalat-copy"><strong>أغيب وذو اللطائف لا يغيب</strong><small>ضمن المجموعة الصوتية · الملف 007</small></span>
+     <span class="anwar-ibtihalat-play" aria-hidden="true">▶</span>
+    </button>
+   </div>
+   <div class="anwar-ibtihalat-player">
+    <div class="anwar-ibtihalat-player-copy">
+     <small>المشغل الصوتي</small>
+     <strong id="ibtihalatNowPlaying">اختر ابتهالاً للاستماع</strong>
+    </div>
+    <audio id="ibtihalatAudio" controls preload="none" playsinline aria-label="مشغل ابتهالات الشيخ سيد النقشبندي"></audio>
+    <p id="ibtihalatStatus" role="status" aria-live="polite">اختر أحد الابتهالين لبدء الاستماع.</p>
+   </div>
+   <p class="anwar-ibtihalat-source">مصدر التسجيلات: <a href="https://archive.org/details/20240309_20240309_1714" target="_blank" rel="noopener noreferrer">صفحة المجموعة على Internet Archive</a>. الملف 007 هو ملف المجموعة كما نُشر في الأرشيف.</p>
+  </section>
  </section>
  <section id="anwarLessonsPage" class="anwar-service-page" aria-label="الدروس والمحاضرات" hidden>
   <div class="anwar-service-page-head"><button type="button" class="anwar-service-back" data-anwar-service-back>‹　العودة إلى الأقسام</button></div>
@@ -3007,6 +3038,7 @@ dialog[open]>.float-head{display:none!important}
 <script src="./poetry-dictation.js?v=20261119-1" defer></script>
 <script src="./protective-adhkar.js?v=20261121-1" defer></script>
 <script src="./app-core.js?v=20261121-41" defer></script>
+<script src="./ibtihalat-radio.js?v=20261121-1" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
 <script src="./tasbih-controller.js?v=20261121-reference1" defer></script>
 <script src="./prayer-times.js?v=20261120-11" defer></script>
