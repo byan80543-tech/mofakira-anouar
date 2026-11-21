@@ -136,6 +136,16 @@ class MainActivity : Activity() {
                     setPadding(dp(8), dp(14), dp(8), dp(14))
                     background = rounded(intArrayOf(Color.WHITE, Color.rgb(255, 253, 247)), 15)
                     elevation = dp(1).toFloat()
+                    isClickable = true
+                    isFocusable = true
+                    setOnClickListener {
+                        val destination = if (label == "مواقيت الصلاة والأذان") {
+                            NativePrayerActivity::class.java
+                        } else {
+                            LegacyWebActivity::class.java
+                        }
+                        startActivity(Intent(this@MainActivity, destination))
+                    }
                 }
                 row.addView(tile, LinearLayout.LayoutParams(0, dp(86), 1f).apply {
                     marginEnd = dp(5)

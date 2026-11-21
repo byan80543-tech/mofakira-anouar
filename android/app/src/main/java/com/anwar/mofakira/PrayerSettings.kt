@@ -45,6 +45,33 @@ object PrayerSettings {
         )
     }
 
+    fun updateNative(
+        context: Context,
+        enabled: Boolean,
+        city: String,
+        country: String,
+        method: String,
+        timeZone: String,
+        voiceKey: String,
+        volume: Float,
+        school: String = "0"
+    ): PrayerConfig {
+        val fallback = read(context)
+        val validZone = runCatching { ZoneId.of(timeZone).id }.getOrElse { fallback.timeZone }
+        val config = PrayerConfig(
+            enabled = enabled,
+            city = safeText(city, fallback.city),
+            country = safeText(country, fallback.country),
+            method = safeText(method, fallback.method),
+            school = if (school == "1") "1" else "0",
+            timeZone = validZone,
+            voiceKey = safeText(voiceKey, fallback.voiceKey),
+            volume = volume.takeIf { it.isFinite() }?.coerceIn(0f, 1f) ?: fallback.volume
+        )
+        save(context, config)
+        return config
+    }
+
     fun updateFromWeb(context: Context, rawJson: String): PrayerConfig {
         require(rawJson.length <= 8_000) { "Settings payload is too large" }
         val json = JSONObject(rawJson)
@@ -61,6 +88,11 @@ object PrayerSettings {
             volume = json.optDouble("volume", fallback.volume.toDouble())
                 .toFloat().takeIf { it.isFinite() }?.coerceIn(0f, 1f) ?: fallback.volume
         )
+        save(context, config)
+        return config
+    }
+
+    private fun save(context: Context, config: PrayerConfig) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
             .putBoolean(KEY_ENABLED, config.enabled)
             .putString(KEY_CITY, config.city)
@@ -71,7 +103,6 @@ object PrayerSettings {
             .putString(KEY_VOICE, config.voiceKey)
             .putFloat(KEY_VOLUME, config.volume)
             .apply()
-        return config
     }
 
     fun eventJson(context: Context): String? =
