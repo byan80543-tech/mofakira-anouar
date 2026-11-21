@@ -2376,6 +2376,26 @@ dialog[open]>.float-head{display:none!important}
 @media(max-height:690px) and (max-width:800px){#rd #tasbihPanel .anwar-tasbih-stage{width:min(100%,300px)!important}#rd #tasbihPanel .anwar-tasbih-phrase{margin-top:0!important}#rd #tasbihPanel .anwar-tasbih-content{gap:7px}}
 @media(prefers-reduced-motion:reduce){#rd #tasbihPanel .anwar-tasbih-bead{transition:none!important}}
 </style>
+
+<style id="anwar-tasbih-reference-alignment-v1">
+/* تثبيت اتجاه العناصر كما في الصورة: الأيقونة يساراً والوسام يميناً */
+#rd #tasbihPanel .anwar-tasbih-inline-head{direction:ltr}
+#rd #tasbihPanel #tasbihTitle{direction:rtl}
+#rd #tasbihPanel .anwar-tasbih-stage::before{
+ content:"";position:absolute;z-index:3;top:0;left:50%;width:72px;height:67px;
+ transform:translateX(-50%);pointer-events:none;
+ background:url("assets/tasbih-mosque-emblem.svg") center/contain no-repeat;
+ filter:drop-shadow(0 2px 2px #09291f66)
+}
+#rd #tasbihPanel .anwar-tasbih-actions{direction:ltr}
+#rd #tasbihPanel .anwar-tasbih-actions .anwar-tasbih-reset{direction:rtl}
+#rd #tasbihPanel .anwar-tasbih-voice{direction:ltr}
+#rd #tasbihPanel .anwar-tasbih-voice-hint{direction:rtl}
+#rd #tasbihPanel .anwar-tasbih-voice button{direction:rtl}
+@media(max-width:430px){
+ #rd #tasbihPanel .anwar-tasbih-stage::before{width:62px;height:58px}
+}
+</style>
 </head>
 <body>
 <div class="app" id="app">
