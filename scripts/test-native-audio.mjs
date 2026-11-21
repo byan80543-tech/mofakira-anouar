@@ -14,7 +14,7 @@ const legacy = read('android/app/src/main/java/com/anwar/mofakira/LegacyWebActiv
 assert.match(gradle, /androidx\.media3:media3-exoplayer:1\.11\.1/);
 assert.match(gradle, /androidx\.media3:media3-session:1\.11\.1/);
 
-assert.match(rootGradle, /org\.jetbrains\.kotlin\.android.*2\.4\.21/,
+assert.match(rootGradle, /org\.jetbrains\.kotlin\.android.*2\.3\.21/,
   "Kotlin Gradle plugin is aligned with the Media3 transitive Kotlin metadata");assert.match(manifest, /FOREGROUND_SERVICE_MEDIA_PLAYBACK/);
 assert.match(manifest, /android:name="\.NativeAudioActivity"[\s\S]*?android:exported="false"/);
 assert.match(manifest, /android:name="\.playback\.NativeMediaService"[\s\S]*?android:exported="true"[\s\S]*?android:foregroundServiceType="mediaPlayback"/);
