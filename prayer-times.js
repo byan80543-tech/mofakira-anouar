@@ -527,8 +527,8 @@
    persist();renderTimes();lastDateCheck=todayText;
    const nativeBridgeReady=syncNativeBackground();
    if(!silent){
-    if(settings.enabled&&nativeBridgeReady)setStatus('أُرسلت إعدادات الأذان إلى تطبيق أنوار المرافق؛ أكمل أذونات الهاتف لتشغيله في الخلفية.');
-    else if(settings.enabled)setStatus('للتشغيل بعد إغلاق المفكرة، افتحها من تطبيق أندرويد المرافق.');
+    if(settings.enabled&&nativeBridgeReady)setStatus('وصلت إعدادات الأذان إلى التطبيق المرافق. سيشرح لك Android الأذونات اللازمة ويطلبها لتشغيل الأذان خارج المفكرة.');
+    else if(settings.enabled)setStatus('التشغيل خارج المفكرة يتطلب تطبيق أنوار المرافق على Android؛ تفعيل الأذان في Chrome وحده لا يضمن استمرار الصوت بعد إغلاق الصفحة.');
     else setStatus('تم تحديث مواقيت الصلاة. يمكنك تجربة الأذان ثم تفعيل التنبيه.');
    }
    tick();
@@ -576,8 +576,8 @@
   settings.enabled=enabledInput.checked;persist();
   const nativeBridgeReady=syncNativeBackground();
   if(settings.enabled){
-   if(nativeBridgeReady)setStatus('أُرسلت إعدادات الأذان إلى تطبيق أنوار المرافق؛ أكمل أذونات الهاتف.');
-   else setStatus('فُعّل الأذان داخل المفكرة. للتشغيل بعد إغلاقها استخدم تطبيق أندرويد المرافق.');
+   if(nativeBridgeReady)setStatus('تم إرسال إعدادات الأذان إلى تطبيق أنوار المرافق. سيشرح لك التطبيق الأذونات ويطلبها قبل تشغيله خارج المفكرة.');
+   else setStatus('فُعّل الأذان داخل الصفحة المفتوحة فقط. للتشغيل بعد إغلاقها، افتح مفكرة أنوار من تطبيق Android المرافق وفعّل الأذان هناك؛ سيطلب النظام الأذونات اللازمة.');
   }else{
    if(!audio.paused)audio.pause();
    setStatus('تم إيقاف الأذان التلقائي وإرسال أمر الإيقاف إلى التطبيق المرافق.');

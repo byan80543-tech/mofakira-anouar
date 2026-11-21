@@ -82,10 +82,14 @@ class MainActivity : Activity() {
         val config = runCatching { PrayerSettings.updateFromWeb(this, payload) }.getOrNull()
             ?: return
         if (!config.enabled) {
+            lastAdhanEnabled = false
+            permissionPromptDeferred = false
             PrayerAlarmScheduler.cancel(this)
             stopService(Intent(this, AdhanPlaybackService::class.java))
             return
         }
+        if (!lastAdhanEnabled) permissionPromptDeferred = false
+        lastAdhanEnabled = true
 
         if (!VoiceCatalog.supports(config.voiceKey)) {
             if (!unsupportedVoiceToastShown) {
@@ -107,11 +111,49 @@ class MainActivity : Activity() {
         PrayerRefreshWorker.enqueueNow(this)
     }
 
-    private fun requestRequiredAccess() {
-        if (Build.VERSION.SDK_INT >= 33 &&
-            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) !=
+    private var permissionFlowInProgress = false
+    private var waitingForExactAlarmSettings = false
+    private var permissionPromptDeferred = false
+    private var lastAdhanEnabled = false
+
+    private fun hasNotificationAccess(): Boolean {
+        return Build.VERSION.SDK_INT < 33 ||
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) ==
             android.content.pm.PackageManager.PERMISSION_GRANTED
-        ) {
+    }
+
+    private fun hasExactAlarmAccess(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return true
+        val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
+        return alarmManager.canScheduleExactAlarms()
+    }
+
+    private fun requestRequiredAccess() {
+        if (permissionFlowInProgress || permissionPromptDeferred || (hasNotificationAccess() && hasExactAlarmAccess())) return
+
+        permissionFlowInProgress = true
+        AlertDialog.Builder(this)
+            .setTitle("تفعيل الأذان خارج المفكرة")
+            .setMessage(
+                "حتى يعمل الأذان عند موعد الصلاة بعد مغادرة المفكرة، يحتاج تطبيق أنوار إلى إذن الإشعارات، " +
+                    "وإذن «المنبهات والتذكيرات» حتى يوقظ الهاتف في الوقت المحدد. " +
+                    "سيعرض Android طلب الإشعارات أولًا، ثم يفتح إعدادات المنبهات الدقيقة عند الحاجة. " +
+                    "يمكنك اختيار «لاحقًا» والعودة إلى هذا الإعداد متى شئت."
+            )
+            .setPositiveButton("متابعة") { _, _ -> requestNotificationAccess() }
+            .setNegativeButton("لاحقًا") { _, _ ->
+                permissionFlowInProgress = false
+                permissionPromptDeferred = true
+            }
+            .setOnCancelListener {
+                permissionFlowInProgress = false
+                permissionPromptDeferred = true
+            }
+            .show()
+    }
+
+    private fun requestNotificationAccess() {
+        if (Build.VERSION.SDK_INT >= 33 && !hasNotificationAccess()) {
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQUEST_NOTIFICATIONS)
             return
         }
@@ -119,24 +161,43 @@ class MainActivity : Activity() {
     }
 
     private fun requestExactAlarmAccessIfNeeded() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
-            if (!alarmManager.canScheduleExactAlarms()) {
-                AlertDialog.Builder(this)
-                    .setTitle("السماح بالأذان في وقته")
-                    .setMessage(
-                        "لإطلاق الأذان عند دخول وقت الصلاة حتى بعد إغلاق المفكرة، " +
-                            "اسمح لمفكرة أنوار بالمنبهات والتذكيرات الدقيقة."
-                    )
-                    .setPositiveButton("فتح الإعدادات") { _, _ ->
-                        val settingsIntent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
-                            .setData(Uri.parse("package:$packageName"))
-                        runCatching { startActivity(settingsIntent) }
-                    }
-                    .setNegativeButton("لاحقًا", null)
-                    .show()
-            }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || hasExactAlarmAccess()) {
+            permissionFlowInProgress = false
+            PrayerRefreshWorker.enqueueNow(this)
+            return
         }
+
+        AlertDialog.Builder(this)
+            .setTitle("السماح بالأذان في وقته")
+            .setMessage(
+                "افتح إعدادات Android وفعّل خيار «المنبهات والتذكيرات» لتطبيق مفكرة أنوار. " +
+                    "هذا الإذن مطلوب لجدولة الأذان بدقة حتى عندما تكون المفكرة مغلقة."
+            )
+            .setPositiveButton("فتح الإعدادات") { _, _ ->
+                val settingsIntent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                    .setData(Uri.parse("package:$packageName"))
+                waitingForExactAlarmSettings = true
+                try {
+                    startActivity(settingsIntent)
+                } catch (_: Exception) {
+                    waitingForExactAlarmSettings = false
+                    permissionFlowInProgress = false
+                    permissionPromptDeferred = true
+                    Toast.makeText(
+                        this, "تعذّر فتح إعدادات المنبهات. افتح إعدادات التطبيق يدويًا.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+            .setNegativeButton("لاحقًا") { _, _ ->
+                permissionFlowInProgress = false
+                permissionPromptDeferred = true
+            }
+            .setOnCancelListener {
+                permissionFlowInProgress = false
+                permissionPromptDeferred = true
+            }
+            .show()
     }
 
     @Deprecated("Deprecated in Android API; retained for API 23 compatibility")
@@ -146,16 +207,42 @@ class MainActivity : Activity() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_NOTIFICATIONS) requestExactAlarmAccessIfNeeded()
+        if (requestCode == REQUEST_NOTIFICATIONS) {
+            if (!hasNotificationAccess()) {
+                permissionPromptDeferred = true
+                Toast.makeText(
+                    this,
+                    "لم يُمنح إذن الإشعارات؛ يمكنك تفعيله لاحقًا من إعدادات التطبيق.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+            requestExactAlarmAccessIfNeeded()
+        }
     }
 
     override fun onResume() {
         super.onResume()
-        if (::webView.isInitialized && PrayerSettings.read(this).enabled) {
-            val manager = getSystemService(ALARM_SERVICE) as AlarmManager
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || manager.canScheduleExactAlarms()) {
-                PrayerRefreshWorker.enqueueNow(this)
+
+        if (waitingForExactAlarmSettings) {
+            waitingForExactAlarmSettings = false
+            permissionFlowInProgress = false
+            if (hasExactAlarmAccess()) {
+                Toast.makeText(
+                    this, "تم السماح بالمنبهات والتذكيرات. يجري تحديث مواعيد الأذان.",
+                    Toast.LENGTH_LONG
+                ).show()
+                permissionPromptDeferred = !hasNotificationAccess()
+            } else {
+                permissionPromptDeferred = true
+                Toast.makeText(
+                    this, "لم يُفعّل إذن المنبهات الدقيقة؛ قد يتأخر الأذان في وضع السكون.",
+                    Toast.LENGTH_LONG
+                ).show()
             }
+        }
+
+        if (::webView.isInitialized && PrayerSettings.read(this).enabled && hasExactAlarmAccess()) {
+            PrayerRefreshWorker.enqueueNow(this)
         }
     }
 
