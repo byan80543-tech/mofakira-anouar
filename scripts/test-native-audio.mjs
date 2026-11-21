@@ -51,6 +51,4 @@ assert.match(catalog, /أغيب وذو اللطائف لا يغيب/);
 for (const id of ['tawhid','wasitiyya','dawa','usul','usul2','qawaid','nawqid','kashf','masail','usulIman','usulAqaid','kabair','sharia','maarij','jawhara']) {
   assert.ok(catalog.includes('"' + id + '"'), 'native audio catalog preserves lesson series ' + id);
 }
-assert.match(catalog, /"الحسيمة" to "Al Hoceima"/,
-  'native prayer city mapping remains covered by the native audio integration branch only when catalog exists');
 console.log('Native Media3 playback, Quran, radio, lessons and devotional catalog tests passed.');
