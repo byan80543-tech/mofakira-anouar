@@ -87,7 +87,7 @@ ok(serviceWorker.includes("'./floating-panels.js'") && serviceWorker.includes("'
 ok(floatingPanels.includes('pointerdown') && floatingPanels.includes('pointermove') && floatingPanels.includes('pointercancel') && floatingPanels.includes('setPointerCapture'),'floating panels use pointer capture for reliable touch and mouse drag/resize');
 ok(floatingPanels.includes('function panelKey(menu,index)') && floatingPanels.includes('raw.length>4096') && floatingPanels.includes('visualViewport'),'floating panel preferences use stable keys, bounded parsing and viewport-aware positioning');
 ok(!floatingPanels.includes('innerHTML') && !floatingPanels.includes('eval(') && !floatingPanels.includes('new Function('),'floating panel UI does not use HTML injection or dynamic code execution');
-ok(floatingPanelsCss.includes('#rib .rib-pop.is-floating-panel[hidden]{display:none!important}'),'hidden tool content remains hidden when floating-panel display styles are active');
+ok(floatingPanelsCss.includes('>.rib-pop.is-floating-panel[hidden]{display:none!important}'),'hidden tool content remains hidden when floating-panel display styles are active');
 
 const ribbonViewportStart=html.indexOf('<style id="anwar-ribbon-viewport-safe-v2">');
 const ribbonViewportEnd=html.indexOf('</style>',ribbonViewportStart);
