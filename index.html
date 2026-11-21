@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.aladhan.com https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="preload" href="./app-core.js?v=20261121-36" as="script">
+<link rel="preload" href="./app-core.js?v=20261121-37" as="script">
 <script src="api-gateway-config.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>مفكرة أنوار | Anouar Oumlili</title>
@@ -2239,6 +2239,21 @@ dialog[open]>.float-head{display:none!important}
  #adhkarPersonalManager{padding:12px}
 }
 </style>
+<style id="anwar-owner-pen-icon-v1">
+#rd .curtain-head #ownerBtn.radio-owner-pen .owner-pen-icon{
+ display:block;width:22px;height:22px;transform:none!important;
+ filter:drop-shadow(0 1px 1px rgba(20,25,40,.3));
+}
+#ownerDialog .owner-mark{
+ background:linear-gradient(145deg,#fff5d9,#e8d3a1);
+ border:1px solid #c9a96a;
+ box-shadow:0 3px 10px rgba(35,48,64,.12),inset 0 1px 0 #fff;
+}
+#ownerDialog .owner-mark .owner-pen-icon{
+ display:block;width:34px;height:34px;transform:none!important;
+ filter:drop-shadow(0 2px 2px rgba(50,35,18,.18));
+}
+</style>
 </head>
 <body>
 <div class="app" id="app">
@@ -2408,7 +2423,7 @@ dialog[open]>.float-head{display:none!important}
 <div id="fm"><input id="fq" placeholder="ابحث عن خط…"><div id="fl"></div></div>
 <div id="pa"></div>
 <div id="rd" aria-label="لوحة الإذاعة">
- <div class="curtain-head"><button type="button" id="ownerBtn" class="radio-owner-pen" aria-label="الملكية وبطاقة النشر" title="الملكية وبطاقة النشر"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5 20.5 17 16 21.5 2.5 8 7 3.5Z" fill="#f1d89c" stroke="#fff0c5" stroke-width="1.1" stroke-linejoin="round"/><path d="m2.5 8 4.5-4.5M16 21.5l4.5-4.5M5.5 11.5l4.5-4.5" fill="none" stroke="#3b2d70" stroke-width="1.1"/><path d="m2.5 8-1 7.5L9 14.5" fill="#fff0c5" stroke="#fff0c5" stroke-linejoin="round"/></svg></button><button type="button" id="closeRadioPanel" class="radio-close-button" aria-label="إغلاق لوحة الإذاعة">×</button></div>
+ <div class="curtain-head"><button type="button" id="ownerBtn" class="radio-owner-pen" aria-label="الملكية وبطاقة النشر" title="الملكية وبطاقة النشر"><svg class="owner-pen-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M5.1 20.9 18.6 7.4l5 5L10.1 25.9l-6 1.9 1-6.9Z" fill="#f5e3b8" stroke="#fff2d1" stroke-width="1.1" stroke-linejoin="round"/><path d="m18.6 7.4 2.8-2.8a2.8 2.8 0 0 1 4 4l-2.8 2.8-4-4Z" fill="#d7aa5b" stroke="#fff0c5" stroke-width="1.1" stroke-linejoin="round"/><path d="m5.1 20.9 5 5M14.4 11.6l5 5" fill="none" stroke="#80603a" stroke-width="1.2" stroke-linecap="round"/><path d="m4.1 27.8 6.1-1.9-4.9-4.9-1.2 6.8Z" fill="#d5a75b" stroke="#fff0c5" stroke-width=".9" stroke-linejoin="round"/><path d="m4.1 27.8 2.2-2.2" stroke="#60452b" stroke-width="1" stroke-linecap="round"/></svg></button><button type="button" id="closeRadioPanel" class="radio-close-button" aria-label="إغلاق لوحة الإذاعة">×</button></div>
  <section id="anwarServiceHome" class="anwar-service-home" aria-label="الأقسام الرئيسية">
   <div id="anwarPrayerMount"></div>
   <div id="anwarServiceGrid" class="anwar-service-grid" aria-label="الأقسام">
@@ -2650,7 +2665,7 @@ dialog[open]>.float-head{display:none!important}
 
 
 <dialog id="ownerDialog">
- <div class="owner-mark">✒</div>
+ <div class="owner-mark"><svg class="owner-pen-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M5.1 20.9 18.6 7.4l5 5L10.1 25.9l-6 1.9 1-6.9Z" fill="#f5e3b8" stroke="#fff2d1" stroke-width="1.1" stroke-linejoin="round"/><path d="m18.6 7.4 2.8-2.8a2.8 2.8 0 0 1 4 4l-2.8 2.8-4-4Z" fill="#d7aa5b" stroke="#fff0c5" stroke-width="1.1" stroke-linejoin="round"/><path d="m5.1 20.9 5 5M14.4 11.6l5 5" fill="none" stroke="#80603a" stroke-width="1.2" stroke-linecap="round"/><path d="m4.1 27.8 6.1-1.9-4.9-4.9-1.2 6.8Z" fill="#d5a75b" stroke="#fff0c5" stroke-width=".9" stroke-linejoin="round"/><path d="m4.1 27.8 2.2-2.2" stroke="#60452b" stroke-width="1" stroke-linecap="round"/></svg></div>
  <h2>مفكرة أنوار</h2>
  <div class="owner-tabs">
   <button type="button" class="active" id="ownerTab">الملكية</button>
@@ -2739,7 +2754,7 @@ dialog[open]>.float-head{display:none!important}
 <script src="./vault-device-unlock.js?v=20261118-1"></script>
 <script src="./poetry-dictation.js?v=20261119-1" defer></script>
 <script src="./protective-adhkar.js?v=20261121-1" defer></script>
-<script src="./app-core.js?v=20261121-36" defer></script>
+<script src="./app-core.js?v=20261121-37" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
 <script src="./tasbih-controller.js?v=20261120-2" defer></script>
 <script src="./prayer-times.js?v=20261120-11" defer></script>

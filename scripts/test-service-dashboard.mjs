@@ -5,6 +5,8 @@ import vm from 'node:vm';
 
 const root=process.cwd();
 const appCore=fs.readFileSync(path.join(root,'app-core.js'),'utf8');
+const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+const backNavigation=fs.readFileSync(path.join(root,'toolbar-back-navigation.js'),'utf8');
 const marker='/* Anwar service dashboard: organize prayer, Quran, radio, lessons, adhkar and tasbih. */';
 const start=appCore.indexOf(marker);
 assert.notEqual(start,-1,'service dashboard initializer exists');
@@ -40,6 +42,7 @@ class FakeElement{
  fire(type){
   for(const callback of this.listeners.get(type)||[])callback({target:this});
  }
+ click(){this.fire('click')}
  setAttribute(name,value){this.attributes.set(name,String(value))}
  getAttribute(name){return this.attributes.get(name)??null}
  focus(){this.focused=true}
@@ -117,6 +120,15 @@ panel.querySelector=selector=>{
  return null;
 };
 
+let adhkarEditing=false;
+const adhkarContent=new FakeElement('adhkar-content');
+const editForm=new FakeElement('adhkar-edit-form');
+const cancelEditButton=new FakeElement('cancel-edit');
+cancelEditButton.hidden=false;
+cancelEditButton.addEventListener('click',()=>{adhkarEditing=false;cancelEditButton.hidden=true});
+editForm.querySelector=selector=>selector==='.adhkar-dialog-actions button[type="button"]'?cancelEditButton:null;
+adhkarContent.querySelector=selector=>selector==='.protective-personal-form[data-edit-id]'&&adhkarEditing?editForm:null;
+
 const prayerSummary=new FakeElement('prayer-summary');
 const prayerSettings=new FakeElement('prayer-settings');
 prayerSettings.open=false;
@@ -132,6 +144,7 @@ const ids={
  anwarRadioPage:radioPage,
  anwarLessonsPage:lessonsPage,
  anwarAdhkarPage:adhkarPage,
+ adhkarContent,
  anwarTasbihPage:tasbihPage,
  liveStationArea:liveStation,
  lessonHub,
@@ -140,12 +153,44 @@ const ids={
 };
 const document={
  getElementById:id=>ids[id]||null,
- querySelector:selector=>selector==='#anwarPrayerCard .anwar-prayer-settings'?prayerSettings:null
+ querySelector:selector=>selector==='#anwarPrayerCard .anwar-prayer-settings'?prayerSettings:selector==='[data-anwar-service="adhan"]'?services.adhan:null,
+ querySelectorAll:()=>[]
 };
 
 const renderedAdhkar=[];
 const tasbihCalls=[];
+const windowListeners=new Map();
+const historyEntries=[{anwarNotebookTestStart:true}];
+let historyIndex=0;
+const history={
+ get state(){return historyEntries[historyIndex]??null},
+ pushState(state){
+  historyEntries.splice(historyIndex+1);
+  historyEntries.push(state);
+  historyIndex++;
+ },
+ back(){
+  if(historyIndex<=0)return;
+  historyIndex--;
+  for(const callback of windowListeners.get('popstate')||[]){
+   callback({state:historyEntries[historyIndex]??null});
+  }
+ },
+ forward(){
+  if(historyIndex>=historyEntries.length-1)return;
+  historyIndex++;
+  for(const callback of windowListeners.get('popstate')||[]){
+   callback({state:historyEntries[historyIndex]??null});
+  }
+ }
+};
 const window={
+ history,
+ location:{href:'https://example.test/mofakira-anouar/'},
+ addEventListener(type,callback){
+  if(!windowListeners.has(type))windowListeners.set(type,[]);
+  windowListeners.get(type).push(callback);
+ },
  AnwarRenderAdhkar(period){renderedAdhkar.push(period);return true},
  AnwarTasbihController:{
   open(){tasbihCalls.push('open');return true},
@@ -162,6 +207,7 @@ assert.equal(readerList.parentNode,quranPage,'reader list must remain in Quran p
 assert.equal(lessonHub.parentNode,lessonsPage,'lesson library must be in lessons page');
 
 services.quran.fire('click');
+assert.equal(window.history.state.anwarServiceView,'quran','opening Quran adds a same-page history entry');
 assert.equal(home.hidden,true,'opening Quran hides the dashboard');
 assert.equal(quranPage.hidden,false,'opening Quran shows the Quran page');
 assert.equal(radioPage.hidden,true,'opening Quran hides the live-radio page');
@@ -171,6 +217,7 @@ quranBack.fire('click');
 assert.equal(home.hidden,false,'returning from Quran restores the dashboard');
 assert.equal(quranPage.hidden,true,'returning from Quran hides the Quran page');
 assert.equal(services.quran.focused,true,'returning restores focus to the launch card');
+assert.equal(window.history.state.anwarNotebookTestStart,true,'returning from Quran removes only the religious section history entry');
 
 services.radio.fire('click');
 assert.equal(home.hidden,true,'opening live radio hides the dashboard');
@@ -191,6 +238,19 @@ services.adhkar.fire('click');
 assert.equal(home.hidden,true,'opening adhkar hides the dashboard');
 assert.equal(adhkarPage.hidden,false,'opening adhkar shows the dedicated adhkar page');
 assert.deepEqual(renderedAdhkar,['protection'],'opening the adhkar card opens the unified protection collection directly');
+assert.equal(window.history.state.anwarServiceView,'adhkar','opening adhkar records the current service view');
+adhkarEditing=true;
+window.history.back();
+assert.equal(adhkarEditing,false,'first Android/browser back cancels the active adhkar edit');
+assert.equal(home.hidden,true,'canceling an adhkar edit keeps the visitor on the same adhkar page');
+assert.equal(adhkarPage.hidden,false,'the adhkar page remains visible while edit mode is canceled');
+assert.equal(window.history.state.anwarServiceView,'adhkar','canceling edit mode restores the current service page to history');
+window.history.back();
+assert.equal(home.hidden,false,'the next Android/browser back returns to religious sections instead of leaving the dashboard');
+assert.equal(adhkarPage.hidden,true,'the second back hides only the current adhkar page');
+window.history.forward();
+assert.equal(home.hidden,true,'browser forward restores the previous religious section');
+assert.equal(adhkarPage.hidden,false,'browser forward restores the same adhkar page');
 adhkarBack.fire('click');
 assert.equal(home.hidden,false,'returning from adhkar restores the dashboard');
 assert.equal(adhkarPage.hidden,true,'returning from adhkar hides its page');
@@ -205,9 +265,16 @@ assert.equal(tasbihPage.hidden,true,'returning from tasbih hides its page');
 assert.deepEqual(tasbihCalls,['open','close'],'leaving tasbih closes its controller and releases active voice recognition');
 
 services.adhan.fire('click');
+assert.equal(window.history.state.anwarServiceView,'adhan','opening prayer settings adds a back-stack entry');
 assert.equal(prayerSettings.open,true,'Adhan card opens the existing settings disclosure');
 assert.equal(services.adhan.getAttribute('aria-expanded'),'true','Adhan tile reports its expanded state');
 assert.equal(prayerSummary.focused,true,'Adhan action moves focus to the settings summary');
+window.history.back();
+assert.equal(prayerSettings.open,false,'first Android/browser back closes the expanded prayer settings');
+assert.equal(services.adhan.getAttribute('aria-expanded'),'false','closing prayer settings resets the tile state');
+assert.equal(home.hidden,false,'closing prayer settings keeps the visitor in the religious dashboard');
+window.history.back();
+assert.equal(home.hidden,false,'the next back remains within the service screen until the panel itself is closed');
 
 launcher.fire('click');
 assert.equal(home.hidden,false,'opening the Tulip launcher resets the panel to its home view');
@@ -217,4 +284,9 @@ assert.equal(lessonsPage.hidden,true,'opening the Tulip launcher hides stale les
 assert.equal(adhkarPage.hidden,true,'opening the Tulip launcher hides stale adhkar content');
 assert.equal(tasbihPage.hidden,true,'opening the Tulip launcher hides stale tasbih content');
 
+assert.ok(dashboardSource.includes("const SERVICE_HISTORY_KEY='anwarServiceView'")&&dashboardSource.includes("window.addEventListener('popstate',handleServicePopState)")&&dashboardSource.includes('historyApi.pushState(serviceState(name)'), 'service pages create browser history entries and listen for Android/browser back');
+assert.ok(dashboardSource.includes('function returnToServiceHome()')&&dashboardSource.includes('historyApi.back()')&&dashboardSource.includes('button.addEventListener(\'click\',returnToServiceHome)'), 'the in-page section back control consumes only its service history entry');
+assert.ok(dashboardSource.includes('function closeNestedServiceLayer()')&&dashboardSource.includes("'surahPickerModal','surahPickerClose'")&&dashboardSource.includes("'lessonSeriesModal','lessonSeriesClose'")&&dashboardSource.includes("getElementById('liveStationModal')")&&dashboardSource.includes('.live-station-modal-close')&&dashboardSource.includes("querySelector('#anwarPrayerCard .anwar-prayer-settings')")&&dashboardSource.includes('.protective-personal-form[data-edit-id]'), 'system back first closes Quran/radio/lesson pickers and prayer settings or cancels adhkar editing');
+assert.ok(backNavigation.includes("document.querySelector('#rd .anwar-service-page:not([hidden])')")&&backNavigation.includes("servicePage.querySelector('[data-anwar-service-back]')")&&backNavigation.includes('cancelEdit.click()')&&backNavigation.includes("byId('liveStationModal')")&&backNavigation.includes('prayerSettings.open = false'), 'the toolbar back button stays inside religious sections and unwinds editing, station and prayer controls first');
+assert.ok(html.includes('id="ownerBtn" class="radio-owner-pen"')&&html.includes('class="owner-pen-icon"')&&(html.match(/class="owner-pen-icon"/g)||[]).length>=2&&!html.includes('M7 3.5 20.5 17'), 'the ownership shortcut and ownership section share the new clear pen emblem');
 console.log('Service dashboard navigation, section placement, and return-focus tests passed.');

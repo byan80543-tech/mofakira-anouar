@@ -4695,6 +4695,100 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
  const pages={quran:quranPage,radio:radioPage,lessons:lessonsPage,adhkar:adhkarPage,tasbih:tasbihPage};
  const serviceButtons=Array.from(panel.querySelectorAll('[data-anwar-service]'));
  let lastOpener=null;
+ const SERVICE_HISTORY_KEY='anwarServiceView';
+ let serviceHistoryActive=false;
+
+ function serviceState(name){
+  const historyState=window.history&&window.history.state;
+  const base=historyState&&typeof historyState==='object'?{...historyState}:{};
+  return {...base,[SERVICE_HISTORY_KEY]:name};
+ }
+ function pushServiceHistory(name){
+  const historyApi=window.history;
+  if(!historyApi||typeof historyApi.pushState!=='function'){serviceHistoryActive=false;return}
+  historyApi.pushState(serviceState(name),'',window.location&&window.location.href?window.location.href:'');
+  serviceHistoryActive=true;
+ }
+ function resetServiceHistory(){
+  const historyApi=window.history;
+  const hasOwnedEntry=serviceHistoryActive&&historyApi&&historyApi.state&&historyApi.state[SERVICE_HISTORY_KEY];
+  serviceHistoryActive=false;
+  if(hasOwnedEntry&&typeof historyApi.back==='function')historyApi.back();
+ }
+ function activeServiceName(){
+  const current=Object.keys(pages).find(name=>!pages[name].hidden);
+  if(current)return current;
+  const prayerSettings=document.querySelector('#anwarPrayerCard .anwar-prayer-settings');
+  return prayerSettings&&prayerSettings.open?'adhan':'';
+ }
+ function closeNestedServiceLayer(){
+  const customOverlays=[
+   ['reciterCountryModal','countryModalClose'],
+   ['surahPickerModal','surahPickerClose'],
+   ['lessonSeriesModal','lessonSeriesClose']
+  ];
+  for(const [modalId,closeId] of customOverlays){
+   const modal=document.getElementById(modalId);
+   if(modal&&!modal.hidden){
+    document.getElementById(closeId)?.click();
+    return true;
+   }
+  }
+  const stationModal=document.getElementById('liveStationModal');
+  if(stationModal&&!stationModal.hidden){
+   stationModal.querySelector('.live-station-modal-close')?.click();
+   return true;
+  }
+  const prayerSettings=document.querySelector('#anwarPrayerCard .anwar-prayer-settings');
+  if(prayerSettings&&prayerSettings.open){
+   prayerSettings.open=false;
+   document.querySelector('[data-anwar-service="adhan"]')?.setAttribute('aria-expanded','false');
+   return true;
+  }
+  const dialogs=Array.from(document.querySelectorAll('dialog[open]'));
+  const activeDialog=dialogs[dialogs.length-1];
+  if(activeDialog){activeDialog.close();return true}
+
+  const adhkarContent=document.getElementById('adhkarContent');
+  const editingForm=adhkarContent&&adhkarContent.querySelector('.protective-personal-form[data-edit-id]');
+  if(editingForm){
+   const cancel=editingForm.querySelector('.adhkar-dialog-actions button[type="button"]');
+   if(cancel&&!cancel.hidden){cancel.click();return true}
+  }
+  return false;
+ }
+ function returnToServiceHome(){
+  const historyApi=window.history;
+  if(serviceHistoryActive&&historyApi&&historyApi.state&&historyApi.state[SERVICE_HISTORY_KEY]&&typeof historyApi.back==='function'){
+   historyApi.back();
+   return;
+  }
+  serviceHistoryActive=false;
+  showHome(true);
+ }
+ function handleServicePopState(event){
+  const currentName=activeServiceName();
+  if(currentName&&closeNestedServiceLayer()){
+   const historyApi=window.history;
+   if(historyApi&&typeof historyApi.pushState==='function'){
+    const prior=event&&event.state&&typeof event.state==='object'?event.state:{};
+    historyApi.pushState({...prior,[SERVICE_HISTORY_KEY]:currentName},'',window.location&&window.location.href?window.location.href:'');
+    serviceHistoryActive=true;
+   }
+   return;
+  }
+  const restoredName=event&&event.state&&event.state[SERVICE_HISTORY_KEY];
+  if(restoredName&&pages[restoredName]){
+   serviceHistoryActive=true;
+   openService(restoredName,null,true);
+   return;
+  }
+  if(serviceHistoryActive){
+   serviceHistoryActive=false;
+   showHome(true);
+  }
+ }
+ if(typeof window.addEventListener==='function')window.addEventListener('popstate',handleServicePopState);
 
  const existingChildren=Array.from(panel.children);
  let insideQuran=false;
@@ -4732,8 +4826,10 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
   if(restoreFocus&&lastOpener)lastOpener.focus({preventScroll:true});
  }
 
- function openService(name,button){
+ function openService(name,button,fromHistory=false){
   if(name==='adhan'){
+   if(fromHistory)serviceHistoryActive=true;
+   else pushServiceHistory('adhan');
    const card=document.getElementById('anwarPrayerCard');
    const settings=card&&card.querySelector('.anwar-prayer-settings');
    if(settings)settings.open=true;
@@ -4745,6 +4841,8 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
   }
   const page=pages[name];
   if(!page)return;
+  if(fromHistory)serviceHistoryActive=true;
+  else pushServiceHistory(name);
   if(!tasbihPage.hidden&&name!=='tasbih')closeTasbihIfOpen();
   lastOpener=button||lastOpener;
   home.hidden=true;
@@ -4771,10 +4869,12 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
   button.addEventListener('click',()=>openService(button.dataset.anwarService,button));
  });
  panel.querySelectorAll('[data-anwar-service-back]').forEach(button=>{
-  button.addEventListener('click',()=>showHome(true));
+  button.addEventListener('click',returnToServiceHome);
  });
 
  // Opening the Tulip launcher always starts from the organized home screen.
  const launcher=document.getElementById('rg');
- if(launcher)launcher.addEventListener('click',()=>showHome(false));
+ if(launcher)launcher.addEventListener('click',()=>{resetServiceHistory();showHome(false)});
+ const closePanelButton=document.getElementById('closeRadioPanel');
+ if(closePanelButton)closePanelButton.addEventListener('click',()=>{resetServiceHistory();showHome(false)});
 })();
