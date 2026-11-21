@@ -81,6 +81,8 @@ jobs:
         run: node scripts/test-csp.mjs
       - name: Test click-burst protection and cooldown
         run: node scripts/test-click-guard.mjs
+      - name: Test movable, resizable tool panels and viewport safety
+        run: node scripts/test-floating-panels.mjs
       - name: Validate Cloudflare Worker bundle and Wrangler bindings
         run: npx --yes wrangler@4.164.0 deploy --dry-run --config workers/anwar-api-gateway/wrangler.toml
       - name: Test notebook storage and recovery paths

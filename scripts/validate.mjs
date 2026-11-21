@@ -23,12 +23,15 @@ const apiGatewayWrangler=fs.readFileSync(path.join(root,'workers/anwar-api-gatew
 const apiGatewayReadme=fs.readFileSync(path.join(root,'workers/anwar-api-gateway/README.md'),'utf8');
 const apiGatewayDeployWorkflow=fs.readFileSync(path.join(root,'.github/workflows/deploy-anwar-api-gateway.yml'),'utf8');
 const clickGuard=fs.readFileSync(path.join(root,'click-guard.js'),'utf8');
+const floatingPanels=fs.readFileSync(path.join(root,'floating-panels.js'),'utf8');
+const floatingPanelsCss=fs.readFileSync(path.join(root,'floating-panels.css'),'utf8');
 const iconGenerator=fs.readFileSync(path.join(root,'scripts/generate-pwa-icons.py'),'utf8');
 const failures=[];
 const ok=(condition,message)=>{if(!condition)failures.push(message);else console.log('PASS',message)};
 try{new vm.Script(tasbihController,{filename:'tasbih-controller.js'});ok(true,'standalone tasbih controller JavaScript syntax is valid')}catch(error){failures.push('tasbih-controller.js: '+error.message)}
 try{new vm.Script(poetryDictation,{filename:'poetry-dictation.js'});ok(true,'standalone poetry dictation controller JavaScript syntax is valid')}catch(error){failures.push('poetry-dictation.js: '+error.message)}
 try{new vm.Script(protectiveAdhkar,{filename:'protective-adhkar.js'});ok(true,'protective adhkar data JavaScript syntax is valid')}catch(error){failures.push('protective-adhkar.js: '+error.message)}
+try{new vm.Script(floatingPanels,{filename:'floating-panels.js'});ok(true,'floating panel controller JavaScript syntax is valid')}catch(error){failures.push('floating-panels.js: '+error.message)}
 ok(html.includes('id="sp"')&&html.includes('id="speakRead"'),'poetry dictation and spoken reading have separate toolbar controls');
 ok(html.indexOf('<script src="./poetry-dictation.js')<html.indexOf('<script src="./app-core.js'),'poetry dictation controller loads before the notebook application');
 ok(appCore.includes("else if(id==='sp')togglePoetryDictation()")&&appCore.includes("else if(id==='speakRead')speakText()"),'dictation and speech playback are routed to their own actions');
@@ -79,6 +82,13 @@ ok(!appSource.includes('file_00000000670481f4ad879246afe6bae2.png'),'the oversiz
 ok(!manifest.icons.some(i=>String(i.src).includes('file_00000000670481f4ad879246afe6bae2.png')),'manifest excludes the oversized source icon');
 ok(appSource.includes('id="bookToolPanel"') && appSource.includes('id="bookToolContent" hidden'),'book creation is compact and collapsed inside the tools panel');
 ok(appSource.includes("setBookToolExpanded($('bookToolContent').hidden,true)"),'book panel toggle opens and closes correctly');
+ok(html.includes('<link rel="stylesheet" href="./floating-panels.css?v=20261121-1">') && html.includes('<script src="./floating-panels.js?v=20261121-1" defer></script>'),'floating panel styles and controller are loaded from same-origin files');
+ok(serviceWorker.includes("'./floating-panels.js'") && serviceWorker.includes("'./floating-panels.css'") && serviceWorker.includes("anwar-shell-2026-11-21-v125"),'floating panel code and styles are included in the updated offline app shell');
+ok(floatingPanels.includes('pointerdown') && floatingPanels.includes('pointermove') && floatingPanels.includes('pointercancel') && floatingPanels.includes('setPointerCapture'),'floating panels use pointer capture for reliable touch and mouse drag/resize');
+ok(floatingPanels.includes('function panelKey(menu,index)') && floatingPanels.includes('raw.length>4096') && floatingPanels.includes('visualViewport'),'floating panel preferences use stable keys, bounded parsing and viewport-aware positioning');
+ok(!floatingPanels.includes('innerHTML') && !floatingPanels.includes('eval(') && !floatingPanels.includes('new Function('),'floating panel UI does not use HTML injection or dynamic code execution');
+ok(floatingPanelsCss.includes('#rib .rib-pop.is-floating-panel[hidden]{display:none!important}'),'hidden tool content remains hidden when floating-panel display styles are active');
+
 const ribbonViewportStart=html.indexOf('<style id="anwar-ribbon-viewport-safe-v2">');
 const ribbonViewportEnd=html.indexOf('</style>',ribbonViewportStart);
 const ribbonViewportFix=ribbonViewportStart>=0&&ribbonViewportEnd>ribbonViewportStart

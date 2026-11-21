@@ -11,7 +11,9 @@ const RATE_POLICIES = Object.freeze({
   catalog: { limit: 20, windowMs: 60_000 },
   "country-list": { limit: 8, windowMs: 60_000 },
   "country-profile": { limit: 12, windowMs: 60_000 },
-  "admin-login": { limit: 5, windowMs: 60 * 60_000 }
+  "admin-login": { limit: 5, windowMs: 60 * 60_000 },
+  // Bound authenticated owner actions as well, including after a token leak.
+  "admin-api": { limit: 20, windowMs: 60_000 }
 });
 
 const CACHE_TTLS = Object.freeze({
@@ -308,7 +310,7 @@ export class IpRateLimiter {
 
     const clientKey = payload && payload.clientKey;
     const buckets = payload && payload.buckets;
-    const validRouteBuckets = new Set(["catalog", "country-list", "country-profile", "admin-login"]);
+    const validRouteBuckets = new Set(["catalog", "country-list", "country-profile", "admin-login", "admin-api"]);
     const validShape = Array.isArray(buckets) &&
       buckets.length === 3 &&
       buckets[0] === "total" &&
@@ -352,7 +354,7 @@ export class IpRateLimiter {
       // Purge legacy adhkar visitor counters; public reads no longer use per-visitor identifiers.
       delete value["adhkar-read"];
       delete value["adhkar-suggestions"];
-      for (const bucket of ["client", "catalog", "country-list", "country-profile", "admin-login"]) {
+      for (const bucket of ["client", "catalog", "country-list", "country-profile", "admin-login", "admin-api"]) {
         const windowMs = RATE_POLICIES[bucket]?.windowMs || 60_000;
         const bucketCutoff = now - windowMs;
         value[bucket] = Array.isArray(value[bucket])
@@ -370,6 +372,7 @@ export class IpRateLimiter {
       "country-list": [],
       "country-profile": [],
       "admin-login": [],
+      "admin-api": [],
     };
     const routeBucket = buckets[2];
     const checks = [
@@ -450,15 +453,43 @@ function normalizeDhikr(value, options = {}) {
 }
 
 async function readJsonBody(request, limit = ADHKAR_BODY_LIMIT) {
-  const advertisedLength = Number(request.headers.get("Content-Length") || 0);
-  if (advertisedLength > limit) return null;
-  const raw = await request.text();
-  if (new TextEncoder().encode(raw).byteLength > limit) return null;
+  const advertisedHeader = request.headers.get("Content-Length");
+  const advertisedLength = advertisedHeader === null ? 0 : Number(advertisedHeader);
+  if (Number.isFinite(advertisedLength) && advertisedLength > limit) return null;
+  if (!Number.isSafeInteger(limit) || limit < 1 || !request.body) return null;
+
+  // Read at most the configured byte limit. Do not call request.text() here:
+  // chunked requests can omit Content-Length and otherwise force full buffering.
+  const reader = request.body.getReader();
+  const chunks = [];
+  let total = 0;
   try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!value || !Number.isSafeInteger(value.byteLength)) return null;
+      total += value.byteLength;
+      if (total > limit) {
+        try { await reader.cancel("Request body exceeds the configured limit"); } catch {}
+        return null;
+      }
+      chunks.push(value);
+    }
+
+    const bytes = new Uint8Array(total);
+    let offset = 0;
+    for (const chunk of chunks) {
+      bytes.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+
+    const raw = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
     const parsed = JSON.parse(raw);
     return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : null;
   } catch {
     return null;
+  } finally {
+    try { reader.releaseLock(); } catch {}
   }
 }
 
@@ -612,6 +643,11 @@ async function handleAdhkarApi(request, url, env, origin) {
   // Every write or administrative read requires a valid owner-only session.
   const authenticated = await verifyAdminSession(request, adminSecret);
   if (!authenticated) return errorResponse("هذه العملية متاحة لصاحب المفكرة فقط.", 401, origin);
+
+  // A signed token is not a reason to skip resource controls. Keep owner API
+  // traffic bounded per IP and globally, and fail closed if the limiter is down.
+  const adminLimited = await rateLimitedAdhkar(request, env, "admin-api", origin);
+  if (adminLimited) return adminLimited;
 
   try {
     if (path === "/v1/admin/adhkar" && method === "GET") {

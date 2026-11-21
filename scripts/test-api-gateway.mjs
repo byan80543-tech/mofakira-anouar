@@ -274,6 +274,104 @@ try {
   }), baseEnv(), context);
   assert.equal(response.status, 404, "the removed audio transcription endpoint returns not found");
 
+
+  // Authenticated owner endpoints remain rate-limited even with a valid signed token.
+  const adminSecret = "owner-test-secret-32-characters-minimum";
+  const adminStoreCalls = [];
+  const adminStore = {
+    idFromName(name) { return { name }; },
+    get(id) {
+      return {
+        async fetch(input, init) {
+          const storeRequest = input instanceof Request ? input : new Request(input, init);
+          adminStoreCalls.push({ path: new URL(storeRequest.url).pathname, method: storeRequest.method });
+          return new Response(JSON.stringify({ initialized: true, entries: [] }), {
+            headers: { "Content-Type": "application/json", "Cache-Control": "no-store" }
+          });
+        }
+      };
+    }
+  };
+  const adminEnv = {
+    ...baseEnv(),
+    ADHKAR_ADMIN_SECRET: adminSecret,
+    ADHKAR_STORE: adminStore
+  };
+  const loginRequest = new Request("https://gateway.example.workers.dev/v1/admin/session", {
+    method: "POST",
+    headers: {
+      Origin: "https://byan80543-tech.github.io",
+      "CF-Connecting-IP": "192.0.2.44",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ password: adminSecret })
+  });
+  const loginResponse = await worker.fetch(loginRequest, adminEnv, context);
+  assert.equal(loginResponse.status, 200, "the valid owner secret creates a short-lived signed session");
+  const session = await loginResponse.json();
+  assert.equal(typeof session.token, "string");
+  assert.ok(session.token.length > 20);
+
+  const ownerRead = () => request("/v1/admin/adhkar", {
+    method: "GET",
+    headers: { Authorization: "Bearer " + session.token }
+  });
+  const ownerReadResponse = await worker.fetch(ownerRead(), adminEnv, context);
+  assert.equal(ownerReadResponse.status, 200, "the signed owner token can read the private management view");
+  assert.deepEqual(adminStoreCalls.at(-1), { path: "/entries", method: "GET" });
+  assert.deepEqual(
+    adminEnv.IP_LIMITER.bucketsSeen.at(-1),
+    ["total", "client", "admin-api"],
+    "authenticated owner operations use the dedicated admin-api bucket"
+  );
+
+  const deniedAdminEnv = {
+    ...adminEnv,
+    IP_LIMITER: makeLimiter({ denyBucket: "admin-api" })
+  };
+  const callsBeforeDeniedAdmin = adminStoreCalls.length;
+  const deniedOwnerRead = await worker.fetch(ownerRead(), deniedAdminEnv, context);
+  assert.equal(deniedOwnerRead.status, 429, "owner management calls are blocked when the admin API bucket is exhausted");
+  assert.equal(deniedOwnerRead.headers.get("Retry-After"), "17");
+  assert.equal(adminStoreCalls.length, callsBeforeDeniedAdmin, "rate-limited management requests never reach the data store");
+
+  const forgedOwnerRead = await worker.fetch(request("/v1/admin/adhkar", {
+    method: "GET",
+    headers: { Authorization: "Bearer " + "x".repeat(48) }
+  }), adminEnv, context);
+  assert.equal(forgedOwnerRead.status, 401, "a forged bearer token cannot reach the management store");
+  assert.equal(adminStoreCalls.length, callsBeforeDeniedAdmin, "invalid owner tokens are rejected before store access");
+
+  // Chunked/streamed bodies without Content-Length are bounded while reading.
+  let oversizedBodyCancelled = false;
+  const oversizedStream = new ReadableStream({
+    pull(controller) {
+      controller.enqueue(new TextEncoder().encode('{"password":"' + "x".repeat(5000) + '"}'));
+    },
+    cancel() { oversizedBodyCancelled = true; }
+  });
+  const oversizedLogin = new Request("https://gateway.example.workers.dev/v1/admin/session", {
+    method: "POST",
+    headers: {
+      Origin: "https://byan80543-tech.github.io",
+      "CF-Connecting-IP": "192.0.2.44",
+      "Content-Type": "application/json"
+    },
+    body: oversizedStream,
+    duplex: "half"
+  });
+  assert.equal(oversizedLogin.headers.has("Content-Length"), false, "the oversized-body test omits Content-Length");
+  const oversizedResponse = await worker.fetch(oversizedLogin, adminEnv, context);
+  assert.equal(oversizedResponse.status, 401, "an oversized streamed login body is rejected");
+  assert.equal(oversizedBodyCancelled, true, "the Worker cancels the body stream as soon as its byte limit is exceeded");
+
+  // The Durable Object accepts the dedicated admin-api bucket and persists it.
+  sql.exec("UPDATE rate_state SET data = ? WHERE id = 1", '{"global":[],"clients":{}}');
+  last = await limiter.fetch(limiterRequest("c".repeat(64), "admin-api"));
+  assert.equal(last.status, 200, "the Durable Object accepts the dedicated admin-api bucket");
+  persisted = JSON.parse(dbState);
+  assert.ok(Array.isArray(persisted.clients["c".repeat(64)]["admin-api"]));
+
   // The Durable Object no longer accepts transcription-only daily quota buckets.
   const obsoleteQuotaRequest = new Request("https://rate-limit.internal/check", {
     method: "POST",
@@ -286,7 +384,7 @@ try {
   const obsoleteQuotaResponse = await limiter.fetch(obsoleteQuotaRequest);
   assert.equal(obsoleteQuotaResponse.status, 400, "transcription-only rate-limit buckets are rejected");
 
-  console.log("API gateway checks passed: origin, allowlist, cache, edge/IP limits and retired transcription endpoint.");
+  console.log("API gateway checks passed: origin, allowlist, SSRF redirects, bounded request bodies, owner-token authentication, admin/API rate limits, cache and retired endpoint.");
 } finally {
   globalThis.fetch = originalFetch;
   Object.defineProperty(globalThis, "crypto", { value: originalCrypto, configurable: true, writable: true });

@@ -3,7 +3,7 @@
  * the matching HTML, update checker and local assets before activation.
  */
 'use strict';
-const CACHE_NAME='anwar-shell-2026-11-20-v124';
+const CACHE_NAME='anwar-shell-2026-11-21-v125';
 const APP_BASE=new URL('./',self.registration.scope);
 const SHELL_ASSETS=[
  './index.html',
@@ -21,6 +21,8 @@ const SHELL_ASSETS=[
  './toolbar-back-navigation.js',
  './api-gateway-config.js',
  './click-guard.js',
+ './floating-panels.js',
+ './floating-panels.css',
  './update-notice-v2.js',
  './update-notice-v2.css',
  './assets/royal-rose-closed.svg',
