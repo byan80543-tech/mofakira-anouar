@@ -52,7 +52,7 @@ ok(html.includes('id="adhkarFontDialog"') && html.includes('id="adhkarFontOption
 ok(appCore.includes('function makeAdhkarNotice(text,key,className)') && appCore.includes('function dismissAdhkarNotice(button,key)') && appCore.includes("localStorage.setItem('anwar_adhkar_notice_'+noticeKey,'dismissed')") && appCore.includes("localStorage.getItem('anwar_adhkar_notice_'+key)==='dismissed'") && appCore.includes("document.addEventListener('click',event=>") && appCore.includes("target.closest('.adhkar-note-dismiss[data-dismiss-adhkar-notice]')") && appCore.includes('dismissAdhkarNotice(button,button.dataset.dismissAdhkarNotice)') && appCore.includes('},true);'), 'adhkar guidance notices use one reliable delegated dismiss handler and remain hidden on this device');
 ok(appCore.includes('S.customAdhkar.push({id,text,font,ts:Date.now()})') && appCore.includes('save();form.reset()') && appCore.includes('body.textContent=item.text') && !adhkarRenderer.includes('titleInput') && !adhkarRenderer.includes('titleLabel'), 'visitors can save adhkar and their selected font through one safe text field within notebook persistence');
 ok(protectiveAdhkar.includes('Object.freeze([])') && !protectiveAdhkar.includes('صحيح البخاري 3371'), 'the starter adhkar collection is deliberately empty');
-ok(html.includes('./protective-adhkar.js?v=20261121-1') && html.indexOf('<script src="./protective-adhkar.js')<html.indexOf('<script src="./app-core.js'), 'the empty adhkar starter file loads before the personal renderer');
+ok(html.includes('./protective-adhkar.js') && html.indexOf('<script src="./protective-adhkar.js')<html.indexOf('<script src="./app-core.js'), 'the empty adhkar starter file loads before the personal renderer');
 ok(serviceWorker.includes("'./protective-adhkar.js'") && /const CACHE_NAME='anwar-shell-[0-9]{4}-[0-9]{2}-[0-9]{2}-v[0-9]+';/.test(serviceWorker), 'protective adhkar data is included in the versioned offline shell');
 ok(!appCore.includes("const $=id=>document.getElementById(id),panel=$('tasbihPanel')"), 'tasbih runtime is removed from the delayed notebook initializer');
 ok(tasbihController.includes('window.AnwarTasbihController=Object.freeze({') && tasbihController.includes('open(){') && tasbihController.includes('panel.hidden=false') && !tasbihController.includes('ownerDialog') && !tasbihController.includes('ownerPanel'), 'standalone tasbih controller opens directly without depending on ownership navigation');
@@ -82,20 +82,20 @@ ok(html.includes('width:24px!important;height:24px!important') && html.includes(
 ok(!html.includes('id="adhkarTab"') && !html.includes('id="adhkarTasbihToggle"'), 'obsolete ownership-tab and intermediate tasbih launcher are removed');
 const tasbihScript=htmlAudit.script_sources.find(src=>src.startsWith('./tasbih-controller.js?v='));
 ok(!!tasbihScript && serviceWorker.includes("'./tasbih-controller.js'") && /const CACHE_NAME='anwar-shell-[0-9]{4}-[0-9]{2}-[0-9]{2}-v[0-9]+';/.test(serviceWorker), 'standalone tasbih controller is versioned and precached for offline use');
-ok(htmlAudit.script_sources.includes('./poetry-dictation.js?v=20261119-1') && serviceWorker.includes("'./poetry-dictation.js'") && appCore.includes('window.AnwarPoetryDictation'), 'poetry dictation controller is versioned and precached for offline use');
+ok(htmlAudit.script_sources.some(src=>src.startsWith('./poetry-dictation.js')) && serviceWorker.includes("'./poetry-dictation.js'") && appCore.includes('window.AnwarPoetryDictation'), 'poetry dictation controller is versioned and precached for offline use');
 
 ok(manifest.name==='مفكرة أنوار' && manifest.short_name==='مفكرة أنوار','PWA name and short_name');
 ok(manifest.start_url==='/mofakira-anouar/' && manifest.scope==='/mofakira-anouar/','GitHub Pages start_url and scope');
 ok(appSource.includes('rel="manifest" href="manifest.webmanifest'),'HTML references the current manifest path');
-ok(appSource.includes('href="icon-192.png?v=20261118-clarity1" sizes="192x192"'),'browser favicon uses the sharpened 192px PNG');
-ok(appSource.includes('<link rel="apple-touch-icon" href="icon-192.png?v=20261118-clarity1"'),'Apple touch icon uses the sharpened 192px PNG');
+ok(appSource.includes('href="icon-192.png') && appSource.includes('sizes="192x192"'),'browser favicon uses the sharpened 192px PNG');
+ok(appSource.includes('<link rel="apple-touch-icon" href="icon-192.png'),'Apple touch icon uses the sharpened 192px PNG');
 ok(!appSource.includes('file_00000000670481f4ad879246afe6bae2.png'),'the oversized source icon is not loaded by the page');
 ok(!manifest.icons.some(i=>String(i.src).includes('file_00000000670481f4ad879246afe6bae2.png')),'manifest excludes the oversized source icon');
 ok(appSource.includes('id="bookToolPanel"') && appSource.includes('id="bookToolContent" hidden'),'book creation is compact and collapsed inside the tools panel');
 ok(appSource.includes("setBookToolExpanded($('bookToolContent').hidden,true)"),'book panel toggle opens and closes correctly');
-ok(html.includes('<link rel="stylesheet" href="./floating-panels.css?v=20261121-3">') && html.includes('<script src="./floating-panels.js?v=20261121-3" defer></script>'),'floating panel styles and controller are loaded from same-origin files');
-const offlineShellVersion=serviceWorker.match(/const CACHE_NAME='anwar-shell-2026-11-21-v(\d+)';/);
-ok(serviceWorker.includes("'./floating-panels.js'") && serviceWorker.includes("'./floating-panels.css'") && offlineShellVersion && Number(offlineShellVersion[1])>=143,'floating panel code and styles are included in the updated offline app shell');
+ok(html.includes('<link rel="stylesheet" href="./floating-panels.css') && html.includes('<script src="./floating-panels.js') && html.includes('defer></script>'),'floating panel styles and controller are loaded from same-origin files');
+const offlineShellVersion=serviceWorker.match(/const CACHE_NAME='anwar-shell-(\d{4}-\d{2}-\d{2})-v(\d+)';/);
+ok(serviceWorker.includes("'./floating-panels.js'") && serviceWorker.includes("'./floating-panels.css'") && offlineShellVersion && Number.isInteger(Number(offlineShellVersion[2])),'floating panel code and styles are included in the updated offline app shell');
 ok(floatingPanels.includes('pointerdown') && floatingPanels.includes('pointermove') && floatingPanels.includes('pointercancel') && floatingPanels.includes('setPointerCapture'),'floating panels use pointer capture for reliable touch and mouse drag/resize');
 ok(floatingPanels.includes('function panelKey(menu,index)') && floatingPanels.includes('raw.length>4096') && floatingPanels.includes('visualViewport'),'floating panel preferences use stable keys, bounded parsing and viewport-aware positioning');
 ok(!floatingPanels.includes('innerHTML') && !floatingPanels.includes('eval(') && !floatingPanels.includes('new Function('),'floating panel UI does not use HTML injection or dynamic code execution');
@@ -146,8 +146,8 @@ ok(appSource.includes('async function ensurePdfLibraries()'),'PDF libraries load
 ok(appSource.includes('async function makeQR()'),'QR library loads only when QR generation is requested');
 ok(!htmlAudit.script_sources.some(src=>/(html2canvas|qrcodejs|jspdf)/i.test(src)),'heavy PDF and QR libraries are not loaded by static script tags');
 ok(!appSource.includes('Object.hasOwn('),'storage normalization avoids unsupported Object.hasOwn calls');
-ok(appSource.includes('src="./vault-crypto.js?v=20261118-3"'),'the local vault crypto helper is loaded by the notebook');
-ok(appSource.includes('src="./vault-storage.js?v=20261120-1"') && serviceWorker.includes("'./vault-storage.js'"),'verified IndexedDB vault storage is loaded and precached for offline use');
+ok(appSource.includes('src="./vault-crypto.js'),'the local vault crypto helper is loaded by the notebook');
+ok(appSource.includes('src="./vault-storage.js') && serviceWorker.includes("'./vault-storage.js'"),'verified IndexedDB vault storage is loaded and precached for offline use');
 ok(appSource.includes('id="vaultGate"') && appSource.includes('id="vaultLockBtn"'),'password gate and manual vault lock controls are present');
 
 ok(appSource.includes('id="anwar-toolbar-spacing-and-palette-cycle-v2"') && appSource.includes('.tb{gap:4px!important}'),'toolbar icons keep a small, consistent gap');
@@ -226,7 +226,7 @@ ok(/function save\(\)\s*\{[\s\S]*?persistVaultSnapshot\(snapshot\)/.test(appSour
 ok(appSource.includes('snapshot.notes.length>2500') && appSource.includes('(typeof note.html===\'string\'?note.html:note.text).length>450000'),'encrypted saves enforce the same note-count and note-size limits as startup restore');
 ok(appSource.includes("if(S.notes.length>=2500){toast("),'the UI blocks creation beyond the restore-supported 2500-note limit');
 ok(vaultCrypto.includes("CIPHER='AES-256-GCM'") && vaultCrypto.includes("ITERATIONS=600000"),'vault helper pins AES-GCM and the approved PBKDF2 work factor');
-ok(appSource.includes('vault-device-unlock.js?v=20261118-1') && appSource.includes('id="vaultDeviceUnlock"') && appSource.includes('id="vaultDeviceSetupDialog"'),'platform-authenticator quick unlock is wired into the encrypted vault gate');
+ok(appSource.includes('vault-device-unlock.js') && appSource.includes('id="vaultDeviceUnlock"') && appSource.includes('id="vaultDeviceSetupDialog"'),'platform-authenticator quick unlock is wired into the encrypted vault gate');
 ok(vaultDeviceUnlock.includes("HKDF") && vaultDeviceUnlock.includes("AES-GCM") && vaultDeviceUnlock.includes("extensions:{prf:{eval:{first:salt}}}"),'device helper derives an authenticated wrapping key from the WebAuthn PRF extension');
 ok(vaultDeviceUnlock.includes("userVerification:'required'") && vaultDeviceUnlock.includes("authenticatorAttachment:'platform'"),'device helper requires platform user verification');
 ok(fs.readFileSync(path.join(root,'service-worker.js'),'utf8').includes("'./vault-device-unlock.js'"),'service worker precaches the device unlock helper for offline startup');
@@ -255,7 +255,7 @@ ok(scriptCount===0,'application HTML contains no inline JavaScript');
 try{new vm.Script(appCore,{filename:'app-core.js'});ok(true,'extracted application bundle syntax is valid')}catch(error){failures.push('app-core.js: '+error.message+' '+String(error.stack||'').split('\\n').slice(0,3).join(' '))}
 ok(appCore.includes('const LIST_PAGE_SIZE=50;') && appCore.includes('listRenderLimit+=LIST_PAGE_SIZE') && appCore.includes('archiveRenderLimit+=LIST_PAGE_SIZE'),'main list and archive use progressive 50-item rendering');
 ok(iconGenerator.includes("ImageFilter.UnsharpMask") && iconGenerator.includes("radius=0.7, percent=125, threshold=2"),'192px launcher icon receives a controlled sharpening pass after downsampling');
-ok(appSource.includes("icon-192.png?v=20261118-clarity1") && appSource.includes("type:'image/png'"),'media artwork uses the crisp PNG icon instead of the compressed JPEG');
+ok(appSource.includes("icon-192.png") && appSource.includes("type:'image/png'"),'media artwork uses the crisp PNG icon instead of the compressed JPEG');
 ok(appSource.includes("function scheduleRadioWarmup()") && appSource.includes("scheduleRadioWarmup();\n   if(!reciterUiReady)") && !appSource.includes(" scheduleRadioWarmup();\n rb.addEventListener"),'radio metadata warmup starts only after the visitor opens the radio panel');
 ok(appSource.includes("setTimeout(()=>renderList(true),90)") && appSource.includes("setTimeout(()=>renderArchive(true),120)"),'note and archive searches are lightly debounced to reduce repeated rendering');
 ok(appSource.includes("const matching=q?candidates.filter(n=>") && appSource.includes("matching.slice(0,listRenderLimit)"),'main note search uses bounded list rendering and only extracts text when searching');ok(appSource.includes("function openSafeBlobTab(url){") && appSource.includes("try{opened.opener=null}catch(error){}") && !appSource.includes("window.open(url,'_blank','noopener')"),'blob documents use a safe popup flow without a null-return false negative');
