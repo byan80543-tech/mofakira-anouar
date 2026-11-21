@@ -42,6 +42,19 @@
  if(!rib)return;
  const menus=Array.from(rib.querySelectorAll('.rib-menu'));
  if(!menus.length)return;
+ const panelByMenu=new WeakMap();
+ let floatingLayer=null;
+ function getFloatingLayer(){
+  if(floatingLayer&&floatingLayer.isConnected)return floatingLayer;
+  floatingLayer=doc.createElement('div');
+  floatingLayer.id='anwar-floating-panels-layer';
+  floatingLayer.setAttribute('aria-label','النوافذ العائمة لأدوات المفكرة');
+  (doc.body||doc.documentElement).append(floatingLayer);
+  return floatingLayer;
+ }
+ function getPanel(menu){
+  return panelByMenu.get(menu)||menu.querySelector(':scope > .rib-pop');
+ }
  function panelKey(menu,index){
   const summary=menu.querySelector(':scope > summary');
   return menu.id||summary?.getAttribute('aria-label')||String(index);
@@ -54,17 +67,21 @@
 
  function viewport(){
   /* Keep floating tools inside the writing surface, not across the page. */
+  const vv=root.visualViewport;
+  const screen={left:vv&&Number.isFinite(vv.offsetLeft)?vv.offsetLeft:0,
+   top:vv&&Number.isFinite(vv.offsetTop)?vv.offsetTop:0,
+   width:vv&&Number.isFinite(vv.width)&&vv.width>0?vv.width:(doc.documentElement.clientWidth||root.innerWidth||1),
+   height:vv&&Number.isFinite(vv.height)&&vv.height>0?vv.height:(doc.documentElement.clientHeight||root.innerHeight||1)};
   const area=doc.getElementById('area');
   const rect=area&&area.getBoundingClientRect();
-  if(rect&&rect.width>0&&rect.height>0){
-   return {left:rect.left+(area.clientLeft||0),top:rect.top+(area.clientTop||0),
-    width:Math.max(1,Math.min(rect.width,area.clientWidth||rect.width)),
-    height:Math.max(1,Math.min(rect.height,area.clientHeight||rect.height))};
-  }
-  const vv=root.visualViewport;
-  const width=vv&&Number.isFinite(vv.width)&&vv.width>0?vv.width:(doc.documentElement.clientWidth||root.innerWidth||1);
-  const height=vv&&Number.isFinite(vv.height)&&vv.height>0?vv.height:(doc.documentElement.clientHeight||root.innerHeight||1);
-  return {left:vv&&Number.isFinite(vv.offsetLeft)?vv.offsetLeft:0,top:vv&&Number.isFinite(vv.offsetTop)?vv.offsetTop:0,width:Math.max(1,width),height:Math.max(1,height)};
+  if(!rect||rect.width<=0||rect.height<=0)return screen;
+  /* Intersect the writing workspace with the actually visible mobile viewport. */
+  const left=Math.max(screen.left,rect.left+(area.clientLeft||0));
+  const top=Math.max(screen.top,rect.top+(area.clientTop||0));
+  const right=Math.min(screen.left+screen.width,rect.right-(area.clientLeft||0));
+  const bottom=Math.min(screen.top+screen.height,rect.bottom-(area.clientTop||0));
+  if(right-left<Math.min(MIN_WIDTH+EDGE*2,screen.width)||bottom-top<Math.min(MIN_HEIGHT+EDGE*2,screen.height))return screen;
+  return {left,top,width:right-left,height:bottom-top};
  }
 
  function readLayouts(){
@@ -363,9 +380,10 @@
  }
 
  function activate(menu,key){
-  const panel=menu.querySelector(':scope > .rib-pop');
+  const panel=getPanel(menu);
   if(!panel)return;
   ensurePanelUI(menu,panel,key);
+  getFloatingLayer().append(panel);
   if(panel.dataset.floatPanelActive==='true')return;
   const restored=savedRect(key);
   const target=restored||defaultRect(panel);
@@ -376,7 +394,7 @@
  }
 
  function deactivate(menu,key){
-  const panel=menu.querySelector(':scope > .rib-pop');
+  const panel=getPanel(menu);
   if(!panel||panel.dataset.floatPanelActive!=='true')return;
   let rect=measure(panel);
   if(panel.classList.contains('is-minimized')||panel.classList.contains('is-maximized')){
@@ -384,6 +402,7 @@
   }
   saveLayout(panel,key,rect);
   panel.dataset.floatPanelActive='false';
+  menu.append(panel);
  }
 
  function handleMenuToggle(menu,key){
@@ -402,7 +421,7 @@
   menus.forEach((menu,index)=>{
    if(!menu.open)return;
    const key=panelKey(menu,index);
-   const panel=menu.querySelector(':scope > .rib-pop');
+   const panel=getPanel(menu);
    if(!panel||panel.dataset.floatPanelActive!=='true')return;
    if(panel.classList.contains('is-maximized')){
     applyRect(panel,{left:vv.left+EDGE,top:vv.top+EDGE,width:vv.width-EDGE*2,height:vv.height-EDGE*2});
@@ -420,7 +439,7 @@
   const key=panelKey(menu,index);
   menu.addEventListener('toggle',()=>handleMenuToggle(menu,key));
   const panel=menu.querySelector(':scope > .rib-pop');
-  if(panel)ensurePanelUI(menu,panel,index);
+  if(panel){panelByMenu.set(menu,panel);ensurePanelUI(menu,panel,index);}
  });
  if(typeof root.MutationObserver==='function'){
   const observer=new root.MutationObserver(records=>{
