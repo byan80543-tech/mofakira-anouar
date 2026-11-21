@@ -40,6 +40,24 @@ assert.equal(narrow.top,15,'very short viewport still keeps the panel inside the
 assert.equal(narrow.width,154,'minimum panel width adapts to a narrow viewport');
 assert.equal(narrow.height,94,'minimum panel height adapts to a short viewport');
 
+const workspace=math.intersectViewport(
+ {left:20,top:100,right:380,bottom:700},
+ {left:0,top:0,width:400,height:800}
+);
+assert.deepEqual(JSON.parse(JSON.stringify(workspace)),{left:20,top:100,width:360,height:600},
+ 'workspace bounds are intersected with the visible screen');
+const partiallyOffscreen=math.intersectViewport(
+ {left:-30,top:70,right:430,bottom:900},
+ {left:0,top:0,width:400,height:800}
+);
+assert.deepEqual(JSON.parse(JSON.stringify(partiallyOffscreen)),{left:0,top:70,width:400,height:730},
+ 'workspace edges outside the visible screen are clipped before panel placement');
+const tooSmall=math.intersectViewport(
+ {left:5,top:5,right:80,bottom:90},
+ {left:0,top:0,width:400,height:800}
+);
+assert.deepEqual(JSON.parse(JSON.stringify(tooSmall)),{left:0,top:0,width:400,height:800},
+ 'tiny editor geometry safely falls back to the visible screen');
 const saved=math.normalizeSavedLayout({x:-100000,y:100000,width:9000,height:4});
 assert.deepEqual(JSON.parse(JSON.stringify(saved)),{
  x:-10000,y:10000,width:1200,height:150
@@ -51,11 +69,11 @@ assert.deepEqual(JSON.parse(JSON.stringify(math.normalizeSavedLayout({x:1,y:2,wi
 },'saved sizes below the safe minimum are normalized before display');
 
 assert.ok((html.match(/class="rib-menu"/g)||[]).length>=5,'all toolbar menus are available to the shared floating-panel controller');
-assert.ok(html.includes('<link rel="stylesheet" href="./floating-panels.css?v=20261121-2">'),'floating panel styles are loaded from a same-origin stylesheet');
-assert.ok(html.includes('<script src="./floating-panels.js?v=20261121-2" defer></script>'),'floating panel logic is loaded as a deferred same-origin script');
+assert.ok(html.includes('<link rel="stylesheet" href="./floating-panels.css?v=20261121-3">'),'floating panel styles are loaded from a same-origin stylesheet');
+assert.ok(html.includes('<script src="./floating-panels.js?v=20261121-3" defer></script>'),'floating panel logic is loaded as a deferred same-origin script');
 assert.ok(worker.includes("'./floating-panels.js'")&&worker.includes("'./floating-panels.css'"),
  'the offline service-worker shell precaches both floating-panel assets');
-assert.match(worker,/const CACHE_NAME='anwar-shell-2026-11-21-v126';/,
+assert.match(worker,/const CACHE_NAME='anwar-shell-2026-11-21-v127';/,
  'the offline cache version is refreshed for this release');
 
 for(const event of ['pointerdown','pointermove','pointerup','pointercancel','lostpointercapture','setPointerCapture']){
@@ -68,6 +86,12 @@ for(const feature of [
 ]){
  assert.ok(controller.includes(feature),'floating panel feature exists: '+feature);
 }
+assert.ok(controller.includes("id='anwar-floating-panels-layer'")&&controller.includes('getFloatingLayer().append(panel)')&&controller.includes('menu.append(panel)'),
+ 'panels are portalled outside the ribbon while retaining their original details menu lifecycle');
+assert.ok(controller.includes('intersectViewport')&&controller.includes('visualViewport'),
+ 'panel movement is bounded by the intersection of the editor workspace and visible mobile viewport');
+assert.ok(css.includes('#anwar-floating-panels-layer#anwar-floating-panels-layer')&&css.includes('pointer-events:none!important'),
+ 'the external floating layer avoids ribbon clipping without blocking the editor');
 assert.ok(controller.includes('menus.forEach(other=>{if(other!==menu&&other.open)other.open=false})'),
  'only one toolbar panel is open at a time');
 assert.ok(controller.includes('root.addEventListener(\'resize\',keepActiveInsideViewport)'),
@@ -79,7 +103,7 @@ assert.ok(controller.includes('raw.length>4096'),
 assert.ok(controller.includes('function panelKey(menu,index)')&&controller.includes('parsed[String(key)]'),
  'saved panel geometry uses stable tool identifiers, not menu order');
 
-assert.ok(css.includes('#rib .rib-pop.is-floating-panel[hidden]{display:none!important}'),
+assert.ok(css.includes('>.rib-pop.is-floating-panel[hidden]{display:none!important}'),
  'closed book content cannot leak out because of the floating display rules');
 for(const feature of ['float-panel-head','float-panel-content','float-panel-resize','.is-minimized','.is-maximized']){
  assert.ok(css.includes(feature),'floating panel style exists: '+feature);
