@@ -75,6 +75,8 @@ assert.equal(store.get(absolute('./vault-device-unlock.js'))?.body,'cached:./vau
 assert.equal(store.get(absolute('./toolbar-back-navigation.js'))?.body,'cached:./toolbar-back-navigation.js','install precaches contextual back navigation for offline use');
 assert.equal(store.get(absolute('./api-gateway-config.js'))?.body,'cached:./api-gateway-config.js','install precaches the API gateway endpoint configuration for offline use');
 assert.equal(store.get(absolute('./click-guard.js'))?.body,'cached:./click-guard.js','install precaches the click-burst guard for offline use');
+assert.equal(store.get(absolute('./floating-panels.js'))?.body,'cached:./floating-panels.js','install precaches the floating tool panel controller for offline use');
+assert.equal(store.get(absolute('./floating-panels.css'))?.body,'cached:./floating-panels.css','install precaches the floating tool panel stylesheet for offline use');
 assert.equal(store.get(absolute('./update-notice-v2.js'))?.body,'cached:./update-notice-v2.js','install precaches the update checker');
 assert.equal(store.get(absolute('./update-notice-v2.css'))?.body,'cached:./update-notice-v2.css','install precaches the update styling');
 assert.equal(store.has(absolute('./')),false,'the duplicate root document is not downloaded during installation');
