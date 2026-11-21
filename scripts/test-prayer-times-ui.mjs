@@ -19,7 +19,7 @@ assert.match(prayer,/raw\.githubusercontent\.com\/Kiwifu\/adhan-mp3/,'new adhan 
 assert.doesNotMatch(prayer,/key:'maahur'/,'Persian adhan option is removed');
 assert.doesNotMatch(prayer,/مسجد الحسن الثاني/,'modern Hassan II field recording is removed');
 assert.match(prayer,/infoDetails\.append\(infoSummary,privacyLine\)/,'complete original privacy explanation remains inside the disclosure');
-assert.match(prayer,/card\.append\(head,nextBox,timesGrid,dateLine,infoDetails,details,audio\)/,'prayer card keeps all original sections and the privacy disclosure');
+assert.match(prayer,/card\.append\(head,nextBox,timesGrid,dateLine,infoDetails,backgroundPermissionWrap,details,audio\)/,'prayer card keeps the permission action beside its original sections and privacy disclosure');
 assert.match(prayer,/showNextPrayerPlaceholder\('بانتظار تحميل المواقيت'\)/,'the upcoming-prayer panel remains visible while timings are pending');
 assert.match(prayer,/nextName\.textContent='—'/,'the pending state uses a neutral placeholder instead of inventing a prayer name');
 assert.match(prayer,/countdown\.textContent='--:--:--'/,'the pending state uses a neutral countdown placeholder');
@@ -66,6 +66,10 @@ assert.match(prayer,/voiceSelect\.setAttribute\('aria-label','صوت الأذا�
 assert.doesNotMatch(prayer,/const apiLink=|const audioLink=|const voiceCredit=/,'source links and recording credits are removed from the settings panel');
 assert.doesNotMatch(prayer,/اختيرت الدولة\. حدّد مدينتك|تحقق من المدينة ثم حدّث/,'duplicate location instructions are removed');
 assert.match(prayer,/\.anwar-prayer-status:empty\{display:none!important\}/,'empty status line does not create a blank gap');
+assert.match(prayer,/backgroundPermissionButton\.setAttribute\('aria-label','طلب إذن الأذان خارج التطبيق'\)/,'background adhan permission control has an accessible Arabic label');
+assert.match(prayer,/backgroundPermissionButton\.addEventListener\('click'/,'background adhan permission control is actionable');
+assert.match(prayer,/syncNativeBackground\(true\)/,'permission button explicitly retries the native permission flow');
+assert.match(prayer,/لا يمكن لنسخة Chrome أو PWA طلب إذن/,'browser-only installations are told the actual Android permission limitation');
 assert.match(prayer,/persist\(\);updateHeader\(\)[\s\S]*?refreshTimes\(false\)/,'country selection refreshes the default city automatically');
 assert.match(prayer,/\.anwar-prayer-next\{display:grid;grid-template-columns:1fr auto/,'original prominent next-prayer countdown design is preserved');
 assert.doesNotMatch(prayer,/el\('strong','','مواقيت الصلاة'\)/,'redundant prayer card title is removed');
@@ -92,8 +96,8 @@ assert.match(html,/<small>أصوات الأذان<\/small><strong>اختيار �
 assert.match(html,/#rd \.curtain-head #ownerBtn\.radio-owner-pen[\s\S]*?width:34px!important;height:34px!important/,'ownership button matches the close button dimensions');
 assert.match(html,/<div class="curtain-head"><button type="button" id="ownerBtn"/,'purple radio header contains only its functional controls');
 assert.doesNotMatch(html,/<div class="curtain-head"><b>الخدمات القرآنية والدينية<\/b>/,'duplicate services title is removed from purple radio header');
-assert.match(html,/prayer-times\.js\?v=20261121-6/,'HTML loads the prayer controller after radio header title removal');
-assert.match(worker,/const CACHE_NAME='anwar-shell-2026-11-21-v152'/,'the canonical prayer card has a new offline shell version');
+assert.match(html,/prayer-times\.js\?v=20261121-7/,'HTML loads the updated prayer controller after radio header title removal');
+assert.match(worker,/const CACHE_NAME='anwar-shell-2026-11-21-v156'/,'the updated prayer controller has a refreshed offline shell version');
 assert.match(worker,/\.\/prayer-card-design\.css/,'service worker precaches the canonical prayer card stylesheet');
 
 console.log('Prayer card compact layout, loading states, Arabic location and header controls tests passed.');
