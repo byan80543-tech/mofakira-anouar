@@ -2902,7 +2902,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  const R=[['عبد الرحمن بنموسى (ورش عن نافع)','https://media.way2quran.com/abdel-rahman-benmoussa/warsh-an-nafi/'],['مشاري العفاسي','https://server8.mp3quran.net/afs/'],['ماهر المعيقلي','https://server12.mp3quran.net/maher/'],['عبدالرحمن السديس','https://server11.mp3quran.net/sds/'],['سعود الشريم','https://server7.mp3quran.net/shur/'],['عبدالباسط عبدالصمد','https://server7.mp3quran.net/basit/'],['سعد الغامدي','https://server7.mp3quran.net/s_gmd/'],['أحمد العجمي','https://server10.mp3quran.net/ajm/'],['ياسر الدوسري','https://server11.mp3quran.net/yasser/'],['أبو بكر الشاطري','https://server11.mp3quran.net/shatri/'],['محمد صديق المنشاوي','https://server10.mp3quran.net/minsh/'],['إبراهيم الأخضر','https://server6.mp3quran.net/akdr/'],['محمد أيوب','https://cdn.mp3quran.net/audio/muhammad-ayyub/r1/']];
  const X='أكرم العلاقمي|9/akrm;محمد الطبلاوي|12/tblawi;محمد اللحيدان|8/lhdan;محمد صالح عالم شاه|12/shah;محمد جبريل|8/jbrl;محمد عبدالكريم|12/m_krm;محمود خليل الحصري|13/husr;الحصري (المصحف المجود)|13/husr/Almusshaf-Al-Mojawwad;الحصري (ورش)|13/husr/Rewayat-Warsh-A-n-Nafi;الحصري (قالون)|13/husr/Rewayat-Qalon-A-n-Nafi;محمود علي البنا|8/bna;محمود علي البنا (المصحف المجود)|8/bna/Almusshaf-Al-Mojawwad;مصطفى إسماعيل|8/mustafa;مصطفى إسماعيل (المصحف المجود)|8/mustafa/Almusshaf-Al-Mojawwad;مصطفى اللاهوني|6/lahoni;مصطفى رعد العزاوي|8/ra3ad;الزين محمد أحمد|9/alzain;ماجد الزامل|9/zaml;ماهر شخاشيرو|10/shaksh;ياسر سلامة|12/salamah/Rewayat-Hafs-A-n-Assem;خالد المهنا|11/mohna;عادل الكلباني|8/a_klb;موسى بلال|11/bilal;حاتم فريد الواعر|11/hatem;إبراهيم الجرمي|11/jormy;محمود الرفاعي|11/mrifai;توفيق الصايغ|6/twfeeq;إبراهيم الدوسري|10/ibrahim_dosri/Rewayat-Hafs-A-n-Assem;إبراهيم الدوسري (ورش)|10/ibrahim_dosri/Rewayat-Warsh-A-n-Nafi;جمال شاكر عبدالله|6/jamal;جمعان العصيمي|6/jaman;يوسف بن نوح أحمد|8/noah;معيض الحارثي|8/harthi;محمد رشاد الشريف|10/rashad;خالد الجليل|10/jleel;أحمد الطرابلسي|10/trabulsi;أحمد الطرابلسي (قالون)|10/trablsi;عبدالله الكندري|10/Abdullahk;أحمد عامر|10/Aamer;محمد عثمان خان|6/khan;وديع اليمني|6/wdee3;بندر بليله|6/balilah;خالد القحطاني|10/qht;خالد عبدالكافي|11/kafi;رامي الدعيس|6/rami;عبدالرحمن العوسي|6/aloosi;عبدالرحمن الماجد|10/a_majed;خليفة الطنيجي|12/tnjy;عبدالله الخلف|14/khalf;منصور السالمي|14/mansor;ناصر الماجد|14/nasser_almajed;أحمد السويلم|14/swlim/Rewayat-Hafs-A-n-Assem;بدر التركي|10/bader/Rewayat-Hafs-A-n-Assem;أحمد خليل شاهين|16/shaheen/Rewayat-Hafs-A-n-Assem;سعد المقرن|16/saad/Rewayat-Hafs-A-n-Assem;أحمد النفيس|16/nufais/Rewayat-Hafs-A-n-Assem;عبدالله كامل|16/kamel/Rewayat-Hafs-A-n-Assem;بيشه وا قادر الكردي|16/peshawa/Rewayat-Hafs-A-n-Assem;نذير المالكي|16/nathier/Rewayat-Hafs-A-n-Assem;عبدالإله بن عون|16/a_binaoun/Rewayat-Hafs-A-n-Assem;محمد برهجي|16/M_Burhaji/Rewayat-Hafs-A-n-Assem;هيثم الدخين|16/h_dukhain/Rewayat-Hafs-A-n-Assem;مفتاح السلطني|14/muftah_sultany/Rewayat-Hafs-A-n-Assem;أحمد ديبان|16/deban/Rewayat-Hafs-A-n-Assem;أحمد ديبان (قالون)|16/deban/Rewayat-Qalon-A-n-Nafi;أحمد ديبان (ورش)|16/deban/Rewayat-Warsh-A-n-Nafi-Men-Tariq-Alazraq;أحمد ديبان (الدوري عن أبي عمرو)|16/deban/Rewayat-Aldori-A-n-Abi-Amr;أحمد ديبان (البزي)|16/deban/Rewayat-Albizi-A-n-Ibn-Katheer;أحمد ديبان (قنبل)|16/deban/Rewayat-Qunbol-A-n-Ibn-Katheer;أحمد ديبان (شعبة)|16/deban/Rewayat-Sho-bah-A-n-Asim;القارئ ياسين (ورش)|11/qari;العيون الكوشي (ورش)|11/koshi;محمد سايد (ورش)|16/m_sayed/Rewayat-Warsh-A-n-Nafi;رشيد بلعالية (ورش)|6/bl3/Rewayat-Warsh-A-n-Nafi;مروان العكري (قالون)|16/m_akri/Rewayat-Qalon-A-n-Nafi;الدوكالي محمد العالم (قالون)|7/dokali;طارق عبدالغني دعوب (قالون)|10/tareq;محمود الشيمي (الدوري عن الكسائي)|10/sheimy;الفاتح محمد الزبير (الدوري عن أبي عمرو)|6/fateh;نورين محمد صديق (الدوري عن أبي عمرو)|16/nourin_siddig/Rewayat-Aldori-A-n-Abi-Amr;محمد عبدالحكيم العبدالله (الدوري عن الكسائي)|9/abdullah/Rewayat-AlDorai-A-n-Al-Kisa-ai;عكاشة كميني (البزي)|16/okasha/Rewayat-Albizi-A-n-Ibn-Katheer;المنشاوي (المصحف المجود)|10/minsh/Almusshaf-Al-Mojawwad;ماهر المعيقلي (المصحف المجود)|12/maher/Almusshaf-Al-Mojawwad'.split(';').map(s=>{const[a,p]=s.split('|'),[v,...r]=p.split('/');return[a,`https://server${v}.mp3quran.net/${r.join('/')}/`]}).sort((a,b)=>a[0].localeCompare(b[0],'ar'));
  X.forEach(x=>{if(!R.some(r=>r[0]===x[0]))R.push(x)});
- const rr=$('rr'),rsu=$('rsu'),st=$('rst'),pp=$('rpp'),rb=$('rb'),au=new Audio();let n=1,started=false,wd,cr=0,sl,playRequestId=0;
+ const rr=$('rr'),rsu=$('rsu'),st=$('rst'),pp=$('rpp'),rb=$('rb'),au=new Audio();let n=1,started=false,wd,cr=0,sl,playRequestId=0,readerFallbackAttempted=false;
 
  const stationSelect=$('rl'),stationPicker=$('liveStationPicker'),stationPickerChoice=$('liveStationChoice');
  const stationModal=$('liveStationModal');
@@ -3165,6 +3165,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
  function availableSurahs(){const a=R[cr]&&Array.isArray(R[cr][2])?R[cr][2]:null;return a&&a.length?a:Array.from({length:114},(_,i)=>i+1)}
  function moveSurah(step){const a=availableSurahs(),i=a.indexOf(n),next=i<0?0:(i+step+a.length)%a.length;n=a[next];rsu.value=String(n);play()}
  function play(){
+  readerFallbackAttempted=false;
   const requestId=++playRequestId;
   radioShouldPlay=true;
   started=true;
@@ -3246,11 +3247,48 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
    started=false;radioShouldPlay=false;ui();st.textContent='انتهت السورة؛ اختر سورة أخرى ثم اضغط تشغيل القارئ للمتابعة.';
   }
  });
- au.addEventListener('error',()=>{
+ au.addEventListener('error',async()=>{
   if(!au.src)return;
+  const failedUrl=au.currentSrc||au.src;
+  if(activePlaybackKind==='reader'&&mode()!=='l'&&!readerFallbackAttempted){
+   readerFallbackAttempted=true;
+   const requestedKey=readerKey(R[cr]&&R[cr][0]||'');
+   const requestedSurah=n;
+   st.textContent='تعذّر هذا المصدر؛ نبحث عن مصدر بديل للقارئ نفسه…';
+   try{
+    await ensureReciterCatalog();
+    const candidates=R.map((item,index)=>({item,index}))
+     .filter(({item,index})=>index!==cr&&readerKey(item[0])===requestedKey&&
+      safeHttpsURL(item[1])&&(!Array.isArray(item[2])||!item[2].length||item[2].includes(requestedSurah)))
+     .filter(({item})=>item[1]!==failedUrl);
+    if(candidates.length){
+     const candidate=candidates[0];
+     cr=candidate.index;rr.value=String(cr);n=requestedSurah;rsu.value=String(n);
+     const base=safeHttpsURL(candidate.item[1]).replace(/\/?$/,'/');
+     const fallbackUrl=base+String(n).padStart(3,'0')+'.mp3';
+     const requestId=++playRequestId;
+     au.pause();au.src=fallbackUrl;au.load();au.preload='auto';
+     $('ro').href=fallbackUrl;$('ro').hidden=true;
+     st.textContent='جرّبنا مصدرًا بديلًا للقارئ نفسه: '+candidate.item[0];
+     ui();
+     try{
+      const attempt=au.play();
+      if(attempt&&typeof attempt.catch==='function')attempt.catch(error=>{
+       if(requestId!==playRequestId||error?.name==='AbortError')return;
+       st.textContent='لم يعمل المصدر البديل أيضًا؛ يمكنك فتح الرابط الأصلي أو اختيار قارئ آخر.';
+       $('ro').hidden=false;$('ro').textContent='↗ فتح رابط الملف الأصلي (اختياري)';ui();
+      });
+     }catch(error){
+      st.textContent='لم يعمل المصدر البديل أيضًا؛ يمكنك فتح الرابط الأصلي أو اختيار قارئ آخر.';
+      $('ro').hidden=false;$('ro').textContent='↗ فتح رابط الملف الأصلي (اختياري)';ui();
+     }
+     return;
+    }
+   }catch(error){console.warn('تعذّر العثور على مصدر بديل للقارئ',error)}
+  }
   ++playRequestId;clearTimeout(wd);started=false;radioShouldPlay=false;ui();
-  st.textContent='تعذّر تحميل ملف الصوت داخل المشغّل. لم يتم فتح أي موقع خارجي؛ جرّب قارئًا آخر أو أعد المحاولة.';
-  $('ro').hidden=false;$('ro').textContent='↗ فتح رابط الملف الأصلي (اختياري)';
+  st.textContent='تعذّر تحميل ملف الصوت من هذا المصدر. جرّب إعادة المحاولة أو اختيار قارئ آخر.';
+  $('ro').href=failedUrl;$('ro').hidden=false;$('ro').textContent='↗ فتح رابط الملف الأصلي (اختياري)';
   toast('تعذّر تحميل التلاوة',3000);
  });
  
