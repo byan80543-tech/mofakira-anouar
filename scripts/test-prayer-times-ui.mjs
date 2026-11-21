@@ -86,7 +86,7 @@ assert.match(design,/\.anwar-prayer-time\{min-height:59px;padding:6px 2px!import
 assert.match(design,/anwar-prayer-info summary\{[^}]*font-size:14px!important/,'the privacy heading is raised to the reference text scale');
 assert.match(design,/\.anwar-prayer-time\{[^}]*min-height:59px/,'the default prayer tiles are explicitly shortened to the reference height');
 assert.match(design,/\.anwar-prayer-times\{display:grid!important;grid-template-columns:repeat\(5,minmax\(0,1fr\)\);gap:4px/,'the five prayer tiles use the tighter reference spacing');
-assert.match(design,/#rd #anwarPrayerCard\{[^}]*padding:12px 12px 10px!important/,'the prayer card lower spacing is slightly reduced without changing its layout');
+assert.match(design,/#rd #anwarPrayerCard\{[^}]*padding:12px 12px 9px!important/,'the prayer card lower spacing is slightly reduced without changing its layout');
 assert.match(html,/prayer-card-design\.css\?v=20261121-5/,'the canonical prayer stylesheet is versioned');
 assert.match(html,/<small>أصوات الأذان<\/small><strong>اختيار الصوت والتنبيهات<\/strong>/,'section card distinguishes adhan sounds from the prayer timetable');
 assert.match(html,/#rd \.curtain-head #ownerBtn\.radio-owner-pen[\s\S]*?width:34px!important;height:34px!important/,'ownership button matches the close button dimensions');
