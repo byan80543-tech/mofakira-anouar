@@ -17,7 +17,9 @@ assert.ok(app.includes('function cleanCustomAdhkar(value)')&&app.includes('custo
 assert.ok(app.includes('S.customAdhkar.push({id,text,ts:Date.now()})')&&app.includes('save();form.reset()'),'a visitor can add a text-only entry and save it through notebook persistence');
 assert.ok(app.includes('entry.text=text;entry.ts=Date.now()')&&app.includes('S.customAdhkar=S.customAdhkar.filter(entry=>entry.id!==item.id)'),'personal entries can be edited and removed');
 assert.ok(app.includes("textInput.name='text'")&&app.includes('textInput.maxLength=3000')&&app.includes('S.customAdhkar.length>=100'),'the single text field and collection size are bounded');
-assert.ok(!app.includes('titleInput')&&!app.includes('titleLabel')&&!app.includes("title:item.title"),'there is no separate title field or title metadata');
+const renderer=app.slice(app.indexOf('function renderProtectiveAdhkar()'),app.indexOf('window.AnwarRenderAdhkar=function()'));
+assert.ok(!renderer.includes('titleInput')&&!renderer.includes('titleLabel')&&!renderer.includes('عنوان الذكر'),'the protection editor contains no title field or title metadata');
+assert.ok(!/clean\.push\(\{id,title,/.test(app)&&!app.includes('S.customAdhkar.push({id,title,'),'stored personal entries do not require a title');
 assert.ok(app.includes('body.textContent=item.text')&&!app.includes('body.innerHTML=item.text'),'user-authored content is rendered as inert text, not HTML');
 assert.ok(app.includes('function renderProtectiveAdhkar()')&&app.includes('window.AnwarRenderAdhkar=function(){return renderProtectiveAdhkar();}'),'the dashboard opens the personal editor directly');
 assert.ok(app.includes('customAdhkar:[]'),'fresh storage begins with an empty personal collection');
