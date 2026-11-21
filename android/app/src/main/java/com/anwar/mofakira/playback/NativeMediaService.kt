@@ -42,7 +42,7 @@ class NativeMediaService : MediaSessionService() {
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? =
-        mediaSession
+        if (controllerInfo.isTrusted) mediaSession else null
 
     override fun onDestroy() {
         mediaSession?.release()
