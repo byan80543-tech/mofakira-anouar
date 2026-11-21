@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 const read = (path) => fs.readFileSync(new URL('../' + path, import.meta.url), 'utf8');
 const manifest = read('android/app/src/main/AndroidManifest.xml');
 const gradle = read('android/app/build.gradle.kts');
+const rootGradle = read('android/build.gradle.kts');
 const home = read('android/app/src/main/java/com/anwar/mofakira/MainActivity.kt');
 const audioActivity = read('android/app/src/main/java/com/anwar/mofakira/NativeAudioActivity.kt');
 const audioService = read('android/app/src/main/java/com/anwar/mofakira/playback/NativeMediaService.kt');
@@ -12,7 +13,9 @@ const legacy = read('android/app/src/main/java/com/anwar/mofakira/LegacyWebActiv
 
 assert.match(gradle, /androidx\.media3:media3-exoplayer:1\.11\.1/);
 assert.match(gradle, /androidx\.media3:media3-session:1\.11\.1/);
-assert.match(manifest, /FOREGROUND_SERVICE_MEDIA_PLAYBACK/);
+
+assert.match(rootGradle, /org\.jetbrains\.kotlin\.android.*2\.4\.21/,
+  "Kotlin Gradle plugin is aligned with the Media3 transitive Kotlin metadata");assert.match(manifest, /FOREGROUND_SERVICE_MEDIA_PLAYBACK/);
 assert.match(manifest, /android:name="\.NativeAudioActivity"[\s\S]*?android:exported="false"/);
 assert.match(manifest, /android:name="\.playback\.NativeMediaService"[\s\S]*?android:exported="true"[\s\S]*?android:foregroundServiceType="mediaPlayback"/);
 assert.match(manifest, /androidx\.media3\.session\.MediaSessionService/);
