@@ -279,7 +279,8 @@ assert.ok(appCore.includes('family=IBM+Plex+Sans+Arabic:wght@400;500;600;700'),'
 assert.ok(html.includes('font-family:"IBM Plex Sans Arabic",sans-serif!important'),'the main dhikr inscription uses IBM Plex Sans Arabic');
 assert.ok(html.includes('font-family:Cairo,sans-serif!important'),'tasbih controls and headings use Cairo');
 assert.ok(html.includes('box-shadow:inset 0 1px 3px rgba(95,47,67,.08)'),'the dhikr inscription is visually integrated with the tasbih surface');
-assert.ok(html.includes('app-core.js?v=20261121-42'),'the updated base font bundle has a fresh cache version');
+const appCoreVersion=html.match(/app-core\\.js\\?v=20261121-(\\d+)/);
+assert.ok(appCoreVersion&&Number(appCoreVersion[1])>=43,'the updated base font bundle has a fresh cache version');
 const fontLayerStart=html.indexOf('<style id="anwar-tasbih-ibm-plex-cairo-v1">');
 const fontLayerEnd=html.indexOf('</style>',fontLayerStart);
 assert.ok(fontLayerStart>=0&&fontLayerEnd>fontLayerStart,'the dedicated typography layer exists');
