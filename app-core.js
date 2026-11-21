@@ -3141,7 +3141,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
   const stationName=selectedStation?selectedStation.textContent:'إذاعة مباشرة';
   syncLiveStationPicker();
   const liveButton=$('liveRadioPlay'),liveStatus=$('liveRadioStatus');
-  pp.textContent=on?'⏸':'▶';rb.textContent=on?'⏸':'▶';rb.classList.toggle('on',on);
+  pp.textContent=on?'⏸':'▶';pp.dataset.playing=String(on);rb.dataset.playing=String(on);rb.setAttribute('aria-pressed',String(on));rb.setAttribute('aria-label',on?'إيقاف إذاعة القرآن مؤقتًا':'تشغيل إذاعة القرآن');rb.title=on?'إيقاف إذاعة القرآن مؤقتًا':'تشغيل أو إيقاف إذاعة القرآن';rb.classList.toggle('on',on);
   $('radioNow').textContent=on?(live?stationName:'القارئ: '+R[cr][0]):'إذاعة أنوار القرآنية';
   $('radioSub').textContent=on?(live?'بث إذاعي مباشر · استمع الآن':'سورة '+SU[n-1]+' · تلاوة متتابعة'):'اختر قارئك أو افتح البث المباشر';
   $('radioLiveDot').classList.toggle('playing',on);
