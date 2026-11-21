@@ -36,6 +36,10 @@ ok(html.includes('id="sp"')&&html.includes('id="speakRead"'),'poetry dictation a
 ok(html.indexOf('<script src="./poetry-dictation.js')<html.indexOf('<script src="./app-core.js'),'poetry dictation controller loads before the notebook application');
 ok(appCore.includes("else if(id==='sp')togglePoetryDictation()")&&appCore.includes("else if(id==='speakRead')speakText()"),'dictation and speech playback are routed to their own actions');
 ok(appCore.includes('function appendPoetryDictationText')&&appCore.includes('touch();'),'dictated final speech is inserted into the current editable note and triggers persistence');
+ok(appCore.includes('function poetryDictationCellForNode')&&appCore.includes('function poetryDictationRangeInCell')&&appCore.includes('poetryDictationRangeInCell(saved)'),
+ 'poetry dictation restores the last saved caret inside a verse cell when toolbar focus moves away');
+ok(appCore.includes("if(cur.paper==='poetry'&&!pg.querySelector('.v'))insertPoetryVerse();")&&appCore.includes('saved=range.cloneRange();'),
+ 'poetry dictation creates a verse row when needed and keeps every committed phrase anchored in its current cell');
 ok(serviceWorker.includes("'./poetry-dictation.js'")&&/const CACHE_NAME='anwar-shell-[0-9]{4}-[0-9]{2}-[0-9]{2}-v[0-9]+';/.test(serviceWorker),'poetry dictation is part of the versioned offline app shell');
 
 ok(appCore.includes('window.AnwarRenderAdhkar=function(){return renderProtectiveAdhkar();}') && appCore.includes('window.AnwarShowOwnerPanel=function(which)'), 'notebook exposes narrow bridges for direct protection rendering and owner/publication selection');
@@ -83,7 +87,7 @@ ok(!manifest.icons.some(i=>String(i.src).includes('file_00000000670481f4ad879246
 ok(appSource.includes('id="bookToolPanel"') && appSource.includes('id="bookToolContent" hidden'),'book creation is compact and collapsed inside the tools panel');
 ok(appSource.includes("setBookToolExpanded($('bookToolContent').hidden,true)"),'book panel toggle opens and closes correctly');
 ok(html.includes('<link rel="stylesheet" href="./floating-panels.css?v=20261121-3">') && html.includes('<script src="./floating-panels.js?v=20261121-3" defer></script>'),'floating panel styles and controller are loaded from same-origin files');
-ok(serviceWorker.includes("'./floating-panels.js'") && serviceWorker.includes("'./floating-panels.css'") && serviceWorker.includes("anwar-shell-2026-11-21-v127"),'floating panel code and styles are included in the updated offline app shell');
+ok(serviceWorker.includes("'./floating-panels.js'") && serviceWorker.includes("'./floating-panels.css'") && serviceWorker.includes("anwar-shell-2026-11-21-v128"),'floating panel code and styles are included in the updated offline app shell');
 ok(floatingPanels.includes('pointerdown') && floatingPanels.includes('pointermove') && floatingPanels.includes('pointercancel') && floatingPanels.includes('setPointerCapture'),'floating panels use pointer capture for reliable touch and mouse drag/resize');
 ok(floatingPanels.includes('function panelKey(menu,index)') && floatingPanels.includes('raw.length>4096') && floatingPanels.includes('visualViewport'),'floating panel preferences use stable keys, bounded parsing and viewport-aware positioning');
 ok(!floatingPanels.includes('innerHTML') && !floatingPanels.includes('eval(') && !floatingPanels.includes('new Function('),'floating panel UI does not use HTML injection or dynamic code execution');
