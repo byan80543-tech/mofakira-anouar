@@ -88,6 +88,11 @@ assert.match(nativePrayer, /LegacyWebActivity::class\.java/,
   'all remaining legacy services stay reachable from the native prayer screen');
 assert.match(prayerSettings, /fun updateNative\(/,
   'native controls persist to the same prayer preference store as the legacy bridge');
+assert.match(calendar, /appendQueryParameter\("city", cityForApi\(city, country\)\)/,
+  'Arabic Moroccan city names are normalized before the prayer API request');
+assert.match(calendar, /private fun cityForApi\(value: String, country: String\)/);
+assert.match(calendar, /"الحسيمة" to "Al Hoceima"/,
+  'Al Hoceima is supported when entered in Arabic');
 assert.match(calendar, /PrayerSettings\.saveEvents\(context, events\.toString\(\)\)/);
 assert.match(calendar, /if \(config\.enabled && VoiceCatalog\.supports\(config\.voiceKey\)\)/,
   'prayer times are fetched and stored even when automatic adhan is switched off');
