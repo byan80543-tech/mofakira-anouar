@@ -614,8 +614,10 @@ class NativeAudioActivity : Activity() {
     private fun togglePlayback() {
         val c = controller ?: return notConnected()
         if (c.isPlaying) c.pause()
-        else if (c.mediaItemCount > 0) c.play()
-        else statusText.text = "اختر قارئاً أو محطة أو درساً أولا."
+        else if (c.mediaItemCount > 0) {
+            if (c.playbackState == Player.STATE_IDLE) c.prepare()
+            c.play()
+        } else statusText.text = "اختر قارئاً أو محطة أو درساً أولا."
         syncPlayerUi()
     }
 
