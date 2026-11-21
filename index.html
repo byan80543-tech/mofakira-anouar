@@ -2146,6 +2146,99 @@ dialog[open]>.float-head{display:none!important}
 </style>
 
 <link rel="stylesheet" href="./floating-panels.css?v=20261121-3">
+<style id="anwar-adhkar-refinement-v1">
+/* واجهة أذكار التحصين: عمود متوازن وخانة كتابة خالية من العناوين الجانبية */
+#anwarAdhkarPage .anwar-adhkar-page-content{
+ width:min(100%,700px);
+ margin-inline:auto;
+}
+#adhkarContent{width:100%;min-width:0}
+#adhkarContent .protective-personal-form{
+ width:min(100%,620px);
+ max-width:100%;
+ margin:14px auto 16px;
+ justify-items:stretch;
+ gap:12px;
+}
+#adhkarContent .protective-personal-form>textarea{
+ display:block;
+ width:100%;
+ min-width:0;
+ min-height:clamp(190px,28vh,245px);
+ max-height:55vh;
+ box-sizing:border-box;
+ margin:0 auto;
+ padding:14px 16px;
+ border:1px solid var(--bd);
+ border-radius:14px;
+ background:var(--sf);
+ color:var(--tx);
+ font:20px/1.9 Amiri,serif;
+ text-align:right;
+ resize:vertical;
+}
+#adhkarContent .protective-personal-form .adhkar-dialog-actions{
+ width:100%;
+ justify-content:flex-start;
+ margin:0;
+}
+#adhkarContent .protective-manage-button{
+ justify-self:start;
+ min-height:36px;
+ margin:0 0 9px;
+ padding:6px 12px;
+ border:1px solid var(--bd);
+ border-radius:9px;
+ background:var(--sf);
+ color:var(--mu);
+ font:600 11px Cairo,Tahoma,sans-serif;
+ cursor:pointer;
+}
+#adhkarContent .adhkar-dismissible-note{
+ align-items:center;
+ padding-inline-start:14px;
+ padding-inline-end:44px;
+}
+#adhkarContent .adhkar-note-dismiss{
+ z-index:2;
+ pointer-events:auto;
+ touch-action:manipulation;
+}
+#adhkarPersonalManager{
+ width:min(94vw,560px);
+ max-width:560px;
+ max-height:80dvh;
+}
+#adhkarPersonalManager .protective-manager-entry{
+ gap:9px;
+ padding:12px;
+}
+#adhkarPersonalManager .protective-manager-entry p{
+ margin:0;
+ white-space:pre-line;
+ line-height:1.9;
+}
+#adhkarPersonalManager .adhkar-admin-item-actions{
+ justify-content:flex-start;
+}
+#adhkarPersonalManager .adhkar-admin-item-actions button{
+ min-height:34px;
+ padding:6px 12px;
+ border:1px solid var(--bd);
+ border-radius:8px;
+ background:var(--bg);
+ color:var(--tx);
+ font:600 11px Cairo,Tahoma,sans-serif;
+}
+#adhkarPersonalManager .adhkar-admin-item-actions button:last-child{
+ color:#9b3d3d;
+ border-color:#d8aaaa;
+}
+@media(max-width:420px){
+ #adhkarContent .protective-personal-form>textarea{font-size:18px}
+ #adhkarPersonalManager{padding:12px}
+}
+</style>
 </head>
 <body>
 <div class="app" id="app">
@@ -2646,7 +2739,7 @@ dialog[open]>.float-head{display:none!important}
 <script src="./vault-device-unlock.js?v=20261118-1"></script>
 <script src="./poetry-dictation.js?v=20261119-1" defer></script>
 <script src="./protective-adhkar.js?v=20261121-1" defer></script>
-<script src="./app-core.js?v=20261121-35" defer></script>
+<script src="./app-core.js?v=20261121-36" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
 <script src="./tasbih-controller.js?v=20261120-2" defer></script>
 <script src="./prayer-times.js?v=20261120-11" defer></script>
