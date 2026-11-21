@@ -65,13 +65,17 @@ assert.match(prayer,/showNextPrayerPlaceholder\(todayData&&tomorrowData\?/,'miss
 assert.match(design,/#rd #anwarPrayerCard \.anwar-prayer-next\{/,'the approved prayer banner has a dedicated high-specificity responsive design');
 assert.match(design,/grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/,'the five prayer tiles keep their stable five-column layout');
 assert.match(design,/background:linear-gradient\(115deg,#0b3159/,'the approved blue gradient is fixed independently from device theme');
-assert.match(html,/prayer-card-design\.css\?v=20261121-1/,'the canonical prayer stylesheet is versioned');
+assert.match(design,/#rd #anwarPrayerCard \.anwar-prayer-info summary\{color:#252525!important;font-weight:500!important\}/,'location and privacy heading is calm black regular text like the reference');
+assert.match(design,/#rd #anwarPrayerCard \.anwar-prayer-settings summary\{color:#284f7b!important;font-weight:750!important\}/,'prayer settings heading remains blue and bold');
+assert.match(design,/#rd #anwarPrayerCard \.anwar-prayer-info\{border-top:0!important/,'the unnecessary separator above privacy information is removed');
+assert.match(design,/#rd #anwarPrayerCard \.anwar-prayer-settings\{border-top:1px solid/,'the separator remains only above prayer settings');
+assert.match(html,/prayer-card-design\.css\?v=20261121-2/,'the canonical prayer stylesheet is versioned');
 assert.match(html,/<small>أصوات الأذان<\/small><strong>اختيار الصوت والتنبيهات<\/strong>/,'section card distinguishes adhan sounds from the prayer timetable');
 assert.match(html,/#rd \.curtain-head #ownerBtn\.radio-owner-pen[\s\S]*?width:34px!important;height:34px!important/,'ownership button matches the close button dimensions');
 assert.match(html,/<div class="curtain-head"><button type="button" id="ownerBtn"/,'purple radio header contains only its functional controls');
 assert.doesNotMatch(html,/<div class="curtain-head"><b>الخدمات القرآنية والدينية<\/b>/,'duplicate services title is removed from purple radio header');
 assert.match(html,/prayer-times\.js\?v=20261121-2/,'HTML loads the prayer controller after radio header title removal');
-assert.match(worker,/const CACHE_NAME='anwar-shell-2026-11-21-v147'/,'the canonical prayer card has a new offline shell version');
+assert.match(worker,/const CACHE_NAME='anwar-shell-2026-11-21-v148'/,'the canonical prayer card has a new offline shell version');
 assert.match(worker,/\.\/prayer-card-design\.css/,'service worker precaches the canonical prayer card stylesheet');
 
 console.log('Prayer card compact layout, loading states, Arabic location and header controls tests passed.');
