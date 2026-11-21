@@ -20,7 +20,7 @@ assert.match(html, /أغيب وذو اللطائف لا يغيب/, 'the second s
 assert.match(html, /الملف 004/, 'the first recording is attributed to archive file 004');
 assert.match(html, /الملف 007/, 'the second recording is attributed to archive file 007');
 assert.match(html, /archive\.org\/details\/20240309_20240309_1714/, 'the archive item source is linked');
-const cacheVersion=worker.match(/anwar-shell-2026-11-21-v(\\d+)/);
+const cacheVersion=worker.match(/anwar-shell-2026-11-21-v(\d+)/);
 assert.ok(cacheVersion&&Number(cacheVersion[1])>=143, 'the service-worker cache version is bumped for current app resources');
 assert.match(worker, /'\.\/ibtihalat-radio\.js'/, 'the new player controller is precached');
 assert.match(worker, /'\.\/ibtihalat-radio\.css'/, 'the new player stylesheet is precached');
