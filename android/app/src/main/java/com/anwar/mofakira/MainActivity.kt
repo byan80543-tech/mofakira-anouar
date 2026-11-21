@@ -1,288 +1,214 @@
 package com.anwar.mofakira
 
-import android.Manifest
 import android.app.Activity
-import android.app.AlarmManager
-import android.app.AlertDialog
 import android.content.Intent
-import android.net.Uri
-import android.os.Build
+import android.graphics.Color
+import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
-import android.provider.Settings
-import android.webkit.WebChromeClient
-import android.webkit.WebResourceRequest
-import android.webkit.WebView
-import android.webkit.WebViewClient
-import android.widget.Toast
-import androidx.webkit.WebViewCompat
-import androidx.webkit.WebViewFeature
-import com.anwar.mofakira.alarm.PrayerAlarmScheduler
-import com.anwar.mofakira.alarm.PrayerRefreshWorker
-import com.anwar.mofakira.playback.AdhanPlaybackService
-import com.anwar.mofakira.playback.VoiceCatalog
+import android.view.Gravity
+import android.view.View
+import android.widget.LinearLayout
+import android.widget.ScrollView
+import android.widget.TextView
 
+/**
+ * Native Android entry point.
+ *
+ * The full existing notebook remains available through LegacyWebActivity while
+ * its features are migrated to native screens incrementally. This keeps all
+ * current services reachable and avoids removing the proven web experience
+ * before native feature parity is reached.
+ */
 class MainActivity : Activity() {
-    private lateinit var webView: WebView
-    private var unsupportedVoiceToastShown = false
+    private val navy = Color.rgb(9, 38, 77)
+    private val green = Color.rgb(13, 59, 50)
+    private val gold = Color.rgb(201, 169, 106)
+    private val cream = Color.rgb(247, 243, 234)
+    private val ink = Color.rgb(35, 48, 58)
+    private val muted = Color.rgb(101, 112, 120)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        window.statusBarColor = android.graphics.Color.rgb(9, 38, 77)
-        window.navigationBarColor = android.graphics.Color.rgb(9, 38, 77)
-
-        webView = WebView(this).apply {
-            setBackgroundColor(android.graphics.Color.rgb(247, 243, 234))
-            settings.javaScriptEnabled = true
-            settings.domStorageEnabled = true
-            settings.databaseEnabled = true
-            settings.allowFileAccess = false
-            settings.allowContentAccess = false
-            settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW
-            webChromeClient = WebChromeClient()
-            webViewClient = object : WebViewClient() {
-                override fun shouldOverrideUrlLoading(
-                    view: WebView?,
-                    request: WebResourceRequest?
-                ): Boolean {
-                    val uri = request?.url ?: return false
-                    if (uri.scheme == "https" && uri.host == SITE_HOST) return false
-                    return try {
-                        startActivity(Intent(Intent.ACTION_VIEW, uri))
-                        true
-                    } catch (_: Exception) {
-                        true
-                    }
-                }
-            }
-        }
-        setContentView(webView)
-
-        if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
-            WebViewCompat.addWebMessageListener(
-                webView,
-                "AnwarAdhanBridge",
-                setOf(SITE_ORIGIN)
-            ) { _, message, sourceOrigin, isMainFrame, _ ->
-                if (isMainFrame && sourceOrigin.toString().trimEnd('/') == SITE_ORIGIN) {
-                    val data = message.data
-                    if (data != null) onPrayerSettingsFromWeb(data)
-                }
-            }
-        } else {
-            Toast.makeText(
-                this, "حدّث مكوّن Android System WebView لتفعيل الأذان في الخلفية",
-                Toast.LENGTH_LONG
-            ).show()
-        }
-
-        webView.loadUrl(SITE_URL)
+        window.statusBarColor = navy
+        window.navigationBarColor = navy
+        window.decorView.layoutDirection = View.LAYOUT_DIRECTION_RTL
+        setContentView(buildHome())
     }
 
-    private fun onPrayerSettingsFromWeb(payload: String) {
-        val explicitPermissionRequest = runCatching {
-            org.json.JSONObject(payload).optBoolean("requestPermissions", false)
-        }.getOrDefault(false)
-        val config = runCatching { PrayerSettings.updateFromWeb(this, payload) }.getOrNull()
-            ?: return
-        if (!config.enabled) {
-            lastAdhanEnabled = false
-            permissionPromptDeferred = false
-            PrayerAlarmScheduler.cancel(this)
-            stopService(Intent(this, AdhanPlaybackService::class.java))
-            return
+    private fun buildHome(): View {
+        val scroll = ScrollView(this).apply {
+            setBackgroundColor(cream)
+            isFillViewport = true
+            clipToPadding = false
         }
-        if (!lastAdhanEnabled) permissionPromptDeferred = false
-        lastAdhanEnabled = true
-
-        // The visible web button is an explicit retry path, including after an
-        // earlier denial or a deferred permission prompt.
-        runOnUiThread {
-            if (explicitPermissionRequest) {
-                permissionPromptDeferred = false
-                if (hasNotificationAccess() && hasExactAlarmAccess()) {
-                    Toast.makeText(
-                        this,
-                        "أذونات الأذان الخلفي مفعّلة بالفعل. سيواصل أنوار جدولة الصلاة التالية.",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            }
-            requestRequiredAccess()
+        val content = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            setPadding(dp(18), dp(22), dp(18), dp(28))
         }
+        scroll.addView(content)
 
-        if (!VoiceCatalog.supports(config.voiceKey)) {
-            if (!unsupportedVoiceToastShown) {
-                unsupportedVoiceToastShown = true
-                runOnUiThread {
-                    Toast.makeText(
-                        this,
-                        "هذا التسجيل خارجي ولا يعمل بعد في الأذان الخلفي. اختر «أذان هادئ» مؤقتًا.",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            }
-            PrayerAlarmScheduler.cancel(this)
-            return
+        content.addView(text(
+            "مفكرة أنوار",
+            size = 28f,
+            color = navy,
+            bold = true,
+            bottom = 3
+        ))
+        content.addView(text(
+            "الخدمات القرآنية والدينية",
+            size = 14f,
+            color = muted,
+            bottom = 18
+        ))
+
+        content.addView(heroCard())
+        content.addView(sectionTitle("خدمات المفكرة"))
+        content.addView(featureGrid())
+        content.addView(migrationNote())
+
+        val openLegacy = actionButton("فتح جميع خدمات المفكرة", gold, navy) {
+            startActivity(Intent(this, LegacyWebActivity::class.java))
         }
+        content.addView(openLegacy, marginTop(14))
 
-        PrayerRefreshWorker.ensurePeriodic(this)
-        PrayerRefreshWorker.enqueueNow(this)
+        content.addView(text(
+            "تُفتح النسخة الحالية كاملة للحفاظ على جميع الخدمات والبيانات أثناء نقلها تدريجيًا إلى الواجهات الأصلية.",
+            size = 11f,
+            color = muted,
+            top = 14,
+            bottom = 4
+        ))
+        return scroll
     }
 
-    private var permissionFlowInProgress = false
-    private var waitingForExactAlarmSettings = false
-    private var permissionPromptDeferred = false
-    private var lastAdhanEnabled = false
-
-    private fun hasNotificationAccess(): Boolean {
-        return Build.VERSION.SDK_INT < 33 ||
-            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) ==
-            android.content.pm.PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun hasExactAlarmAccess(): Boolean {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return true
-        val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
-        return alarmManager.canScheduleExactAlarms()
-    }
-
-    private fun requestRequiredAccess() {
-        if (permissionFlowInProgress || permissionPromptDeferred || (hasNotificationAccess() && hasExactAlarmAccess())) return
-
-        permissionFlowInProgress = true
-        AlertDialog.Builder(this)
-            .setTitle("تفعيل الأذان خارج المفكرة")
-            .setMessage(
-                "حتى يعمل الأذان عند موعد الصلاة بعد مغادرة المفكرة، يحتاج تطبيق أنوار إلى إذن الإشعارات، " +
-                    "وإذن «المنبهات والتذكيرات» حتى يوقظ الهاتف في الوقت المحدد. " +
-                    "سيعرض Android طلب الإشعارات أولًا، ثم يفتح إعدادات المنبهات الدقيقة عند الحاجة. " +
-                    "يمكنك اختيار «لاحقًا» والعودة إلى هذا الإعداد متى شئت."
+    private fun heroCard(): View {
+        val card = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.END
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            setPadding(dp(20), dp(21), dp(20), dp(20))
+            background = rounded(
+                intArrayOf(Color.rgb(13, 59, 50), Color.rgb(9, 38, 77)),
+                22
             )
-            .setPositiveButton("متابعة") { _, _ -> requestNotificationAccess() }
-            .setNegativeButton("لاحقًا") { _, _ ->
-                permissionFlowInProgress = false
-                permissionPromptDeferred = true
-            }
-            .setOnCancelListener {
-                permissionFlowInProgress = false
-                permissionPromptDeferred = true
-            }
-            .show()
+        }
+        card.addView(text("رفيقك اليومي مع القرآن والذكر", 20f, Color.WHITE, true, bottom = 7))
+        card.addView(text(
+            "مواقيت الصلاة، القرآن الكريم، الدروس، الأذكار، والسبحة في مكان واحد.",
+            13f,
+            Color.rgb(239, 235, 222),
+            bottom = 0
+        ))
+        return card
     }
 
-    private fun requestNotificationAccess() {
-        if (Build.VERSION.SDK_INT >= 33 && !hasNotificationAccess()) {
-            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQUEST_NOTIFICATIONS)
-            return
-        }
-        requestExactAlarmAccessIfNeeded()
-    }
+    private fun sectionTitle(value: String): TextView =
+        text(value, 17f, green, true, top = 23, bottom = 10)
 
-    private fun requestExactAlarmAccessIfNeeded() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || hasExactAlarmAccess()) {
-            permissionFlowInProgress = false
-            PrayerRefreshWorker.enqueueNow(this)
-            return
+    private fun featureGrid(): View {
+        val rows = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
         }
-
-        AlertDialog.Builder(this)
-            .setTitle("السماح بالأذان في وقته")
-            .setMessage(
-                "افتح إعدادات Android وفعّل خيار «المنبهات والتذكيرات» لتطبيق مفكرة أنوار. " +
-                    "هذا الإذن مطلوب لجدولة الأذان بدقة حتى عندما تكون المفكرة مغلقة."
-            )
-            .setPositiveButton("فتح الإعدادات") { _, _ ->
-                val settingsIntent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
-                    .setData(Uri.parse("package:$packageName"))
-                waitingForExactAlarmSettings = true
-                try {
-                    startActivity(settingsIntent)
-                } catch (_: Exception) {
-                    waitingForExactAlarmSettings = false
-                    permissionFlowInProgress = false
-                    permissionPromptDeferred = true
-                    Toast.makeText(
-                        this, "تعذّر فتح إعدادات المنبهات. افتح إعدادات التطبيق يدويًا.",
-                        Toast.LENGTH_LONG
-                    ).show()
+        val items = listOf(
+            "🕌" to "مواقيت الصلاة والأذان",
+            "📖" to "القرآن الكريم والقراء",
+            "📻" to "الإذاعات والابتهالات",
+            "🎧" to "الدروس والمحاضرات",
+            "🤲" to "أذكار التحصين",
+            "📿" to "السبحة والمكتبة"
+        )
+        items.chunked(2).forEach { pair ->
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                layoutDirection = View.LAYOUT_DIRECTION_RTL
+            }
+            pair.forEach { (icon, label) ->
+                val tile = TextView(this).apply {
+                    text = "$icon\n$label"
+                    textSize = 13f
+                    setTextColor(ink)
+                    gravity = Gravity.CENTER
+                    textAlignment = View.TEXT_ALIGNMENT_CENTER
+                    typeface = Typeface.create("sans-serif", Typeface.BOLD)
+                    setPadding(dp(8), dp(14), dp(8), dp(14))
+                    background = rounded(intArrayOf(Color.WHITE, Color.rgb(255, 253, 247)), 15)
+                    elevation = dp(1).toFloat()
                 }
+                row.addView(tile, LinearLayout.LayoutParams(0, dp(86), 1f).apply {
+                    marginEnd = dp(5)
+                    marginStart = dp(5)
+                    bottomMargin = dp(9)
+                })
             }
-            .setNegativeButton("لاحقًا") { _, _ ->
-                permissionFlowInProgress = false
-                permissionPromptDeferred = true
+            if (pair.size == 1) {
+                row.addView(View(this), LinearLayout.LayoutParams(0, dp(86), 1f))
             }
-            .setOnCancelListener {
-                permissionFlowInProgress = false
-                permissionPromptDeferred = true
-            }
-            .show()
-    }
-
-    @Deprecated("Deprecated in Android API; retained for API 23 compatibility")
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_NOTIFICATIONS) {
-            if (!hasNotificationAccess()) {
-                permissionPromptDeferred = true
-                Toast.makeText(
-                    this,
-                    "لم يُمنح إذن الإشعارات؛ يمكنك تفعيله لاحقًا من إعدادات التطبيق.",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-            requestExactAlarmAccessIfNeeded()
+            rows.addView(row)
         }
+        return rows
     }
 
-    override fun onResume() {
-        super.onResume()
+    private fun migrationNote(): View {
+        val box = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            setPadding(dp(15), dp(13), dp(15), dp(13))
+            background = rounded(intArrayOf(Color.rgb(255, 249, 234), Color.rgb(255, 249, 234)), 13, gold)
+        }
+        box.addView(text("مرحلة الانتقال إلى التطبيق الأصلي", 13f, navy, true, bottom = 5))
+        box.addView(text(
+            "أصبحت هذه الشاشة نقطة الدخول الأصلية لأندرويد. تبقى جميع أقسام المفكرة الحالية متاحة من زر فتح الخدمات، ولن يُحذف أي قسم قبل اكتمال نقله واختباره.",
+            11f,
+            muted
+        ))
+        return box
+    }
 
-        if (waitingForExactAlarmSettings) {
-            waitingForExactAlarmSettings = false
-            permissionFlowInProgress = false
-            if (hasExactAlarmAccess()) {
-                Toast.makeText(
-                    this, "تم السماح بالمنبهات والتذكيرات. يجري تحديث مواعيد الأذان.",
-                    Toast.LENGTH_LONG
-                ).show()
-                permissionPromptDeferred = !hasNotificationAccess()
-            } else {
-                permissionPromptDeferred = true
-                Toast.makeText(
-                    this, "لم يُفعّل إذن المنبهات الدقيقة؛ قد يتأخر الأذان في وضع السكون.",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
+    private fun actionButton(label: String, backgroundColor: Int, textColor: Int, onClick: () -> Unit): TextView =
+        TextView(this).apply {
+            text = label
+            textSize = 15f
+            setTextColor(textColor)
+            gravity = Gravity.CENTER
+            typeface = Typeface.create("sans-serif", Typeface.BOLD)
+            setPadding(dp(16), dp(15), dp(16), dp(15))
+            background = rounded(intArrayOf(backgroundColor, backgroundColor), 14)
+            isClickable = true
+            isFocusable = true
+            setOnClickListener { onClick() }
         }
 
-        if (::webView.isInitialized && PrayerSettings.read(this).enabled && hasExactAlarmAccess()) {
-            PrayerRefreshWorker.enqueueNow(this)
+    private fun text(
+        value: String,
+        size: Float,
+        color: Int,
+        bold: Boolean = false,
+        top: Int = 0,
+        bottom: Int = 0
+    ): TextView = TextView(this).apply {
+        text = value
+        textSize = size
+        setTextColor(color)
+        gravity = Gravity.END
+        textAlignment = View.TEXT_ALIGNMENT_VIEW_END
+        layoutDirection = View.LAYOUT_DIRECTION_RTL
+        if (bold) typeface = Typeface.create("sans-serif", Typeface.BOLD)
+        setPadding(0, dp(top), 0, dp(bottom))
+    }
+
+    private fun rounded(colors: IntArray, radius: Int, stroke: Int? = null): GradientDrawable =
+        GradientDrawable(GradientDrawable.Orientation.TL_BR, colors).apply {
+            cornerRadius = dp(radius).toFloat()
+            if (stroke != null) setStroke(dp(1), stroke)
         }
-    }
 
-    override fun onBackPressed() {
-        if (::webView.isInitialized && webView.canGoBack()) webView.goBack()
-        else super.onBackPressed()
-    }
+    private fun marginTop(value: Int) = LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.MATCH_PARENT,
+        LinearLayout.LayoutParams.WRAP_CONTENT
+    ).apply { topMargin = dp(value) }
 
-    override fun onDestroy() {
-        if (::webView.isInitialized) {
-            webView.stopLoading()
-            webView.destroy()
-        }
-        super.onDestroy()
-    }
-
-    companion object {
-        // Use the production origin so the native bridge receives the same settings
-        // that visitors see on the published notebook, not a temporary Pages preview.
-        private const val SITE_HOST = "mofakira-anouar.pages.dev"
-        private const val SITE_ORIGIN = "https://mofakira-anouar.pages.dev"
-        private const val SITE_URL = "$SITE_ORIGIN/mofakira-anouar/"
-        private const val REQUEST_NOTIFICATIONS = 721
-    }
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density + 0.5f).toInt()
 }
