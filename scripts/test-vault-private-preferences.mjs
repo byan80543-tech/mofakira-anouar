@@ -27,21 +27,25 @@ assert.equal(persisted.readerAdvance,'s','preference change requests encrypted v
 api.set('radio',{reciter:'قارئ تجريبي',surah:36});
 assert.equal(api.get().radio.reciter,'قارئ تجريبي');
 assert.equal(api.get().radio.surah,36);
-api.set('tasbih',{count:125,dhikr:'سبحان الله'});
+api.set('tasbih',{count:125,dhikr:'سبحان الله',theme:'pink',designVersion:'royal-reference-1'});
 assert.equal(api.get().tasbih.count,125);
 assert.equal(api.get().tasbih.dhikr,'سبحان الله');
+assert.equal(api.get().tasbih.theme,'pink','the selected tasbih color theme is retained in encrypted preferences');
+assert.equal(api.get().tasbih.designVersion,'royal-reference-1','the design migration marker is retained in encrypted preferences');
 assert.ok(notifications>=4,'subscribers receive initial and changed preference snapshots');
 
 state=api.normalize({
  radio:{reciter:'ق'.repeat(500),surah:999},
  readerAdvance:'invalid',
- tasbih:{count:-5,dhikr:'ذ'.repeat(300)}
+ tasbih:{count:-5,dhikr:'ذ'.repeat(300),theme:'unknown',designVersion:'v'.repeat(100)}
 });
 assert.equal(state.radio.reciter.length,120,'reciter names are length-limited');
 assert.equal(state.radio.surah,1,'invalid surah indices are rejected');
 assert.equal(state.readerAdvance,'c','invalid reader modes use the safe default');
 assert.equal(state.tasbih.count,0,'negative counters are rejected');
 assert.equal(state.tasbih.dhikr.length,200,'dhikr labels are length-limited');
+assert.equal(state.tasbih.theme,'emerald','unknown color themes safely fall back to emerald');
+assert.equal(state.tasbih.designVersion.length,40,'design migration metadata is length-limited');
 
 state=api.normalize({radio:{surah:114},readerAdvance:'s',tasbih:{count:1000000001,dhikr:'',customDhikrs:['  سبحان الله  ','سبحان الله','الحمد لله']}});
 assert.equal(state.radio.surah,114);
