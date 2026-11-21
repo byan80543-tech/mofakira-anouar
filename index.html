@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.aladhan.com https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="preload" href="./app-core.js?v=20261121-44" as="script">
+<link rel="preload" href="./app-core.js?v=20261121-45" as="script">
 <script src="api-gateway-config.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>مفكرة أنوار | Anouar Oumlili</title>
@@ -130,7 +130,7 @@ dialog{box-sizing:border-box;margin:auto;position:fixed;inset:0;border:1px solid
 dialog textarea{width:100%;height:140px;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:8px;direction:ltr}
 #toast{position:fixed;bottom:50px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:8px 16px;border-radius:18px;font-size:13px;opacity:0;transition:.3s;pointer-events:none;z-index:40;max-width:90vw;text-align:center}
 #toast.s{opacity:1}
- .tb{position:relative}#rb{padding:2px 7px!important;font-size:11px;line-height:18px}
+ .tb{position:relative}#rb{padding:0!important;font-size:0!important;line-height:1}
 .lesson-launch-row{display:flex;justify-content:center;align-items:center;padding:7px 10px;background:linear-gradient(180deg,#174d76,#123c63);border-bottom:1px solid rgba(255,255,255,.16)}
 #rg{position:relative!important;inset:auto!important;transform:none!important;display:flex;align-items:center;justify-content:center;gap:10px;max-width:min(100%,560px);min-height:38px;padding:6px 18px!important;border:1px solid #d8bd7c!important;border-radius:999px!important;background:linear-gradient(135deg,#fff6d7,#e6c77c)!important;color:#243c59!important;font-weight:700;font-size:13px!important;line-height:1.4!important;box-shadow:0 2px 8px rgba(0,0,0,.16);white-space:nowrap}
 #rg:active{transform:scale(.985)!important}#rg[aria-expanded="true"]{background:linear-gradient(135deg,#f3e4b7,#d9b45d)!important}
@@ -160,19 +160,21 @@ dialog textarea{width:100%;height:140px;background:var(--bg);color:var(--tx);bor
 #rd .lesson-tulip{width:30px;height:30px;display:grid;place-items:center;flex:none;overflow:hidden;border-radius:50%;border:1px solid #dfc58d;background:linear-gradient(145deg,#fffaf0,#f0e2c1);box-shadow:inset 0 1px 2px #ffffffb8,0 1px 3px #18334b12}#rd .lesson-tulip img{display:block;width:25px;height:29px;object-fit:contain;object-position:center bottom}
 #rd .lesson-item-name{flex:1;min-width:0;font-size:12px;font-weight:700}
 /* زهرة أنوار الحرة: بلا قرص أو خلفية، وتفتح دائري متوازن */
-#rb,#rpp,.reciter-play,#lessonPlay{position:relative;display:inline-grid;place-items:center;flex:none;border:0!important;border-radius:0!important;background:transparent!important;color:transparent!important;font-size:0!important;box-shadow:none!important;overflow:visible;padding:0!important}
-#rb::before,#rpp::before,.reciter-play::before::before,#lessonPlay::before{content:'';display:block;width:31px;height:31px;border:0!important;background:url('assets/royal-rose-closed.svg') center/contain no-repeat!important;transform:scale(.94);transform-origin:center;transition:transform .36s cubic-bezier(.2,.7,.25,1),filter .36s ease;filter:drop-shadow(0 1px 1px #233c3020)}
+#rpp,.reciter-play,#lessonPlay{position:relative;display:inline-grid;place-items:center;flex:none;border:0!important;border-radius:0!important;background:transparent!important;color:transparent!important;font-size:0!important;box-shadow:none!important;overflow:visible;padding:0!important}
+#rpp::before,.reciter-play::before,#lessonPlay::before{content:'';display:block;width:31px;height:31px;border:0!important;background:url('assets/royal-rose-closed.svg') center/contain no-repeat!important;transform:scale(.94);transform-origin:center;transition:transform .36s cubic-bezier(.2,.7,.25,1),filter .36s ease;filter:drop-shadow(0 1px 1px #233c3020)}
 
 /* زر التشغيل الأخضر مدمج هندسياً في SVG الخاص ببرعم الوردة */
-#rb[data-playing="true"]::before,#rpp[data-playing="true"]::before,.reciter-play[data-playing="true"]::before[data-playing="true"]::before,#lessonPlay[data-playing="true"]::before{width:31px;height:31px;background-image:url('assets/royal-rose-open.svg')!important;animation:anwarFlowerBloom .58s cubic-bezier(.18,.78,.22,1.12) both;filter:drop-shadow(0 1px 1.5px #a83d6a30)}
+#rpp[data-playing="true"]::before,.reciter-play[data-playing="true"]::before,#lessonPlay[data-playing="true"]::before{width:31px;height:31px;background-image:url('assets/royal-rose-open.svg')!important;animation:anwarFlowerBloom .58s cubic-bezier(.18,.78,.22,1.12) both;filter:drop-shadow(0 1px 1.5px #a83d6a30)}
 @keyframes anwarFlowerBloom{0%{transform:perspective(120px) rotateX(38deg) scale(.34);opacity:.35;filter:blur(1.2px)}48%{transform:perspective(120px) rotateX(-5deg) scale(1.12);opacity:1;filter:blur(0)}76%{transform:perspective(120px) rotateX(2deg) scale(.97)}100%{transform:perspective(120px) rotateX(0) scale(1);opacity:1;filter:blur(0)}}
-#rb.on{background:transparent!important;color:transparent!important;animation:pl 1.6s infinite}
-#rb:focus-visible,#rpp:focus-visible,.reciter-play:focus-visible:focus-visible,#lessonPlay:focus-visible{outline:2px solid #d8bd7c;outline-offset:3px;border-radius:50%!important}
+#rb.on{background:rgba(255,255,255,.28)!important;color:#fff!important;border-color:#e5c77b!important;animation:pl 1.6s infinite}
+#rb:focus-visible,#rpp:focus-visible,.reciter-play:focus-visible,#lessonPlay:focus-visible{outline:2px solid #d8bd7c;outline-offset:3px;border-radius:50%!important}
 #rb{width:38px;height:38px}#rpp{width:42px;height:42px}.reciter-play,#lessonPlay{width:38px;height:38px}
+#rb.radio-toolbar-toggle{display:grid;place-items:center;min-width:38px;width:38px;height:38px;padding:0!important;border:1px solid rgba(255,255,255,.42)!important;border-radius:9px!important;background:rgba(255,255,255,.15)!important;color:#fff!important}
+.radio-toolbar-icon{display:block;width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8}
 #rd .reciter-version{display:flex;align-items:center;justify-content:flex-start;gap:8px}
 #rd .reciter-version::before{content:'';display:inline-block;flex:none;width:25px;height:25px;background:url('assets/royal-rose-closed.svg') center/contain no-repeat;filter:drop-shadow(0 1px 1px #233c3020);transition:transform .36s ease,filter .36s ease}
 #rd .reciter-version[data-playing="true"]::before{background-image:url('assets/royal-rose-open.svg');animation:anwarFlowerBloom .58s cubic-bezier(.18,.78,.22,1.12) both;filter:drop-shadow(0 1px 1.5px #a83d6a30)}
-@media(prefers-reduced-motion:reduce){#rb::before,#rpp::before,.reciter-play::before::before,#lessonPlay::before,#rd .reciter-version::before{animation:none!important;transition:none!important}}
+@media(prefers-reduced-motion:reduce){#rpp::before,.reciter-play::before,#lessonPlay::before,#rd .reciter-version::before{animation:none!important;transition:none!important}}
 
 #rd .lesson-empty{padding:12px;text-align:center;color:var(--mu);font-size:12px}#rd .lesson-box a{display:block;color:var(--ac);text-decoration:none;border:1px solid var(--bd);border-radius:7px;padding:8px;background:var(--sf);font-size:12px}#rd .lesson-box audio{width:100%;height:38px}#rd .lesson-note{font-size:11px;color:var(--mu);line-height:1.7}
 #rd select{border:1px solid var(--bd);border-radius:6px;padding:5px;background:var(--bg);color:var(--tx)}
@@ -2795,7 +2797,7 @@ dialog[open]>.float-head{display:none!important}
  <span class="brand"><svg class="brand-mark" viewBox="0 0 512 512" aria-hidden="true"><path d="M70 420 Q235 320 424 60 Q405 260 70 420Z" fill="#e7c16d" stroke="#fff0bd" stroke-width="9"/><path d="M72 420 Q248 250 424 60 M155 340 L145 255 M220 276 L220 185 M292 202 L310 130 M360 132 L390 92" fill="none" stroke="#76501e" stroke-width="10" stroke-linecap="round"/></svg><span class="logo">مفكرة أنوار</span></span>
  <input id="t" placeholder="عنوان العمل">
  <button type="button" id="archiveBtn" class="archive-launch" aria-label="أرشيف أنوار" title="أرشيف أنوار" aria-haspopup="dialog" aria-controls="archiveDialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4.5h18v4H3zM5 8.5v11h14v-11M9 12h6M9 15h6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
- <button type="button" id="rb" title="تشغيل أو إيقاف إذاعة القرآن" aria-label="تشغيل إذاعة القرآن" aria-pressed="false">▶</button>
+ <button type="button" id="rb" class="radio-toolbar-toggle" title="تشغيل أو إيقاف إذاعة القرآن" aria-label="تشغيل إذاعة القرآن" aria-pressed="false"><svg class="radio-toolbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 9.5h16a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Z"/><path d="m6 6.5 11-3M5.5 13h6v5h-6z"/><circle cx="17" cy="15.5" r="2.5"/><path d="M8 7.2h.01"/></svg></button>
  <button id="th" type="button" aria-label="تبديل الوضع الليلي والنهاري" title="تبديل الوضع الليلي والنهاري"><svg class="toolbar-icon theme-toggle-icon" viewBox="0 0 24 24" aria-hidden="true"><circle class="theme-sun" cx="12" cy="12" r="4"/><path class="theme-sun" d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/><path class="theme-moon" d="M20.3 15.4A8.5 8.5 0 0 1 8.6 3.7 8.5 8.5 0 1 0 20.3 15.4Z"/></svg></button>
  <button id="paletteBtn" type="button" aria-label="تغيير ألوان المفكرة" title="تغيير ألوان المفكرة"><svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2a8.8 8.8 0 1 0 0 17.6h1.3a1.9 1.9 0 0 0 1.3-3.3 1.8 1.8 0 0 1 1.3-3h1.3a3.7 3.7 0 0 0 3.7-3.7c0-4.2-4-7.6-8.9-7.6Z"/><circle cx="7.8" cy="11" r="1"/><circle cx="10" cy="7.4" r="1"/><circle cx="14.3" cy="7.4" r="1"/><circle cx="17.2" cy="10.2" r="1"/></svg></button>
 
@@ -3294,7 +3296,7 @@ dialog[open]>.float-head{display:none!important}
 <script src="./vault-device-unlock.js?v=20261118-1"></script>
 <script src="./poetry-dictation.js?v=20261119-1" defer></script>
 <script src="./protective-adhkar.js?v=20261121-1" defer></script>
-<script src="./app-core.js?v=20261121-44" defer></script>
+<script src="./app-core.js?v=20261121-45" defer></script>
 <script src="./ibtihalat-radio.js?v=20261121-1" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
 <script src="./tasbih-controller.js?v=20261121-reference1" defer></script>
