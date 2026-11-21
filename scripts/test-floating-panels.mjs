@@ -51,11 +51,11 @@ assert.deepEqual(JSON.parse(JSON.stringify(math.normalizeSavedLayout({x:1,y:2,wi
 },'saved sizes below the safe minimum are normalized before display');
 
 assert.ok((html.match(/class="rib-menu"/g)||[]).length>=5,'all toolbar menus are available to the shared floating-panel controller');
-assert.ok(html.includes('<link rel="stylesheet" href="./floating-panels.css?v=20261121-1">'),'floating panel styles are loaded from a same-origin stylesheet');
-assert.ok(html.includes('<script src="./floating-panels.js?v=20261121-1" defer></script>'),'floating panel logic is loaded as a deferred same-origin script');
+assert.ok(html.includes('<link rel="stylesheet" href="./floating-panels.css?v=20261121-2">'),'floating panel styles are loaded from a same-origin stylesheet');
+assert.ok(html.includes('<script src="./floating-panels.js?v=20261121-2" defer></script>'),'floating panel logic is loaded as a deferred same-origin script');
 assert.ok(worker.includes("'./floating-panels.js'")&&worker.includes("'./floating-panels.css'"),
  'the offline service-worker shell precaches both floating-panel assets');
-assert.match(worker,/const CACHE_NAME='anwar-shell-2026-11-21-v125';/,
+assert.match(worker,/const CACHE_NAME='anwar-shell-2026-11-21-v126';/,
  'the offline cache version is refreshed for this release');
 
 for(const event of ['pointerdown','pointermove','pointerup','pointercancel','lostpointercapture','setPointerCapture']){
