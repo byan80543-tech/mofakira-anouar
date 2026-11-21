@@ -97,7 +97,16 @@ class MainActivity : Activity() {
         // The visible web button is an explicit retry path, including after an
         // earlier denial or a deferred permission prompt.
         runOnUiThread {
-            if (explicitPermissionRequest) permissionPromptDeferred = false
+            if (explicitPermissionRequest) {
+                permissionPromptDeferred = false
+                if (hasNotificationAccess() && hasExactAlarmAccess()) {
+                    Toast.makeText(
+                        this,
+                        "أذونات الأذان الخلفي مفعّلة بالفعل. سيواصل أنوار جدولة الصلاة التالية.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
             requestRequiredAccess()
         }
 
