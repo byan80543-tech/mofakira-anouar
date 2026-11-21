@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.aladhan.com https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="preload" href="./app-core.js?v=20261121-65" as="script">
+<link rel="preload" href="./app-core.js?v=20261121-66" as="script">
 <script src="api-gateway-config.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>مفكرة أنوار | Anouar Oumlili</title>
@@ -2785,6 +2785,46 @@ dialog[open]>.float-head{display:none!important}
 }
 </style>
 
+<style id="anwar-adhkar-cyclic-palette-v1">
+/* تبديل مباشر لخلفية صفحة التحصين؛ الأبيض هو الوضع الأول والافتراضي. */
+#rd #anwarAdhkarPage{
+ --bg:#f8fafc;--sf:#fff;--tx:#293443;--mu:#6b7788;--ac:#566f8e;--ac2:#eaf0f7;--bd:#dce4ed;
+ background:#fff;border-radius:14px;padding:10px;
+ transition:background-color .2s ease,color .2s ease;
+}
+#rd #anwarAdhkarPage[data-adhkar-theme="rose"]{
+ --bg:#fff9fa;--sf:#fff;--tx:#533a43;--mu:#876d75;--ac:#b05b79;--ac2:#f9e3e9;--bd:#efd5dd;
+ background:#fff2f5;
+}
+#rd #anwarAdhkarPage[data-adhkar-theme="blue"]{
+ --bg:#f8fbff;--sf:#fff;--tx:#273f57;--mu:#6a8096;--ac:#477eaa;--ac2:#e3f0fb;--bd:#d3e3f1;
+ background:#f0f7ff;
+}
+#rd #anwarAdhkarPage[data-adhkar-theme="yellow"]{
+ --bg:#fffdf6;--sf:#fff;--tx:#4e432a;--mu:#89784f;--ac:#98742c;--ac2:#f7edce;--bd:#ebdfbf;
+ background:#fff9e9;
+}
+#rd #anwarAdhkarPage[data-adhkar-theme="purple"]{
+ --bg:#fbf9ff;--sf:#fff;--tx:#443855;--mu:#7d718d;--ac:#8062a6;--ac2:#ece5f7;--bd:#e0d7ee;
+ background:#f6f2ff;
+}
+#rd #anwarAdhkarPage[data-adhkar-theme="gold"]{
+ --bg:#fffaf0;--sf:#fff;--tx:#4a3e2b;--mu:#83704f;--ac:#98753c;--ac2:#f1e5c9;--bd:#e6d8b7;
+ background:#fbf6ea;
+}
+#rd #anwarAdhkarPage .anwar-service-page-head{justify-content:space-between;gap:10px}
+#rd #anwarAdhkarPage .adhkar-theme-toggle{
+ flex:none;display:grid;place-items:center;width:38px;height:38px;min-height:38px;padding:6px;
+ border:2px solid transparent;border-radius:50%;
+ background:linear-gradient(#fff,#fff) padding-box,conic-gradient(#e56d87 0 17%,#e4b94d 17% 34%,#75a989 34% 51%,#69a8d5 51% 68%,#9a7ac3 68% 84%,#d4a95b 84% 100%) border-box;
+ box-shadow:0 2px 7px rgba(46,55,72,.12);cursor:pointer;
+ -webkit-tap-highlight-color:transparent;transition:transform .16s ease,box-shadow .16s ease;
+}
+#rd #anwarAdhkarPage .adhkar-theme-toggle svg{display:block;width:23px;height:23px}
+#rd #anwarAdhkarPage .adhkar-theme-toggle:active{transform:scale(.92);box-shadow:0 1px 3px rgba(46,55,72,.14)}
+#rd #anwarAdhkarPage .adhkar-theme-toggle:focus-visible{outline:2px solid var(--ac);outline-offset:3px}
+@media(prefers-reduced-motion:reduce){#rd #anwarAdhkarPage{transition:none}#rd #anwarAdhkarPage .adhkar-theme-toggle{transition:none}}
+</style>
 </head>
 <body>
 <div class="app" id="app">
@@ -3024,8 +3064,16 @@ dialog[open]>.float-head{display:none!important}
  <section id="anwarLessonsPage" class="anwar-service-page" aria-label="الدروس والمحاضرات" hidden>
   <div class="anwar-service-page-head"><button type="button" class="anwar-service-back" data-anwar-service-back>‹　العودة إلى الأقسام</button></div>
  </section>
- <section id="anwarAdhkarPage" class="anwar-service-page" aria-label="أذكار التحصين" hidden>
-  <div class="anwar-service-page-head"><button type="button" class="anwar-service-back" data-anwar-service-back>‹　العودة إلى الأقسام</button></div>
+ <section id="anwarAdhkarPage" class="anwar-service-page" aria-label="أذكار التحصين" data-adhkar-theme="white" hidden>
+  <div class="anwar-service-page-head">
+   <button type="button" class="anwar-service-back" data-anwar-service-back>‹　العودة إلى الأقسام</button>
+   <button type="button" id="adhkarPageThemeToggle" class="adhkar-theme-toggle" aria-label="تغيير لون صفحة الأذكار. اللون الحالي: الأبيض" title="تغيير لون صفحة الأذكار — الحالي: الأبيض">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+     <path d="M12 3.1a8.9 8.9 0 1 0 0 17.8h1.15a1.7 1.7 0 0 0 1.28-2.82 1.68 1.68 0 0 1 1.28-2.78h1.04A4.15 4.15 0 0 0 20.9 11.1C20.9 6.68 16.92 3.1 12 3.1Z" fill="#fffdf8" stroke="#756b63" stroke-width="1.15"/>
+     <circle cx="7.1" cy="10" r="1.45" fill="#e56d87"/><circle cx="10.1" cy="6.9" r="1.45" fill="#e4b94d"/><circle cx="14.1" cy="6.7" r="1.45" fill="#69a8d5"/><circle cx="17.1" cy="9.3" r="1.45" fill="#9a7ac3"/><circle cx="8.2" cy="14.2" r="1.45" fill="#75a989"/>
+    </svg>
+   </button>
+  </div>
   <section id="adhkarPanel" class="anwar-adhkar-page-content" aria-label="أذكار التحصين">
   <h2 class="protective-page-title">أذكار التحصين</h2>
   <div class="adhkar-dismissible-note adhkar-privacy-note"><p>أذكارك محفوظة في مفكرتك على هذا الجهاز.</p><button type="button" class="adhkar-note-dismiss" data-dismiss-adhkar-notice="privacy" aria-label="إخفاء هذا الإرشاد" title="إخفاء الإرشاد">×</button></div>
@@ -3289,7 +3337,7 @@ dialog[open]>.float-head{display:none!important}
 <script src="./vault-device-unlock.js?v=20261118-1"></script>
 <script src="./poetry-dictation.js?v=20261119-1" defer></script>
 <script src="./protective-adhkar.js?v=20261121-1" defer></script>
-<script src="./app-core.js?v=20261121-65" defer></script>
+<script src="./app-core.js?v=20261121-66" defer></script>
 <script src="./ibtihalat-radio.js?v=20261121-1" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
 <script src="./tasbih-controller.js?v=20261121-reference1" defer></script>
