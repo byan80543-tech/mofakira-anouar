@@ -354,6 +354,21 @@
  function updateHeader(){
   locationLabel.textContent=cityForDisplay(settings.city)+' · '+countryForDisplay(settings.country);
  }
+ function fallbackDateLabel(){
+  const now=new Date();
+  const gregorian=new Intl.DateTimeFormat('en-CA',{timeZone,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now);
+  const part=(parts,type)=>parts.find(item=>item.type===type)?.value||'';
+  const greg=[part(gregorian,'year'),part(gregorian,'month'),part(gregorian,'day')].join('-');
+  let hijri='';
+  try{
+   const parts=new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{timeZone,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now);
+   const year=(part(parts,'year').match(/\\d+/)||[])[0]||'';
+   const month=part(parts,'month').replace(/\\D/g,'').padStart(2,'0');
+   const day=part(parts,'day').replace(/\\D/g,'').padStart(2,'0');
+   if(year&&month&&day)hijri=[year,month,day].join('-');
+  }catch(_e){}
+  return (greg?'ميلادي '+greg:'')+(hijri?' · هجري '+hijri:'');
+ }
  function renderTimes(){
   if(!todayData)return;
   timesGrid.replaceChildren();
@@ -494,8 +509,8 @@
   }catch(error){
    if(token===loadToken){
     if(!todayData){
-     dateLine.textContent='تعذّر تحميل المواقيت؛ تحقق من اسم المدينة أو الاتصال.';
-     dateLine.dataset.state='error';showNextPrayerPlaceholder('ستظهر التفاصيل عند توفر المواقيت');
+     dateLine.textContent=fallbackDateLabel()||'التاريخ المحلي';
+     dateLine.dataset.state='fallback';showNextPrayerPlaceholder('ستظهر التفاصيل عند توفر المواقيت');
     }
     setStatus(error&&error.message?error.message:'تعذّر تحديث المواقيت.');
    }

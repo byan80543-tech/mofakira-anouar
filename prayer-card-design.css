@@ -15,7 +15,7 @@
 #rd #anwarPrayerCard .anwar-prayer-note{color:#777d86!important;font-size:11px!important;line-height:1.7!important}
 #rd #anwarPrayerCard .anwar-prayer-next{
  display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:5px 12px;
- width:100%;min-width:0;min-height:108px;padding:12px 14px!important;
+ width:100%;min-width:0;min-height:104px;padding:12px 14px!important;
  border:0!important;border-radius:15px!important;
  background:linear-gradient(115deg,#0b3159 0%,#14516d 54%,#1c6077 100%)!important;
  color:#fff!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 2px 7px rgba(7,40,67,.12);direction:rtl
@@ -37,8 +37,8 @@
 #rd #anwarPrayerCard .anwar-prayer-date{margin-top:1px;text-align:right;direction:rtl}
 #rd #anwarPrayerCard .anwar-prayer-info,
 #rd #anwarPrayerCard .anwar-prayer-settings{min-width:0;border-top:1px solid #d9c99e!important;padding-top:8px!important;color:#26313e!important}
-#rd #anwarPrayerCard .anwar-prayer-info summary,
-#rd #anwarPrayerCard .anwar-prayer-settings summary{display:list-item;cursor:pointer;color:#244d78!important;font-size:13px!important;font-weight:700!important;line-height:1.7;padding:3px 0!important}
+#rd #anwarPrayerCard .anwar-prayer-info summary{display:list-item;cursor:pointer;color:#242424!important;font-size:15px!important;font-weight:500!important;line-height:1.7;padding:3px 0!important}
+#rd #anwarPrayerCard .anwar-prayer-settings summary{display:list-item;cursor:pointer;color:#244d78!important;font-size:14px!important;font-weight:750!important;line-height:1.7;padding:3px 0!important}
 #rd #anwarPrayerCard .anwar-prayer-fields{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px!important;padding-top:9px!important}
 #rd #anwarPrayerCard .anwar-prayer-field{display:grid;gap:4px;min-width:0;color:#68717c!important;font-size:11px!important}
 #rd #anwarPrayerCard .anwar-prayer-field input,
@@ -55,7 +55,7 @@
 #rd #anwarPrayerCard .anwar-prayer-links a{color:#284f7b!important;text-decoration:none}
 @media(max-width:420px){
  #rd #anwarPrayerCard{gap:9px!important;padding:10px!important;border-radius:16px!important}
- #rd #anwarPrayerCard .anwar-prayer-next{min-height:100px;padding:10px 11px!important;gap:4px 8px}
+ #rd #anwarPrayerCard .anwar-prayer-next{min-height:98px;padding:10px 11px!important;gap:4px 8px}
  #rd #anwarPrayerCard .anwar-prayer-times{gap:4px!important}
  #rd #anwarPrayerCard .anwar-prayer-time{min-height:62px;padding:7px 2px!important;border-radius:11px!important}
  #rd #anwarPrayerCard .anwar-prayer-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
