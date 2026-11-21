@@ -17,6 +17,19 @@ assert.ok(playStart>=0&&toggleStart>playStart&&radioPlaying>toggleStart,'radio p
 
 const playBody=radio.slice(playStart,toggleStart);
 const toggleBody=radio.slice(toggleStart,radioPlaying);
+
+const ayyubBase='https://cdn.mp3quran.net/audio/muhammad-ayyub/r1/';
+const ayyubEntry=radio.match(/\\['محمد أيوب','([^']+)'\\]/);
+assert.ok(ayyubEntry,'Muhammad Ayyub is present in the shared reciter catalog');
+assert.equal(ayyubEntry[1],ayyubBase,'Muhammad Ayyub uses the verified official MP3Quran CDN r1 folder rather than the retired server8 path');
+assert.ok(!radio.includes('https://server8.mp3quran.net/ayyub/'),'the retired silent Muhammad Ayyub folder is no longer referenced');
+assert.ok(playBody.includes("const fileName=String(n).padStart(3,'0')+'.mp3';"),'all reciters keep the same three-digit surah filename convention');
+for(const surah of [1,47,114]){
+ const url=ayyubBase+String(surah).padStart(3,'0')+'.mp3';
+ assert.equal(url,ayyubBase+({1:'001.mp3',47:'047.mp3',114:'114.mp3'}[surah]),'Muhammad Ayyub surah URL is formed correctly for '+surah);
+}
+assert.ok(radio.includes("R[cr][0]")&&radio.includes("R[cr][1]"),'the fixed source is shared by the radio player and the Quran reciter list');
+
 assert.ok(playBody.includes('radioShouldPlay=true'),'starting playback records the visitor intent');
 assert.ok(!playBody.includes("lesson.pause()")&&!playBody.includes('__anwarStopCountryAudio'),'starting the radio does not stop other in-app audio');
 assert.ok(!toggleBody.includes('__anwarStopCountryAudio'),'toggling the radio does not stop other players');
