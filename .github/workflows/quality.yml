@@ -57,7 +57,7 @@ jobs:
         run: node scripts/test-radio-interruptions.mjs
       - name: Test Quran and prayer service dashboard navigation
         run: node scripts/test-service-dashboard.mjs
-      - name: Test protective adhkar content, sources and counters
+      - name: Test empty starter data and private visitor-owned adhkar
         run: node scripts/test-protective-adhkar.mjs
       - name: Test owner-only adhkar reading, publishing and access control
         run: node scripts/test-adhkar-workflow.mjs
