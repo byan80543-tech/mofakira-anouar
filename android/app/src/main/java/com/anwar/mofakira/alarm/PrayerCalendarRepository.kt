@@ -20,20 +20,17 @@ import java.util.Locale
 object PrayerCalendarRepository {
     private val apiDate = DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.US)
 
+    /**
+     * Refreshes and persists the prayer calendar even when automatic adhan is
+     * disabled. The native prayer screen needs the times for display separately
+     * from the user's choice to schedule background playback.
+     */
     fun refreshAndSchedule(context: Context): Boolean {
         val config = PrayerSettings.read(context)
-        if (!config.enabled) {
-            PrayerAlarmScheduler.cancel(context)
-            return true
-        }
-        if (!VoiceCatalog.supports(config.voiceKey)) {
-            PrayerAlarmScheduler.cancel(context)
-            return false
-        }
-
         val zone = runCatching { ZoneId.of(config.timeZone) }.getOrElse { ZoneId.systemDefault() }
         val firstMonth = YearMonth.now(zone)
         val events = JSONArray()
+
         listOf(firstMonth, firstMonth.plusMonths(1)).forEach { month ->
             val days = fetchMonth(config.city, config.country, config.method, config.school, month)
             days.forEach dayLoop@ { day ->
@@ -60,10 +57,16 @@ object PrayerCalendarRepository {
                 }
             }
         }
+
         if (events.length() == 0) return false
         PrayerSettings.saveEvents(context, events.toString())
-        VoiceCache.downloadBestEffort(context, config.voiceKey)
-        PrayerAlarmScheduler.scheduleNext(context)
+
+        if (config.enabled && VoiceCatalog.supports(config.voiceKey)) {
+            VoiceCache.downloadBestEffort(context, config.voiceKey)
+            PrayerAlarmScheduler.scheduleNext(context)
+        } else {
+            PrayerAlarmScheduler.cancel(context)
+        }
         return true
     }
 
@@ -86,7 +89,7 @@ object PrayerCalendarRepository {
             readTimeout = 18_000
             requestMethod = "GET"
             setRequestProperty("Accept", "application/json")
-            setRequestProperty("User-Agent", "AnwarBackgroundAdhan/0.1")
+            setRequestProperty("User-Agent", "AnwarBackgroundAdhan/0.2")
         }
         try {
             if (connection.responseCode !in 200..299) {
