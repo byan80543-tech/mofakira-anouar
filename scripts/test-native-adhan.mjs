@@ -36,6 +36,7 @@ assert.match(prayer, /function syncNativeBackground\(requestPermissions\)/);
 assert.match(prayer, /if\(requestPermissions===true\)payload\.requestPermissions=true/);
 assert.match(activity, /optBoolean\("requestPermissions", false\)/);
 assert.match(activity, /if \(explicitPermissionRequest\) permissionPromptDeferred = false/);
+assert.match(activity, /أذونات الأذان الخلفي مفعّلة بالفعل/);
 assert.match(prayer, /bridge\.postMessage\(JSON\.stringify\(payload\)\)/);
 assert.match(prayer, /enabledInput\.addEventListener/);
 assert.match(companionReadme, /Chrome.*PWA/);
