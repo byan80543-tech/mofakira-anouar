@@ -53,24 +53,8 @@ assert.equal(gatewayFor('https://anwar-api-gateway.account.workers.dev.attacker.
 assert.equal(gatewayFor('https://anwar-api-gateway.account.workers.dev/path'),'');
 assert.equal(gatewayFor('http://anwar-api-gateway.account.workers.dev'),'');
 
-const countryRequest=section(app,'function resolveCountryRequest(value){','function dedupeCountryRows(rows){','country source URL validation');
-assert.ok(countryRequest.includes("allowedOrigins=new Set([base.origin,'https://www.way2quran.com'])"));
-assert.ok(countryRequest.includes("source.username||source.password||source.port||source.hash"));
-assert.ok(app.includes("u.username||u.password||u.port||u.hash||u.search"),'country profile links reject URL credentials, ports, fragments and unexpected query parameters');
-assert.ok(countryRequest.includes("new URL('/v1/country/list',gateway)"));
-assert.ok(countryRequest.includes("new URL('/v1/country/profile',gateway)"));
-assert.ok(countryRequest.includes("apiUrl.searchParams.set('nationality',code)"));
-assert.ok(countryRequest.includes("apiUrl.searchParams.set('slug',slug)"));
-assert.ok(!countryRequest.includes('gateway+route'));
-
-const countryFetch=section(app,'async function fetchCountryHtml(url,externalSignal){','function dedupeCountryRows(rows){','country fetch URLs');
-assert.ok(countryFetch.includes("new URL('/raw','https://api.allorigins.win')"));
-assert.ok(countryFetch.includes("new URL('/','https://corsproxy.io')"));
-assert.ok(countryFetch.includes("searchParams.set('url',sourceUrl)"));
-assert.ok(!countryFetch.includes("body.includes('/ar/reciters')"));
-assert.ok(!countryFetch.includes("body.includes('media.way2quran.com')"));
-assert.ok(!countryFetch.includes('encodeURIComponent(url)'));
-assert.ok(!countryFetch.includes("'https://api.allorigins.win/raw?url='+"));
+assert.ok(!app.includes('function resolveCountryRequest(value){')&&!app.includes('async function fetchCountryHtml(url,externalSignal){'),'country-reader front-end URL fetching is removed with the country panel');
+assert.ok(worker.includes('function validateUpstreamUrl(target) {'),'the API gateway keeps its independent upstream URL validator');
 
 const upstreamValidator=section(worker,'function validateUpstreamUrl(target) {','async function fetchSameOriginOnly(target) {','upstream URL validation');
 for(const token of ['safe.protocol !== "https:"',"safe.username","safe.password","safe.port","safe.hash","isAllowedUpstreamHost(safe.hostname)"]){
