@@ -142,7 +142,7 @@ const ids={
 };
 const document={
  getElementById:id=>ids[id]||null,
- querySelector:selector=>selector==='#anwarPrayerCard .anwar-prayer-settings'?prayerSettings:null,
+ querySelector:selector=>selector==='#anwarPrayerCard .anwar-prayer-settings'?prayerSettings:selector==='[data-anwar-service="adhan"]'?services.adhan:null,
  querySelectorAll:()=>[]
 };
 
@@ -248,9 +248,16 @@ assert.equal(tasbihPage.hidden,true,'returning from tasbih hides its page');
 assert.deepEqual(tasbihCalls,['open','close'],'leaving tasbih closes its controller and releases active voice recognition');
 
 services.adhan.fire('click');
+assert.equal(window.history.state.anwarServiceView,'adhan','opening prayer settings adds a back-stack entry');
 assert.equal(prayerSettings.open,true,'Adhan card opens the existing settings disclosure');
 assert.equal(services.adhan.getAttribute('aria-expanded'),'true','Adhan tile reports its expanded state');
 assert.equal(prayerSummary.focused,true,'Adhan action moves focus to the settings summary');
+window.history.back();
+assert.equal(prayerSettings.open,false,'first Android/browser back closes the expanded prayer settings');
+assert.equal(services.adhan.getAttribute('aria-expanded'),'false','closing prayer settings resets the tile state');
+assert.equal(home.hidden,false,'closing prayer settings keeps the visitor in the religious dashboard');
+window.history.back();
+assert.equal(home.hidden,false,'the next back remains within the service screen until the panel itself is closed');
 
 launcher.fire('click');
 assert.equal(home.hidden,false,'opening the Tulip launcher resets the panel to its home view');
