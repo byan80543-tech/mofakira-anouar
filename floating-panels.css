@@ -168,3 +168,9 @@
   #rib .rib-pop.is-floating-panel{transition:box-shadow .15s ease}
   #rib .rib-pop.is-floating-panel.is-maximized{transition:none}
 }
+
+
+/* Keep the editor and its purple status strip in place while tools open. */
+.app.ed.ribbon-menu-open #rib{padding-top:0!important;align-items:stretch!important;}
+#rib .rib-menu[open]>.rib-pop.is-floating-panel{position:fixed!important;transform:none!important;display:flex!important;background:var(--sf)!important;}
+#rib .rib-pop.is-floating-panel[hidden]{display:none!important;}
