@@ -300,8 +300,8 @@
  };
  const CITY_API_AR={
   'مكناس':'Meknes','فاس':'Fes','الدار البيضاء':'Casablanca','الرباط':'Rabat',
-  'طنجة':'Tangier','مراكش':'Marrakech','أكادير':'Agadir','وجدة':'Oujda',
-  'تطوان':'Tetouan','القنيطرة':'Kenitra','آسفي':'Safi','تازة':'Taza',
+  'طنجة':'Tangier','مراكش':'Marrakech','اكادير':'Agadir','وجدة':'Oujda',
+  'تطوان':'Tetouan','القنيطرة':'Kenitra','اسفي':'Safi','تازة':'Taza',
   'الحسيمة':'Al Hoceima','الناظور':'Nador','بني ملال':'Beni Mellal',
   'خريبكة':'Khouribga','سطات':'Settat','بركان':'Berkane','العرائش':'Larache',
   'الصويرة':'Essaouira','تارودانت':'Taroudant','كلميم':'Guelmim','الداخلة':'Dakhla'
