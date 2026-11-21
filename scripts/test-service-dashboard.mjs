@@ -140,12 +140,44 @@ const ids={
 };
 const document={
  getElementById:id=>ids[id]||null,
- querySelector:selector=>selector==='#anwarPrayerCard .anwar-prayer-settings'?prayerSettings:null
+ querySelector:selector=>selector==='#anwarPrayerCard .anwar-prayer-settings'?prayerSettings:null,
+ querySelectorAll:()=>[]
 };
 
 const renderedAdhkar=[];
 const tasbihCalls=[];
+const windowListeners=new Map();
+const historyEntries=[{anwarNotebookTestStart:true}];
+let historyIndex=0;
+const history={
+ get state(){return historyEntries[historyIndex]??null},
+ pushState(state){
+  historyEntries.splice(historyIndex+1);
+  historyEntries.push(state);
+  historyIndex++;
+ },
+ back(){
+  if(historyIndex<=0)return;
+  historyIndex--;
+  for(const callback of windowListeners.get('popstate')||[]){
+   callback({state:historyEntries[historyIndex]??null});
+  }
+ },
+ forward(){
+  if(historyIndex>=historyEntries.length-1)return;
+  historyIndex++;
+  for(const callback of windowListeners.get('popstate')||[]){
+   callback({state:historyEntries[historyIndex]??null});
+  }
+ }
+};
 const window={
+ history,
+ location:{href:'https://example.test/mofakira-anouar/'},
+ addEventListener(type,callback){
+  if(!windowListeners.has(type))windowListeners.set(type,[]);
+  windowListeners.get(type).push(callback);
+ },
  AnwarRenderAdhkar(period){renderedAdhkar.push(period);return true},
  AnwarTasbihController:{
   open(){tasbihCalls.push('open');return true},
@@ -162,6 +194,7 @@ assert.equal(readerList.parentNode,quranPage,'reader list must remain in Quran p
 assert.equal(lessonHub.parentNode,lessonsPage,'lesson library must be in lessons page');
 
 services.quran.fire('click');
+assert.equal(window.history.state.anwarServiceView,'quran','opening Quran adds a same-page history entry');
 assert.equal(home.hidden,true,'opening Quran hides the dashboard');
 assert.equal(quranPage.hidden,false,'opening Quran shows the Quran page');
 assert.equal(radioPage.hidden,true,'opening Quran hides the live-radio page');
@@ -171,6 +204,7 @@ quranBack.fire('click');
 assert.equal(home.hidden,false,'returning from Quran restores the dashboard');
 assert.equal(quranPage.hidden,true,'returning from Quran hides the Quran page');
 assert.equal(services.quran.focused,true,'returning restores focus to the launch card');
+assert.equal(window.history.state.anwarNotebookTestStart,true,'returning from Quran removes only the religious section history entry');
 
 services.radio.fire('click');
 assert.equal(home.hidden,true,'opening live radio hides the dashboard');
@@ -191,6 +225,13 @@ services.adhkar.fire('click');
 assert.equal(home.hidden,true,'opening adhkar hides the dashboard');
 assert.equal(adhkarPage.hidden,false,'opening adhkar shows the dedicated adhkar page');
 assert.deepEqual(renderedAdhkar,['protection'],'opening the adhkar card opens the unified protection collection directly');
+assert.equal(window.history.state.anwarServiceView,'adhkar','opening adhkar records the current service view');
+window.history.back();
+assert.equal(home.hidden,false,'Android/browser back returns to religious sections instead of leaving the religious dashboard');
+assert.equal(adhkarPage.hidden,true,'browser back hides only the current adhkar page');
+window.history.forward();
+assert.equal(home.hidden,true,'browser forward restores the previous religious section');
+assert.equal(adhkarPage.hidden,false,'browser forward restores the same adhkar page');
 adhkarBack.fire('click');
 assert.equal(home.hidden,false,'returning from adhkar restores the dashboard');
 assert.equal(adhkarPage.hidden,true,'returning from adhkar hides its page');
