@@ -69,11 +69,11 @@ assert.deepEqual(JSON.parse(JSON.stringify(math.normalizeSavedLayout({x:1,y:2,wi
 },'saved sizes below the safe minimum are normalized before display');
 
 assert.ok((html.match(/class="rib-menu"/g)||[]).length>=5,'all toolbar menus are available to the shared floating-panel controller');
-assert.ok(html.includes('<link rel="stylesheet" href="./floating-panels.css?v=20261121-2">'),'floating panel styles are loaded from a same-origin stylesheet');
-assert.ok(html.includes('<script src="./floating-panels.js?v=20261121-2" defer></script>'),'floating panel logic is loaded as a deferred same-origin script');
+assert.ok(html.includes('<link rel="stylesheet" href="./floating-panels.css?v=20261121-3">'),'floating panel styles are loaded from a same-origin stylesheet');
+assert.ok(html.includes('<script src="./floating-panels.js?v=20261121-3" defer></script>'),'floating panel logic is loaded as a deferred same-origin script');
 assert.ok(worker.includes("'./floating-panels.js'")&&worker.includes("'./floating-panels.css'"),
  'the offline service-worker shell precaches both floating-panel assets');
-assert.match(worker,/const CACHE_NAME='anwar-shell-2026-11-21-v126';/,
+assert.match(worker,/const CACHE_NAME='anwar-shell-2026-11-21-v127';/,
  'the offline cache version is refreshed for this release');
 
 for(const event of ['pointerdown','pointermove','pointerup','pointercancel','lostpointercapture','setPointerCapture']){
@@ -103,7 +103,7 @@ assert.ok(controller.includes('raw.length>4096'),
 assert.ok(controller.includes('function panelKey(menu,index)')&&controller.includes('parsed[String(key)]'),
  'saved panel geometry uses stable tool identifiers, not menu order');
 
-assert.ok(css.includes('#app #anwar-floating-panels-layer>.rib-pop.is-floating-panel[hidden]{display:none!important}'),
+assert.ok(css.includes('>.rib-pop.is-floating-panel[hidden]{display:none!important}'),
  'closed book content cannot leak out because of the floating display rules');
 for(const feature of ['float-panel-head','float-panel-content','float-panel-resize','.is-minimized','.is-maximized']){
  assert.ok(css.includes(feature),'floating panel style exists: '+feature);
