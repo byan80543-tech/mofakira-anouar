@@ -288,6 +288,17 @@ assert.ok(dashboardSource.includes("const SERVICE_HISTORY_KEY='anwarServiceView'
 assert.ok(dashboardSource.includes('function returnToServiceHome()')&&dashboardSource.includes('historyApi.back()')&&dashboardSource.includes('button.addEventListener(\'click\',returnToServiceHome)'), 'the in-page section back control consumes only its service history entry');
 assert.ok(dashboardSource.includes('function closeNestedServiceLayer()')&&dashboardSource.includes("'surahPickerModal','surahPickerClose'")&&dashboardSource.includes("'lessonSeriesModal','lessonSeriesClose'")&&dashboardSource.includes("getElementById('liveStationModal')")&&dashboardSource.includes('.live-station-modal-close')&&dashboardSource.includes("querySelector('#anwarPrayerCard .anwar-prayer-settings')")&&dashboardSource.includes('.protective-personal-form[data-edit-id]'), 'system back first closes Quran/radio/lesson pickers and prayer settings or cancels adhkar editing');
 assert.ok(backNavigation.includes("document.querySelector('#rd .anwar-service-page:not([hidden])')")&&backNavigation.includes("servicePage.querySelector('[data-anwar-service-back]')")&&backNavigation.includes('cancelEdit.click()')&&backNavigation.includes("byId('liveStationModal')")&&backNavigation.includes('prayerSettings.open = false'), 'the toolbar back button stays inside religious sections and unwinds editing, station and prayer controls first');
+const radioAllowlistMatch=appCore.match(/const radioPanelInteractionSelector='([^']+)'/);
+assert.ok(radioAllowlistMatch&&appCore.includes('if(!isPanelInteraction)setRadioPanel(false);'),'the radio panel closes only when a click is outside its workspace and owned overlays');
+const radioPanelAllowlist=(radioAllowlistMatch?.[1]??'').split(',');
+for(const overlayId of ['surahPickerModal','lessonSeriesModal','liveStationModal','reciterCountryModal','ownerDialog','adhkarPersonalManager']){
+ assert.ok(radioPanelAllowlist.includes('#'+overlayId),`clicks inside ${overlayId} must not close the religious panel`);
+}
+const makeOverlayTarget=id=>({closest(selector){return selector.split(',').includes('#'+id)?this:null}});
+for(const overlayId of ['surahPickerModal','lessonSeriesModal','liveStationModal','ownerDialog','adhkarPersonalManager']){
+ assert.ok(makeOverlayTarget(overlayId).closest(radioAllowlistMatch[1]),`the outside-click allowlist recognizes ${overlayId}`);
+}
+assert.equal(makeOverlayTarget('outside-main-page').closest(radioAllowlistMatch[1]),null,'genuine outside clicks are not included in the service allowlist');
 assert.ok(html.includes('id="ownerBtn" class="radio-owner-pen"')&&html.includes('class="morocco-flag-icon"')&&(html.match(/class="morocco-flag-icon"/g)||[]).length===2&&!html.includes('owner-pen-icon')&&html.includes('fill="#c1272d"')&&html.includes('stroke="#006233"'), 'the ownership shortcut and ownership section share the Moroccan flag disk');
 const ownerStyleStart=html.lastIndexOf('/* قرص الملكية المغربي: العلم نفسه هو الأيقونة');
 const ownerStyleEnd=html.indexOf('</style>',ownerStyleStart);
