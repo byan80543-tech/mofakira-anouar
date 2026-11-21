@@ -58,7 +58,7 @@ requestAnimationFrame(()=>setTimeout(()=>{
 const TYPES={poem:'قصيدة',text:'نص',idea:'فكرة'},IC={poem:'🪶',text:'📜',idea:'💡'};
 const FONTS=['Amiri','Amiri Quran','Aref Ruqaa','Aref Ruqaa Ink','Scheherazade New','Lateef','Harmattan','Noto Naskh Arabic','Markazi Text','Mirza','Katibeh','Gulzar','Cairo','Tajawal','Almarai','Alexandria','Changa','Mada','Readex Pro','IBM Plex Sans Arabic','Noto Sans Arabic','Noto Kufi Arabic','Vazirmatn','Rubik','Baloo Bhaijaan 2','Lemonada','Reem Kufi','Reem Kufi Fun','Reem Kufi Ink','El Messiri','Kufam','Lalezar','Rakkas','Jomhuria','Marhey','Vibes','Blaka','Qahiri','Playpen Sans Arabic','Noto Nastaliq Urdu','Traditional Arabic','Simplified Arabic','Sakkal Majalla','Segoe UI','Tahoma','Arial','Times New Roman','Courier New'];
 const PROMPTS=['اكتب عن رائحة المطر على أول تراب بعد غياب طويل','قصيدة عن ضوء مصباح وحيد في آخر الليل','ماذا يقول القمر لمن ينتظر؟','صف وجهًا لا تنساه دون أن تذكر ملامحه','اكتب رسالة إلى نفسك بعد عشر سنوات','قصيدة عن وطن يسكن حقيبة سفر','ما الذي تعلّمته من الصمت؟','اكتب عن قهوة الصباح كأنها صديق قديم','بيت شعر يبدأ بكلمة «لولا»','اكتب عن بابٍ لم تجرؤ على فتحه','قصيدة عن الحنين بثلاث صور فقط'];
-let S={notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[],preferences:globalThis.AnwarPrivatePreferences.normalize({})},cur=null,draftNote=null,flt='all',tm,speaking=false,poetryDictationController=null,poetryDictationRange=null,poetryDictationNeedsSpace=false,saved=null,storageRecoveryBlocked=false,storageRecoveryRaw=null,storageRecoveryExported=false,storageRecoveryMode='none',storageRecoveryBackupAvailable=false;
+let S={notes:[],customAdhkar:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[],preferences:globalThis.AnwarPrivatePreferences.normalize({})},cur=null,draftNote=null,flt='all',tm,speaking=false,poetryDictationController=null,poetryDictationRange=null,poetryDictationNeedsSpace=false,poetryDictationAdvanceTimer=null,saved=null,storageRecoveryBlocked=false,storageRecoveryRaw=null,storageRecoveryExported=false,storageRecoveryMode='none',storageRecoveryBackupAvailable=false;
 const $=id=>document.getElementById(id),pg=$('pg');
 const VAULT_STORAGE_KEY='anwar_vault_v1',VAULT_BACKUP_KEY='anwar_vault_backup_v1',VAULT_MODE_KEY='anwar_vault_mode_v1';
 let vaultKey=null,vaultTemplate=null,vaultUnlocked=false,vaultGateMode='setup',vaultReady=false,vaultDisableAfterUnlock=false;
@@ -129,6 +129,21 @@ function cleanNote(n){
   return null;
  }
 }
+function cleanCustomAdhkar(value){
+ if(!Array.isArray(value))return [];
+ const seen=new Set(),clean=[];
+ value.slice(-100).forEach(item=>{
+  if(!item||typeof item!=='object'||Array.isArray(item))return;
+  const id=typeof item.id==='string'?item.id.trim().slice(0,80):'';
+  const title=typeof item.title==='string'?item.title.trim().slice(0,120):'';
+  const text=typeof item.text==='string'?item.text.trim().slice(0,3000):'';
+  if(!id||!title||!text||seen.has(id))return;
+  seen.add(id);
+  const stamp=Number(item.ts);
+  clean.push({id,title,text,ts:Number.isFinite(stamp)&&Math.abs(stamp)<=8640000000000000?stamp:Date.now()});
+ });
+ return clean;
+}
 function normalizeState(data){
  const d=data&&typeof data==='object'&&!Array.isArray(data)?data:{},usedIds=new Set(),notes=[];
  if(d.notes!==undefined&&!Array.isArray(d.notes))throw new Error('قائمة الأعمال المحفوظة ليست بصيغة قائمة');
@@ -142,9 +157,9 @@ function normalizeState(data){
    note.id=id;usedIds.add(id);notes.push(note);
   }catch(error){console.warn('تم تجاهل سجل تعذّر تطبيعه',error)}
  });
- return {notes,theme:d.theme==='dark'?'dark':d.theme==='light'?'light':'',palette:['blue','green','purple','rose','amber','slate'].includes(d.palette)?d.palette:'blue',wallColor:['mist','cream','sky','mint','lavender','blush','slate','night'].includes(d.wallColor)?d.wallColor:'mist',paperColor:['white','cream','sky','mint','lavender','blush','gray','night'].includes(d.paperColor)?d.paperColor:'white',days:Array.isArray(d.days)?d.days.filter(x=>typeof x==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x)).slice(-400):[],preferences:globalThis.AnwarPrivatePreferences.normalize(d.preferences)};
+ return {notes,customAdhkar:cleanCustomAdhkar(d.customAdhkar),theme:d.theme==='dark'?'dark':d.theme==='light'?'light':'',palette:['blue','green','purple','rose','amber','slate'].includes(d.palette)?d.palette:'blue',wallColor:['mist','cream','sky','mint','lavender','blush','slate','night'].includes(d.wallColor)?d.wallColor:'mist',paperColor:['white','cream','sky','mint','lavender','blush','gray','night'].includes(d.paperColor)?d.paperColor:'white',days:Array.isArray(d.days)?d.days.filter(x=>typeof x==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x)).slice(-400):[],preferences:globalThis.AnwarPrivatePreferences.normalize(d.preferences)};
 }
-function emptyStorageState(){return {notes:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[],preferences:globalThis.AnwarPrivatePreferences.normalize({})}}
+function emptyStorageState(){return {notes:[],customAdhkar:[],theme:'',palette:'blue',wallColor:'mist',paperColor:'white',days:[],preferences:globalThis.AnwarPrivatePreferences.normalize({})}}
 function createNoteId(){
  const base=Date.now().toString(36),used=new Set(S.notes.map(n=>String(n.id)));
  let id=base,suffix=2;
@@ -2348,13 +2363,55 @@ function appendPoetryDictationText(value){
   const selection=window.getSelection();
   if(selection){selection.removeAllRanges();selection.addRange(range);}
   touch();
+  schedulePoetryDictationAdvance();
  }catch(error){
   console.error('تعذّر إدراج النص المملى في صفحة المفكرة',error);
   toast('تعذّر إدراج الكلام في موضع الكتابة. أوقف الإلقاء وحاول مجددًا.');
  }
 }
+function clearPoetryDictationAdvanceTimer(){
+ if(poetryDictationAdvanceTimer!==null){clearTimeout(poetryDictationAdvanceTimer);poetryDictationAdvanceTimer=null}
+}
+function advancePoetryDictationCell(){
+ if(!cur||cur.paper!=='poetry'||!poetryDictationController||!poetryDictationController.isRequested())return;
+ const range=poetryDictationRange;
+ if(!poetryDictationRangeInCell(range))return;
+ const cell=poetryDictationCellForNode(range.endContainer);
+ const row=cell&&cell.closest('.v');
+ if(!row)return;
+ const cells=Array.from(row.children).filter(node=>node.tagName&&node.tagName.toLowerCase()==='span');
+ const index=cells.indexOf(cell);
+ let target=null;
+ if(index===0)target=cells[1]||null;
+ else if(index===1){
+  let nextRow=row.nextElementSibling;
+  while(nextRow&&!nextRow.classList.contains('v'))nextRow=nextRow.nextElementSibling;
+  if(nextRow)target=nextRow.querySelector(':scope > span:first-child');
+  else{
+   insertPoetryVerse(row);
+   const newRow=row.nextElementSibling;
+   target=newRow&&newRow.classList.contains('v')?newRow.querySelector(':scope > span:first-child'):null;
+  }
+ }
+ if(!target)return;
+ focusVerseCell(target);
+ poetryDictationRange=poetryDictationRangeAtCellEnd(target);
+ saved=poetryDictationRange.cloneRange();
+ const selection=window.getSelection();
+ if(selection){selection.removeAllRanges();selection.addRange(poetryDictationRange)}
+ poetryDictationNeedsSpace=false;
+}
+function schedulePoetryDictationAdvance(){
+ clearPoetryDictationAdvanceTimer();
+ if(!cur||cur.paper!=='poetry'||!poetryDictationController||!poetryDictationController.isRequested())return;
+ poetryDictationAdvanceTimer=setTimeout(()=>{
+  poetryDictationAdvanceTimer=null;
+  advancePoetryDictationCell();
+ },1000);
+}
 function stopPoetryDictation(showMessage){
- if(!poetryDictationController||!poetryDictationController.isRequested())return false;
+ clearPoetryDictationAdvanceTimer();
+ if(!poetryDictationController||!poetryDictationController.isRequested()){poetryDictationRange=null;return false}
  poetryDictationController.stop();
  poetryDictationRange=null;
  if(tm)flushPendingEdit(true);
@@ -2395,6 +2452,7 @@ function togglePoetryDictation(){
   try{window.speechSynthesis?.cancel()}catch(error){}
   $('speakRead').textContent='🔊 قراءة';
  }
+ clearPoetryDictationAdvanceTimer();
  if(cur.paper==='poetry'&&!pg.querySelector('.v'))insertPoetryVerse();
  poetryDictationRange=capturePoetryDictationRange();
  const previous=poetryDictationPreviousCharacter(poetryDictationRange);
@@ -2403,7 +2461,7 @@ function togglePoetryDictation(){
   onText:text=>appendPoetryDictationText(text),
   onStatus:(state,detail)=>{
    updatePoetryDictationButton(state);
-   if(state==='error')toast(detail||'تعذّر تشغيل التعرف الصوتي.',5000);
+   if(state==='error'){clearPoetryDictationAdvanceTimer();poetryDictationRange=null;toast(detail||'تعذّر تشغيل التعرف الصوتي.',5000)}
 }
  });
  const started=poetryDictationController.start();
@@ -2538,90 +2596,96 @@ document.addEventListener('click',e=>{
  else if(id==='shareTab')showOwnerPanel('share');
 });
 
-const protectiveProgress=Object.create(null);
 function renderProtectiveAdhkar(){
- const host=$('adhkarContent'),items=window.ANWAR_PROTECTIVE_ADHKAR;
- if(!host||!Array.isArray(items)){if(host)host.textContent='تعذر تحميل أذكار التحصين.';return false}
+ const host=$('adhkarContent');
+ if(!host)return false;
+ S.customAdhkar=cleanCustomAdhkar(S.customAdhkar);
  const fragment=document.createDocumentFragment();
  const intro=document.createElement('p');
  intro.className='protective-intro';
- intro.textContent='أذكار وأدعية ثابتة للتحصين والرقية والاستعاذة. أُثبت العدد حيث ورد، ولم نضع عددًا تعبديًا لما لم يرد فيه عدد محدد.';
+ intro.textContent='هذه مساحتك الخاصة. أضف أذكار التحصين التي تختارها، وعدّلها أو احذفها متى شئت. لا توجد أذكار جاهزة؛ وما تحفظه هنا يبقى ضمن بيانات مفكرتك على هذا الجهاز.';
  fragment.append(intro);
- let activeGroup='';
- items.forEach(item=>{
-  if(item.group!==activeGroup){
-   activeGroup=item.group;
-   const heading=document.createElement('h3');
-   heading.className='protective-group-title';
-   heading.textContent=activeGroup;
-   fragment.append(heading);
+
+ const form=document.createElement('form');
+ form.className='adhkar-form protective-personal-form';
+ form.setAttribute('aria-label','إضافة ذكر تحصين');
+ const titleLabel=document.createElement('label');
+ titleLabel.textContent='عنوان الذكر';
+ const titleInput=document.createElement('input');
+ titleInput.type='text';titleInput.name='title';titleInput.maxLength=120;titleInput.required=true;
+ titleInput.placeholder='عنوان تختاره للذكر';
+ titleLabel.append(titleInput);
+ const textLabel=document.createElement('label');
+ textLabel.textContent='نص الذكر';
+ const textInput=document.createElement('textarea');
+ textInput.name='text';textInput.rows=4;textInput.maxLength=3000;textInput.required=true;
+ textInput.placeholder='اكتب الذكر هنا...';
+ textLabel.append(textInput);
+ const actions=document.createElement('div');actions.className='adhkar-dialog-actions';
+ const submit=document.createElement('button');submit.type='submit';submit.textContent='إضافة الذكر إلى مفكرتي';
+ const cancel=document.createElement('button');cancel.type='button';cancel.textContent='إلغاء التعديل';cancel.hidden=true;
+ actions.append(submit,cancel);form.append(titleLabel,textLabel,actions);
+ cancel.addEventListener('click',()=>{
+  form.reset();delete form.dataset.editId;
+  submit.textContent='إضافة الذكر إلى مفكرتي';cancel.hidden=true;
+ });
+ form.addEventListener('submit',event=>{
+  event.preventDefault();
+  if(storageRecoveryBlocked||!vaultUnlocked){toast('افتح المفكرة أولًا قبل حفظ الأذكار.');return}
+  const title=titleInput.value.trim().slice(0,120);
+  const text=textInput.value.trim().slice(0,3000);
+  if(!title||!text){toast('اكتب عنوان الذكر ونصه أولًا.');return}
+  const editId=form.dataset.editId||'';
+  if(editId){
+   const entry=S.customAdhkar.find(item=>item.id===editId);
+   if(!entry){toast('تعذّر العثور على الذكر المطلوب تعديله.');return}
+   entry.title=title;entry.text=text;entry.ts=Date.now();
+  }else{
+   if(S.customAdhkar.length>=100){toast('بلغت الحد الأقصى: 100 ذكر في هذه المساحة.');return}
+   const id=typeof globalThis.crypto?.randomUUID==='function'?globalThis.crypto.randomUUID():Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10);
+   S.customAdhkar.push({id,title,text,ts:Date.now()});
   }
-  const card=document.createElement('article');
-  card.className='protective-card'+(item.kind==='note'?' is-note':'');
+  S.customAdhkar=cleanCustomAdhkar(S.customAdhkar);
+  save();form.reset();delete form.dataset.editId;
+  submit.textContent='إضافة الذكر إلى مفكرتي';cancel.hidden=true;
+  renderProtectiveAdhkar();toast(editId?'تم حفظ تعديل الذكر.':'تم حفظ الذكر في مفكرتك.');
+ });
+ fragment.append(form);
+
+ if(!S.customAdhkar.length){
+  const empty=document.createElement('p');
+  empty.className='protective-intro';
+  empty.textContent='لم تضف أي ذكر بعد. ابدأ بكتابة ما تريد حفظه في النموذج أعلاه.';
+  fragment.append(empty);
+ }
+ S.customAdhkar.forEach(item=>{
+  const card=document.createElement('article');card.className='protective-card';
   const head=document.createElement('div');head.className='protective-card-head';
   const title=document.createElement('strong');title.textContent=item.title;
-  const tag=document.createElement('span');tag.className='protective-tag';
-  tag.textContent=item.kind==='note'?'تذكير':Number.isInteger(item.count)?item.count+' مرات':'دون عدد محدد';
+  const tag=document.createElement('span');tag.className='protective-tag';tag.textContent='ذكر محفوظ';
   head.append(title,tag);card.append(head);
   const body=document.createElement('p');body.className='protective-text';body.textContent=item.text;card.append(body);
-  const meta=document.createElement('div');meta.className='protective-meta';
-  const occasion=document.createElement('span');occasion.textContent=item.occasion||'';
-  const source=document.createElement('a');source.href=item.sourceUrl;source.target='_blank';source.rel='noopener noreferrer';source.textContent=item.source;source.setAttribute('aria-label','مصدر الذكر: '+item.source);
-  meta.append(occasion,source);card.append(meta);
-  if(item.kind!=='note'){
-   const state=protectiveProgress[item.id]||(protectiveProgress[item.id]={count:0,done:false});
-   const progress=document.createElement('div');progress.className='protective-progress';
-   const fill=document.createElement('span');
-   const numeric=Number.isInteger(item.count)&&item.count>0;
-   const current=numeric?Math.min(state.count,item.count):(state.done?1:0);
-   fill.style.width=(numeric?current/item.count*100:current*100)+'%';
-   progress.append(fill);progress.setAttribute('role','progressbar');progress.setAttribute('aria-valuemin','0');progress.setAttribute('aria-valuemax',String(numeric?item.count:1));progress.setAttribute('aria-valuenow',String(current));
-   card.append(progress);
-   const actions=document.createElement('div');actions.className='protective-actions';
-   const countButton=document.createElement('button');countButton.type='button';countButton.dataset.protectiveAction='count';countButton.dataset.protectiveId=item.id;
-   countButton.textContent=numeric?'تكرار الذكر · '+current+'/'+item.count:(state.done?'تمت القراءة':'سجلت القراءة');
-   countButton.disabled=numeric&&current>=item.count;
-   const resetButton=document.createElement('button');resetButton.type='button';resetButton.dataset.protectiveAction='reset';resetButton.dataset.protectiveId=item.id;resetButton.textContent='إعادة';
-   resetButton.hidden=current===0;
-   actions.append(countButton,resetButton);card.append(actions);
-  }
-  fragment.append(card);
+  const actions=document.createElement('div');actions.className='protective-actions';
+  const edit=document.createElement('button');edit.type='button';edit.textContent='تعديل';
+  edit.addEventListener('click',()=>{
+   titleInput.value=item.title;textInput.value=item.text;form.dataset.editId=item.id;
+   submit.textContent='حفظ التعديل';cancel.hidden=false;titleInput.focus();
+   form.scrollIntoView({behavior:'smooth',block:'nearest'});
+  });
+  const remove=document.createElement('button');remove.type='button';remove.textContent='حذف';
+  remove.addEventListener('click',()=>{
+   if(!window.confirm('حذف هذا الذكر من مفكرتك؟'))return;
+   S.customAdhkar=S.customAdhkar.filter(entry=>entry.id!==item.id);
+   save();renderProtectiveAdhkar();toast('تم حذف هذا الذكر من مفكرتك.');
+  });
+  actions.append(edit,remove);card.append(actions);fragment.append(card);
  });
  host.replaceChildren(fragment);
  return true;
 }
-$('adhkarContent').addEventListener('click',event=>{
- const button=event.target.closest('[data-protective-action]');
- if(!button)return;
- const id=button.dataset.protectiveId,action=button.dataset.protectiveAction;
- const item=(window.ANWAR_PROTECTIVE_ADHKAR||[]).find(entry=>entry.id===id);
- if(!item||item.kind==='note')return;
- const state=protectiveProgress[id]||(protectiveProgress[id]={count:0,done:false});
- if(action==='reset'){state.count=0;state.done=false}
- else if(action==='count'){
-  if(Number.isInteger(item.count)&&item.count>0)state.count=Math.min(item.count,state.count+1);
-  else state.done=!state.done;
- }
- renderProtectiveAdhkar();
-});
 window.AnwarRenderAdhkar=function(){return renderProtectiveAdhkar();};
-window.AnwarSetProtectiveAdhkar=function(items){
- if(!Array.isArray(items)||items.length>200)return false;
- const valid=items.every(item=>item&&typeof item==='object'&&
-  typeof item.id==='string'&&typeof item.group==='string'&&typeof item.title==='string'&&
-  typeof item.text==='string'&&typeof item.source==='string'&&
-  (item.sourceUrl===''||/^https:\/\//.test(item.sourceUrl))&&
-  (item.count===null||item.count===undefined||(Number.isSafeInteger(item.count)&&item.count>0)));
- if(!valid)return false;
- window.ANWAR_PROTECTIVE_ADHKAR=Object.freeze(items.map(item=>Object.freeze({
-  id:item.id,group:item.group,title:item.title,text:item.text,count:item.count??null,
-  occasion:item.occasion||'',source:item.source,sourceUrl:item.sourceUrl||'',kind:item.kind==='note'?'note':'dhikr'
- })));
- return renderProtectiveAdhkar();
-};
-window.AnwarGetProtectiveAdhkar=function(){
- return Array.isArray(window.ANWAR_PROTECTIVE_ADHKAR)?window.ANWAR_PROTECTIVE_ADHKAR:[];
-};
+window.AnwarSetProtectiveAdhkar=function(){return false;};
+window.AnwarGetProtectiveAdhkar=function(){return [];};
 pg.addEventListener('keydown',e=>{
  const cell=e.target.closest('#pg .v span');
  if(!cell||!pg.contains(cell))return;
