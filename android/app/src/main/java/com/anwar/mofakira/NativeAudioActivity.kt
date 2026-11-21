@@ -292,7 +292,7 @@ class NativeAudioActivity : Activity() {
         val search = EditText(this).apply {
             hint = "ابحث عن قارئ أو رواية…"
             textSize = 13f
-            singleLine = true
+            setSingleLine(true)
             setTextColor(ink)
             setHintTextColor(muted)
             gravity = Gravity.END or Gravity.CENTER_VERTICAL
