@@ -30,6 +30,41 @@
   button.title='تغيير لون صفحة الأذكار — الحالي: '+theme.label;
  };
  apply();
+ const editorHost=page.querySelector('#adhkarContent');
+ let renderRetryTimer=0;
+ let renderAttempts=0;
+ const ensureEditor=()=>{
+  if(page.hidden){renderAttempts=0;return;}
+  if(!editorHost||editorHost.querySelector('.protective-personal-form'))return;
+  if(typeof window.AnwarRenderAdhkar==='function'){
+   try{window.AnwarRenderAdhkar('protection');}
+   catch(error){console.error('تعذّر إعادة رسم محرر أذكار التحصين',error);}
+   if(editorHost.querySelector('.protective-personal-form'))return;
+  }
+  if(renderAttempts<60){
+   renderAttempts++;
+   renderRetryTimer=window.setTimeout(ensureEditor,100);
+  }else if(!editorHost.querySelector('.adhkar-render-status')){
+   const note=document.createElement('p');
+   note.className='adhkar-render-status';
+   note.setAttribute('role','status');
+   note.textContent='جارٍ تهيئة محرر الأذكار. أعد فتح صفحة التحصين إن لم يظهر.';
+   editorHost.append(note);
+  }
+ };
+ const pageObserver=new MutationObserver(()=>{
+  if(!page.hidden){
+   renderAttempts=0;
+   if(renderRetryTimer)window.clearTimeout(renderRetryTimer);
+   ensureEditor();
+  }else{
+   if(renderRetryTimer)window.clearTimeout(renderRetryTimer);
+   renderRetryTimer=0;
+   renderAttempts=0;
+  }
+ });
+ pageObserver.observe(page,{attributes:true,attributeFilter:['hidden']});
+ if(!page.hidden)ensureEditor();
  button.addEventListener('click',()=>{
   const index=THEMES.findIndex(theme=>theme.id===current);
   current=THEMES[(index+1)%THEMES.length].id;
