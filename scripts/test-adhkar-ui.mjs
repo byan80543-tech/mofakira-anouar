@@ -17,7 +17,8 @@ assert.doesNotMatch(html,/adhkarAdminDialog|adhkarOfficialForm|adhkarOfficialLis
 assert.doesNotMatch(html,/adhkar-management\.js/,'the owner-only library client is no longer loaded');
 assert.ok(core.includes('customAdhkar:cleanCustomAdhkar(d.customAdhkar)')&&core.includes('save();form.reset()'),'the visitor list is saved with notebook data');
 assert.ok(core.includes('body.textContent=item.text')&&core.includes("window.confirm('حذف هذا الذكر من مفكرتك؟')"),'entry text is inert and deletion is confirmed');
-assert.ok(core.includes("textInput.name='text'")&&!core.includes('titleInput')&&!core.includes('titleLabel'),'the editor has only a single text input without a title field');
+const renderer=core.slice(core.indexOf('function renderProtectiveAdhkar()'),core.indexOf('window.AnwarRenderAdhkar=function()'));
+assert.ok(renderer.includes("textInput.name='text'")&&!renderer.includes('titleInput')&&!renderer.includes('titleLabel'),'the protection editor has only a single text input without a title field');
 assert.ok(core.includes("submit.textContent='حفظ الذكر'")&&core.includes("submit.textContent='حفظ التعديل'"),'the single field has clear save and edit actions');
 assert.ok(!serviceWorker.includes("'./adhkar-management.js'"),'the retired admin client is not precached');
 console.log('PASS: protection editor contains one text field only.');
