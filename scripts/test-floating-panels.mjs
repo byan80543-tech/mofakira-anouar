@@ -46,7 +46,9 @@ assert.deepEqual(JSON.parse(JSON.stringify(saved)),{
 },'stored geometry is range-limited before use');
 assert.equal(math.normalizeSavedLayout(null),null);
 assert.equal(math.normalizeSavedLayout([]),null);
-assert.equal(math.normalizeSavedLayout({x:1,y:2,width:3,height:4}),null,'invalid saved sizes are rejected');
+assert.deepEqual(JSON.parse(JSON.stringify(math.normalizeSavedLayout({x:1,y:2,width:3,height:4}))),{
+ x:1,y:2,width:220,height:150
+},'saved sizes below the safe minimum are normalized before display');
 
 assert.ok((html.match(/class="rib-menu"/g)||[]).length>=5,'all toolbar menus are available to the shared floating-panel controller');
 assert.ok(html.includes('<link rel="stylesheet" href="./floating-panels.css?v=20261121-1">'),'floating panel styles are loaded from a same-origin stylesheet');
