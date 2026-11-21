@@ -42,6 +42,10 @@
  if(!rib)return;
  const menus=Array.from(rib.querySelectorAll('.rib-menu'));
  if(!menus.length)return;
+ function panelKey(menu,index){
+  const summary=menu.querySelector(':scope > summary');
+  return menu.id||summary?.getAttribute('aria-label')||String(index);
+ }
  const requestFrame=typeof root.requestAnimationFrame==='function'
   ?root.requestAnimationFrame.bind(root)
   :callback=>root.setTimeout(callback,16);
@@ -70,8 +74,9 @@
    if(!parsed||typeof parsed!=='object'||Array.isArray(parsed))return Object.create(null);
    const result=Object.create(null);
    for(let index=0;index<menus.length;index++){
-    const item=normalizeSavedLayout(parsed[String(index)]);
-    if(item)result[String(index)]=item;
+    const key=panelKey(menus[index],index);
+   const item=normalizeSavedLayout(parsed[String(key)]);
+    if(item)result[String(key)]=item;
    }
    return result;
   }catch(_error){return Object.create(null)}
@@ -119,10 +124,10 @@
   },vv);
  }
 
- function defaultRect(panel){
+ function defaultRect(panel,reset=false){
   const vv=viewport(),measured=measure(panel);
-  const width=Math.min(Math.max(measured.width,Math.min(280,vv.width-EDGE*2)),vv.width-EDGE*2,540);
-  const height=Math.min(Math.max(measured.height,Math.min(220,vv.height*0.46)),vv.height-EDGE*2,Math.min(380,vv.height*0.72));
+  const width=reset?Math.min(340,vv.width-EDGE*2):Math.min(Math.max(measured.width,Math.min(280,vv.width-EDGE*2)),vv.width-EDGE*2,540);
+  const height=reset?Math.min(280,vv.height*0.52,vv.height-EDGE*2):Math.min(Math.max(measured.height,Math.min(220,vv.height*0.46)),vv.height-EDGE*2,Math.min(380,vv.height*0.72));
   const footer=doc.querySelector('.app.ed #rib')||rib;
   const footerHeight=footer.getBoundingClientRect().height||64;
   return clampRect({
@@ -207,7 +212,7 @@
  function resetPanel(panel,key){
   panel.classList.remove('is-minimized','is-maximized');
   normalRects.delete(panel);
-  const rect=defaultRect(panel);
+  const rect=defaultRect(panel,true);
   applyRect(panel,rect);
   setButtonState(panel);
   saveLayout(panel,key,rect);
@@ -314,8 +319,10 @@
   const drag=doc.createElement('div');
   drag.className='float-panel-drag';
   drag.tabIndex=0;
-  drag.setAttribute('role','button');
-  drag.setAttribute('aria-label','اسحب لتحريك '+title+'؛ استخدم الأسهم للتحريك');
+  drag.setAttribute('role','group');
+  drag.setAttribute('aria-roledescription','مقبض تحريك');
+  drag.setAttribute('aria-label','مقبض تحريك '+title+'؛ اسحب أو استخدم الأسهم');
+  drag.setAttribute('aria-keyshortcuts','ArrowLeft ArrowRight ArrowUp ArrowDown');
   const grip=doc.createElement('span');
   grip.className='float-panel-grip';
   grip.setAttribute('aria-hidden','true');
@@ -360,7 +367,6 @@
   if(!panel)return;
   ensurePanelUI(menu,panel,key);
   if(panel.dataset.floatPanelActive==='true')return;
-  const current=measure(panel);
   const restored=savedRect(key);
   const target=restored||defaultRect(panel);
   applyRect(panel,target);
@@ -395,6 +401,7 @@
   const vv=viewport();
   menus.forEach((menu,index)=>{
    if(!menu.open)return;
+   const key=panelKey(menu,index);
    const panel=menu.querySelector(':scope > .rib-pop');
    if(!panel||panel.dataset.floatPanelActive!=='true')return;
    if(panel.classList.contains('is-maximized')){
@@ -404,13 +411,14 @@
     applyRect(panel,{...base,height:54});
    }else{
     const rect=applyRect(panel,measure(panel));
-    saveLayout(panel,index,rect);
+    saveLayout(panel,key,rect);
    }
   });
  }
 
  menus.forEach((menu,index)=>{
-  menu.addEventListener('toggle',()=>handleMenuToggle(menu,index));
+  const key=panelKey(menu,index);
+  menu.addEventListener('toggle',()=>handleMenuToggle(menu,key));
   const panel=menu.querySelector(':scope > .rib-pop');
   if(panel)ensurePanelUI(menu,panel,index);
  });
@@ -420,7 +428,7 @@
     if(record.type!=='attributes'||record.attributeName!=='open')continue;
     const menu=record.target;
     const index=menus.indexOf(menu);
-    if(index>=0)handleMenuToggle(menu,index);
+    if(index>=0)handleMenuToggle(menu,panelKey(menu,index));
    }
   });
   menus.forEach(menu=>observer.observe(menu,{attributes:true,attributeFilter:['open']}));
