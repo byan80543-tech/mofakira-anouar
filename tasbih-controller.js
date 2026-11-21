@@ -9,6 +9,7 @@
   const $=id=>document.getElementById(id);
   const panel=$('tasbihPanel');
   const countNode=$('tasbihCount'),phraseNode=$('tasbihPhrase'),select=$('tasbihDhikr');
+  const beadTrack=$('tasbihBeads');
   const counterControl=panel&&panel.querySelector('.anwar-tasbih-counter');
   const themeToggle=$('tasbihThemeToggle'),themePicker=$('tasbihThemePicker');
   const themeIds=['emerald','dark','pink','night','heritage','glass'];
@@ -20,8 +21,8 @@
   const removeButton=$('tasbihRemoveDhikr'),restoreButton=$('tasbihRestoreOfficial');
   const voicePanel=$('tasbihVoicePanel'),voiceButton=$('tasbihVoice');
   const voiceState=$('tasbihVoiceState'),voiceStatus=$('tasbihVoiceStatus');
-  const voiceButtonLabel=$('tasbihVoiceButtonLabel'),voiceTranscript=$('tasbihVoiceTranscript');
-  const required={panel,select,countNode,phraseNode,counterControl,tap,minus,reset,cards,dhikrToggle,dhikrList,customInput,customAdd,customStatus,removeButton,restoreButton,voicePanel,voiceButton,voiceState,voiceStatus,voiceButtonLabel,voiceTranscript,themeToggle,themePicker,...Object.fromEntries(themeButtons.map(item=>['theme'+item.name,item.button]))};
+  const voiceButtonLabel=$('tasbihVoiceButtonLabel');
+  const required={panel,select,countNode,phraseNode,beadTrack,counterControl,tap,minus,reset,cards,dhikrToggle,dhikrList,customInput,customAdd,customStatus,removeButton,restoreButton,voicePanel,voiceButton,voiceState,voiceStatus,voiceButtonLabel,themeToggle,themePicker,...Object.fromEntries(themeButtons.map(item=>['theme'+item.name,item.button]))};
   const missing=Object.keys(required).filter(key=>!required[key]);
   if(missing.length){
    console.error('تعذر تهيئة السبحة؛ عناصر الواجهة الناقصة:',missing);
@@ -45,7 +46,7 @@
   let customDhikrs=cleanDhikrList(initial.customDhikrs,30,200);
   let removedOfficialDhikrs=cleanDhikrList(initial.removedOfficialDhikrs,60,4000);
   let recognition=null,voiceActive=false,voiceRequested=false,writingPreferences=false,voiceTargetPhrase='';
-  let voiceTranscriptTimer=null,voiceSpeechInProgress=false,voicePausePending=false;
+
   let voiceMatchCount=0,voiceResultSegments=[],lastRecognitionEvent=null,voiceFallbackPending=false;
   let voiceRestartTimer=null,voiceRestartCount=0;
   const speechLanguages=['ar-MA','ar-SA','ar'];
@@ -185,10 +186,19 @@
     cards.appendChild(empty);
    }
   }
+  function renderBeads(){
+   const completed=count>0?(count%33||33):0;
+   Array.from(beadTrack.children).forEach((bead,index)=>{
+    const counted=index<completed;
+    bead.classList.toggle('is-counted',counted);
+    bead.classList.toggle('is-current',counted&&index===completed-1);
+   });
+  }
   function update(){
    panel.dataset.tasbihTheme=theme;
    themeButtons.forEach(item=>item.button.setAttribute('aria-pressed',item.name===theme?'true':'false'));
    countNode.textContent=count.toLocaleString('ar');
+   renderBeads();
    const selectedOption=Array.from(select.options).find(option=>option.value===select.value);
    phraseNode.textContent=selectedOption?optionText(selectedOption):'لم يتم اختيار ذكر بعد';
    renderCards();
@@ -220,14 +230,14 @@
   function chooseDhikr(value,resetCount){
    const option=Array.from(select.options).find(item=>item.value===value&&(isCustomOption(item)||!isRemovedOfficial(item)));
    if(!option)return;
-   if(voiceRequested)stopVoice('توقف التسجيل لأن الذكر المختار تغيّر.');
+   if(voiceRequested)stopVoice('توقف العد الصوتي لأن الذكر المختار تغيّر.');
    select.value=option.value;
    voiceTargetPhrase=optionText(option);
    voiceMatchCount=0;
    voiceResultSegments=[];lastRecognitionEvent=null;
    if(resetCount)count=0;
    setDhikrListOpen(false);
-   setVoiceTranscript('');
+
    saveAndUpdate();
   }
   function add(amount){
@@ -235,74 +245,29 @@
    saveAndUpdate();
    const counter=panel.querySelector('.anwar-tasbih-counter');
    if(counter&&typeof counter.animate==='function'){
-    try{counter.animate([{transform:'scale(1)'},{transform:'scale(1.045)'},{transform:'scale(1)'}],{duration:200,easing:'ease-out'})}catch(error){}
+    try{counter.animate([{scale:'1'},{scale:'1.045'},{scale:'1'}],{duration:200,easing:'ease-out'})}catch(error){}
    }
   }
   function setVoiceState(state,message){
    voicePanel.dataset.state=state;
-   voiceState.textContent=state==='starting'?'جارٍ تشغيل الميكروفون':state==='listening'?'الميكروفون نشط':state==='error'?'تعذر التسجيل':'';
+   voiceState.textContent=state==='starting'?'جارٍ تشغيل الميكروفون':state==='listening'?'الميكروفون نشط':state==='error'?'تعذر تشغيل الميكروفون':'';
    voiceStatus.textContent=message||'';
    const active=state==='starting'||state==='listening';
    voiceButton.setAttribute('aria-pressed',active?'true':'false');
-   voiceButtonLabel.textContent=active?'إيقاف التسجيل':state==='error'?'إعادة المحاولة':'ابدأ التسجيل';
+   voiceButtonLabel.textContent=active?'إيقاف العد الصوتي':state==='error'?'إعادة المحاولة':'ابدأ العد الصوتي';
   }
   function stopVoice(message){
    const wasActive=voiceActive;
    voiceRequested=false;
    voiceActive=false;
-   voiceSpeechInProgress=false;
-   voicePausePending=true;
    voiceFallbackPending=false;
    if(voiceRestartTimer!==null){window.clearTimeout(voiceRestartTimer);voiceRestartTimer=null}
    voiceTargetPhrase='';
    voiceMatchCount=0;
    voiceResultSegments=[];lastRecognitionEvent=null;voiceRestartCount=0;
    if(wasActive&&recognition){try{recognition.stop()}catch(error){}}
-   scheduleVoiceTranscriptFade(500);
-   setVoiceState('idle',message||'تم إيقاف التسجيل.');
-  }
-  function clearVoiceTranscriptTimer(){
-   if(voiceTranscriptTimer!==null){
-    try{window.clearTimeout(voiceTranscriptTimer)}catch(error){}
-    voiceTranscriptTimer=null;
-   }
-  }
-  function setVoiceTranscript(text){
-   if(!voiceTranscript)return;
-   clearVoiceTranscriptTimer();
-   voiceTranscript.classList.remove('is-temporary');
-   voiceTranscript.classList.remove('is-fading');
-   const value=String(text||'');
-   const transcriptCard=voiceTranscript.parentElement;
-   if(transcriptCard)transcriptCard.hidden=!value.trim();
-   voiceTranscript.textContent=value;
-  }
-  function scheduleVoiceTranscriptFade(delay){
-   if(!voiceTranscript||!voiceTranscript.textContent)return;
-   clearVoiceTranscriptTimer();
-   voiceTranscript.classList.add('is-temporary');
-   voiceTranscriptTimer=window.setTimeout(()=>{
-    voiceTranscript.classList.add('is-fading');
-    voiceTranscriptTimer=window.setTimeout(()=>{
-     voiceTranscript.textContent='';
-     const transcriptCard=voiceTranscript.parentElement;
-     if(transcriptCard)transcriptCard.hidden=true;
-     voiceTranscript.classList.remove('is-fading');
-     voiceTranscript.classList.remove('is-temporary');
-     voiceTranscriptTimer=null;
-    },650);
-   },delay);
-  }
-  function showVoiceTranscript(text){
-   const value=String(text||'').trim();
-   if(!value)return;
-   setVoiceTranscript(value);
-   voiceTranscript.classList.add('is-temporary');
-   // Keep the preview visible while speech is continuous. The browser's
-   // speech-end event starts the short pause timer; result updates during a
-   // pause preserve that shorter timer rather than extending it.
-   if(voiceSpeechInProgress)return;
-   scheduleVoiceTranscriptFade(voicePausePending?650:1150);
+
+   setVoiceState('idle',message||'تم إيقاف العد الصوتي.');
   }
   function normalizeSpeech(value){
    return String(value||'').toLocaleLowerCase('ar').normalize('NFD')
@@ -396,6 +361,13 @@
    }
   }
 
+  beadTrack.replaceChildren();
+  for(let index=0;index<33;index++){
+   const bead=document.createElement('span');
+   bead.className='anwar-tasbih-bead';
+   bead.style.setProperty('--bead-index',String(index));
+   beadTrack.appendChild(bead);
+  }
   renderOfficialOptions();
   renderCustomOptions();
   const savedOption=Array.from(select.options).find(option=>option.value===initial.dhikr&&(isCustomOption(option)||!isRemovedOfficial(option)));
@@ -434,7 +406,7 @@
    voiceMatchCount=0;
    count=0;
    saveAndUpdate();
-   setVoiceTranscript('');
+
    setDhikrListOpen(false);
   });
   removeButton.addEventListener('click',()=>{
@@ -443,7 +415,7 @@
    const custom=isCustomOption(selected);
    const message=custom?'هل تريد حذف هذا الذكر المضاف من قائمتك على هذا الجهاز؟':'هل تريد إزالة هذا الذكر الرسمي من قائمتك على هذا الجهاز فقط؟ يمكنك استعادته لاحقاً.';
    if(!window.confirm(message))return;
-   if(voiceActive)stopVoice('توقف التسجيل بسبب تعديل قائمة الأذكار.');
+   if(voiceActive)stopVoice('توقف العد الصوتي بسبب تعديل قائمة الأذكار.');
    if(custom)customDhikrs=customDhikrs.filter(item=>item!==selected.value);
    else {const officialId=selected.dataset&&selected.dataset.anwarOfficialId;const removalKey=officialId||selected.value;if(!removedOfficialDhikrs.includes(removalKey))removedOfficialDhikrs.push(removalKey)}
    renderCustomOptions();
@@ -514,37 +486,24 @@
     recognition.onstart=()=>{
      if(!voiceRequested)return;
      voiceActive=true;
-     voiceSpeechInProgress=false;
-     voicePausePending=false;
-     setVoiceState('listening','');
-
+     setVoiceState('listening','انطق الذكر المختار كاملاً.');
     };
     recognition.onspeechstart=()=>{
      if(!voiceActive)return;
      voiceRestartCount=0;
-     voiceSpeechInProgress=true;
-     voicePausePending=false;
-     clearVoiceTranscriptTimer();
-     voiceTranscript.classList.remove('is-fading');
-     if(voiceTranscript.textContent)voiceTranscript.classList.add('is-temporary');
      setVoiceState('listening','');
     };
     recognition.onspeechend=()=>{
-     if(!voiceActive)return;
-     voiceSpeechInProgress=false;
-     voicePausePending=true;
-     scheduleVoiceTranscriptFade(650);
+     if(voiceActive)setVoiceState('listening','جارٍ التحقق من الذكر...');
     };
     recognition.onresult=event=>{
-     // تختلف بعض خدمات أندرويد في إعادة قائمة النتائج كاملة أو إرسال دفعة جديدة تبدأ من الصفر.
      if(!voiceActive||!event||!event.results||event===lastRecognitionEvent)return;
      lastRecognitionEvent=event;
-     const results=event.results,incoming=[],latestParts=[];
+     const results=event.results,incoming=[];
      const resultStart=Number.isInteger(event.resultIndex)?Math.max(0,Math.min(results.length,event.resultIndex)):Math.max(0,results.length-1);
      for(let i=0;i<results.length;i++){
       const result=results[i];
       incoming.push({text:bestSpeechText(result,voiceTargetPhrase),isFinal:!!result.isFinal,source:result});
-      if(i>=resultStart&&incoming[i].text)latestParts.push(incoming[i].text);
      }
      const previousAllFinal=voiceResultSegments.length>0&&voiceResultSegments.every(item=>item&&item.isFinal);
      const matchingPrefix=incoming.length>=voiceResultSegments.length&&voiceResultSegments.every((old,index)=>
@@ -554,27 +513,23 @@
       incoming[0].isFinal&&incoming[0].source!==voiceResultSegments[0].source;
      const freshBatch=resultStart===0&&previousAllFinal&&incoming.length>0&&
       (incoming.length<voiceResultSegments.length||(!matchingPrefix&&incoming.length>=voiceResultSegments.length)||repeatedSingleBatch);
-     if(freshBatch){
-      voiceResultSegments.push(...incoming);
-     }else{
+     if(freshBatch)voiceResultSegments.push(...incoming);
+     else{
       for(let i=resultStart;i<incoming.length;i++)voiceResultSegments[i]=incoming[i];
       voiceResultSegments.length=incoming.length;
      }
      const finalText=voiceResultSegments.filter(item=>item&&item.isFinal&&item.text).map(item=>item.text).join(' ').trim();
      const interimText=voiceResultSegments.filter(item=>item&&!item.isFinal&&item.text).map(item=>item.text).join(' ').trim();
      const liveText=[finalText,interimText].filter(Boolean).join(' ').trim();
-     const latestText=latestParts.length?latestParts[latestParts.length-1]:'';
-     if(latestText)showVoiceTranscript(latestText);
      if(!liveText)return;
      const totalMatches=countPhraseMatches(liveText,voiceTargetPhrase);
      const newMatches=Math.max(0,totalMatches-voiceMatchCount);
      if(newMatches>0){
       voiceMatchCount=totalMatches;
       add(newMatches);
-      showVoiceTranscript(lastMatchedPhraseText(liveText,voiceTargetPhrase)||latestText||voiceTargetPhrase);
-      setVoiceState('listening','تم الاحتساب: '+newMatches.toLocaleString('ar'));
+      setVoiceState('listening','تم احتساب '+newMatches.toLocaleString('ar')+' تسبيحة.');
      }else if(totalMatches===0&&finalText){
-      setVoiceState('listening','سمع المتصفح الكلام، لكنه لم يطابق الذكر المختار. راجع النص الظاهر.');
+      setVoiceState('listening','لم يكتمل الذكر المختار بعد.');
      }
     };
     recognition.onnomatch=()=>{
@@ -587,22 +542,17 @@
       speechLanguage=speechLanguages[speechLanguageIndex];
       recognition.lang=speechLanguage;
       voiceActive=false;
-      voiceSpeechInProgress=false;
-      voicePausePending=true;
       voiceFallbackPending=true;
-      setVoiceState('starting','لغة التعرف الأولى غير متاحة على هذا الجهاز؛ نجرب إعداداً عربياً آخر تلقائياً.');
+      setVoiceState('starting','لغة التعرف الأولى غير متاحة؛ نجرب إعداداً عربياً آخر.');
       return;
      }
      voiceActive=false;
-     voiceSpeechInProgress=false;
-     voicePausePending=true;
-     scheduleVoiceTranscriptFade(400);
      if(code==='no-speech'){
-      setVoiceState('starting','لم يلتقط المتصفح كلاماً واضحاً؛ سنعيد الاستماع تلقائياً.');
+      setVoiceState('starting','لم نلتقط الذكر بعد؛ سنعيد الاستماع تلقائياً.');
       return;
      }
      if(code==='network'){
-      setVoiceState('starting','انقطع اتصال خدمة التعرف الصوتي؛ سنحاول الاتصال مجدداً.');
+      setVoiceState('starting','انقطع اتصال خدمة التعرف الصوتي؛ سنحاول مجدداً.');
       return;
      }
      voiceRequested=false;
@@ -611,14 +561,13 @@
       'not-allowed':'لم يُسمح بالميكروفون. افتح إعدادات الموقع واسمح باستخدامه.',
       'service-not-allowed':'خدمة التعرف الصوتي محجوبة من المتصفح أو الجهاز.',
       'audio-capture':'لم يتم العثور على ميكروفون صالح.',
-      'no-speech':'لم يلتقط المتصفح كلاماً. تأكد من إذن الميكروفون وحاول التحدث فور بدء التسجيل.',
+      'no-speech':'لم نلتقط الذكر. تحقق من إذن الميكروفون ثم حاول مجدداً.',
       'network':'تعذر الاتصال بخدمة التعرف الصوتي. تحقق من اتصال الإنترنت.',
-      'aborted':'أُوقف التسجيل.',
+      'aborted':'أُوقف العد الصوتي.',
       'language-not-supported':'العربية غير مدعومة من خدمة التعرف الصوتي على هذا الجهاز.',
-      'bad-grammar':'تعذر تحليل العبارة المنطوقة؛ حاول مرة أخرى.'
+      'bad-grammar':'تعذر تحليل الذكر المنطوق؛ حاول مرة أخرى.'
      };
-     if(code==='no-speech'&&!voiceTranscript.textContent.includes('لم يبدأ'))setVoiceTranscript('لم يلتقط المتصفح كلاماً واضحاً.');
-     setVoiceState('error',messages[code]||'حدث خطأ في التعرف الصوتي. حاول التسجيل مرة أخرى.');
+     setVoiceState('error',messages[code]||'حدث خطأ في العد الصوتي. حاول مرة أخرى.');
     };
     recognition.onend=()=>{
      if(voiceFallbackPending){
@@ -633,7 +582,7 @@
      if(voiceActive){
       voiceActive=false;
       voiceTargetPhrase='';
-      setVoiceState('idle','انتهى التسجيل.');
+      setVoiceState('idle','انتهى العد الصوتي.');
      }
     };
     voiceButton.addEventListener('click',()=>{
@@ -647,7 +596,7 @@
        setVoiceState('error','اختر ذكراً قبل بدء التسجيل.');
        return;
       }
-      setVoiceTranscript('');
+
       setVoiceState('starting','');
       voiceRequested=true;
       voiceActive=true;
