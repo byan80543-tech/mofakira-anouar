@@ -27,7 +27,7 @@
 #rd #anwarPrayerCard .anwar-prayer-next small{color:#f1dca9!important;font-size:11px!important;line-height:1.6!important}
 #rd #anwarPrayerCard .anwar-prayer-next strong{color:#fff2c5!important;font-size:clamp(19px,5vw,24px)!important;font-weight:750!important;line-height:1.4!important}
 #rd #anwarPrayerCard .anwar-prayer-next-when{color:#fff!important;opacity:.9;font-size:11px!important}
-#rd #anwarPrayerCard .anwar-prayer-countdown{justify-items:start;text-align:left;direction:rtl}
+#rd #anwarPrayerCard .anwar-prayer-countdown{justify-items:end;text-align:right;direction:rtl}
 #rd #anwarPrayerCard .anwar-prayer-countdown span{color:#fff!important;direction:ltr;text-align:left;white-space:nowrap;font-size:clamp(20px,5.2vw,25px)!important;font-weight:800!important;line-height:1.25!important;font-variant-numeric:tabular-nums;letter-spacing:-.35px}
 #rd #anwarPrayerCard .anwar-prayer-times{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px!important;width:100%;min-width:0;direction:rtl}
 #rd #anwarPrayerCard .anwar-prayer-time{display:grid!important;align-content:center;justify-items:center;gap:4px!important;min-width:0;min-height:65px;padding:8px 3px!important;border:1px solid #d6d9df!important;border-radius:12px!important;background:#fff!important;color:#525963!important;text-align:center;box-shadow:0 1px 2px rgba(20,35,55,.025)}
