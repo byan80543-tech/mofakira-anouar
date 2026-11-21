@@ -354,7 +354,7 @@ export class IpRateLimiter {
       // Purge legacy adhkar visitor counters; public reads no longer use per-visitor identifiers.
       delete value["adhkar-read"];
       delete value["adhkar-suggestions"];
-      for (const bucket of ["client", "catalog", "country-list", "country-profile", "admin-login"]) {
+      for (const bucket of ["client", "catalog", "country-list", "country-profile", "admin-login", "admin-api"]) {
         const windowMs = RATE_POLICIES[bucket]?.windowMs || 60_000;
         const bucketCutoff = now - windowMs;
         value[bucket] = Array.isArray(value[bucket])
@@ -372,6 +372,7 @@ export class IpRateLimiter {
       "country-list": [],
       "country-profile": [],
       "admin-login": [],
+      "admin-api": [],
     };
     const routeBucket = buckets[2];
     const checks = [
