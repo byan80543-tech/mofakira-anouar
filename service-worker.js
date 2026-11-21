@@ -3,7 +3,7 @@
  * the matching HTML, update checker and local assets before activation.
  */
 'use strict';
-const CACHE_NAME='anwar-shell-2026-11-21-v138';
+const CACHE_NAME='anwar-shell-2026-11-21-v139';
 const APP_BASE=new URL('./',self.registration.scope);
 const SHELL_ASSETS=[
  './index.html',
@@ -26,7 +26,10 @@ const SHELL_ASSETS=[
  './update-notice-v2.css',
  './assets/royal-rose-closed.svg',
  './assets/royal-rose-open.svg',
- './assets/tulip-cutout.svg'
+ './assets/tulip-cutout.svg',
+ './assets/tasbih-backdrop.svg',
+ './assets/tasbih-medallion.svg',
+ './assets/tasbih-mosque-emblem.svg'
 ];
 
 self.addEventListener('install',event=>{
