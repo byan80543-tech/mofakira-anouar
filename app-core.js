@@ -2541,6 +2541,11 @@ document.addEventListener('click',e=>{
  if(!e.target.closest('#fm')&&t?.id!=='fb')$('fm').classList.remove('o');
  if(!e.target.closest('#paperStylePanel')&&t?.id!=='paperStyleBtn'){$('paperStylePanel').hidden=true;$('paperStyleBtn').setAttribute('aria-expanded','false')}
  if(!t)return;
+ if(t.dataset.dismissAdhkarNotice){
+  try{localStorage.setItem('anwar_adhkar_notice_'+t.dataset.dismissAdhkarNotice,'dismissed')}catch(error){console.warn('تعذّر حفظ إخفاء إرشاد الأذكار',error)}
+  t.closest('.adhkar-dismissible-note')?.remove();
+  return;
+ }
  if(t.dataset.archiveFilter!==undefined){archiveFilter=t.dataset.archiveFilter;renderArchive(true);return}
  if(t.dataset.archiveId){stopPoetryDictation(false);const selected=S.notes.find(n=>n.id===t.dataset.archiveId);if(selected){openNote(selected);$('archiveDialog').close()}return}
  if(t.id==='listMore'){listRenderLimit+=LIST_PAGE_SIZE;renderList();return}
@@ -2595,15 +2600,20 @@ document.addEventListener('click',e=>{
  else if(id==='shareTab')showOwnerPanel('share');
 });
 
+function makeAdhkarNotice(text,key,className){
+ try{if(localStorage.getItem('anwar_adhkar_notice_'+key)==='dismissed')return null}catch(error){console.warn('تعذّر قراءة حالة إرشاد الأذكار',error)}
+ const note=document.createElement('div');note.className='adhkar-dismissible-note '+className;
+ const message=document.createElement('p');message.textContent=text;
+ const close=document.createElement('button');close.type='button';close.className='adhkar-note-dismiss';close.dataset.dismissAdhkarNotice=key;close.setAttribute('aria-label','إخفاء هذا الإرشاد');close.title='إخفاء الإرشاد';close.textContent='×';
+ note.append(message,close);return note;
+}
 function renderProtectiveAdhkar(){
  const host=$('adhkarContent');
  if(!host)return false;
  S.customAdhkar=cleanCustomAdhkar(S.customAdhkar);
  const fragment=document.createDocumentFragment();
- const intro=document.createElement('p');
- intro.className='protective-intro';
- intro.textContent='اكتب أذكار التحصين التي تريد الاحتفاظ بها. تُحفظ مع مفكرتك على هذا الجهاز، ويمكنك تعديلها أو حذفها متى شئت.';
- fragment.append(intro);
+ const intro=makeAdhkarNotice('اكتب أذكار التحصين التي تريد الاحتفاظ بها. تُحفظ مع مفكرتك على هذا الجهاز، ويمكنك تعديلها أو حذفها متى شئت.','writing','protective-intro');
+ if(intro)fragment.append(intro);
 
  const form=document.createElement('form');
  form.className='adhkar-form protective-personal-form';
