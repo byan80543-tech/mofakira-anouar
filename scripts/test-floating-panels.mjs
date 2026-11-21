@@ -73,7 +73,8 @@ assert.ok(html.includes('<link rel="stylesheet" href="./floating-panels.css?v=20
 assert.ok(html.includes('<script src="./floating-panels.js?v=20261121-3" defer></script>'),'floating panel logic is loaded as a deferred same-origin script');
 assert.ok(worker.includes("'./floating-panels.js'")&&worker.includes("'./floating-panels.css'"),
  'the offline service-worker shell precaches both floating-panel assets');
-assert.match(worker,/const CACHE_NAME='anwar-shell-2026-11-21-v142';/,
+const offlineCacheVersion=worker.match(/const CACHE_NAME='anwar-shell-2026-11-21-v(\d+)';/);
+assert.ok(offlineCacheVersion&&Number(offlineCacheVersion[1])>=143,
  'the offline cache version is refreshed for this release');
 
 for(const event of ['pointerdown','pointermove','pointerup','pointercancel','lostpointercapture','setPointerCapture']){
