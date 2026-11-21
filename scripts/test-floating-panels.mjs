@@ -15,11 +15,11 @@ vm.runInNewContext(controller,sandbox,{filename:'floating-panels.js',timeout:200
 const math=sandbox.window.AnwarFloatingPanelMath;
 assert.ok(math,'the controller exposes its isolated geometry helpers');
 const normal=math.clampRect(
- {left:110,top:130,width:300,height:260},
+ {left:100,top:130,width:300,height:260},
  {left:20,top:10,width:390,height:760}
 );
 assert.deepEqual(JSON.parse(JSON.stringify(normal)),{
- left:110,top:130,width:300,height:260
+ left:100,top:130,width:300,height:260
 },'normal panel geometry remains unchanged when it already fits');
 
 const clipped=math.clampRect(
@@ -46,7 +46,9 @@ assert.deepEqual(JSON.parse(JSON.stringify(saved)),{
 },'stored geometry is range-limited before use');
 assert.equal(math.normalizeSavedLayout(null),null);
 assert.equal(math.normalizeSavedLayout([]),null);
-assert.equal(math.normalizeSavedLayout({x:1,y:2,width:3,height:4}),null,'invalid saved sizes are rejected');
+assert.deepEqual(JSON.parse(JSON.stringify(math.normalizeSavedLayout({x:1,y:2,width:3,height:4}))),{
+ x:1,y:2,width:220,height:150
+},'saved sizes below the safe minimum are normalized before display');
 
 assert.ok((html.match(/class="rib-menu"/g)||[]).length>=5,'all toolbar menus are available to the shared floating-panel controller');
 assert.ok(html.includes('<link rel="stylesheet" href="./floating-panels.css?v=20261121-1">'),'floating panel styles are loaded from a same-origin stylesheet');
