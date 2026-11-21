@@ -10,7 +10,6 @@ const SHELL_ASSETS=[
  './manifest.webmanifest',
  './app-core.js',
  './adhkar-page-theme.js',
- './app-core.js',
  './ibtihalat-radio.js',
  './ibtihalat-radio.css',
  './prayer-times.js',
