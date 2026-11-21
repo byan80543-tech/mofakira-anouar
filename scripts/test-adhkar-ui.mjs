@@ -22,6 +22,10 @@ assert.ok(renderer.includes("textInput.name='text'")&&!renderer.includes('titleI
 assert.ok(core.includes("submit.textContent='حفظ الذكر'")&&core.includes("submit.textContent='حفظ التعديل'"),'the single field has clear save and edit actions');
 assert.ok(!serviceWorker.includes("'./adhkar-management.js'"),'the retired admin client is not precached');
 assert.ok(page.includes('data-dismiss-adhkar-notice="privacy"')&&page.includes('adhkar-note-dismiss'),'the privacy guidance has a visible dismiss control');
-assert.ok(core.includes('function makeAdhkarNotice(text,key,className)')&&core.includes("localStorage.setItem('anwar_adhkar_notice_'+t.dataset.dismissAdhkarNotice,'dismissed')")&&core.includes("localStorage.getItem('anwar_adhkar_notice_'+key)==='dismissed'"),'both guidance notices remember dismissal on this device and stay hidden after rerender');
-assert.ok(core.includes("data-dismiss-adhkar-notice=key")&&core.includes("t.closest('.adhkar-dismissible-note')?.remove()"),'dismiss controls remove only their own notice');
+assert.ok(core.includes('function makeAdhkarNotice(text,key,className)')&&core.includes('function dismissAdhkarNotice(button,key)')&&core.includes("localStorage.setItem('anwar_adhkar_notice_'+noticeKey,'dismissed')")&&core.includes("localStorage.getItem('anwar_adhkar_notice_'+key)==='dismissed'"),'both guidance notices remember dismissal on this device and stay hidden after rerender');
+assert.ok(core.includes("privacyDismissButton.addEventListener('click'")&&core.includes("close.addEventListener('click',event=>")&&core.includes('dismissAdhkarNotice(close,key)'), 'static and dynamic guidance controls have direct click handlers');
+const guard=read('../click-guard.js');
+assert.ok(guard.includes('.adhkar-note-dismiss')&&guard.includes('#adhkarContent .protective-entry-menu'),'the click-burst guard exempts protection-page controls');
+assert.ok(renderer.includes("menu.className='protective-entry-menu'")&&renderer.includes("summary.textContent='خيارات الذكر'")&&renderer.includes('menu.append(summary,actions);card.append(menu)'), 'edit and delete controls are tucked into a collapsed per-entry menu');
+assert.ok(renderer.includes("edit.textContent='تعديل'")&&renderer.includes("remove.textContent='حذف'"),'the expanded menu uses clear text actions instead of icons');
 console.log('PASS: protection editor contains one text field and dismissible persistent guidance.');
