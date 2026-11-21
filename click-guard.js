@@ -69,7 +69,7 @@
      (typeof notice.contains==='function'&&notice.contains(target)))return;
   // Tasbih buttons are intentionally high-frequency controls; do not let the
   // global anti-burst guard interrupt a legitimate counting session.
-  if(typeof target.closest==='function'&&target.closest('#tasbihPanel button, #tasbihPanel input, #tasbihPanel select, #tasbihPanel textarea, #tasbihPanel [role="button"], #anwarFloatTap, #adhkarTasbihToggle, [data-anwar-counter-tap], .adhkar-note-dismiss, #adhkarContent .protective-entry-menu, #adhkarContent .adhkar-font-picker, #adhkarFontDialog'))return;
+  if(typeof target.closest==='function'&&target.closest('#tasbihPanel button, #tasbihPanel input, #tasbihPanel select, #tasbihPanel textarea, #tasbihPanel [role="button"], #anwarFloatTap, #adhkarTasbihToggle, [data-anwar-counter-tap], .adhkar-note-dismiss, #adhkarContent .protective-entry-menu, #adhkarContent .adhkar-font-picker, #adhkarFontDialog, [data-anwar-prayer-permission]'))return;
 
   const timestamp=clock();
   if(timestamp<cooldownUntil){
