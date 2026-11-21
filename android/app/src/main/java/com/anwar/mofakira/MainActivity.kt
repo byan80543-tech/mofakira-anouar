@@ -82,10 +82,14 @@ class MainActivity : Activity() {
         val config = runCatching { PrayerSettings.updateFromWeb(this, payload) }.getOrNull()
             ?: return
         if (!config.enabled) {
+            lastAdhanEnabled = false
+            permissionPromptDeferred = false
             PrayerAlarmScheduler.cancel(this)
             stopService(Intent(this, AdhanPlaybackService::class.java))
             return
         }
+        if (!lastAdhanEnabled) permissionPromptDeferred = false
+        lastAdhanEnabled = true
 
         if (!VoiceCatalog.supports(config.voiceKey)) {
             if (!unsupportedVoiceToastShown) {
@@ -109,6 +113,8 @@ class MainActivity : Activity() {
 
     private var permissionFlowInProgress = false
     private var waitingForExactAlarmSettings = false
+    private var permissionPromptDeferred = false
+    private var lastAdhanEnabled = false
 
     private fun hasNotificationAccess(): Boolean {
         return Build.VERSION.SDK_INT < 33 ||
@@ -123,7 +129,7 @@ class MainActivity : Activity() {
     }
 
     private fun requestRequiredAccess() {
-        if (permissionFlowInProgress || (hasNotificationAccess() && hasExactAlarmAccess())) return
+        if (permissionFlowInProgress || permissionPromptDeferred || (hasNotificationAccess() && hasExactAlarmAccess())) return
 
         permissionFlowInProgress = true
         AlertDialog.Builder(this)
@@ -135,8 +141,14 @@ class MainActivity : Activity() {
                     "يمكنك اختيار «لاحقًا» والعودة إلى هذا الإعداد متى شئت."
             )
             .setPositiveButton("متابعة") { _, _ -> requestNotificationAccess() }
-            .setNegativeButton("لاحقًا") { _, _ -> permissionFlowInProgress = false }
-            .setOnCancelListener { permissionFlowInProgress = false }
+            .setNegativeButton("لاحقًا") { _, _ ->
+                permissionFlowInProgress = false
+                permissionPromptDeferred = true
+            }
+            .setOnCancelListener {
+                permissionFlowInProgress = false
+                permissionPromptDeferred = true
+            }
             .show()
     }
 
@@ -170,14 +182,21 @@ class MainActivity : Activity() {
                 } catch (_: Exception) {
                     waitingForExactAlarmSettings = false
                     permissionFlowInProgress = false
+                    permissionPromptDeferred = true
                     Toast.makeText(
                         this, "تعذّر فتح إعدادات المنبهات. افتح إعدادات التطبيق يدويًا.",
                         Toast.LENGTH_LONG
                     ).show()
                 }
             }
-            .setNegativeButton("لاحقًا") { _, _ -> permissionFlowInProgress = false }
-            .setOnCancelListener { permissionFlowInProgress = false }
+            .setNegativeButton("لاحقًا") { _, _ ->
+                permissionFlowInProgress = false
+                permissionPromptDeferred = true
+            }
+            .setOnCancelListener {
+                permissionFlowInProgress = false
+                permissionPromptDeferred = true
+            }
             .show()
     }
 
@@ -190,6 +209,7 @@ class MainActivity : Activity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_NOTIFICATIONS) {
             if (!hasNotificationAccess()) {
+                permissionPromptDeferred = true
                 Toast.makeText(
                     this,
                     "لم يُمنح إذن الإشعارات؛ يمكنك تفعيله لاحقًا من إعدادات التطبيق.",
@@ -211,7 +231,9 @@ class MainActivity : Activity() {
                     this, "تم السماح بالمنبهات والتذكيرات. يجري تحديث مواعيد الأذان.",
                     Toast.LENGTH_LONG
                 ).show()
+                permissionPromptDeferred = !hasNotificationAccess()
             } else {
+                permissionPromptDeferred = true
                 Toast.makeText(
                     this, "لم يُفعّل إذن المنبهات الدقيقة؛ قد يتأخر الأذان في وضع السكون.",
                     Toast.LENGTH_LONG
