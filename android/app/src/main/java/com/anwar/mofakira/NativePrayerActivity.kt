@@ -217,7 +217,7 @@ class NativePrayerActivity : Activity() {
             gravity = Gravity.END or Gravity.CENTER_VERTICAL
             textAlignment = View.TEXT_ALIGNMENT_VIEW_END
             layoutDirection = View.LAYOUT_DIRECTION_RTL
-            singleLine = true
+            setSingleLine(true)
             inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_CAP_WORDS
             setPadding(dp(12), dp(7), dp(12), dp(7))
             background = rounded(Color.rgb(250, 249, 245), 10, Color.rgb(221, 214, 201))
@@ -488,7 +488,7 @@ class NativePrayerActivity : Activity() {
         val raw = PrayerSettings.eventJson(this) ?: return false
         val events = runCatching { JSONArray(raw) }.getOrNull() ?: return false
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-            .apply { timeZone = TimeZone.getTimeZone(PrayerSettings.read(this).timeZone) }
+            .apply { timeZone = TimeZone.getTimeZone(PrayerSettings.read(this@NativePrayerActivity).timeZone) }
             .format(Date())
         var count = 0
         for (index in 0 until events.length()) {
