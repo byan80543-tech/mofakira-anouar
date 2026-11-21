@@ -42,6 +42,7 @@ class FakeElement{
  fire(type){
   for(const callback of this.listeners.get(type)||[])callback({target:this});
  }
+ click(){this.fire('click')}
  setAttribute(name,value){this.attributes.set(name,String(value))}
  getAttribute(name){return this.attributes.get(name)??null}
  focus(){this.focused=true}
@@ -119,6 +120,15 @@ panel.querySelector=selector=>{
  return null;
 };
 
+let adhkarEditing=false;
+const adhkarContent=new FakeElement('adhkar-content');
+const editForm=new FakeElement('adhkar-edit-form');
+const cancelEditButton=new FakeElement('cancel-edit');
+cancelEditButton.hidden=false;
+cancelEditButton.addEventListener('click',()=>{adhkarEditing=false;cancelEditButton.hidden=true});
+editForm.querySelector=selector=>selector==='.adhkar-dialog-actions button[type="button"]'?cancelEditButton:null;
+adhkarContent.querySelector=selector=>selector==='.protective-personal-form[data-edit-id]'&&adhkarEditing?editForm:null;
+
 const prayerSummary=new FakeElement('prayer-summary');
 const prayerSettings=new FakeElement('prayer-settings');
 prayerSettings.open=false;
@@ -134,6 +144,7 @@ const ids={
  anwarRadioPage:radioPage,
  anwarLessonsPage:lessonsPage,
  anwarAdhkarPage:adhkarPage,
+ adhkarContent,
  anwarTasbihPage:tasbihPage,
  liveStationArea:liveStation,
  lessonHub,
@@ -228,9 +239,15 @@ assert.equal(home.hidden,true,'opening adhkar hides the dashboard');
 assert.equal(adhkarPage.hidden,false,'opening adhkar shows the dedicated adhkar page');
 assert.deepEqual(renderedAdhkar,['protection'],'opening the adhkar card opens the unified protection collection directly');
 assert.equal(window.history.state.anwarServiceView,'adhkar','opening adhkar records the current service view');
+adhkarEditing=true;
 window.history.back();
-assert.equal(home.hidden,false,'Android/browser back returns to religious sections instead of leaving the religious dashboard');
-assert.equal(adhkarPage.hidden,true,'browser back hides only the current adhkar page');
+assert.equal(adhkarEditing,false,'first Android/browser back cancels the active adhkar edit');
+assert.equal(home.hidden,true,'canceling an adhkar edit keeps the visitor on the same adhkar page');
+assert.equal(adhkarPage.hidden,false,'the adhkar page remains visible while edit mode is canceled');
+assert.equal(window.history.state.anwarServiceView,'adhkar','canceling edit mode restores the current service page to history');
+window.history.back();
+assert.equal(home.hidden,false,'the next Android/browser back returns to religious sections instead of leaving the dashboard');
+assert.equal(adhkarPage.hidden,true,'the second back hides only the current adhkar page');
 window.history.forward();
 assert.equal(home.hidden,true,'browser forward restores the previous religious section');
 assert.equal(adhkarPage.hidden,false,'browser forward restores the same adhkar page');
