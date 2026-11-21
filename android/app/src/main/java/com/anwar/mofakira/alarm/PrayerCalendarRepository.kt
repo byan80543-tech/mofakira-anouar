@@ -80,7 +80,7 @@ object PrayerCalendarRepository {
         val builder = Uri.parse(
             "https://api.aladhan.com/v1/calendarByCity/${month.year}/${month.monthValue}"
         ).buildUpon()
-            .appendQueryParameter("city", city)
+            .appendQueryParameter("city", cityForApi(city, country))
             .appendQueryParameter("country", country)
             .appendQueryParameter("school", school)
         if (method != "auto") builder.appendQueryParameter("method", method)
@@ -106,6 +106,38 @@ object PrayerCalendarRepository {
         } finally {
             connection.disconnect()
         }
+    }
+
+    private fun cityForApi(value: String, country: String): String {
+        val city = value.trim()
+        if (country != "Morocco") return city
+        val key = city.replace(Regex("[أإآ]"), "ا").replace(Regex("\\s+"), " ").trim()
+        val moroccanCities = mapOf(
+            "مكناس" to "Meknes",
+            "فاس" to "Fes",
+            "الدار البيضاء" to "Casablanca",
+            "الرباط" to "Rabat",
+            "طنجة" to "Tangier",
+            "مراكش" to "Marrakech",
+            "اكادير" to "Agadir",
+            "وجدة" to "Oujda",
+            "تطوان" to "Tetouan",
+            "القنيطرة" to "Kenitra",
+            "اسفي" to "Safi",
+            "تازة" to "Taza",
+            "الحسيمة" to "Al Hoceima",
+            "الناظور" to "Nador",
+            "بني ملال" to "Beni Mellal",
+            "خريبكة" to "Khouribga",
+            "سطات" to "Settat",
+            "بركان" to "Berkane",
+            "العرائش" to "Larache",
+            "الصويرة" to "Essaouira",
+            "تارودانت" to "Taroudant",
+            "كلميم" to "Guelmim",
+            "الداخلة" to "Dakhla"
+        )
+        return moroccanCities[key] ?: city
     }
 
     private fun parseTime(raw: String): LocalTime? {
