@@ -2537,16 +2537,26 @@ function speakText(){
 $('rib').addEventListener('mousedown',e=>{if(e.target.closest('button'))e.preventDefault()});
 try{if(localStorage.getItem('anwar_adhkar_notice_privacy')==='dismissed')document.querySelector('#anwarAdhkarPage .adhkar-privacy-note')?.remove()}catch(error){console.warn('تعذّر استعادة حالة إرشاد الخصوصية',error)}
 
+function dismissAdhkarNotice(button,key){
+ const note=button?.closest('.adhkar-dismissible-note');
+ const noticeKey=String(key||button?.dataset.dismissAdhkarNotice||'');
+ if(!note||!noticeKey)return false;
+ try{localStorage.setItem('anwar_adhkar_notice_'+noticeKey,'dismissed')}
+ catch(error){console.warn('تعذّر حفظ إخفاء إرشاد الأذكار',error)}
+ note.remove();
+ return true;
+}
+const privacyDismissButton=document.querySelector('#anwarAdhkarPage .adhkar-note-dismiss[data-dismiss-adhkar-notice="privacy"]');
+if(privacyDismissButton)privacyDismissButton.addEventListener('click',event=>{
+ event.preventDefault();event.stopPropagation();
+ dismissAdhkarNotice(privacyDismissButton,'privacy');
+});
+
 document.addEventListener('click',e=>{
  const t=e.target.closest('button,summary,.card,#fl div,.archive-card');
  if(!e.target.closest('#fm')&&t?.id!=='fb')$('fm').classList.remove('o');
  if(!e.target.closest('#paperStylePanel')&&t?.id!=='paperStyleBtn'){$('paperStylePanel').hidden=true;$('paperStyleBtn').setAttribute('aria-expanded','false')}
  if(!t)return;
- if(t.dataset.dismissAdhkarNotice){
-  try{localStorage.setItem('anwar_adhkar_notice_'+t.dataset.dismissAdhkarNotice,'dismissed')}catch(error){console.warn('تعذّر حفظ إخفاء إرشاد الأذكار',error)}
-  t.closest('.adhkar-dismissible-note')?.remove();
-  return;
- }
  if(t.dataset.archiveFilter!==undefined){archiveFilter=t.dataset.archiveFilter;renderArchive(true);return}
  if(t.dataset.archiveId){stopPoetryDictation(false);const selected=S.notes.find(n=>n.id===t.dataset.archiveId);if(selected){openNote(selected);$('archiveDialog').close()}return}
  if(t.id==='listMore'){listRenderLimit+=LIST_PAGE_SIZE;renderList();return}
@@ -2606,6 +2616,10 @@ function makeAdhkarNotice(text,key,className){
  const note=document.createElement('div');note.className='adhkar-dismissible-note '+className;
  const message=document.createElement('p');message.textContent=text;
  const close=document.createElement('button');close.type='button';close.className='adhkar-note-dismiss';close.dataset.dismissAdhkarNotice=key;close.setAttribute('aria-label','إخفاء هذا الإرشاد');close.title='إخفاء الإرشاد';close.textContent='×';
+ close.addEventListener('click',event=>{
+  event.preventDefault();event.stopPropagation();
+  dismissAdhkarNotice(close,key);
+ });
  note.append(message,close);return note;
 }
 function renderProtectiveAdhkar(){
@@ -2664,9 +2678,12 @@ function renderProtectiveAdhkar(){
  S.customAdhkar.forEach(item=>{
   const card=document.createElement('article');card.className='protective-card';
   const body=document.createElement('p');body.className='protective-text';body.textContent=item.text;card.append(body);
+  const menu=document.createElement('details');menu.className='protective-entry-menu';
+  const summary=document.createElement('summary');summary.textContent='خيارات الذكر';
   const actions=document.createElement('div');actions.className='protective-actions';
   const edit=document.createElement('button');edit.type='button';edit.textContent='تعديل';
   edit.addEventListener('click',()=>{
+   menu.open=false;
    textInput.value=item.text;form.dataset.editId=item.id;
    submit.textContent='حفظ التعديل';cancel.hidden=false;textInput.focus();
    form.scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -2677,7 +2694,7 @@ function renderProtectiveAdhkar(){
    S.customAdhkar=S.customAdhkar.filter(entry=>entry.id!==item.id);
    save();renderProtectiveAdhkar();toast('تم حذف هذا الذكر من مفكرتك.');
   });
-  actions.append(edit,remove);card.append(actions);fragment.append(card);
+  actions.append(edit,remove);menu.append(summary,actions);card.append(menu);fragment.append(card);
  });
  host.replaceChildren(fragment);
  return true;
