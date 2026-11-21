@@ -2535,6 +2535,7 @@ function speakText(){
   next();
  }
 $('rib').addEventListener('mousedown',e=>{if(e.target.closest('button'))e.preventDefault()});
+try{if(localStorage.getItem('anwar_adhkar_notice_privacy')==='dismissed')document.querySelector('#anwarAdhkarPage .adhkar-privacy-note')?.remove()}catch(error){console.warn('تعذّر استعادة حالة إرشاد الخصوصية',error)}
 
 document.addEventListener('click',e=>{
  const t=e.target.closest('button,summary,.card,#fl div,.archive-card');
