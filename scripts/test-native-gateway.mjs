@@ -9,8 +9,8 @@ const manifest = read('android/app/src/main/AndroidManifest.xml');
 const gradle = read('android/app/build.gradle.kts');
 const workflow = read('.github/workflows/build-anwar-android.yml');
 
-assert.match(main, /NativeNotebookActivity::class\\.java/, 'The launcher opens the notebook directly.');
-assert.match(notebook, /الخدمات القرآنية والدينية/, 'The service launcher uses the exact original name.');
+assert.match(main, /NativeNotebookActivity::class\.java/, 'The launcher opens the notebook directly.');
+assert.match(notebook, /الخدمات القرآنية والدينية/, 'The services launcher uses the exact original label.');
 assert.match(notebook, /أرشيف أنوار/, 'The archive control remains available.');
 assert.match(notebook, /تشغيل أو إيقاف إذاعة القرآن/, 'The radio toolbar control remains available.');
 assert.match(notebook, /تبديل الوضع الليلي والنهاري/, 'The theme control remains available.');
@@ -21,16 +21,16 @@ for (const label of ['أصوات الأذان','اختيار الصوت والت
   assert.ok(portal.includes(label), 'Second screen retains original label: ' + label);
 }
 assert.doesNotMatch(portal, /بوابة الدين/, 'The visible service screen must not be named بوابة الدين.');
-assert.match(portal, /NativeAudioActivity\\.MODE_LESSONS/);
-assert.match(portal, /NativePrayerActivity::class\\.java/);
-assert.match(portal, /NativeAdhkarActivity::class\\.java/);
-assert.match(portal, /NativeTasbihActivity::class\\.java/);
-assert.match(portal, /LegacyWebActivity::class\\.java/);
-assert.match(portal, /setOnClickListener \\{ finish\\(\\) \\}/, 'Close returns to the notebook.');
-assert.match(manifest, /android:name="\\.ReligiousGateActivity"/);
+assert.match(portal, /NativeAudioActivity\.MODE_LESSONS/);
+assert.match(portal, /NativePrayerActivity::class\.java/);
+assert.match(portal, /NativeAdhkarActivity::class\.java/);
+assert.match(portal, /NativeTasbihActivity::class\.java/);
+assert.match(portal, /LegacyWebActivity::class\.java/);
+assert.match(portal, /setOnClickListener \{ finish\(\) \}/, 'Close returns to the notebook.');
+assert.match(manifest, /android:name="\.ReligiousGateActivity"/);
 assert.match(gradle, /versionCode = 9/);
-assert.match(gradle, /versionName = "0\\.9\\.0"/);
-assert.match(gradle, /applicationIdSuffix = "\\.preview\\.v09"/);
-assert.match(workflow, /node scripts\\/test-native-gateway\\.mjs/);
+assert.match(gradle, /versionName = "0\.9\.0"/);
+assert.match(gradle, /applicationIdSuffix = "\.preview\.v09"/);
+assert.match(workflow, /node scripts\/test-native-gateway\.mjs/);
 
 console.log('Original notebook landing, exact service labels, navigation, archive and isolated preview version are valid.');
