@@ -294,30 +294,100 @@ internal class WebShellUpdateManager(
         Toast.makeText(activity, "يجري تنزيل تحديث محتوى المفكرة والتحقق منه…", Toast.LENGTH_LONG).show()
 
         thread(name = "AnwarWebShellUpdateInstall") {
-            val installed = runCatching { downloadVerifyAndExtract(update) }.getOrNull()
+            val preparedDirectory = runCatching { downloadVerifyAndExtract(update) }.getOrNull()
             mainHandler.post {
-                applying = false
-                if (destroyed || activity.isFinishing || activity.isDestroyed) return@post
+                if (destroyed || activity.isFinishing || activity.isDestroyed) {
+                    preparedDirectory?.deleteRecursively()
+                    return@post
+                }
 
-                if (installed == null) {
+                if (preparedDirectory == null) {
+                    applying = false
                     Toast.makeText(
                         activity,
-                        "تعذّر تطبيق التحديث. بقيت النسخة الحالية وبياناتك كما هي؛ يمكنك المحاولة لاحقاً.",
+                        "تعذّر تنزيل التحديث أو التحقق منه. بقيت النسخة الحالية وبياناتك كما هي؛ يمكنك المحاولة لاحقاً.",
                         Toast.LENGTH_LONG
                     ).show()
                     onStateChanged()
                     return@post
                 }
 
-                latestUpdate = null
-                onStateChanged()
+                preparePageAndActivate(update, preparedDirectory)
+            }
+        }
+    }
+
+    private fun preparePageAndActivate(update: UpdateInfo, preparedDirectory: File) {
+        val prepareScript = """
+            (async function () {
+              window.__anwarReleaseAfterOta = null;
+              try {
+                const bridge = window.AnouarUpdateBridge;
+                if (bridge && typeof bridge.prepareForReload === 'function') {
+                  window.__anwarReleaseAfterOta = await bridge.prepareForReload();
+                } else {
+                  const approved = typeof window.confirm === 'function' && window.confirm(
+                    'تعذّر التحقق من الحفظ الآلي. احفظ عملك المفتوح أولاً. هل تريد متابعة التحديث وإعادة فتح المفكرة؟'
+                  );
+                  if (!approved) return 'cancelled';
+                }
+                return 'ready';
+              } catch (error) {
+                if (typeof window.alert === 'function') {
+                  window.alert(error && error.message ? error.message : 'تعذّر التحقق من حفظ العمل المفتوح.');
+                }
+                return 'failed';
+              }
+            })();
+        """.trimIndent()
+
+        webView.evaluateJavascript(prepareScript) { result ->
+            if (destroyed || activity.isFinishing || activity.isDestroyed) {
+                preparedDirectory.deleteRecursively()
+                return@evaluateJavascript
+            }
+
+            if (result?.trim('"') != "ready") {
+                preparedDirectory.deleteRecursively()
+                applying = false
                 Toast.makeText(
                     activity,
-                    "تم تحديث محتوى مفكرة أنوار. يجري فتح النسخة المحدّثة…",
+                    "أُبقيت النسخة الحالية دون تغيير. احفظ عملك ثم أعد المحاولة من أيقونة التحديث.",
                     Toast.LENGTH_LONG
                 ).show()
-                reloadWebView(update.sourceCommit)
+                onStateChanged()
+                return@evaluateJavascript
             }
+
+            val activated = preferences.edit()
+                .putString(KEY_ACTIVE_VERSION, update.sourceCommit)
+                .putLong(KEY_ACTIVE_TIMESTAMP, update.sourceCommitTimestamp)
+                .commit()
+            if (!activated) {
+                preparedDirectory.deleteRecursively()
+                webView.evaluateJavascript(
+                    "if (typeof window.__anwarReleaseAfterOta === 'function') { window.__anwarReleaseAfterOta(); window.__anwarReleaseAfterOta = null; }",
+                    null
+                )
+                applying = false
+                Toast.makeText(
+                    activity,
+                    "تعذّر تثبيت حالة التحديث محلياً؛ لم نفعّل الملفات الجديدة. حاول مرة أخرى.",
+                    Toast.LENGTH_LONG
+                ).show()
+                onStateChanged()
+                return@evaluateJavascript
+            }
+
+            latestUpdate = null
+            applying = false
+            onStateChanged()
+            Toast.makeText(
+                activity,
+                "تم التحقق من الحفظ وتحديث محتوى مفكرة أنوار. يجري فتح النسخة الجديدة…",
+                Toast.LENGTH_LONG
+            ).show()
+            reloadWebView(update.sourceCommit)
         }
     }
 
@@ -380,12 +450,6 @@ internal class WebShellUpdateManager(
                 throw IllegalStateException("Cannot activate downloaded update files")
             }
             stagingDirectory = null
-
-            val saved = preferences.edit()
-                .putString(KEY_ACTIVE_VERSION, update.sourceCommit)
-                .putLong(KEY_ACTIVE_TIMESTAMP, update.sourceCommitTimestamp)
-                .commit()
-            if (!saved) throw IllegalStateException("Cannot save active web update")
 
             zipFile.delete()
             cleanupOldUpdates(root, update.sourceCommit)
