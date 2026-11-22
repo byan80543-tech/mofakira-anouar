@@ -119,8 +119,8 @@ assert.match(home, /NativeTasbihActivity::class\.java/);
 assert.match(home, /ReligiousGateActivity::class\.java/);
 assert.match(religiousGate, /LegacyWebActivity::class\.java/);
 assert.match(legacy, /WebView/);
-assert.match(gradle, /versionCode = 8/);
-assert.ok(gradle.includes('versionName = "0.8.0"'));
+assert.match(gradle, /versionCode = 9/);
+assert.ok(gradle.includes('versionName = "0.9.0"'));
 
 assert.ok(oldController.includes("preferences.set('tasbih'"),
   'the existing encrypted web preference adapter remains in place');
