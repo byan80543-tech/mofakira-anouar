@@ -29,7 +29,7 @@ assert.match(fallbackIcon, /<bitmap[\s\S]*?@drawable\/ic_launcher_artwork/,
 assert.match(colors, /#FFF0F6/,
   'the adaptive icon background must use the soft pink brand tone');
 const iconArtworkBytes = fs.readFileSync(iconArtworkPath);
-assert.ok(iconArtworkBytes.length > 5000,
+assert.ok(iconArtworkBytes.length > 6000,
   'the selected tulip artwork must be bundled as an Android resource');
 assert.equal(iconArtworkBytes.toString('ascii', 0, 4), 'RIFF',
   'the launcher artwork must be a valid WebP container');
