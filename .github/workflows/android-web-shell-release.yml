@@ -1,0 +1,102 @@
+name: Publish Anwar Web Shell Update
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "*.js"
+      - "*.css"
+      - "*.html"
+      - "*.json"
+      - "*.webmanifest"
+      - "*.png"
+      - "*.jpg"
+      - "*.jpeg"
+      - "*.svg"
+      - "*.webp"
+      - "assets/**"
+      - "vendor/**"
+      - "workers/**"
+      - "functions/**"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: anwar-web-shell-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish-web-shell:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the exact web source
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - name: Install Android SDK platform
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.13"
+
+      - name: Sync canonical web assets from the repository
+        run: gradle -p android :app:syncAnwarWebAssets
+
+      - name: Build and publish integrity-checked web bundle
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_COMMIT: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ZIP="$RUNNER_TEMP/mofakira-anwar-web-shell.zip"
+          META="$RUNNER_TEMP/mofakira-anwar-web-update.json"
+          WEB_ROOT="android/app/src/main/assets/www"
+          test -s "$WEB_ROOT/index.html"
+
+          (
+            cd "$WEB_ROOT"
+            find . -type f -printf '%P\n' | zip -q "$ZIP" -@
+          )
+          test -s "$ZIP"
+
+          SHA256="$(sha256sum "$ZIP" | awk '{print $1}')"
+          SIZE_BYTES="$(stat -c '%s' "$ZIP")"
+          SOURCE_TIMESTAMP="$(git show -s --format=%ct "$SOURCE_COMMIT")"
+          export SHA256 SIZE_BYTES SOURCE_TIMESTAMP META
+
+          node <<'NODE'
+          const fs = require('node:fs');
+          const metadata = {
+            schemaVersion: 1,
+            sourceCommit: process.env.SOURCE_COMMIT,
+            sourceCommitTimestamp: Number(process.env.SOURCE_TIMESTAMP),
+            archiveAssetName: 'mofakira-anwar-web-shell.zip',
+            sha256: process.env.SHA256,
+            sizeBytes: Number(process.env.SIZE_BYTES),
+            releaseNotes: 'تحديث لمحتوى وواجهة مفكرة أنوار. يُطبّق داخل التطبيق دون إعادة تثبيت APK.'
+          };
+          fs.writeFileSync(process.env.META, JSON.stringify(metadata, null, 2) + '\n');
+          NODE
+
+          TAG="web-shell-$GITHUB_RUN_NUMBER-$GITHUB_SHA:0:12"
+          gh release create "$TAG" "$ZIP" "$META" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "محتوى مفكرة أنوار — $GITHUB_SHA:0:12" \
+            --notes "حزمة واجهة ومحتوى لمفكرة أنوار. يجري التحقق من SHA-256 قبل تطبيقها داخل التطبيق." \
+            --prerelease
