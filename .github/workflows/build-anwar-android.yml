@@ -59,6 +59,8 @@ jobs:
           gradle-version: "8.13"
       - name: Validate native adhan bridge and scheduling wiring
         run: node scripts/test-native-adhan.mjs
+      - name: Validate Android launcher icon and on-demand microphone permissions
+        run: node scripts/test-android-permissions-and-icon.mjs
       - name: Validate native Media3 audio engine and catalogs
         run: node scripts/test-native-audio.mjs
       - name: Validate native personal adhkar screen and local storage

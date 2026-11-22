@@ -5,11 +5,13 @@ import android.app.Activity
 import android.app.AlarmManager
 import android.app.AlertDialog
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.webkit.WebChromeClient
+import android.webkit.PermissionRequest
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebResourceResponse
@@ -33,6 +35,7 @@ import com.anwar.mofakira.playback.VoiceCatalog
 class LegacyWebActivity : Activity() {
     private lateinit var webView: WebView
     private var unsupportedVoiceToastShown = false
+    private var pendingWebMicrophoneRequest: PermissionRequest? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,7 +58,19 @@ class LegacyWebActivity : Activity() {
             settings.javaScriptCanOpenWindowsAutomatically = false
             settings.setSupportMultipleWindows(false)
             settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW
-            webChromeClient = WebChromeClient()
+            webChromeClient = object : WebChromeClient() {
+                override fun onPermissionRequest(request: PermissionRequest) {
+                    runOnUiThread { handleWebPermissionRequest(request) }
+                }
+
+                override fun onPermissionRequestCanceled(request: PermissionRequest) {
+                    runOnUiThread {
+                        if (pendingWebMicrophoneRequest === request) {
+                            pendingWebMicrophoneRequest = null
+                        }
+                    }
+                }
+            }
             webViewClient = object : WebViewClientCompat() {
                 override fun shouldInterceptRequest(
                     view: WebView?,
@@ -113,6 +128,86 @@ class LegacyWebActivity : Activity() {
         }
 
         webView.loadUrl(SITE_URL)
+    }
+
+    /**
+     * Web speech recognition may ask WebView for microphone capture.
+     * Only the packaged HTTPS origin may receive audio, and only audio capture
+     * is ever granted. No camera, location, or other web permission is exposed.
+     */
+    private fun handleWebPermissionRequest(request: PermissionRequest) {
+        if (isFinishing || isDestroyed) {
+            runCatching { request.deny() }
+            return
+        }
+
+        val origin = request.origin.toString().trimEnd('/')
+        val requestedResources = request.resources?.toSet().orEmpty()
+        if (origin != SITE_ORIGIN ||
+            requestedResources.isEmpty() ||
+            requestedResources.any { it != PermissionRequest.RESOURCE_AUDIO_CAPTURE }
+        ) {
+            runCatching { request.deny() }
+            return
+        }
+
+        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) ==
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            runCatching {
+                request.grant(arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE))
+            }
+            return
+        }
+
+        pendingWebMicrophoneRequest?.let { old ->
+            runCatching { old.deny() }
+        }
+        pendingWebMicrophoneRequest = request
+
+        AlertDialog.Builder(this)
+            .setTitle("السماح بالميكروفون")
+            .setMessage(
+                "يحتاج الميكروفون إلى إذن عند تشغيل العد الصوتي للسبحة أو الإملاء الصوتي في المفكرة. " +
+                    "لن يُطلب هذا الإذن لتشغيل القرآن أو الدروس أو الإذاعة. يمكنك الرفض ومواصلة الاستخدام اليدوي."
+            )
+            .setPositiveButton("متابعة") { _, _ ->
+                val pending = pendingWebMicrophoneRequest ?: return@setPositiveButton
+                if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) ==
+                    PackageManager.PERMISSION_GRANTED
+                ) {
+                    grantPendingWebMicrophoneRequest()
+                } else {
+                    requestPermissions(
+                        arrayOf(Manifest.permission.RECORD_AUDIO),
+                        REQUEST_RECORD_AUDIO
+                    )
+                }
+            }
+            .setNegativeButton("ليس الآن") { _, _ -> denyPendingWebMicrophoneRequest() }
+            .setOnCancelListener { denyPendingWebMicrophoneRequest() }
+            .show()
+    }
+
+    private fun grantPendingWebMicrophoneRequest() {
+        val pending = pendingWebMicrophoneRequest ?: return
+        pendingWebMicrophoneRequest = null
+        if (!isFinishing && !isDestroyed &&
+            checkSelfPermission(Manifest.permission.RECORD_AUDIO) ==
+                PackageManager.PERMISSION_GRANTED
+        ) {
+            runCatching {
+                pending.grant(arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE))
+            }.onFailure { runCatching { pending.deny() } }
+        } else {
+            runCatching { pending.deny() }
+        }
+    }
+
+    private fun denyPendingWebMicrophoneRequest() {
+        val pending = pendingWebMicrophoneRequest
+        pendingWebMicrophoneRequest = null
+        if (pending != null) runCatching { pending.deny() }
     }
 
     private fun onPrayerSettingsFromWeb(payload: String) {
@@ -261,6 +356,23 @@ class LegacyWebActivity : Activity() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_RECORD_AUDIO) {
+            if (grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED &&
+                checkSelfPermission(Manifest.permission.RECORD_AUDIO) ==
+                    PackageManager.PERMISSION_GRANTED
+            ) {
+                grantPendingWebMicrophoneRequest()
+            } else {
+                denyPendingWebMicrophoneRequest()
+                Toast.makeText(
+                    this,
+                    "لم يُسمح بالميكروفون. يمكنك متابعة العد اليدوي أو الكتابة المعتادة.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+            return
+        }
+
         if (requestCode == REQUEST_NOTIFICATIONS) {
             if (!hasNotificationAccess()) {
                 permissionPromptDeferred = true
@@ -311,6 +423,7 @@ class LegacyWebActivity : Activity() {
             webView.stopLoading()
             webView.destroy()
         }
+        denyPendingWebMicrophoneRequest()
         super.onDestroy()
     }
 
@@ -319,5 +432,6 @@ class LegacyWebActivity : Activity() {
         private const val SITE_ORIGIN = "https://appassets.androidplatform.net"
         private const val SITE_URL = "$SITE_ORIGIN/assets/www/index.html"
         private const val REQUEST_NOTIFICATIONS = 721
+        private const val REQUEST_RECORD_AUDIO = 722
     }
 }
