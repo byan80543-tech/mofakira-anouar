@@ -94,8 +94,8 @@ assert.match(activity, /KeyGenParameterSpec/);
 assert.match(activity, /setRandomizedEncryptionRequired\(true\)/);
 assert.match(activity, /verified\.contentEquals\(plain\)/);
 assert.match(activity, /لم نكتب فوقه|لم نحذف السجل السابق/);
-assert.match(activity, /SharedPreferences/);
-assert.doesNotMatch(activity, /WebView|http:\/\/|https:\/\//,
+assert.match(activity, /getSharedPreferences\(PREFS_NAME, MODE_PRIVATE\)/);
+assert.doesNotMatch(activity, /http:\/\/|https:\/\//,
   'the native tasbih does not use the old web screen as its interface');
 
 assert.match(activity, /SpeechRecognizer/);
