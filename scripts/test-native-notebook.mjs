@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 const read = (path) => fs.readFileSync(new URL('../' + path, import.meta.url), 'utf8');
 const manifest = read('android/app/src/main/AndroidManifest.xml');
 const home = read('android/app/src/main/java/com/anwar/mofakira/MainActivity.kt');
+const religiousGate = read('android/app/src/main/java/com/anwar/mofakira/ReligiousGateActivity.kt');
 const activity = read('android/app/src/main/java/com/anwar/mofakira/NativeNotebookActivity.kt');
 const gradle = read('android/app/build.gradle.kts');
 const legacy = read('android/app/src/main/java/com/anwar/mofakira/LegacyWebActivity.kt');
@@ -14,10 +15,10 @@ const debugStrings = read('android/app/src/debug/res/values/strings.xml');
 
 assert.match(manifest, /android:name="\.NativeNotebookActivity"[\s\S]*?android:exported="false"/,
   'the native notebook is registered as an internal Android activity');
-assert.match(home, /"دفتر الكتابة"[\s\S]*?NativeNotebookActivity::class\.java/,
+assert.match(home, /"المفكرة"[\s\S]*?NativeNotebookActivity::class\.java/,
   'the home tile opens the native notebook screen');
-assert.match(home, /فتح جميع خدمات المفكرة[\s\S]*?LegacyWebActivity::class\.java/,
-  'the complete legacy notebook remains reachable');
+assert.match(religiousGate, /LegacyWebActivity::class\.java/,
+  'the complete legacy notebook remains reachable from the religious gateway');
 assert.match(activity, /class NativeNotebookActivity\s*:\s*Activity\(\)/);
 assert.doesNotMatch(activity, /WebView|https?:\/\//,
   'the native notebook has no remote or WebView dependency');
