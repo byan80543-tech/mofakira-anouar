@@ -32,7 +32,7 @@ assert.match(portal, /LegacyWebActivity::class\.java/);
 assert.match(portal, /setOnClickListener \{ finish\(\) \}/, 'Close returns to the notebook.');
 assert.match(manifest, /android:name="\.ReligiousGateActivity"/);
 assert.match(gradle, /versionCode = 10/);
-assert.match(gradle, /versionName = "0\.9\.0"/);
+assert.match(gradle, /versionName = "0\.9\.1"/);
 assert.match(gradle, /applicationIdSuffix = "\.preview\.v10"/);
 assert.match(workflow, /node scripts\/test-native-gateway\.mjs/);
 
