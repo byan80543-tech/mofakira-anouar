@@ -393,6 +393,7 @@
     $('elapsedTime').textContent=formatTime(position);
     $('durationTime').textContent=formatTime(duration);
     const playingId=String(player.mediaId||'');
+    const activeSeries=playingId.match(/^lesson:([^:]+):(\\d+)$/);
     document.querySelectorAll('.reciter-play[data-index],.reciter-version[data-index]').forEach(button=>{
       const active=button.dataset.index!==undefined&&playingId.startsWith('quran:')&&
         Number(button.dataset.index)===Number(state.selectedEdition);
@@ -406,11 +407,7 @@
       const active=playingId.startsWith('radio:')&&Number(button.dataset.index)===Number(state.selectedStation);
       button.dataset.playing=String(!!(active&&player.isPlaying));
     });
-    const activeSeries=playingId.match(/^lesson:([^:]+):(\d+)$/);
-    document.querySelectorAll('[data-lesson-index]').forEach(item=>{
-      const selected=!!activeSeries&&Number(item.dataset.lessonIndex)===Number(activeSeries[2]);
-      item.setAttribute('aria-current',String(selected));
-    });
+
   }
 
   function formatTime(ms){
