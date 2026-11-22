@@ -159,6 +159,9 @@ for (const feature of [
   'externalPwaPaper(note.paper)',
   'externalPwaPaper(version.paper)',
   'plainTextToHtml(version.text)',
+  '.put("html", note.richHtml.ifBlank { plainTextToHtml(note.text) })',
+  'normalizeRichHtml(item.optString("html", ""))',
+  'richHtml = normalizeRichHtml(item.optString("html", ""))',
   'Html.fromHtml',
   'readBack.contentEquals(bytes)'
 ]) {
