@@ -15,6 +15,9 @@ on:
     paths:
       - "android/**"
       - "prayer-times.js"
+      - "official-adhkar.js"
+      - "scripts/generate-native-adhkar-catalog.mjs"
+      - "scripts/test-native-tasbih.mjs"
       - ".github/workflows/build-anwar-android.yml"
 
 permissions:
