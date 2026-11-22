@@ -34,7 +34,7 @@ assert.doesNotMatch(nativeHome, /https?:\/\//,
 assert.match(activity, /WEB_MESSAGE_LISTENER/);
 assert.match(activity, /setOf\(SITE_ORIGIN\)/);
 assert.match(activity, /isMainFrame/);
-assert.match(activity, /WebViewAssetLoader\\.Builder\\(\\)/, 'the full PWA is bundled and served as local HTTPS assets');
+assert.match(activity, /WebViewAssetLoader\.Builder\(\)/, 'the full PWA is bundled and served as local HTTPS assets');
 assert.ok(activity.includes('SITE_URL = "$SITE_ORIGIN/assets/www/index.html"'), 'legacy activity opens the packaged canonical PWA entry point');
 assert.doesNotMatch(activity, /feat-native-background-adhan\.mofakira-anouar\.pages\.dev/, 'legacy activity must not depend on a temporary preview deployment');
 assert.match(scheduler, /setExactAndAllowWhileIdle/);
