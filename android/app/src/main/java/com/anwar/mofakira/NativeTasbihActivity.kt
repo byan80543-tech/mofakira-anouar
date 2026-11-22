@@ -515,9 +515,12 @@ class NativeTasbihActivity : Activity() {
         }
         outer.addView(themePanel, marginTop(9))
 
+        // Keep the selected dhikr inscription compact and visually integrated
+        // with the bead ring; use Android's Arabic sans family, never the bulky
+        // Amiri heading face that was rejected in the previous tasbih design.
         phraseView = textView(
             selectedText,
-            21f,
+            17f,
             palette.text,
             true,
             Gravity.CENTER,
