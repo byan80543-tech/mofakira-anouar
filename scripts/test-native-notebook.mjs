@@ -31,6 +31,9 @@ for (const feature of [
   'private fun renderNotes',
   'addTextChangedListener',
   'searchInput',
+  'private const val PAGE_SIZE = 50',
+  'filtered.take(renderLimit)',
+  'renderNotes(keepPage = true)',
   'MAX_NOTES = 2500',
   'MAX_TITLE_LENGTH = 300',
   'MAX_CONTENT_LENGTH = 450_000'
