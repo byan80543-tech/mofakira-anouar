@@ -27,6 +27,8 @@ for (const type of ['poem', 'text', 'idea']) {
 }
 for (const feature of [
   'private fun showEditor',
+  'private fun showHistory',
+  'private fun confirmRestoreHistory',
   'private fun togglePin',
   'private fun confirmDelete',
   'private fun renderNotes',
@@ -52,6 +54,11 @@ assert.match(activity, /put\("font", note\.font\)/);
 assert.match(activity, /put\("size", note\.sizeSp\)/);
 assert.match(activity, /put\("textColor", note\.textColor\)/);
 assert.match(activity, /put\("paper", note\.paper\)/);
+assert.match(activity, /put\("history", encodeHistory\(note\.history\)\)/);
+assert.match(activity, /private const val MAX_HISTORY = 15/);
+assert.match(activity, /takeLast\(MAX_HISTORY\)/);
+assert.match(activity, /parseHistory\(item\.optJSONArray\("history"\)\)/);
+assert.match(activity, /current\.toHistoryVersion\(\)/);
 assert.match(activity, /val font: String/);
 assert.match(activity, /val sizeSp: Int/);
 assert.match(activity, /val textColor: Int/);
@@ -60,6 +67,21 @@ assert.match(activity, /private fun showOptionPicker/);
 assert.match(activity, /private fun fontTypeface/);
 assert.match(activity, /private fun paperBackground/);
 assert.match(activity, /private fun textColorFor/);
+assert.match(activity, /private fun exportPortableBackup/);
+assert.match(activity, /private fun selectBackupFile/);
+assert.match(activity, /private fun encryptPortableBackup/);
+assert.match(activity, /private fun decryptPortableBackup/);
+assert.match(activity, /private fun parsePortableNotes/);
+assert.match(activity, /private fun mergeImportedNotes/);
+assert.match(activity, /private fun persistExportFile/);
+assert.match(activity, /ACTION_CREATE_DOCUMENT/);
+assert.match(activity, /ACTION_OPEN_DOCUMENT/);
+assert.match(activity, /AES\/GCM\/NoPadding/);
+assert.match(activity, /PBKDF2WithHmacSHA256/);
+assert.match(activity, /PORTABLE_ITERATIONS = 600_000/);
+assert.match(activity, /LEGACY_VAULT_FORMAT = "anwar-vault"/);
+assert.match(activity, /Html\.fromHtml/);
+assert.match(activity, /readBack\.contentEquals\(bytes\)/);
 assert.match(activity, /"Amiri" -> "serif"/,
   'legacy Amiri records remain readable through the system serif family');
 assert.match(activity, /textColorChoices/);
@@ -92,8 +114,8 @@ assert.doesNotMatch(activity, /innerHTML|loadDataWithBaseURL/,
   'saved content is rendered as ordinary Android text, not interpreted markup');
 
 assert.match(legacy, /WebView/);
-assert.match(gradle, /versionCode = 6/);
-assert.ok(gradle.includes('versionName = "0.6.0"'));
+assert.match(gradle, /versionCode = 7/);
+assert.ok(gradle.includes('versionName = "0.7.0"'));
 assert.match(gradle, /applicationIdSuffix = "\.preview"/,
   'the debug APK installs alongside the previous app instead of overwriting its local vault');
 assert.match(gradle, /versionNameSuffix = "-preview"/);
@@ -106,6 +128,7 @@ assert.match(readme, /لا يجري استيراد أعمال خزنة الوي�
 
 console.log(
   'Native notebook checks passed: poem/text/idea CRUD, search and filters, pinning, ' +
-  'bounded plain-text records, persistent font/size/color/paper formatting, Android Keystore ' +
-  'AES-GCM encryption, verified backup/restore, read-only recovery and legacy compatibility.'
+  'bounded plain-text records, persistent font/size/color/paper formatting, 15-version history, ' +
+  'encrypted portable backup/import with legacy PWA decryption, Android Keystore AES-GCM and ' +
+  'verified backup/restore.'
 );
