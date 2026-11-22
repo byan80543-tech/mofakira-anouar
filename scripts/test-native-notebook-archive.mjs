@@ -172,8 +172,8 @@ assert.match(activity, /if \(!saveEncryptedState\(\)\) \{[\s\S]*?notes\.clear\(\
 assert.match(activity, /setPositiveButton\("استبدال"\)/,
   'replacing existing records requires explicit confirmation');
 assert.match(test, /persistent font\/size\/color\/paper formatting/);
-assert.match(gradle, /versionCode = 10/);
-assert.ok(gradle.includes('versionName = "0.9.1"'));
+assert.match(gradle, /versionCode = 11/);
+assert.ok(gradle.includes('versionName = "0.9.2"'));
 assert.match(workflow, /test-native-notebook-archive\.mjs/);
 
 console.log('Native notebook archive checks passed: PWA PBKDF2/AES-GCM interoperability, tamper detection, 15-version history, bounded encrypted import/export, merge/replace rollback and version wiring.');
