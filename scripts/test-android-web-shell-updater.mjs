@@ -6,6 +6,7 @@ const read = (path) => fs.readFileSync(new URL('../' + path, import.meta.url), '
 const activity = read('android/app/src/main/java/com/anwar/mofakira/LegacyWebActivity.kt');
 const appUpdater = read('android/app/src/main/java/com/anwar/mofakira/AppUpdateManager.kt');
 const webUpdater = read('android/app/src/main/java/com/anwar/mofakira/WebShellUpdateManager.kt');
+const appCore = read('app-core.js');
 const gradle = read('android/app/build.gradle.kts');
 const webRelease = read('.github/workflows/android-web-shell-release.yml');
 const apkRelease = read('.github/workflows/android-release.yml');
@@ -52,6 +53,12 @@ assert.match(webUpdater, /BuildConfig\.WEB_BASELINE_TIMESTAMP/,
   'the updater must compare the release with the bundled APK baseline');
 assert.match(webUpdater, /WebResourceResponse\(/,
   'updated resources must be served through the same HTTPS-style WebView origin');
+assert.match(appCore, /AnouarUpdateBridge/);
+assert.match(appCore, /flushPendingEdit\(false\)/);
+assert.match(appCore, /await vaultSaveQueue/);
+assert.match(webUpdater, /window\.AnouarUpdateBridge/);
+assert.match(webUpdater, /preparePageAndActivate/);
+assert.match(webUpdater, /window\.__anwarReleaseAfterOta/);
 assert.match(webUpdater, /window\.caches\.delete/,
   'the web cache must be refreshed after a verified OTA update');
 assert.doesNotMatch(webUpdater, /localStorage\.clear|indexedDB\.deleteDatabase/,
