@@ -1,3 +1,5 @@
+val anwarWebBaselineTimestamp = System.getenv("ANWAR_WEB_BASELINE_TIMESTAMP")?.toLongOrNull() ?: 0L
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -5,12 +7,16 @@ plugins {
 android {
     namespace = "com.anwar.mofakira"
     compileSdk = 36
+    buildFeatures {
+        buildConfig = true
+    }
     defaultConfig {
         applicationId = "com.anwar.mofakira"
         minSdk = 23
         targetSdk = 35
-        versionCode = 17
-        versionName = "0.9.8"
+        versionCode = 18
+        versionName = "0.9.9"
+        buildConfigField("long", "WEB_BASELINE_TIMESTAMP", "${anwarWebBaselineTimestamp}L")
     }
     signingConfigs {
         create("release") {
@@ -26,7 +32,7 @@ android {
     buildTypes {
         getByName("debug") {
             // Previews are kept apart from the production app and earlier previews.
-            applicationIdSuffix = ".preview.v17"
+            applicationIdSuffix = ".preview.v18"
             versionNameSuffix = "-preview"
         }
         getByName("release") {
