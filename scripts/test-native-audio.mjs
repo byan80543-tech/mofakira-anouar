@@ -12,10 +12,10 @@ const audioService = read('android/app/src/main/java/com/anwar/mofakira/playback
 const catalog = read('android/app/src/main/java/com/anwar/mofakira/playback/NativeMediaCatalog.kt');
 const legacy = read('android/app/src/main/java/com/anwar/mofakira/LegacyWebActivity.kt');
 
-assert.match(androidAppGradle, /versionCode = 3/,
-  "native personal adhkar migration increments the Android version code");
-assert.match(androidAppGradle, /versionName = "0.3.0"/,
-  "native personal adhkar migration increments the Android version name");
+assert.match(androidAppGradle, /versionCode = 4/,
+  "native tasbih migration increments the Android version code");
+assert.match(androidAppGradle, /versionName = "0.4.0"/,
+  "native tasbih migration increments the Android version name");
 assert.match(gradle, /androidx\.media3:media3-exoplayer:1\.11\.1/);
 assert.match(gradle, /androidx\.media3:media3-session:1\.11\.1/);
 

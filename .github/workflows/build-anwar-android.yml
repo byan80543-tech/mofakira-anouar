@@ -6,12 +6,22 @@ on:
     paths:
       - "android/**"
       - "prayer-times.js"
+      - "official-adhkar.js"
+      - "scripts/generate-native-adhkar-catalog.mjs"
+      - "scripts/test-native-tasbih.mjs"
+      - "scripts/test-native-audio.mjs"
+      - "scripts/test-native-adhkar.mjs"
       - ".github/workflows/build-anwar-android.yml"
   push:
     branches: [main]
     paths:
       - "android/**"
       - "prayer-times.js"
+      - "official-adhkar.js"
+      - "scripts/generate-native-adhkar-catalog.mjs"
+      - "scripts/test-native-tasbih.mjs"
+      - "scripts/test-native-audio.mjs"
+      - "scripts/test-native-adhkar.mjs"
       - ".github/workflows/build-anwar-android.yml"
 
 permissions:
@@ -44,6 +54,10 @@ jobs:
         run: node scripts/test-native-audio.mjs
       - name: Validate native personal adhkar screen and local storage
         run: node scripts/test-native-adhkar.mjs
+      - name: Generate the complete native adhkar catalog from its canonical source
+        run: node scripts/generate-native-adhkar-catalog.mjs
+      - name: Validate native tasbih behavior, encryption and voice counting
+        run: node scripts/test-native-tasbih.mjs
       - name: Build debug APK and run unit tests
         run: gradle -p android assembleDebug testDebugUnitTest
       - name: Upload debug APK
