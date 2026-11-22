@@ -10,6 +10,7 @@ on:
       - "scripts/generate-native-adhkar-catalog.mjs"
       - "scripts/test-native-tasbih.mjs"
       - "scripts/test-native-audio.mjs"
+      - "scripts/test-native-adhkar.mjs"
       - ".github/workflows/build-anwar-android.yml"
   push:
     branches: [main]
@@ -20,6 +21,7 @@ on:
       - "scripts/generate-native-adhkar-catalog.mjs"
       - "scripts/test-native-tasbih.mjs"
       - "scripts/test-native-audio.mjs"
+      - "scripts/test-native-adhkar.mjs"
       - ".github/workflows/build-anwar-android.yml"
 
 permissions:
