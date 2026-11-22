@@ -18,6 +18,10 @@ assert.match(notebook, /تغيير ألوان المفكرة/, 'The palette cont
 assert.match(notebook, /لا شيء هنا بعد/, 'The empty state matches the original copy.');
 assert.match(notebook, /"all" to "الكل"/, 'The all filter remains present.');
 assert.match(notebook, /weightSum = 5f/, 'All five filters fit in one row.');
+assert.match(notebook, /radioToolbarButton = toolbarIconButton/);
+assert.match(notebook, /private fun toggleRadioPlayback/);
+assert.match(notebook, /private fun normalizeRichHtml/);
+assert.match(notebook, /richHtmlFromEditor\(bodyInput\.text\)/);
 
 assert.match(portal, /الخدمات القرآنية والدينية/);
 for (const label of ['أصوات الأذان','اختيار الصوت والتنبيهات','القرآن الكريم','السور والقراء والتلاوات','الإذاعات','محطات البث المباشر','الدروس والمحاضرات','السلاسل والدروس الصوتية','أذكار التحصين','الأذكار اليومية والرقية','السبحة']) {
