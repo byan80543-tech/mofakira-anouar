@@ -165,7 +165,7 @@ class NativeNotebookActivity : Activity() {
         val brand = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER
-            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            layoutDirection = View.LAYOUT_DIRECTION_LTR
             setPadding(dp(5), 0, dp(5), 0)
         }
         brand.addView(text("مفكرة أنوار", 20f, Color.rgb(255, 242, 197), true).apply {
@@ -417,14 +417,20 @@ class NativeNotebookActivity : Activity() {
             val selected = activeFilter == key
             val chip = actionButton(
                 label,
-                if (selected) green else Color.WHITE,
+                if (selected) Color.rgb(43, 87, 154) else Color.WHITE,
                 if (selected) Color.WHITE else ink
             ) {
                 activeFilter = key
                 renderFilters()
                 renderNotes()
             }
-            chip.textSize = 12f
+            chip.textSize = 13f
+            chip.setPadding(dp(13), dp(5), dp(13), dp(5))
+            chip.background = rounded(
+                intArrayOf(if (selected) Color.rgb(43, 87, 154) else Color.WHITE, if (selected) Color.rgb(43, 87, 154) else Color.WHITE),
+                22,
+                if (selected) Color.rgb(43, 87, 154) else border
+            )
             filterContainer.addView(chip, LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 dp(38)
@@ -486,7 +492,7 @@ class NativeNotebookActivity : Activity() {
                 gravity = Gravity.CENTER
                 layoutDirection = View.LAYOUT_DIRECTION_RTL
                 setPadding(dp(18), dp(24), dp(18), dp(24))
-                background = rounded(intArrayOf(Color.WHITE, Color.WHITE), 15, border)
+                minimumHeight = dp(320)
             }
             empty.addView(text(
                 if (notes.isEmpty()) "لا شيء هنا بعد" else "لا توجد نتائج مطابقة",
