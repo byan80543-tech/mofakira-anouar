@@ -34,7 +34,7 @@ assert.match(manifest, /android\.permission\.REQUEST_INSTALL_PACKAGES/,
   'the release updater must declare Android install-source permission');
 assert.match(manifest, /androidx\.core\.content\.FileProvider/,
   'a non-exported FileProvider must serve the verified APK');
-assert.match(manifest, /android:authorities="${applicationId}\.updates"/);
+assert.match(manifest, /android:authorities="\$\{applicationId\}\.updates"/);
 assert.match(providerPaths, /<cache-path[\s\S]*?path="updates\/"/);
 
 assert.match(gradle, /versionCode = 16/);
