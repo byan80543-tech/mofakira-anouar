@@ -12,6 +12,7 @@ on:
       - "scripts/test-native-notebook.mjs"
       - "scripts/test-native-notebook-archive.mjs"
       - "scripts/test-native-gateway.mjs"
+      - "scripts/test-native-adhan.mjs"
       - "scripts/test-native-audio.mjs"
       - "scripts/test-native-adhkar.mjs"
       - ".github/workflows/build-anwar-android.yml"
