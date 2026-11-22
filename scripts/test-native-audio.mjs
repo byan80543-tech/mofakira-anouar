@@ -7,6 +7,7 @@ const gradle = read('android/app/build.gradle.kts');
 const rootGradle = read('android/build.gradle.kts');
 const androidAppGradle = gradle;
 const home = read('android/app/src/main/java/com/anwar/mofakira/MainActivity.kt');
+const religiousGate = read('android/app/src/main/java/com/anwar/mofakira/ReligiousGateActivity.kt');
 const audioActivity = read('android/app/src/main/java/com/anwar/mofakira/NativeAudioActivity.kt');
 const audioService = read('android/app/src/main/java/com/anwar/mofakira/playback/NativeMediaService.kt');
 const catalog = read('android/app/src/main/java/com/anwar/mofakira/playback/NativeMediaCatalog.kt');
@@ -57,7 +58,8 @@ assert.match(audioActivity, /setMediaItem\(item\)/,
   'live radio uses the same native player engine as other audio');
 assert.match(home, /NativeAudioActivity\.MODE_QURAN/);
 assert.match(home, /NativeAudioActivity\.MODE_RADIO/);
-assert.match(home, /NativeAudioActivity\.MODE_LESSONS/);
+assert.match(religiousGate, /NativeAudioActivity\.MODE_LESSONS/,
+  'lesson mode is opened from the dedicated religious gateway rather than cluttering the first screen');
 assert.match(legacy, /WEB_MESSAGE_LISTENER/,
   'the legacy notebook and its adhan bridge remain available during migration');
 
