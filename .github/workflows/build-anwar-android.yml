@@ -15,6 +15,7 @@ on:
       - "scripts/test-native-adhan.mjs"
       - "scripts/test-native-audio.mjs"
       - "scripts/test-native-web-audio.mjs"
+      - "scripts/test-android-unified-web-shell.mjs"
       - "scripts/test-native-adhkar.mjs"
       - ".github/workflows/build-anwar-android.yml"
   push:
@@ -74,6 +75,8 @@ jobs:
         run: node scripts/test-native-gateway.mjs
       - name: Validate original-style local audio WebView and Media3 bridge
         run: node scripts/test-native-web-audio.mjs
+      - name: Validate one-piece packaged original web application shell
+        run: node scripts/test-android-unified-web-shell.mjs
       - name: Build debug APK and run unit tests
         run: gradle -p android assembleDebug testDebugUnitTest
       - name: Upload debug APK
