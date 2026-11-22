@@ -1464,9 +1464,6 @@ class NativeNotebookActivity : Activity() {
             .replace(Regex("""(?is)<(script|style|iframe|object|embed)\b[^>]*/\s*>"""), "")
             .replace(Regex("""(?i)\s+on[a-z]+\s*=\s*("[^"]*"|'[^']*')"""), "")
             .replace(Regex("""(?i)javascript\s*:"""), "")
-            .replace(Regex("""(?is)<(script|style|iframe|object|embed)\\b[^>]*>.*?</\\1\\s*>"""), "")
-            .replace(Regex("""(?is)<(script|style|iframe|object|embed)\\b[^>]*/\\s*>"""), "")
-            .replace(Regex("""(?i)\\s+on[a-z]+\\s*=\\s*("[^"]*"|'[^']*')"""), "")
         return runCatching { Html.toHtml(Html.fromHtml(safe)) }
             .getOrDefault("")
             .take(MAX_RICH_HTML_LENGTH)
