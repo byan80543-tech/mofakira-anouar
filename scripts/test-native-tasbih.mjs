@@ -117,7 +117,7 @@ assert.match(manifest, /android\.speech\.RecognitionService/);
 assert.match(religiousGate, /LegacyWebActivity::class\.java/);
 assert.match(legacy, /WebView/);
 assert.match(gradle, /versionCode = 13/);
-assert.ok(gradle.includes('versionName = "0.9.3"'));
+assert.ok(gradle.includes('versionName = "0.9.4"'));
 
 assert.ok(oldController.includes("preferences.set('tasbih'"),
   'the existing encrypted web preference adapter remains in place');
