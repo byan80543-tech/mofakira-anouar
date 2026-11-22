@@ -42,7 +42,7 @@ assert.match(webUpdater, /totalBytes != update\.sizeBytes/,
   'the downloaded archive length must match metadata');
 assert.match(webUpdater, /canonicalFile/,
   'archive extraction must prevent path traversal');
-assert.match(webUpdater, /entry\.name\.contains\('\\'\)/,
+assert.ok(webUpdater.includes(String.raw\`entry.name.contains('\\')\`),
   'archive extraction must reject Windows path separators');
 assert.match(webUpdater, /MAX_EXTRACTED_BYTES/,
   'archive extraction must limit expanded size');
