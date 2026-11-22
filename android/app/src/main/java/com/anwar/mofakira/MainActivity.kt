@@ -118,7 +118,8 @@ class MainActivity : Activity() {
             "📻" to "الإذاعات والابتهالات",
             "🎧" to "الدروس والمحاضرات",
             "🤲" to "أذكار التحصين",
-            "📿" to "السبحة والمكتبة"
+            "📿" to "السبحة",
+            "📚" to "المكتبة"
         )
         items.chunked(2).forEach { pair ->
             val row = LinearLayout(this).apply {
@@ -153,6 +154,10 @@ class MainActivity : Activity() {
                                     .putExtra(NativeAudioActivity.EXTRA_MODE, NativeAudioActivity.MODE_LESSONS))
                             "أذكار التحصين" ->
                                 startActivity(Intent(this@MainActivity, NativeAdhkarActivity::class.java))
+                            "السبحة" ->
+                                startActivity(Intent(this@MainActivity, NativeTasbihActivity::class.java))
+                            "المكتبة" ->
+                                startActivity(Intent(this@MainActivity, LegacyWebActivity::class.java))
                             else -> startActivity(Intent(this@MainActivity, LegacyWebActivity::class.java))
                         }
                     }
