@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 const read = (path) => fs.readFileSync(new URL('../' + path, import.meta.url), 'utf8');
 const manifest = read('android/app/src/main/AndroidManifest.xml');
 const home = read('android/app/src/main/java/com/anwar/mofakira/MainActivity.kt');
+const religiousGate = read('android/app/src/main/java/com/anwar/mofakira/ReligiousGateActivity.kt');
 const activity = read('android/app/src/main/java/com/anwar/mofakira/NativeAdhkarActivity.kt');
 const gradle = read('android/app/build.gradle.kts');
 const legacy = read('android/app/src/main/java/com/anwar/mofakira/LegacyWebActivity.kt');
@@ -12,8 +13,8 @@ const readme = read('android/README.md');
 
 assert.match(manifest, /android:name="\.NativeAdhkarActivity"[\s\S]*?android:exported="false"/,
   'the native personal adhkar screen is registered as an internal activity');
-assert.match(home, /"أذكار التحصين"[\s\S]*?NativeAdhkarActivity::class\.java/,
-  'the home protection tile opens the native personal adhkar screen');
+assert.match(religiousGate, /"أذكار التحصين"[\s\S]*?NativeAdhkarActivity::class\.java/,
+  'the religious gateway opens the native personal adhkar screen');
 assert.match(activity, /class NativeAdhkarActivity : Activity\(\)/);
 assert.doesNotMatch(activity, /WebView|WEB_MESSAGE_LISTENER|http:\/\/|https:\/\//,
   'the native personal notes screen has no web or remote service dependency');
