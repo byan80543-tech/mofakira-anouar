@@ -111,7 +111,7 @@ class NativeNotebookActivity : Activity() {
     private val ink = Color.rgb(35, 48, 58)
     private val muted = Color.rgb(101, 112, 120)
     private val border = Color.rgb(224, 216, 200)
-    private val fontChoices = listOf("serif" to "نسخي", "sans-serif" to "حديث", "Amiri" to "أميري")
+    private val fontChoices = listOf("serif" to "نسخي", "sans-serif" to "حديث")
     private val textColorChoices = listOf(
         "ink" to "فحمي",
         "black" to "أسود",
@@ -424,37 +424,24 @@ class NativeNotebookActivity : Activity() {
             return
         }
 
-        Toast.makeText(this, "جارٍ الاتصال بإذاعة أنوار القرآنية…", Toast.LENGTH_SHORT).show()
-        Thread({
-            val station = NativeMediaCatalog.loadStations().firstOrNull()
-            runOnUiThread {
-                if (isFinishing || isDestroyed) {
-                    radioActionPending = false
-                    return@runOnUiThread
-                }
-                if (station == null) {
-                    radioActionPending = false
-                    Toast.makeText(this, "لم تتوفر محطة بث الآن. تحقق من الاتصال وحاول مجددًا.", Toast.LENGTH_LONG).show()
-                    return@runOnUiThread
-                }
-                val item = MediaItem.Builder()
-                    .setMediaId("radio:" + station.url)
-                    .setUri(station.url)
-                    .setMediaMetadata(
-                        MediaMetadata.Builder()
-                            .setTitle(station.name)
-                            .setArtist("إذاعات مفكرة أنوار")
-                            .setAlbumTitle("بث مباشر")
-                            .build()
-                    )
+        val station = NativeMediaCatalog.quickRadioStation()
+        val item = MediaItem.Builder()
+            .setMediaId("radio:" + station.url)
+            .setUri(station.url)
+            .setMediaMetadata(
+                MediaMetadata.Builder()
+                    .setTitle(station.name)
+                    .setArtist("إذاعات مفكرة أنوار")
+                    .setAlbumTitle("بث مباشر")
                     .build()
-                controller.setMediaItem(item)
-                controller.prepare()
-                controller.play()
-                radioActionPending = false
-                syncRadioToolbarState()
-            }
-        }, "Anwar-Notebook-Radio-Quick-Start").start()
+            )
+            .build()
+        controller.setMediaItem(item)
+        controller.prepare()
+        controller.play()
+        radioActionPending = false
+        syncRadioToolbarState()
+        Toast.makeText(this, "بدأ تشغيل إذاعة القرآن.", Toast.LENGTH_SHORT).show()
     }
 
     private fun syncRadioToolbarState() {
@@ -1027,14 +1014,16 @@ class NativeNotebookActivity : Activity() {
             } else {
                 editorTts = TextToSpeech(this) { status ->
                     if (status == TextToSpeech.SUCCESS) {
-                        val engine = editorTts ?: return@TextToSpeech
-                        val language = engine.setLanguage(Locale("ar"))
-                        if (language == TextToSpeech.LANG_MISSING_DATA ||
-                            language == TextToSpeech.LANG_NOT_SUPPORTED) {
-                            Toast.makeText(this, "لا يتوفر صوت عربي للقراءة على هذا الجهاز.", Toast.LENGTH_LONG).show()
-                        } else {
-                            engine.setSpeechRate(0.92f)
-                            engine.speak(value, TextToSpeech.QUEUE_FLUSH, null, "anwar-editor-reading")
+                        val engine = editorTts
+                        if (engine != null) {
+                            val language = engine.setLanguage(Locale("ar"))
+                            if (language == TextToSpeech.LANG_MISSING_DATA ||
+                                language == TextToSpeech.LANG_NOT_SUPPORTED) {
+                                Toast.makeText(this, "لا يتوفر صوت عربي للقراءة على هذا الجهاز.", Toast.LENGTH_LONG).show()
+                            } else {
+                                engine.setSpeechRate(0.92f)
+                                engine.speak(value, TextToSpeech.QUEUE_FLUSH, null, "anwar-editor-reading")
+                            }
                         }
                     } else {
                         Toast.makeText(this, "تعذّر تشغيل القراءة الصوتية.", Toast.LENGTH_LONG).show()
