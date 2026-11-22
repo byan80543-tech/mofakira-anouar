@@ -21,7 +21,7 @@ const audioService = read('android/app/src/main/java/com/anwar/mofakira/playback
 const catalog = read('android/app/src/main/java/com/anwar/mofakira/playback/NativeMediaCatalog.kt');
 const legacy = read('android/app/src/main/java/com/anwar/mofakira/LegacyWebActivity.kt');
 
-assert.match(androidAppGradle, /versionCode = 12/,
+assert.match(androidAppGradle, /versionCode = 13/,
   "native tasbih migration increments the Android version code");
 assert.match(androidAppGradle, /versionName = "0.9.3"/,
   "native tasbih migration increments the Android version name");
