@@ -71,7 +71,15 @@ assert.match(catalog, /أغيب وذو اللطائف لا يغيب/);
 for (const id of ['tawhid','wasitiyya','dawa','usul','usul2','qawaid','nawqid','kashf','masail','usulIman','usulAqaid','kabair','sharia','maarij','jawhara']) {
   assert.ok(catalog.includes('"' + id + '"'), 'native audio catalog preserves lesson series ' + id);
 }
-assert.match(notebook, /NativeAudioActivity\.MODE_RADIO/);
+assert.match(notebook, /radioToolbarButton = toolbarIconButton/);
+assert.match(notebook, /private fun toggleRadioPlayback/);
+assert.match(notebook, /NativeMediaCatalog\\.loadStations\\(\\)\\.firstOrNull\\(\\)/);
+assert.match(notebook, /controller\\.setMediaItem\\(item\\)/);
+assert.match(notebook, /controller\\.pause\\(\\)/);
+const radioToolbar = notebook.slice(notebook.indexOf('radioToolbarButton ='), notebook.indexOf('shell.addView(toolbar)'));
+assert.doesNotMatch(radioToolbar, /startActivity|NativeAudioActivity/,
+  'the home radio button starts and pauses the shared player directly instead of opening the audio library');
+assert.match(notebook, /إيقاف إذاعة القرآن مؤقتًا/);
 assert.match(religiousGate, /NativeAudioActivity\.MODE_QURAN/);
 assert.match(religiousGate, /NativeAudioActivity\.MODE_RADIO/);
 console.log('Native Media3 playback, Quran, radio, lessons and devotional catalog tests passed.');
