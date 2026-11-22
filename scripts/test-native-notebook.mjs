@@ -16,7 +16,7 @@ const debugStrings = read('android/app/src/debug/res/values/strings.xml');
 assert.match(manifest, /android:name="\.NativeNotebookActivity"[\s\S]*?android:exported="false"/,
   'the native notebook is registered as an internal Android activity');
 assert.match(activity, /الخدمات القرآنية والدينية/);
-assert.match(home, /NativeNotebookActivity::class\.java/,
+assert.match(home, /LegacyWebActivity::class\.java/,
   "the launcher opens the full packaged PWA while native notebook storage remains available");
 assert.match(activity, /الخدمات القرآنية والدينية/,
   "the original services button is visible in the notebook");
