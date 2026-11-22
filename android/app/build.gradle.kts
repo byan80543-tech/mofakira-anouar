@@ -12,6 +12,14 @@ android {
         versionCode = 6
         versionName = "0.6.0"
     }
+    buildTypes {
+        getByName("debug") {
+            // Keep the test APK alongside the previously installed stable app.
+            // Release builds keep the production application ID unchanged.
+            applicationIdSuffix = ".preview"
+            versionNameSuffix = "-preview"
+        }
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
