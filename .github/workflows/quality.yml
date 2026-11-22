@@ -59,6 +59,8 @@ jobs:
         run: node scripts/test-ibtihalat-radio.mjs
       - name: Test Quran and prayer service dashboard navigation
         run: node scripts/test-service-dashboard.mjs
+      - name: Test native Android tasbih redesign and preserved features
+        run: node scripts/test-native-tasbih.mjs
       - name: Test empty starter data and private visitor-owned adhkar
         run: node scripts/test-protective-adhkar.mjs
       - name: Test owner-only adhkar reading, publishing and access control
