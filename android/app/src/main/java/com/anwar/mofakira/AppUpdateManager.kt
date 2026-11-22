@@ -33,7 +33,8 @@ import kotlin.concurrent.thread
  */
 internal class AppUpdateManager(
     private val activity: Activity,
-    private val actionButton: ImageButton
+    private val actionButton: ImageButton,
+    private val webShellUpdater: WebShellUpdateManager
 ) {
     private data class UpdateInfo(
         val versionName: String,
@@ -63,7 +64,12 @@ internal class AppUpdateManager(
     }
 
     fun start() {
-        if (activity.packageName != PRODUCTION_PACKAGE) return
+        actionButton.setOnClickListener { showAvailableUpdates() }
+        webShellUpdater.start()
+        if (activity.packageName != PRODUCTION_PACKAGE) {
+            refreshButtonVisibility()
+            return
+        }
 
         downloadId = preferences.getLong(KEY_DOWNLOAD_ID, -1L)
         runCatching {
@@ -76,14 +82,15 @@ internal class AppUpdateManager(
             receiverRegistered = true
         }
 
-        actionButton.setOnClickListener { showUpdateDialog() }
         refreshButtonVisibility()
         if (downloadId > 0L) inspectDownload(downloadId)
         checkForUpdate(force = true)
     }
 
     fun onResume() {
-        if (destroyed || activity.packageName != PRODUCTION_PACKAGE) return
+        if (destroyed) return
+        webShellUpdater.onResume()
+        if (activity.packageName != PRODUCTION_PACKAGE) return
         if (isInstalledVersionNewerThanPending()) {
             clearPendingUpdate()
             latestUpdate = null
@@ -112,22 +119,45 @@ internal class AppUpdateManager(
 
     fun destroy() {
         destroyed = true
+        webShellUpdater.destroy()
         if (receiverRegistered) {
             runCatching { activity.unregisterReceiver(downloadReceiver) }
             receiverRegistered = false
         }
     }
 
-    private fun refreshButtonVisibility() {
+    internal fun refreshButtonVisibility() {
         val preparedFile = preparedApkFile()
-        actionButton.visibility =
-            if (latestUpdate != null || preparedFile != null) View.VISIBLE else View.GONE
-        actionButton.isEnabled = !verifyingDownload
-        actionButton.contentDescription =
-            if (preparedFile != null) "تثبيت تحديث مفكرة أنوار" else "تحديث جديد متاح لمفكرة أنوار"
+        val webUpdateAvailable = webShellUpdater.hasUpdate()
+        val applyingWebUpdate = webShellUpdater.isApplying()
+        actionButton.visibility = if (
+            latestUpdate != null || preparedFile != null || webUpdateAvailable || applyingWebUpdate
+        ) View.VISIBLE else View.GONE
+        actionButton.isEnabled = !verifyingDownload && !applyingWebUpdate
+        actionButton.contentDescription = when {
+            preparedFile != null -> "تثبيت تحديث مفكرة أنوار"
+            webUpdateAvailable -> "تحديث محتوى مفكرة أنوار متاح"
+            else -> "تحديث جديد متاح لمفكرة أنوار"
+        }
     }
 
-    private fun showUpdateDialog() {
+    private fun showAvailableUpdates() {
+        val webAvailable = webShellUpdater.hasUpdate()
+        val apkAvailable = latestUpdate != null || preparedApkFile() != null
+        when {
+            webAvailable && apkAvailable -> AlertDialog.Builder(activity)
+                .setTitle("تحديثات مفكرة أنوار")
+                .setItems(arrayOf("تحديث المحتوى دون إعادة تثبيت", "تحديث تطبيق Android (APK)")) { _, which ->
+                    if (which == 0) webShellUpdater.showUpdateDialog() else showApkUpdateDialog()
+                }
+                .setNegativeButton("إغلاق", null)
+                .show()
+            webAvailable -> webShellUpdater.showUpdateDialog()
+            apkAvailable -> showApkUpdateDialog()
+        }
+    }
+
+    private fun showApkUpdateDialog() {
         val prepared = preparedApkFile()
         if (prepared != null) {
             val targetName = preferences.getString(KEY_PENDING_VERSION_NAME, "الإصدار الجديد")
@@ -394,7 +424,7 @@ internal class AppUpdateManager(
         val file = preparedApkFile()
         if (file == null) {
             refreshButtonVisibility()
-            latestUpdate?.let { showUpdateDialog() }
+            latestUpdate?.let { showApkUpdateDialog() }
             return
         }
 
