@@ -54,4 +54,4 @@
 
 يُنشأ ملف `official-adhkar.json` قبل بناء Android من المصدر الرسمي عبر الأمر `node scripts/generate-native-adhkar-catalog.mjs`. ويتحقق `scripts/test-native-tasbih.mjs` من اكتمال الفهرس وسلوك الشاشة والتشفير وربط الأذونات.
 
-من GitHub Actions شغّل سير العمل **Build Anwar Android Companion**. سينتج ملف Debug APK داخل Artifact باسم `anwar-android-debug-apk`. هذا بناء اختباري وليس إصدارًا موقّعًا للنشر على Google Play.
+من GitHub Actions شغّل سير العمل **Build Anwar Android Companion**. سينتج ملف Debug APK داخل Artifact باسم `anwar-android-debug-apk`. يُبنى إصدار Debug بمعرّف تطبيق جانبي `com.anwar.mofakira.preview` واسم «مفكرة أنوار التجريبية»، لذلك يثبت بجانب النسخة التي تحمل `com.anwar.mofakira` ولا يستبدل بياناتها أو مفتاحها المحلي. أما Release فيحتفظ بمعرّف التطبيق الأصلي `com.anwar.mofakira`، ولا يُوزّع كتحديث إلا بعد إعداد مفتاح توقيع إصدار ثابت. هذا بناء اختباري وليس إصدارًا موقّعًا للنشر على Google Play.
