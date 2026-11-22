@@ -43,7 +43,7 @@ assert.match(activity, /LegacyWebActivity::class\.java/,
   'the previous web notebook remains reachable for older notes and its font catalogue');
 assert.match(legacy, /WEB_MESSAGE_LISTENER/,
   'the existing web compatibility activity is retained');
-assert.match(gradle, /versionCode = 12/);
+assert.match(gradle, /versionCode = 13/);
 assert.ok(gradle.includes('versionName = "0.9.3"'));
 assert.match(migration, /أذكار التحصين الشخصية/);
 assert.match(migration, /لا يوجد حتى الآن استيراد تلقائي/);
