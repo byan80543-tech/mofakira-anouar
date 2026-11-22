@@ -16,6 +16,7 @@ on:
       - "scripts/test-native-audio.mjs"
       - "scripts/test-native-web-audio.mjs"
       - "scripts/test-android-unified-web-shell.mjs"
+      - "scripts/test-android-web-shell-updater.mjs"
       - "scripts/test-native-adhkar.mjs"
       - ".github/workflows/build-anwar-android.yml"
   push:
@@ -81,6 +82,11 @@ jobs:
         run: node scripts/test-native-web-audio.mjs
       - name: Validate one-piece packaged original web application shell
         run: node scripts/test-android-unified-web-shell.mjs
+      - name: Validate Android OTA web-shell updater
+        run: node scripts/test-android-web-shell-updater.mjs
+      - name: Record bundled web-shell baseline
+        run: |
+          echo "ANWAR_WEB_BASELINE_TIMESTAMP=$(git show -s --format=%ct HEAD)" >> "$GITHUB_ENV"
       - name: Build debug APK and run unit tests
         run: gradle -p android assembleDebug testDebugUnitTest
       - name: Upload debug APK
