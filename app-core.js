@@ -967,7 +967,7 @@ function flushPrivatePreferenceSave(){
   if(vaultUnlocked)save();
  }
 }
-globalThis.AnwarUpdateBridge=Object.freeze({
+globalThis.AnouarUpdateBridge=Object.freeze({
  async prepareForReload(){
   if(storageRecoveryBlocked)throw new Error('الحفظ متوقف لحماية بيانات المفكرة؛ عالج حالة الاسترداد قبل التحديث.');
   if(cur&&!vaultUnlocked)throw new Error('افتح الخزنة أولاً حتى نتحقق من حفظ العمل المفتوح.');
@@ -978,6 +978,7 @@ globalThis.AnwarUpdateBridge=Object.freeze({
   return ()=>{};
  }
 });
+globalThis.AnwarUpdateBridge=globalThis.AnouarUpdateBridge||globalThis.AnouarUpdateBridge;
 const iso=d=>d.toISOString().slice(0,10);
 function streak(){const d=new Set(S.days);let n=0,c=new Date();if(!d.has(iso(c)))c.setDate(c.getDate()-1);while(d.has(iso(c))){n++;c.setDate(c.getDate()-1)}return n}
 const fmt=ts=>new Date(ts).toLocaleDateString('ar',{day:'numeric',month:'long',year:'numeric'});
