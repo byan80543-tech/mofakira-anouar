@@ -94,9 +94,9 @@ jobs:
           fs.writeFileSync(process.env.META, JSON.stringify(metadata, null, 2) + '\n');
           NODE
 
-          TAG="web-shell-$GITHUB_RUN_NUMBER-$GITHUB_SHA:0:12"
+          TAG="web-shell-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:12}"
           gh release create "$TAG" "$ZIP" "$META" \
             --repo "$GITHUB_REPOSITORY" \
-            --title "محتوى مفكرة أنوار — $GITHUB_SHA:0:12" \
+            --title "محتوى مفكرة أنوار — ${GITHUB_SHA:0:12}" \
             --notes "حزمة واجهة ومحتوى لمفكرة أنوار. يجري التحقق من SHA-256 قبل تطبيقها داخل التطبيق." \
             --prerelease
