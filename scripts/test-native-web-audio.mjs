@@ -17,9 +17,9 @@ const tulip = read('android/app/src/main/assets/audio/tulip-cutout.svg');
 const roseClosed = read('android/app/src/main/assets/audio/royal-rose-closed.svg');
 const roseOpen = read('android/app/src/main/assets/audio/royal-rose-open.svg');
 
-assert.match(gradle, /versionCode = 12/);
-assert.match(gradle, /versionName = "0\.9\.3"/);
-assert.match(gradle, /applicationIdSuffix = "\.preview\.v12"/);
+assert.match(gradle, /versionCode = 13/);
+assert.match(gradle, /versionName = "0.9.4"/);
+assert.match(gradle, /applicationIdSuffix = "\.preview.v13"/);
 assert.match(manifest, /android:name="\.NativeAudioWebActivity"[\s\S]*?android:exported="false"/);
 assert.match(gate, /NativeAudioWebActivity::class\.java/);
 assert.match(gate, /NativeAudioActivity\.MODE_QURAN/);
