@@ -63,7 +63,7 @@ internal class AppUpdateManager(
     }
 
     fun start() {
-        if (BuildConfig.DEBUG || BuildConfig.APPLICATION_ID != PRODUCTION_PACKAGE) return
+        if (activity.packageName != PRODUCTION_PACKAGE) return
 
         downloadId = preferences.getLong(KEY_DOWNLOAD_ID, -1L)
         runCatching {
@@ -83,7 +83,7 @@ internal class AppUpdateManager(
     }
 
     fun onResume() {
-        if (destroyed || BuildConfig.DEBUG || BuildConfig.APPLICATION_ID != PRODUCTION_PACKAGE) return
+        if (destroyed || activity.packageName != PRODUCTION_PACKAGE) return
         if (isInstalledVersionNewerThanPending()) {
             clearPendingUpdate()
             latestUpdate = null
@@ -200,7 +200,7 @@ internal class AppUpdateManager(
 
         if (targetPackage != PRODUCTION_PACKAGE ||
             versionName.isBlank() ||
-            versionCode <= BuildConfig.VERSION_CODE.toLong() ||
+            versionCode <= currentInstalledVersionCode() ||
             apkAssetName.isBlank() ||
             !sha256.matches(Regex("^[a-f0-9]{64}$"))
         ) return null
@@ -320,7 +320,7 @@ internal class AppUpdateManager(
         val targetCode = preferences.getLong(KEY_PENDING_VERSION_CODE, -1L)
         thread(name = "AnwarVerifyAppUpdate") {
             val prepared = runCatching {
-                require(targetCode > BuildConfig.VERSION_CODE.toLong())
+                require(targetCode > currentInstalledVersionCode())
                 require(expectedDigest.matches(Regex("^[a-f0-9]{64}$")))
                 val directory = File(activity.cacheDir, "updates").apply { mkdirs() }
                 val destination = File(directory, "mofakira-anwar-update.apk")
@@ -434,18 +434,20 @@ internal class AppUpdateManager(
         }
     }
 
+    private fun currentInstalledVersionCode(): Long {
+        @Suppress("DEPRECATION")
+        val packageInfo = activity.packageManager.getPackageInfo(activity.packageName, 0)
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            packageInfo.longVersionCode
+        } else {
+            packageInfo.versionCode.toLong()
+        }
+    }
+
     private fun isInstalledVersionNewerThanPending(): Boolean {
         val targetCode = preferences.getLong(KEY_PENDING_VERSION_CODE, -1L)
         if (targetCode <= 0L) return false
-        return runCatching {
-            @Suppress("DEPRECATION")
-            val installed = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                activity.packageManager.getPackageInfo(activity.packageName, 0).longVersionCode
-            } else {
-                activity.packageManager.getPackageInfo(activity.packageName, 0).versionCode.toLong()
-            }
-            installed >= targetCode
-        }.getOrDefault(false)
+        return runCatching { currentInstalledVersionCode() >= targetCode }.getOrDefault(false)
     }
 
     private fun clearPendingUpdate() {

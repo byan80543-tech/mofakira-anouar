@@ -15,8 +15,10 @@ assert.match(activity, /Gravity\.TOP or Gravity\.END/,
   'the update affordance must float above the existing original web interface');
 assert.match(updater, /releases\/latest/,
   'the updater must inspect the latest published release');
-assert.match(updater, /BuildConfig\.DEBUG[\s\S]*?PRODUCTION_PACKAGE/,
+assert.match(updater, /activity\.packageName != PRODUCTION_PACKAGE/,
   'debug previews with changing package IDs must not attempt in-place production updates');
+assert.match(updater, /currentInstalledVersionCode\(\)/,
+  'the updater must read the installed version from Android package metadata');
 assert.match(updater, /isTrustedReleaseUrl/,
   'only official HTTPS release assets from this repository may be installed');
 assert.match(updater, /MessageDigest\.getInstance\("SHA-256"\)/,

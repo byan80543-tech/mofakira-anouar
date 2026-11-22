@@ -124,7 +124,7 @@ class LegacyWebActivity : Activity() {
             visibility = View.GONE
             contentDescription = "تحديث جديد متاح لمفكرة أنوار"
             setImageResource(R.drawable.ic_update_available)
-            scaleType = ImageButton.ScaleType.CENTER_INSIDE
+            scaleType = android.widget.ImageView.ScaleType.CENTER_INSIDE
             setPadding(dp(12), dp(12), dp(12), dp(12))
             background = GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
