@@ -17,7 +17,7 @@ assert.match(manifest, /android:name="\.NativeNotebookActivity"[\s\S]*?android:e
   'the native notebook is registered as an internal Android activity');
 assert.match(activity, /الخدمات القرآنية والدينية/);
 assert.match(home, /NativeNotebookActivity::class\.java/,
-  "the launcher opens the native notebook directly");
+  "the launcher opens the full packaged PWA while native notebook storage remains available");
 assert.match(activity, /الخدمات القرآنية والدينية/,
   "the original services button is visible in the notebook");
 assert.match(religiousGate, /LegacyWebActivity::class\.java/,
