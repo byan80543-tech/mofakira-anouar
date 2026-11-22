@@ -61,6 +61,8 @@ jobs:
         run: node scripts/test-native-adhan.mjs
       - name: Validate Android launcher icon and on-demand microphone permissions
         run: node scripts/test-android-permissions-and-icon.mjs
+      - name: Validate in-app Android update and signed release flow
+        run: node scripts/test-android-updater.mjs
       - name: Validate native Media3 audio engine and catalogs
         run: node scripts/test-native-audio.mjs
       - name: Validate native personal adhkar screen and local storage

@@ -15,6 +15,12 @@ import android.webkit.PermissionRequest
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebResourceResponse
+import android.view.Gravity
+import android.view.View
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
+import android.widget.FrameLayout
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.webkit.WebViewAssetLoader
 import androidx.webkit.WebViewClientCompat
@@ -34,6 +40,7 @@ import com.anwar.mofakira.playback.VoiceCatalog
  */
 class LegacyWebActivity : Activity() {
     private lateinit var webView: WebView
+    private var appUpdateManager: AppUpdateManager? = null
     private var unsupportedVoiceToastShown = false
     private var pendingWebMicrophoneRequest: PermissionRequest? = null
 
@@ -107,7 +114,35 @@ class LegacyWebActivity : Activity() {
                 }
             }
         }
-        setContentView(webView)
+        val appRoot = FrameLayout(this).apply {
+            addView(webView, FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            ))
+        }
+        val updateButton = ImageButton(this).apply {
+            visibility = View.GONE
+            contentDescription = "تحديث جديد متاح لمفكرة أنوار"
+            setImageResource(R.drawable.ic_update_available)
+            scaleType = ImageButton.ScaleType.CENTER_INSIDE
+            setPadding(dp(12), dp(12), dp(12), dp(12))
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(Color.rgb(9, 57, 49))
+                setStroke(dp(2), Color.rgb(213, 175, 97))
+            }
+            elevation = dp(8).toFloat()
+            isFocusable = true
+        }
+        appRoot.addView(
+            updateButton,
+            FrameLayout.LayoutParams(dp(48), dp(48), Gravity.TOP or Gravity.END).apply {
+                topMargin = dp(12)
+                marginEnd = dp(12)
+            }
+        )
+        setContentView(appRoot)
+        appUpdateManager = AppUpdateManager(this, updateButton).also { it.start() }
 
         if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
             WebViewCompat.addWebMessageListener(
@@ -209,6 +244,8 @@ class LegacyWebActivity : Activity() {
         pendingWebMicrophoneRequest = null
         if (pending != null) runCatching { pending.deny() }
     }
+
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 
     private fun onPrayerSettingsFromWeb(payload: String) {
         val explicitPermissionRequest = runCatching {
@@ -390,6 +427,7 @@ class LegacyWebActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        appUpdateManager?.onResume()
 
         if (waitingForExactAlarmSettings) {
             waitingForExactAlarmSettings = false
@@ -421,6 +459,8 @@ class LegacyWebActivity : Activity() {
     }
 
     override fun onDestroy() {
+        appUpdateManager?.destroy()
+        appUpdateManager = null
         if (::webView.isInitialized) {
             webView.stopLoading()
             webView.destroy()
