@@ -482,6 +482,7 @@ class NativeNotebookActivity : Activity() {
         radioController = null
         radioControllerFuture?.cancel(false)
         radioControllerFuture = null
+        pendingSpeechEditor = null
         super.onDestroy()
     }
 
@@ -843,7 +844,7 @@ class NativeNotebookActivity : Activity() {
             selected: Boolean = false,
             width: Int = 74,
             onClick: () -> Unit
-        ) {
+        ): TextView {
             val button = actionButton(
                 label,
                 if (selected) Color.rgb(219, 230, 246) else Color.WHITE,
@@ -858,6 +859,7 @@ class NativeNotebookActivity : Activity() {
                 marginStart = dp(3)
                 marginEnd = dp(3)
             })
+            return button
         }
 
         fun makeToolRow(): LinearLayout = LinearLayout(this).apply {
@@ -1198,9 +1200,8 @@ class NativeNotebookActivity : Activity() {
         val starts = mutableListOf<Int>()
         starts.add(first)
         for (index in first until last) if (raw[index] == '\n' && index + 1 <= last) starts.add(index + 1)
-        starts.asReversed().forEachIndexed { reverseIndex, position ->
-            val order = starts.lastIndex - reverseIndex
-            editable.insert(position, prefixForLine(order))
+        starts.withIndex().toList().asReversed().forEach { (lineIndex, position) ->
+            editable.insert(position, prefixForLine(lineIndex))
         }
         editor.setSelection((high + starts.size).coerceAtMost(editable.length))
     }
@@ -1214,16 +1215,16 @@ class NativeNotebookActivity : Activity() {
         val verse = prefix + "الشطر الأول\t\tالشطر الثاني\n"
         editable.insert(insertAt, verse)
         val lineStart = insertAt + prefix.length
-        val lineEnd = lineStart + verse.length - prefix.length - 1
-        if (lineEnd > lineStart) {
+        val paragraphEnd = (lineStart + verse.length - prefix.length).coerceAtMost(editable.length)
+        if (paragraphEnd > lineStart) {
             editable.setSpan(
                 AlignmentSpan.Standard(Layout.Alignment.ALIGN_CENTER),
                 lineStart,
-                lineEnd,
+                paragraphEnd,
                 Spanned.SPAN_PARAGRAPH
             )
         }
-        val cursor = (lineEnd + 1).coerceAtMost(editable.length)
+        val cursor = paragraphEnd.coerceAtMost(editable.length)
         editor.setSelection(cursor)
         editor.requestFocus()
     }
@@ -2064,6 +2065,28 @@ class NativeNotebookActivity : Activity() {
     @Deprecated("Uses the Android document picker for broad device compatibility.")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_SPEECH) {
+            val editor = pendingSpeechEditor
+            pendingSpeechEditor = null
+            if (resultCode == RESULT_OK && editor != null && !isFinishing && !isDestroyed) {
+                val result = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                    ?.firstOrNull()
+                    ?.trim()
+                    .orEmpty()
+                if (result.isNotBlank()) {
+                    val editable = editor.text
+                    val start = Selection.getSelectionStart(editable).coerceIn(0, editable.length)
+                    val end = Selection.getSelectionEnd(editable).coerceIn(0, editable.length)
+                    val low = minOf(start, end)
+                    val high = maxOf(start, end)
+                    val prefix = if (low > 0 && editable[low - 1] != '\\n' && editable[low - 1] != ' ') " " else ""
+                    editable.replace(low, high, prefix + result)
+                    editor.setSelection((low + prefix.length + result.length).coerceAtMost(editable.length))
+                    editor.requestFocus()
+                }
+            }
+            return
+        }
         if (resultCode != RESULT_OK) {
             if (requestCode == REQUEST_EXPORT) pendingExportJson = null
             if (requestCode == REQUEST_IMPORT) pendingImportJson = null
