@@ -31,6 +31,10 @@
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
             android:exported="false" />
         <activity
+            android:name=".NativeAdhkarActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
+            android:exported="false" />
+        <activity
             android:name=".LegacyWebActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
             android:exported="false" />

@@ -42,6 +42,8 @@ jobs:
         run: node scripts/test-native-adhan.mjs
       - name: Validate native Media3 audio engine and catalogs
         run: node scripts/test-native-audio.mjs
+      - name: Validate native personal adhkar screen and local storage
+        run: node scripts/test-native-adhkar.mjs
       - name: Build debug APK and run unit tests
         run: gradle -p android assembleDebug testDebugUnitTest
       - name: Upload debug APK

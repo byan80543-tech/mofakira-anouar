@@ -151,6 +151,8 @@ class MainActivity : Activity() {
                             "الدروس والمحاضرات" ->
                                 startActivity(Intent(this@MainActivity, NativeAudioActivity::class.java)
                                     .putExtra(NativeAudioActivity.EXTRA_MODE, NativeAudioActivity.MODE_LESSONS))
+                            "أذكار التحصين" ->
+                                startActivity(Intent(this@MainActivity, NativeAdhkarActivity::class.java))
                             else -> startActivity(Intent(this@MainActivity, LegacyWebActivity::class.java))
                         }
                     }
