@@ -2,9 +2,11 @@ package com.anwar.mofakira
 
 import android.app.Activity
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.RippleDrawable
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
@@ -13,12 +15,11 @@ import android.widget.ScrollView
 import android.widget.TextView
 
 /**
- * Native Android entry point.
+ * First native gateway for Anwar.
  *
- * The full existing notebook remains available through LegacyWebActivity while
- * its features are migrated to native screens incrementally. This keeps all
- * current services reachable and avoids removing the proven web experience
- * before native feature parity is reached.
+ * Keep this landing page deliberately calm: notebook and radio are the two
+ * primary destinations, a few working shortcuts remain close at hand, and
+ * the complete devotional area is grouped behind ReligiousGateActivity.
  */
 class MainActivity : Activity() {
     private val navy = Color.rgb(9, 38, 77)
@@ -49,162 +50,227 @@ class MainActivity : Activity() {
         }
         scroll.addView(content)
 
-        content.addView(text(
-            "مفكرة أنوار",
-            size = 28f,
-            color = navy,
-            bold = true,
-            bottom = 3
-        ))
-        content.addView(text(
-            "القرآن والكتابة والأذكار",
-            size = 14f,
-            color = muted,
-            bottom = 18
-        ))
-
-        content.addView(heroCard())
-        content.addView(sectionTitle("خدمات المفكرة"))
-        content.addView(featureGrid())
-        content.addView(migrationNote())
-
-        val openLegacy = actionButton("فتح جميع خدمات المفكرة", gold, navy) {
-            startActivity(Intent(this, LegacyWebActivity::class.java))
-        }
-        content.addView(openLegacy, marginTop(14))
-
-        content.addView(text(
-            "تُفتح النسخة الحالية كاملة للحفاظ على جميع الخدمات والبيانات أثناء نقلها تدريجيًا إلى الواجهات الأصلية.",
-            size = 11f,
-            color = muted,
-            top = 14,
-            bottom = 4
-        ))
+        content.addView(brandHeader())
+        content.addView(notebookCard(), marginTop(20))
+        content.addView(radioCard(), marginTop(13))
+        content.addView(sectionTitle("اختصارات سريعة"), marginTop(22))
+        content.addView(quickShortcuts(), marginTop(8))
+        content.addView(religionGatewayCard(), marginTop(19))
+        content.addView(
+            text(
+                "مساحتك الخاصة للكلمة، وصوت يرافق يومك، وبوابة تجمع أعمال العبادة.",
+                11f,
+                muted,
+                top = 17,
+                bottom = 3
+            )
+        )
         return scroll
     }
 
-    private fun heroCard(): View {
+    private fun brandHeader(): View {
+        val header = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        val emblem = TextView(this).apply {
+            text = "أ"
+            textSize = 26f
+            setTextColor(Color.WHITE)
+            gravity = Gravity.CENTER
+            typeface = Typeface.create("serif", Typeface.BOLD)
+            background = rounded(intArrayOf(navy, green), 18, gold)
+            elevation = dp(2).toFloat()
+            contentDescription = "شعار مفكرة أنوار"
+        }
+        header.addView(emblem, LinearLayout.LayoutParams(dp(54), dp(54)))
+
+        val titles = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(12), 0, 0, 0)
+        }
+        titles.addView(text("مفكرة أنوار", 27f, navy, true, bottom = 3))
+        titles.addView(text("رفيقك للكلمة والسكينة", 13f, muted))
+        header.addView(titles, LinearLayout.LayoutParams(0, dp(58), 1f))
+        return header
+    }
+
+    private fun notebookCard(): View {
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            gravity = Gravity.END
             layoutDirection = View.LAYOUT_DIRECTION_RTL
-            setPadding(dp(20), dp(21), dp(20), dp(20))
-            background = rounded(
-                intArrayOf(Color.rgb(13, 59, 50), Color.rgb(9, 38, 77)),
-                22
-            )
+            setPadding(dp(18), dp(17), dp(18), dp(16))
+            background = ripple(intArrayOf(Color.WHITE, Color.rgb(255, 253, 248)), 20, gold)
+            elevation = dp(2).toFloat()
+            isClickable = true
+            isFocusable = true
+            contentDescription = "فتح المفكرة"
+            setOnClickListener {
+                startActivity(Intent(this@MainActivity, NativeNotebookActivity::class.java))
+            }
         }
-        card.addView(text("رفيقك اليومي مع القرآن والذكر", 20f, Color.WHITE, true, bottom = 7))
-        card.addView(text(
-            "القرآن والكتابة والقصائد والمواقيت والأذكار في رفيق واحد.",
-            13f,
-            Color.rgb(239, 235, 222),
-            bottom = 0
-        ))
+
+        val heading = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        val icon = iconBubble("🖋️", paleGold)
+        heading.addView(icon, LinearLayout.LayoutParams(dp(62), dp(62)))
+        val label = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(13), 0, 0, 0)
+        }
+        label.addView(text("المفكرة", 21f, navy, true, bottom = 4))
+        label.addView(text("قصائدك ونصوصك وأفكارك في مكانك الخاص", 12f, muted))
+        heading.addView(label, LinearLayout.LayoutParams(0, dp(66), 1f))
+        card.addView(heading)
+        card.addView(actionPill("افتح مفكرتك", gold, navy), marginTop(13))
         return card
     }
 
-    private fun sectionTitle(value: String): TextView =
-        text(value, 17f, green, true, top = 23, bottom = 10)
+    private fun radioCard(): View {
+        val card = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(17), dp(15), dp(17), dp(15))
+            background = ripple(intArrayOf(green, navy), 18, gold)
+            elevation = dp(2).toFloat()
+            isClickable = true
+            isFocusable = true
+            contentDescription = "فتح إذاعة أنوار"
+            setOnClickListener { openRadio() }
+        }
+        val icon = iconBubble("📻", Color.argb(32, 255, 255, 255), Color.WHITE)
+        card.addView(icon, LinearLayout.LayoutParams(dp(56), dp(56)))
 
-    private fun featureGrid(): View {
-        val rows = LinearLayout(this).apply {
+        val labels = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             layoutDirection = View.LAYOUT_DIRECTION_RTL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(12), 0, dp(8), 0)
         }
-        val items = listOf(
-            "🕌" to "مواقيت الصلاة والأذان",
-            "📖" to "القرآن الكريم والقراء",
-            "📻" to "الإذاعات والابتهالات",
-            "🎧" to "الدروس والمحاضرات",
-            "🤲" to "أذكار التحصين",
-            "📿" to "السبحة",
-            "🖋️" to "دفتر الكتابة"
+        labels.addView(text("إذاعة أنوار", 18f, Color.WHITE, true, bottom = 4))
+        labels.addView(text("القرآن والابتهالات بصوت يرافق يومك", 11f, Color.rgb(236, 235, 224)))
+        card.addView(labels, LinearLayout.LayoutParams(0, dp(58), 1f))
+        card.addView(text("‹", 32f, gold, true))
+        return card
+    }
+
+    private fun quickShortcuts(): View {
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+        }
+        val shortcuts = listOf(
+            Triple("🕌", "المواقيت") {
+                startActivity(Intent(this, NativePrayerActivity::class.java))
+            },
+            Triple("📖", "القرآن") {
+                startActivity(
+                    Intent(this, NativeAudioActivity::class.java)
+                        .putExtra(NativeAudioActivity.EXTRA_MODE, NativeAudioActivity.MODE_QURAN)
+                )
+            },
+            Triple("📿", "السبحة") {
+                startActivity(Intent(this, NativeTasbihActivity::class.java))
+            }
         )
-        items.chunked(2).forEach { pair ->
-            val row = LinearLayout(this).apply {
-                orientation = LinearLayout.HORIZONTAL
-                layoutDirection = View.LAYOUT_DIRECTION_RTL
-            }
-            pair.forEach { (icon, label) ->
-                val tile = TextView(this).apply {
-                    text = "$icon\n$label"
-                    textSize = 13f
-                    setTextColor(ink)
-                    gravity = Gravity.CENTER
-                    textAlignment = View.TEXT_ALIGNMENT_CENTER
-                    typeface = Typeface.create("sans-serif", Typeface.BOLD)
-                    setPadding(dp(8), dp(14), dp(8), dp(14))
-                    background = rounded(intArrayOf(Color.WHITE, Color.rgb(255, 253, 247)), 15)
-                    elevation = dp(1).toFloat()
-                    isClickable = true
-                    isFocusable = true
-                    setOnClickListener {
-                        when (label) {
-                            "مواقيت الصلاة والأذان" ->
-                                startActivity(Intent(this@MainActivity, NativePrayerActivity::class.java))
-                            "القرآن الكريم والقراء" ->
-                                startActivity(Intent(this@MainActivity, NativeAudioActivity::class.java)
-                                    .putExtra(NativeAudioActivity.EXTRA_MODE, NativeAudioActivity.MODE_QURAN))
-                            "الإذاعات والابتهالات" ->
-                                startActivity(Intent(this@MainActivity, NativeAudioActivity::class.java)
-                                    .putExtra(NativeAudioActivity.EXTRA_MODE, NativeAudioActivity.MODE_RADIO))
-                            "الدروس والمحاضرات" ->
-                                startActivity(Intent(this@MainActivity, NativeAudioActivity::class.java)
-                                    .putExtra(NativeAudioActivity.EXTRA_MODE, NativeAudioActivity.MODE_LESSONS))
-                            "أذكار التحصين" ->
-                                startActivity(Intent(this@MainActivity, NativeAdhkarActivity::class.java))
-                            "السبحة" ->
-                                startActivity(Intent(this@MainActivity, NativeTasbihActivity::class.java))
-                            "دفتر الكتابة" ->
-                                startActivity(Intent(this@MainActivity, NativeNotebookActivity::class.java))
-                            else -> startActivity(Intent(this@MainActivity, LegacyWebActivity::class.java))
-                        }
-                    }
-                }
-                row.addView(tile, LinearLayout.LayoutParams(0, dp(86), 1f).apply {
-                    marginEnd = dp(5)
-                    marginStart = dp(5)
-                    bottomMargin = dp(9)
-                })
-            }
-            if (pair.size == 1) {
-                row.addView(View(this), LinearLayout.LayoutParams(0, dp(86), 1f))
-            }
-            rows.addView(row)
+        shortcuts.forEach { (glyph, label, action) ->
+            val tile = quickShortcut(glyph, label, action)
+            row.addView(tile, LinearLayout.LayoutParams(0, dp(102), 1f).apply {
+                marginStart = dp(4)
+                marginEnd = dp(4)
+            })
         }
-        return rows
+        return row
     }
 
-    private fun migrationNote(): View {
-        val box = LinearLayout(this).apply {
+    private fun quickShortcut(glyph: String, label: String, onClick: () -> Unit): View {
+        val tile = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             layoutDirection = View.LAYOUT_DIRECTION_RTL
-            setPadding(dp(15), dp(13), dp(15), dp(13))
-            background = rounded(intArrayOf(Color.rgb(255, 249, 234), Color.rgb(255, 249, 234)), 13, gold)
+            gravity = Gravity.CENTER
+            setPadding(dp(6), dp(10), dp(6), dp(9))
+            background = ripple(intArrayOf(Color.WHITE, Color.rgb(255, 253, 248)), 16, Color.rgb(231, 224, 207))
+            elevation = dp(1).toFloat()
+            isClickable = true
+            isFocusable = true
+            contentDescription = label
+            setOnClickListener { onClick() }
         }
-        box.addView(text("مرحلة الانتقال إلى التطبيق الأصلي", 13f, navy, true, bottom = 5))
-        box.addView(text(
-            "أصبحت هذه الشاشة نقطة الدخول الأصلية لأندرويد. تبقى جميع أقسام المفكرة الحالية متاحة من زر فتح الخدمات، ولن يُحذف أي قسم قبل اكتمال نقله واختباره.",
-            11f,
-            muted
-        ))
-        return box
+        tile.addView(text(glyph, 29f, green, true, bottom = 7).apply {
+            gravity = Gravity.CENTER
+        })
+        tile.addView(text(label, 12f, ink, true).apply {
+            gravity = Gravity.CENTER
+            textAlignment = View.TEXT_ALIGNMENT_CENTER
+        })
+        return tile
     }
 
-    private fun actionButton(label: String, backgroundColor: Int, textColor: Int, onClick: () -> Unit): TextView =
+    private fun religionGatewayCard(): View {
+        val card = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(17), dp(16), dp(17), dp(16))
+            background = ripple(intArrayOf(navy, green), 19, gold)
+            elevation = dp(2).toFloat()
+            isClickable = true
+            isFocusable = true
+            contentDescription = "فتح بوابة الدين"
+            setOnClickListener {
+                startActivity(Intent(this@MainActivity, ReligiousGateActivity::class.java))
+            }
+        }
+        val icon = iconBubble("🕌", Color.argb(38, 255, 255, 255), Color.WHITE)
+        card.addView(icon, LinearLayout.LayoutParams(dp(58), dp(58)))
+
+        val labels = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(12), 0, dp(8), 0)
+        }
+        labels.addView(text("بوابة الدين", 19f, Color.WHITE, true, bottom = 4))
+        labels.addView(text("القرآن والدروس والأذكار وسائر الخدمات", 11f, Color.rgb(238, 237, 226)))
+        card.addView(labels, LinearLayout.LayoutParams(0, dp(62), 1f))
+        card.addView(text("‹", 32f, gold, true))
+        return card
+    }
+
+    private fun iconBubble(
+        glyph: String,
+        backgroundColor: Int,
+        foregroundColor: Int = green
+    ): TextView = TextView(this).apply {
+        text = glyph
+        textSize = 29f
+        setTextColor(foregroundColor)
+        gravity = Gravity.CENTER
+        background = rounded(intArrayOf(backgroundColor, backgroundColor), 18)
+    }
+
+    private fun actionPill(label: String, backgroundColor: Int, textColor: Int): TextView =
         TextView(this).apply {
             text = label
-            textSize = 15f
+            textSize = 13f
             setTextColor(textColor)
             gravity = Gravity.CENTER
             typeface = Typeface.create("sans-serif", Typeface.BOLD)
-            setPadding(dp(16), dp(15), dp(16), dp(15))
-            background = rounded(intArrayOf(backgroundColor, backgroundColor), 14)
-            isClickable = true
-            isFocusable = true
-            setOnClickListener { onClick() }
+            setPadding(dp(17), dp(10), dp(17), dp(10))
+            background = rounded(intArrayOf(backgroundColor, backgroundColor), 13)
         }
+
+    private fun sectionTitle(value: String): TextView =
+        text(value, 16f, green, true, bottom = 1)
 
     private fun text(
         value: String,
@@ -220,6 +286,7 @@ class MainActivity : Activity() {
         gravity = Gravity.END
         textAlignment = View.TEXT_ALIGNMENT_VIEW_END
         layoutDirection = View.LAYOUT_DIRECTION_RTL
+        includeFontPadding = true
         if (bold) typeface = Typeface.create("sans-serif", Typeface.BOLD)
         setPadding(0, dp(top), 0, dp(bottom))
     }
@@ -230,10 +297,28 @@ class MainActivity : Activity() {
             if (stroke != null) setStroke(dp(1), stroke)
         }
 
+    private fun ripple(colors: IntArray, radius: Int, stroke: Int? = null): RippleDrawable =
+        RippleDrawable(
+            ColorStateList.valueOf(Color.argb(36, 9, 38, 77)),
+            rounded(colors, radius, stroke),
+            null
+        )
+
     private fun marginTop(value: Int) = LinearLayout.LayoutParams(
         LinearLayout.LayoutParams.MATCH_PARENT,
         LinearLayout.LayoutParams.WRAP_CONTENT
     ).apply { topMargin = dp(value) }
 
-    private fun dp(value: Int): Int = (value * resources.displayMetrics.density + 0.5f).toInt()
+    private fun openRadio() {
+        startActivity(
+            Intent(this, NativeAudioActivity::class.java)
+                .putExtra(NativeAudioActivity.EXTRA_MODE, NativeAudioActivity.MODE_RADIO)
+        )
+    }
+
+    private fun dp(value: Int): Int =
+        (value * resources.displayMetrics.density + 0.5f).toInt()
+
+    private val paleGold: Int
+        get() = Color.rgb(249, 241, 222)
 }
