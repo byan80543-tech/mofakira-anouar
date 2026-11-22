@@ -3,6 +3,8 @@ package com.anwar.mofakira
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
+import android.content.ComponentName
+import android.speech.RecognizerIntent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -10,6 +12,13 @@ import android.os.Bundle
 import android.text.Html
 import android.text.InputFilter
 import android.text.InputType
+import android.text.Spanned
+import android.text.Layout
+import android.text.style.StyleSpan
+import android.text.style.UnderlineSpan
+import android.text.style.ForegroundColorSpan
+import android.text.style.BackgroundColorSpan
+import android.text.style.AlignmentSpan
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
@@ -19,6 +28,15 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Player
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
+import com.anwar.mofakira.playback.NativeMediaCatalog
+import com.anwar.mofakira.playback.NativeMediaService
+import com.google.common.util.concurrent.ListenableFuture
+import java.util.concurrent.Executor
 import android.util.Base64
 import org.json.JSONArray
 import org.json.JSONObject
@@ -59,7 +77,8 @@ class NativeNotebookActivity : Activity() {
         val sizeSp: Int,
         val textColor: Int,
         val paper: String,
-        val pinned: Boolean
+        val pinned: Boolean,
+        val richHtml: String = ""
     )
 
     private data class Note(
@@ -73,7 +92,8 @@ class NativeNotebookActivity : Activity() {
         val sizeSp: Int,
         val textColor: Int,
         val paper: String,
-        val history: List<HistoryVersion> = emptyList()
+        val history: List<HistoryVersion> = emptyList(),
+        val richHtml: String = ""
     )
 
     private val navy = Color.rgb(9, 38, 77)
@@ -83,7 +103,7 @@ class NativeNotebookActivity : Activity() {
     private val ink = Color.rgb(35, 48, 58)
     private val muted = Color.rgb(101, 112, 120)
     private val border = Color.rgb(224, 216, 200)
-    private val fontChoices = listOf("serif" to "نسخي", "sans-serif" to "حديث")
+    private val fontChoices = listOf("serif" to "نسخي", "sans-serif" to "حديث", "Amiri" to "أميري")
     private val textColorChoices = listOf(
         "ink" to "فحمي",
         "black" to "أسود",
@@ -93,7 +113,10 @@ class NativeNotebookActivity : Activity() {
         "wine" to "عنابي"
     )
     private val paperChoices = listOf(
-        "plain" to "أبيض",
+        "plain" to "بيضاء",
+        "ruled" to "مخططة",
+        "poetry" to "الشعر العمودي",
+        "framed" to "مؤطرة",
         "cream" to "كريمي",
         "parchment" to "رق",
         "mint" to "أخضر",
@@ -120,6 +143,17 @@ class NativeNotebookActivity : Activity() {
     private lateinit var storageNotice: TextView
     private lateinit var importButton: TextView
     private lateinit var exportButton: TextView
+    private var radioToolbarButton: TextView? = null
+    private var radioController: MediaController? = null
+    private var radioControllerFuture: ListenableFuture<MediaController>? = null
+    private var radioActionPending = false
+    private var pendingSpeechEditor: EditText? = null
+    private val radioMainExecutor = Executor { command -> runOnUiThread(command) }
+    private val radioPlayerListener = object : Player.Listener {
+        override fun onIsPlayingChanged(isPlaying: Boolean) = syncRadioToolbarState()
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) = syncRadioToolbarState()
+        override fun onPlaybackStateChanged(playbackState: Int) = syncRadioToolbarState()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -182,12 +216,10 @@ class NativeNotebookActivity : Activity() {
         toolbar.addView(toolbarIconButton("▤", "أرشيف أنوار") {
             showArchiveMenu()
         }, LinearLayout.LayoutParams(dp(39), dp(42)))
-        toolbar.addView(toolbarIconButton("📻", "تشغيل أو إيقاف إذاعة القرآن") {
-            startActivity(
-                Intent(this, NativeAudioActivity::class.java)
-                    .putExtra(NativeAudioActivity.EXTRA_MODE, NativeAudioActivity.MODE_RADIO)
-            )
-        }, LinearLayout.LayoutParams(dp(39), dp(42)))
+        radioToolbarButton = toolbarIconButton("📻", "تشغيل إذاعة القرآن") {
+            toggleRadioPlayback()
+        }
+        toolbar.addView(radioToolbarButton, LinearLayout.LayoutParams(dp(39), dp(42)))
         toolbar.addView(toolbarIconButton("☼", "تبديل الوضع الليلي والنهاري") {
             toggleNotebookTheme(shell)
         }, LinearLayout.LayoutParams(dp(39), dp(42)))
@@ -330,6 +362,125 @@ class NativeNotebookActivity : Activity() {
             isFocusable = true
             setOnClickListener { onClick() }
         }
+
+    private fun toggleRadioPlayback() {
+        if (radioActionPending) return
+        radioActionPending = true
+        val current = radioController
+        if (current != null) {
+            performRadioToggle(current)
+            return
+        }
+
+        val token = SessionToken(this, ComponentName(this, NativeMediaService::class.java))
+        val future = MediaController.Builder(this, token).buildAsync()
+        radioControllerFuture = future
+        future.addListener({
+            try {
+                val connected = future.get()
+                radioControllerFuture = null
+                if (isFinishing || isDestroyed) {
+                    connected.release()
+                    radioActionPending = false
+                    return@addListener
+                }
+                radioController = connected
+                connected.addListener(radioPlayerListener)
+                performRadioToggle(connected)
+            } catch (error: Exception) {
+                radioControllerFuture = null
+                radioActionPending = false
+                Toast.makeText(this, "تعذّر الاتصال بمشغل إذاعة أنوار.", Toast.LENGTH_LONG).show()
+                syncRadioToolbarState()
+            }
+        }, radioMainExecutor)
+    }
+
+    private fun performRadioToggle(controller: MediaController) {
+        val currentItem = controller.currentMediaItem
+        val isRadio = currentItem?.mediaId?.startsWith("radio:") == true
+        if (isRadio) {
+            if (controller.isPlaying) {
+                controller.pause()
+                Toast.makeText(this, "تم إيقاف الإذاعة مؤقتًا.", Toast.LENGTH_SHORT).show()
+            } else {
+                if (controller.playbackState == Player.STATE_IDLE ||
+                    controller.playbackState == Player.STATE_ENDED) {
+                    controller.prepare()
+                }
+                controller.play()
+                Toast.makeText(this, "جارٍ استئناف إذاعة أنوار.", Toast.LENGTH_SHORT).show()
+            }
+            radioActionPending = false
+            syncRadioToolbarState()
+            return
+        }
+
+        Toast.makeText(this, "جارٍ الاتصال بإذاعة أنوار القرآنية…", Toast.LENGTH_SHORT).show()
+        Thread({
+            val station = NativeMediaCatalog.loadStations().firstOrNull()
+            runOnUiThread {
+                if (isFinishing || isDestroyed) {
+                    radioActionPending = false
+                    return@runOnUiThread
+                }
+                if (station == null) {
+                    radioActionPending = false
+                    Toast.makeText(this, "لم تتوفر محطة بث الآن. تحقق من الاتصال وحاول مجددًا.", Toast.LENGTH_LONG).show()
+                    return@runOnUiThread
+                }
+                val item = MediaItem.Builder()
+                    .setMediaId("radio:" + station.url)
+                    .setUri(station.url)
+                    .setMediaMetadata(
+                        MediaMetadata.Builder()
+                            .setTitle(station.name)
+                            .setArtist("إذاعات مفكرة أنوار")
+                            .setAlbumTitle("بث مباشر")
+                            .build()
+                    )
+                    .build()
+                controller.setMediaItem(item)
+                controller.prepare()
+                controller.play()
+                radioActionPending = false
+                syncRadioToolbarState()
+            }
+        }, "Anwar-Notebook-Radio-Quick-Start").start()
+    }
+
+    private fun syncRadioToolbarState() {
+        val active = radioController?.let { controller ->
+            controller.isPlaying && controller.currentMediaItem?.mediaId?.startsWith("radio:") == true
+        } == true
+        radioToolbarButton?.apply {
+            isActivated = active
+            contentDescription = if (active) "إيقاف إذاعة القرآن مؤقتًا" else "تشغيل إذاعة القرآن"
+            alpha = if (active) 1f else 0.9f
+            background = rounded(
+                intArrayOf(
+                    if (active) Color.rgb(13, 83, 70) else Color.rgb(37, 78, 119),
+                    if (active) Color.rgb(13, 83, 70) else Color.rgb(37, 78, 119)
+                ),
+                10,
+                Color.rgb(199, 169, 106)
+            )
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        syncRadioToolbarState()
+    }
+
+    override fun onDestroy() {
+        radioController?.removeListener(radioPlayerListener)
+        radioController?.release()
+        radioController = null
+        radioControllerFuture?.cancel(false)
+        radioControllerFuture = null
+        super.onDestroy()
+    }
 
     private fun showArchiveMenu() {
         val choices = arrayOf("تصدير نسخة مشفرة", "استيراد نسخة مشفرة", "فتح الخدمات الكاملة")
@@ -830,7 +981,8 @@ class NativeNotebookActivity : Activity() {
         sizeSp = sizeSp,
         textColor = textColor,
         paper = paper,
-        pinned = pinned
+        pinned = pinned,
+        richHtml = richHtml
     )
 
     private fun showHistory(note: Note) {
@@ -874,7 +1026,8 @@ class NativeNotebookActivity : Activity() {
                     textColor = version.textColor,
                     paper = version.paper,
                     pinned = version.pinned,
-                    history = nextHistory
+                    history = nextHistory,
+                    richHtml = version.richHtml
                 )
                 if (!saveEncryptedState()) {
                     notes.clear()
@@ -989,9 +1142,10 @@ class NativeNotebookActivity : Activity() {
             require(type in ALLOWED_TYPES) { "نوع عمل غير معروف." }
             require(timestamp > 0L) { "تاريخ عمل غير صالح." }
             val history = parseHistory(item.optJSONArray("history"))
+            val richHtml = normalizeRichHtml(item.optString("html", ""))
             parsed.add(Note(
                 id, title, type, body, item.optBoolean("pin", false), timestamp,
-                font, sizeSp, textColor, paper, history
+                font, sizeSp, textColor, paper, history, richHtml
             ))
         }
         return parsed
@@ -1020,12 +1174,34 @@ class NativeNotebookActivity : Activity() {
                     sizeSp = size,
                     textColor = item.optInt("textColor", Color.rgb(35, 48, 58)),
                     paper = nativePaperFromExternal(rawPaper),
-                    pinned = item.optBoolean("pin", false)
+                    pinned = item.optBoolean("pin", false),
+                    richHtml = normalizeRichHtml(item.optString("html", ""))
                 ))
             }
         }
         return parsed.takeLast(MAX_HISTORY)
     }
+
+    private fun normalizeRichHtml(value: String): String {
+        if (value.isBlank()) return ""
+        val bounded = value.take(MAX_RICH_HTML_LENGTH)
+        val safe = bounded
+            .replace(Regex("(?is)<(script|style|iframe|object|embed)[^>]*>.*?</\\\\1\\\\s*>"), "")
+            .replace(Regex("(?is)<(script|style|iframe|object|embed)[^>]*/\\\\s*>"), "")
+            .replace(Regex("(?i)\\\\s+on[a-z]+\\\\s*=\\\\s*(\"[^\"]*\"|'[^']*')"), "")
+            .replace(Regex("(?i)javascript\\\\s*:"), "")
+        return runCatching { Html.toHtml(Html.fromHtml(safe)) }
+            .getOrDefault("")
+            .take(MAX_RICH_HTML_LENGTH)
+    }
+
+    private fun richHtmlToText(value: String): CharSequence {
+        val safe = normalizeRichHtml(value)
+        return if (safe.isBlank()) "" else Html.fromHtml(safe)
+    }
+
+    private fun richHtmlFromEditor(value: Spanned): String =
+        normalizeRichHtml(Html.toHtml(value))
 
     private fun noteTextFromJson(item: JSONObject): String {
         val raw = if (item.has("text") && !item.isNull("text")) {
@@ -1115,6 +1291,7 @@ class NativeNotebookActivity : Activity() {
                 .put("size", note.sizeSp)
                 .put("textColor", note.textColor)
                 .put("paper", note.paper)
+                .put("html", note.richHtml.ifBlank { plainTextToHtml(note.text) })
                 .put("history", encodeHistory(note.history)))
         }
         return JSONObject()
@@ -1136,7 +1313,8 @@ class NativeNotebookActivity : Activity() {
                 .put("size", version.sizeSp)
                 .put("textColor", version.textColor)
                 .put("paper", version.paper)
-                .put("pin", version.pinned))
+                .put("pin", version.pinned)
+                .put("html", version.richHtml.ifBlank { plainTextToHtml(version.text) }))
         }
         return array
     }
@@ -1402,6 +1580,7 @@ class NativeNotebookActivity : Activity() {
                 .put("size", note.sizeSp)
                 .put("textColor", note.textColor)
                 .put("paper", externalPwaPaper(note.paper))
+                .put("html", note.richHtml.ifBlank { plainTextToHtml(note.text) })
                 .put("history", historyToPortableJson(note.history)))
         }
         return JSONObject()
@@ -1425,7 +1604,8 @@ class NativeNotebookActivity : Activity() {
                 .put("size", version.sizeSp)
                 .put("textColor", version.textColor)
                 .put("paper", externalPwaPaper(version.paper))
-                .put("pin", version.pinned))
+                .put("pin", version.pinned)
+                .put("html", version.richHtml.ifBlank { plainTextToHtml(version.text) }))
         }
         return array
     }
@@ -1443,6 +1623,9 @@ class NativeNotebookActivity : Activity() {
     private fun externalPwaPaper(value: String): String = when (value) {
         "cream" -> "framed"
         "parchment" -> "poetry"
+        "framed" -> "framed"
+        "poetry" -> "poetry"
+        "ruled" -> "ruled"
         "mint", "blue", "rose" -> "ruled"
         else -> "plain"
     }
@@ -1480,7 +1663,8 @@ class NativeNotebookActivity : Activity() {
                 sizeSp = size,
                 textColor = item.optInt("textColor", Color.rgb(35, 48, 58)),
                 paper = nativePaperFromExternal(rawPaper),
-                history = parseHistory(item.optJSONArray("history"))
+                history = parseHistory(item.optJSONArray("history")),
+                richHtml = normalizeRichHtml(item.optString("html", ""))
             ))
         }
         return parsed
@@ -1660,20 +1844,20 @@ class NativeNotebookActivity : Activity() {
         paperChoices.firstOrNull { it.first == key }?.second ?: "أبيض"
 
     private fun paperColor(key: String): Int = when (key) {
-        "cream" -> Color.rgb(255, 253, 247)
-        "parchment" -> Color.rgb(248, 239, 220)
+        "cream", "framed" -> Color.rgb(255, 253, 247)
+        "parchment", "poetry" -> Color.rgb(248, 239, 220)
         "mint" -> Color.rgb(237, 246, 239)
-        "blue" -> Color.rgb(238, 244, 251)
+        "blue", "ruled" -> Color.rgb(238, 244, 251)
         "rose" -> Color.rgb(252, 239, 242)
         else -> Color.WHITE
     }
 
     private fun paperBorderColor(key: String): Int = when (key) {
-        "parchment" -> Color.rgb(211, 190, 151)
+        "parchment", "poetry" -> Color.rgb(211, 190, 151)
         "mint" -> Color.rgb(190, 218, 197)
-        "blue" -> Color.rgb(190, 210, 232)
+        "blue", "ruled" -> Color.rgb(190, 210, 232)
         "rose" -> Color.rgb(231, 197, 205)
-        "cream" -> Color.rgb(228, 218, 193)
+        "cream", "framed" -> Color.rgb(228, 218, 193)
         else -> border
     }
 
@@ -1765,6 +1949,7 @@ class NativeNotebookActivity : Activity() {
         private const val MAX_NOTES = 2500
         private const val MAX_TITLE_LENGTH = 300
         private const val MAX_CONTENT_LENGTH = 450_000
+        private const val MAX_RICH_HTML_LENGTH = 1_350_000
         private const val MAX_PLAINTEXT_BYTES = 6 * 1024 * 1024
         private const val MAX_HISTORY = 15
         // Shared envelope format lets PWA and Android open each other's encrypted backups.
@@ -1780,6 +1965,7 @@ class NativeNotebookActivity : Activity() {
         private const val MAX_PORTABLE_FILE_BYTES = 12 * 1024 * 1024
         private const val REQUEST_EXPORT = 7301
         private const val REQUEST_IMPORT = 7302
+        private const val REQUEST_SPEECH = 7402
         private val ALLOWED_TYPES = setOf("poem", "text", "idea")
     }
 }
