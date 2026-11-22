@@ -47,8 +47,24 @@ assert.match(activity, /put\("text", note\.text\)/,
 assert.match(activity, /put\("type", note\.type\)/);
 assert.match(activity, /put\("pin", note\.pinned\)/);
 assert.match(activity, /put\("ts", note\.updatedAt\)/);
-assert.match(activity, /put\("font", "Amiri"\)/);
-assert.match(activity, /put\("paper", "plain"\)/);
+assert.match(activity, /put\("font", note\.font\)/);
+assert.match(activity, /put\("size", note\.sizeSp\)/);
+assert.match(activity, /put\("textColor", note\.textColor\)/);
+assert.match(activity, /put\("paper", note\.paper\)/);
+assert.match(activity, /val font: String/);
+assert.match(activity, /val sizeSp: Int/);
+assert.match(activity, /val textColor: Int/);
+assert.match(activity, /val paper: String/);
+assert.match(activity, /private fun showOptionPicker/);
+assert.match(activity, /private fun fontTypeface/);
+assert.match(activity, /private fun paperBackground/);
+assert.match(activity, /private fun textColorFor/);
+assert.match(activity, /"Amiri" -> "serif"/,
+  'legacy Amiri records remain readable through the system serif family');
+assert.match(activity, /textColorChoices/);
+assert.match(activity, /paperChoices/);
+assert.match(activity, /selectedTextSize/);
+assert.match(activity, /applyEditorStyle\(\)/);
 assert.match(activity, /root\.optInt\("formatVersion", -1\)/);
 assert.match(activity, /body\.isBlank\(\)/,
   'empty work cannot be silently saved');
@@ -75,8 +91,8 @@ assert.doesNotMatch(activity, /innerHTML|loadDataWithBaseURL/,
   'saved content is rendered as ordinary Android text, not interpreted markup');
 
 assert.match(legacy, /WebView/);
-assert.match(gradle, /versionCode = 5/);
-assert.ok(gradle.includes('versionName = "0.5.0"'));
+assert.match(gradle, /versionCode = 6/);
+assert.ok(gradle.includes('versionName = "0.6.0"'));
 assert.match(workflow, /node scripts\/test-native-notebook\.mjs/);
 assert.match(migration, /دفتر الكتابة الأصلي \(المرحلة الأولى\)/);
 assert.match(migration, /لا يوجد استيراد تلقائي/);
@@ -85,6 +101,6 @@ assert.match(readme, /لا يجري استيراد أعمال خزنة الوي�
 
 console.log(
   'Native notebook checks passed: poem/text/idea CRUD, search and filters, pinning, ' +
-  'bounded plain-text records, Android Keystore AES-GCM encryption, verified backup/restore, ' +
-  'read-only recovery and legacy compatibility.'
+  'bounded plain-text records, persistent font/size/color/paper formatting, Android Keystore ' +
+  'AES-GCM encryption, verified backup/restore, read-only recovery and legacy compatibility.'
 );
