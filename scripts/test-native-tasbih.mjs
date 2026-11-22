@@ -116,8 +116,8 @@ assert.match(manifest, /android:name="\.NativeTasbihActivity"[\s\S]*?android:exp
 assert.match(manifest, /android\.speech\.RecognitionService/);
 assert.match(religiousGate, /LegacyWebActivity::class\.java/);
 assert.match(legacy, /WebView/);
-assert.match(gradle, /versionCode = 15/);
-assert.ok(gradle.includes('versionName = "0.9.6"'));
+assert.match(gradle, /versionCode = 16/);
+assert.ok(gradle.includes('versionName = "0.9.7"'));
 
 assert.ok(oldController.includes("preferences.set('tasbih'"),
   'the existing encrypted web preference adapter remains in place');

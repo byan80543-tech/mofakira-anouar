@@ -9,15 +9,29 @@ android {
         applicationId = "com.anwar.mofakira"
         minSdk = 23
         targetSdk = 35
-        versionCode = 15
-        versionName = "0.9.6"
+        versionCode = 16
+        versionName = "0.9.7"
+    }
+    signingConfigs {
+        create("release") {
+            val keystorePath = System.getenv("ANWAR_RELEASE_KEYSTORE_PATH")
+            if (!keystorePath.isNullOrBlank()) {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv("ANWAR_RELEASE_STORE_PASSWORD")
+                keyAlias = System.getenv("ANWAR_RELEASE_KEY_ALIAS")
+                keyPassword = System.getenv("ANWAR_RELEASE_KEY_PASSWORD")
+            }
+        }
     }
     buildTypes {
         getByName("debug") {
-            // Keep the test APK alongside the previously installed stable app.
-            // Release builds keep the production application ID unchanged.
-            applicationIdSuffix = ".preview.v15"
+            // Previews are kept apart from the production app and earlier previews.
+            applicationIdSuffix = ".preview.v16"
             versionNameSuffix = "-preview"
+        }
+        getByName("release") {
+            // All public updates must retain this one private signing key forever.
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {

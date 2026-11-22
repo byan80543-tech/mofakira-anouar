@@ -1,0 +1,127 @@
+name: Publish Anwar Android Update
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "android/**"
+      - "*.js"
+      - "*.css"
+      - "*.html"
+      - "*.json"
+      - "*.webmanifest"
+      - "assets/**"
+      - "vendor/**"
+      - "workers/**"
+      - ".github/workflows/android-release.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  publish-android-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - name: Install Android SDK platform
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.13"
+
+      - name: Check one-time release signing setup
+        id: signing
+        shell: bash
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANWAR_RELEASE_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANWAR_RELEASE_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANWAR_RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANWAR_RELEASE_KEY_PASSWORD }}
+        run: |
+          if [[ -z "$KEYSTORE_BASE64" || -z "$STORE_PASSWORD" || -z "$KEY_ALIAS" || -z "$KEY_PASSWORD" ]]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "Release not published: add the four ANWAR_RELEASE_* Actions secrets described in android/README.md."
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Decode the private release keystore
+        if: steps.signing.outputs.ready == 'true'
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANWAR_RELEASE_KEYSTORE_BASE64 }}
+        run: |
+          KEYSTORE_PATH="$RUNNER_TEMP/anwar-release.jks"
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_PATH"
+          chmod 600 "$KEYSTORE_PATH"
+          echo "ANWAR_RELEASE_KEYSTORE_PATH=$KEYSTORE_PATH" >> "$GITHUB_ENV"
+
+      - name: Build the signed production APK
+        if: steps.signing.outputs.ready == 'true'
+        env:
+          ANWAR_RELEASE_STORE_PASSWORD: ${{ secrets.ANWAR_RELEASE_STORE_PASSWORD }}
+          ANWAR_RELEASE_KEY_ALIAS: ${{ secrets.ANWAR_RELEASE_KEY_ALIAS }}
+          ANWAR_RELEASE_KEY_PASSWORD: ${{ secrets.ANWAR_RELEASE_KEY_PASSWORD }}
+        run: gradle -p android assembleRelease
+
+      - name: Prepare APK and verified update metadata
+        if: steps.signing.outputs.ready == 'true'
+        id: package
+        shell: bash
+        run: |
+          VERSION_CODE="$(awk '/versionCode =/ { print $3; exit }' android/app/build.gradle.kts)"
+          VERSION_NAME="$(awk -F'"' '/versionName =/ { print $2; exit }' android/app/build.gradle.kts)"
+          if [[ -z "$VERSION_CODE" || -z "$VERSION_NAME" ]]; then
+            echo "Could not read Android versionCode/versionName." >&2
+            exit 1
+          fi
+          APK="android/app/build/outputs/apk/release/app-release.apk"
+          test -s "$APK"
+          mkdir -p "$RUNNER_TEMP/anwar-release"
+          cp "$APK" "$RUNNER_TEMP/anwar-release/mofakira-anwar-release.apk"
+          APK_NAME="mofakira-anwar-release.apk"
+          SHA256="$(sha256sum "$RUNNER_TEMP/anwar-release/$APK_NAME" | awk '{print $1}')"
+          TAG="android-v${VERSION_NAME}-b${VERSION_CODE}"
+          export VERSION_CODE VERSION_NAME APK_NAME SHA256 TAG
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const meta = {
+            packageName: 'com.anwar.mofakira',
+            versionName: process.env.VERSION_NAME,
+            versionCode: Number(process.env.VERSION_CODE),
+            apkAssetName: process.env.APK_NAME,
+            sha256: process.env.SHA256,
+            releaseNotes: 'تحديث مفكرة أنوار ' + process.env.VERSION_NAME + ' — تحسينات وإصلاحات معتمدة.'
+          };
+          fs.writeFileSync(
+            process.env.RUNNER_TEMP + '/anwar-release/mofakira-anwar-update.json',
+            JSON.stringify(meta, null, 2) + '\n'
+          );
+          NODE
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+
+      - name: Publish the update release
+        if: steps.signing.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ steps.package.outputs.tag }}" \
+            "$RUNNER_TEMP/anwar-release/mofakira-anwar-release.apk" \
+            "$RUNNER_TEMP/anwar-release/mofakira-anwar-update.json" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "مفكرة أنوار ${{ steps.package.outputs.version_name }}" \
+            --notes "تحديث رسمي لمفكرة أنوار. رقم البناء ${{ steps.package.outputs.version_code }}." \
+            --latest
