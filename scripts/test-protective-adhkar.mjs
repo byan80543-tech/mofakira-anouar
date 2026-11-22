@@ -29,7 +29,7 @@ assert.ok(!/clean\.push\(\{id,title,/.test(app)&&!app.includes('S.customAdhkar.p
 assert.ok(app.includes('body.textContent=item.text')&&!app.includes('body.innerHTML=item.text'),'user-authored content is rendered as inert text, not HTML');
 assert.ok(app.includes('function renderProtectiveAdhkar()')&&app.includes('window.AnwarRenderAdhkar=function(){return renderProtectiveAdhkar();}'),'the dashboard opens the personal editor directly');
 assert.ok(app.includes('customAdhkar:[]'),'fresh storage begins with an empty personal collection');
-const cacheVersion=worker.match(/const CACHE_NAME='anwar-shell-2026-11-21-v(\d+)';/);
+const cacheVersion=worker.match(/const CACHE_NAME='anwar-shell-\d{4}-\d{2}-\d{2}-v(\d+)';/);
 assert.ok(cacheVersion&&Number(cacheVersion[1])>=143&&worker.includes("'./protective-adhkar.js'"),'the empty starter data ships in the new offline shell');
 assert.ok(html.includes('data-dismiss-adhkar-notice="privacy"')&&app.includes('function makeAdhkarNotice(text,key,className)'),'privacy and writing guidance have independent dismissible controls');
 assert.ok(app.includes('function dismissAdhkarNotice(button,key)')&&app.includes("localStorage.setItem('anwar_adhkar_notice_'+noticeKey,'dismissed')")&&app.includes("localStorage.getItem('anwar_adhkar_notice_'+key)==='dismissed'"),'dismissal is remembered across visits and renderer refreshes');
