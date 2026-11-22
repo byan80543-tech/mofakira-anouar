@@ -108,7 +108,7 @@ assert.equal(decryptEnvelope(password, pwaEnvelope), plaintext,
 // Verify round-trip encryption for the Android-specific archive format while
 // keeping the same PBKDF2/AES-GCM metadata and authenticated-data layout.
 const nativeLike = {
-  format: 'anwar-native-notebook',
+  format: 'anwar-vault',
   version: 1,
   kdf: 'PBKDF2-HMAC-SHA-256',
   iterations: 600000,
@@ -122,7 +122,9 @@ const encrypted = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final(
 nativeLike.iv = iv.toString('base64');
 nativeLike.ciphertext = encrypted.toString('base64');
 assert.equal(decryptEnvelope(password, nativeLike), plaintext,
-  'the Android-specific archive format uses the authenticated PBKDF2/AES-GCM contract');
+  'the native backup envelope decrypts with the PWA-compatible contract');
+assert.equal((await pwaVault.decryptEnvelope(password, nativeLike)).plaintext, plaintext,
+  'the PWA crypto implementation can open an Android-exported encrypted backup');
 const tamperedBytes = Buffer.from(pwaEnvelope.ciphertext, 'base64');
 tamperedBytes[0] ^= 0x01;
 assert.throws(
@@ -153,7 +155,10 @@ for (const feature of [
   'u = mac.doFinal(u)',
   'AES/GCM/NoPadding',
   'PORTABLE_ITERATIONS = 600_000',
-  'LEGACY_VAULT_FORMAT = "anwar-vault"',
+  'PORTABLE_FORMAT = "anwar-vault"',
+  'externalPwaPaper(note.paper)',
+  'externalPwaPaper(version.paper)',
+  'plainTextToHtml(version.text)',
   'Html.fromHtml',
   'readBack.contentEquals(bytes)'
 ]) {
