@@ -162,6 +162,25 @@ class ReligiousGateActivity : Activity() {
         return tile
     }
 
+    private fun actionButton(
+        label: String,
+        backgroundColor: Int,
+        textColor: Int,
+        onClick: () -> Unit
+    ): TextView = TextView(this).apply {
+        text = label
+        textSize = 13f
+        setTextColor(textColor)
+        gravity = Gravity.CENTER
+        textAlignment = View.TEXT_ALIGNMENT_CENTER
+        typeface = Typeface.create("sans-serif", Typeface.BOLD)
+        setPadding(dp(12), dp(9), dp(12), dp(9))
+        background = rounded(intArrayOf(backgroundColor, backgroundColor), 11)
+        isClickable = true
+        isFocusable = true
+        setOnClickListener { onClick() }
+    }
+
     private fun text(
         value: String,
         size: Float,
