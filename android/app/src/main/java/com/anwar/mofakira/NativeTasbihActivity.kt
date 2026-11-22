@@ -524,10 +524,10 @@ class NativeTasbihActivity : Activity() {
             palette.text,
             true,
             Gravity.CENTER,
-            top = 18,
+            top = 14,
             bottom = 4
         ).apply {
-            setLineSpacing(dp(4).toFloat(), 1f)
+            setLineSpacing(dp(3).toFloat(), 1f)
         }
         outer.addView(phraseView)
 
