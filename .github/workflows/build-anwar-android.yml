@@ -64,6 +64,8 @@ jobs:
         run: node scripts/test-native-tasbih.mjs
       - name: Validate native notebook editor, encryption and recovery
         run: node scripts/test-native-notebook.mjs
+      - name: Validate portable notebook archive cryptography and PWA compatibility
+        run: node scripts/test-native-notebook-archive.mjs
       - name: Build debug APK and run unit tests
         run: gradle -p android assembleDebug testDebugUnitTest
       - name: Upload debug APK
