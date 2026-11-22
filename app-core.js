@@ -3338,7 +3338,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
   return reciterGroupsCache;
  }
  function uniqueRecitationCount(){return groupedReciters().reduce((sum,g)=>sum+g.variants.length,0)}
- let reciterDisplayLimit=36,reciterUiReady=false;
+ let reciterDisplayLimit=72,reciterUiReady=false;
  function fill(){
   const selected=+rr.value||0,q=($('rq').value||'').trim().toLocaleLowerCase('ar'),all=groupedReciters();
   rr.innerHTML=R.map((r,i)=>'<option value="'+i+'">'+esc(r[0])+'</option>').join('');
@@ -3522,7 +3522,7 @@ addEventListener('beforeunload',()=>flushPendingEdit(false));
    if(status&&selected)status.textContent='تم اختيار '+selected.textContent+'؛ اضغط تشغيل المحطة لبدء البث.';
   }
  });
- $('rq').addEventListener('input',()=>{reciterDisplayLimit=36;fill()});
+ $('rq').addEventListener('input',()=>{reciterDisplayLimit=72;fill()});
  $('reciterMore').addEventListener('click',()=>{reciterDisplayLimit+=36;fill()});
 
   surahPicker.addEventListener('change',()=>{
