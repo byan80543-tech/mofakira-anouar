@@ -43,7 +43,7 @@ assert.match(activity, /LegacyWebActivity::class\.java/,
 assert.match(legacy, /WEB_MESSAGE_LISTENER/,
   'the existing web compatibility activity is retained');
 assert.match(gradle, /versionCode = 4/);
-assert.match(gradle, /versionName = "0\.3\.0"/);
+assert.match(gradle, /versionName = "0\\.4\\.0"/);
 assert.match(migration, /أذكار التحصين الشخصية/);
 assert.match(migration, /لا يوجد حتى الآن استيراد تلقائي/);
 assert.match(readme, /NativeAdhkarActivity/);
