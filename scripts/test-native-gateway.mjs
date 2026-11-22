@@ -9,7 +9,7 @@ const manifest = read('android/app/src/main/AndroidManifest.xml');
 const gradle = read('android/app/build.gradle.kts');
 const workflow = read('.github/workflows/build-anwar-android.yml');
 
-assert.match(main, /NativeNotebookActivity::class\.java/, 'The launcher opens the notebook directly.');
+assert.match(main, /LegacyWebActivity::class\.java/, 'The launcher opens the complete packaged original web app.');
 assert.match(notebook, /الخدمات القرآنية والدينية/, 'The services launcher uses the exact original label.');
 assert.match(notebook, /أرشيف أنوار/, 'The archive control remains available.');
 assert.match(notebook, /تشغيل إذاعة القرآن/, 'The radio toolbar control remains available.');
