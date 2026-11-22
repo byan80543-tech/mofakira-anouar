@@ -12,6 +12,9 @@ import android.os.Bundle
 import android.text.Html
 import android.text.InputFilter
 import android.text.InputType
+import android.text.Editable
+import android.text.TextWatcher
+import android.text.Selection
 import android.text.Spanned
 import android.text.Layout
 import android.text.style.StyleSpan
@@ -1186,10 +1189,10 @@ class NativeNotebookActivity : Activity() {
         if (value.isBlank()) return ""
         val bounded = value.take(MAX_RICH_HTML_LENGTH)
         val safe = bounded
-            .replace(Regex("(?is)<(script|style|iframe|object|embed)[^>]*>.*?</\\\\1\\\\s*>"), "")
-            .replace(Regex("(?is)<(script|style|iframe|object|embed)[^>]*/\\\\s*>"), "")
-            .replace(Regex("(?i)\\\\s+on[a-z]+\\\\s*=\\\\s*(\"[^\"]*\"|'[^']*')"), "")
-            .replace(Regex("(?i)javascript\\\\s*:"), "")
+            .replace(Regex("""(?is)<(script|style|iframe|object|embed)\\b[^>]*>.*?</\\1\\s*>"""), "")
+            .replace(Regex("""(?is)<(script|style|iframe|object|embed)\\b[^>]*/\\s*>"""), "")
+            .replace(Regex("""(?i)\\s+on[a-z]+\\s*=\\s*("[^"]*"|'[^']*')"""), "")
+            .replace(Regex("""(?i)javascript\\s*:"""), "")
         return runCatching { Html.toHtml(Html.fromHtml(safe)) }
             .getOrDefault("")
             .take(MAX_RICH_HTML_LENGTH)
@@ -1218,10 +1221,13 @@ class NativeNotebookActivity : Activity() {
     }
 
     private fun nativePaperFromExternal(value: String): String = when (value) {
-        "cream", "framed" -> "cream"
-        "parchment", "poetry" -> "parchment"
+        "framed" -> "framed"
+        "poetry" -> "poetry"
+        "ruled" -> "ruled"
+        "cream" -> "cream"
+        "parchment" -> "parchment"
         "mint" -> "mint"
-        "blue", "ruled" -> "blue"
+        "blue" -> "blue"
         "rose" -> "rose"
         else -> "plain"
     }
