@@ -89,6 +89,18 @@ assert.match(activity, /private fun removeSelectedDhikr\(\)/);
 assert.match(activity, /private fun restoreRemovedDhikrs\(\)/);
 assert.match(activity, /private fun renderDhikrList\(\)/);
 
+assert.match(activity, /الباقيات الصالحات/);
+assert.match(activity, /أعظمها كلمات الذكر:/);
+assert.match(activity, /Color\.rgb\(249, 220, 226\)/);
+assert.match(activity, /Color\.rgb\(224, 234, 220\)/);
+assert.match(activity, /counterFrame\.addView\(counterCenter/);
+assert.match(activity, /mainRow\.addView\(listPanel/);
+assert.match(activity, /private var themeKey = "pink"/);
+assert.match(activity, /saved == "emerald"\) "pink"/);
+assert.doesNotMatch(activity, /يتطلب إذن الميكروفون وخدمة التعرف الصوتي/);
+assert.doesNotMatch(activity, /انطق الذكر المختار كاملاً\. لا تُعرض الكلمات المسموعة/);
+assert.doesNotMatch(activity, /listPanel\.visibility = View\.GONE/);
+
 assert.match(activity, /AndroidKeyStore/);
 assert.match(activity, /AES\/GCM\/NoPadding/);
 assert.match(activity, /KeyGenParameterSpec/);
