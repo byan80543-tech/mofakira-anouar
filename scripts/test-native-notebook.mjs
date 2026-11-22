@@ -79,7 +79,9 @@ assert.match(activity, /ACTION_OPEN_DOCUMENT/);
 assert.match(activity, /AES\/GCM\/NoPadding/);
 assert.match(activity, /PBKDF2WithHmacSHA256/);
 assert.match(activity, /PORTABLE_ITERATIONS = 600_000/);
-assert.match(activity, /LEGACY_VAULT_FORMAT = "anwar-vault"/);
+assert.match(activity, /PORTABLE_FORMAT = "anwar-vault"/);
+assert.match(activity, /externalPwaPaper/);
+assert.match(activity, /plainTextToHtml\(version\.text\)/);
 assert.match(activity, /Html\.fromHtml/);
 assert.match(activity, /readBack\.contentEquals\(bytes\)/);
 assert.match(activity, /"Amiri" -> "serif"/,
