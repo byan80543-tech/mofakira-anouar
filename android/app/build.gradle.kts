@@ -9,14 +9,14 @@ android {
         applicationId = "com.anwar.mofakira"
         minSdk = 23
         targetSdk = 35
-        versionCode = 9
-        versionName = "0.9.0"
+        versionCode = 10
+        versionName = "0.9.1"
     }
     buildTypes {
         getByName("debug") {
             // Keep the test APK alongside the previously installed stable app.
             // Release builds keep the production application ID unchanged.
-            applicationIdSuffix = ".preview.v09"
+            applicationIdSuffix = ".preview.v10"
             versionNameSuffix = "-preview"
         }
     }
