@@ -1079,7 +1079,7 @@ class NativeNotebookActivity : Activity() {
             )
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val title = titleInput.text.toString().trim()
-                val body = bodyInput.text.toString().replace("\\\\r\\\\n", "\\\\n").trimEnd()
+                val body = bodyInput.text.toString().replace("\r\n", "\n").trimEnd()
                 if (body.isBlank()) {
                     bodyInput.error = "اكتب المحتوى أولًا"
                     bodyInput.requestFocus()
@@ -1460,10 +1460,13 @@ class NativeNotebookActivity : Activity() {
         if (value.isBlank()) return ""
         val bounded = value.take(MAX_RICH_HTML_LENGTH)
         val safe = bounded
+            .replace(Regex("""(?is)<(script|style|iframe|object|embed)\b[^>]*>.*?</\1\s*>"""), "")
+            .replace(Regex("""(?is)<(script|style|iframe|object|embed)\b[^>]*/\s*>"""), "")
+            .replace(Regex("""(?i)\s+on[a-z]+\s*=\s*("[^"]*"|'[^']*')"""), "")
+            .replace(Regex("""(?i)javascript\s*:"""), "")
             .replace(Regex("""(?is)<(script|style|iframe|object|embed)\\b[^>]*>.*?</\\1\\s*>"""), "")
             .replace(Regex("""(?is)<(script|style|iframe|object|embed)\\b[^>]*/\\s*>"""), "")
             .replace(Regex("""(?i)\\s+on[a-z]+\\s*=\\s*("[^"]*"|'[^']*')"""), "")
-            .replace(Regex("""(?i)javascript\\s*:"""), "")
         return runCatching { Html.toHtml(Html.fromHtml(safe)) }
             .getOrDefault("")
             .take(MAX_RICH_HTML_LENGTH)
@@ -2079,7 +2082,7 @@ class NativeNotebookActivity : Activity() {
                     val end = Selection.getSelectionEnd(editable).coerceIn(0, editable.length)
                     val low = minOf(start, end)
                     val high = maxOf(start, end)
-                    val prefix = if (low > 0 && editable[low - 1] != '\\n' && editable[low - 1] != ' ') " " else ""
+                    val prefix = if (low > 0 && editable[low - 1] != '\n' && editable[low - 1] != ' ') " " else ""
                     editable.replace(low, high, prefix + result)
                     editor.setSelection((low + prefix.length + result.length).coerceAtMost(editable.length))
                     editor.requestFocus()
