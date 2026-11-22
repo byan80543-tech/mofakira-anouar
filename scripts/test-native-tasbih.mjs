@@ -56,6 +56,7 @@ assert.equal(
 const activity = read('android/app/src/main/java/com/anwar/mofakira/NativeTasbihActivity.kt');
 const manifest = read('android/app/src/main/AndroidManifest.xml');
 const home = read('android/app/src/main/java/com/anwar/mofakira/MainActivity.kt');
+const religiousGate = read('android/app/src/main/java/com/anwar/mofakira/ReligiousGateActivity.kt');
 const gradle = read('android/app/build.gradle.kts');
 const legacy = read('android/app/src/main/java/com/anwar/mofakira/LegacyWebActivity.kt');
 const oldController = read('tasbih-controller.js');
@@ -115,8 +116,8 @@ assert.match(manifest, /android:name="\.NativeTasbihActivity"[\s\S]*?android:exp
 assert.match(manifest, /android\.speech\.RecognitionService/);
 assert.match(home, /"📿" to "السبحة"/);
 assert.match(home, /NativeTasbihActivity::class\.java/);
-assert.match(home, /فتح جميع خدمات المفكرة/);
-assert.match(home, /LegacyWebActivity::class\.java/);
+assert.match(home, /ReligiousGateActivity::class\.java/);
+assert.match(religiousGate, /LegacyWebActivity::class\.java/);
 assert.match(legacy, /WebView/);
 assert.match(gradle, /versionCode = 8/);
 assert.ok(gradle.includes('versionName = "0.8.0"'));
