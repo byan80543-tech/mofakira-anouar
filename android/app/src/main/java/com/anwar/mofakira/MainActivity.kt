@@ -57,7 +57,7 @@ class MainActivity : Activity() {
             bottom = 3
         ))
         content.addView(text(
-            "الخدمات القرآنية والدينية",
+            "القرآن والكتابة والأذكار",
             size = 14f,
             color = muted,
             bottom = 18
@@ -96,7 +96,7 @@ class MainActivity : Activity() {
         }
         card.addView(text("رفيقك اليومي مع القرآن والذكر", 20f, Color.WHITE, true, bottom = 7))
         card.addView(text(
-            "مواقيت الصلاة، القرآن الكريم، الدروس، الأذكار، والسبحة في مكان واحد.",
+            "القرآن والكتابة والقصائد والمواقيت والأذكار في رفيق واحد.",
             13f,
             Color.rgb(239, 235, 222),
             bottom = 0
@@ -118,7 +118,8 @@ class MainActivity : Activity() {
             "📻" to "الإذاعات والابتهالات",
             "🎧" to "الدروس والمحاضرات",
             "🤲" to "أذكار التحصين",
-            "📿" to "السبحة"
+            "📿" to "السبحة",
+            "🖋️" to "دفتر الكتابة"
         )
         items.chunked(2).forEach { pair ->
             val row = LinearLayout(this).apply {
@@ -155,6 +156,8 @@ class MainActivity : Activity() {
                                 startActivity(Intent(this@MainActivity, NativeAdhkarActivity::class.java))
                             "السبحة" ->
                                 startActivity(Intent(this@MainActivity, NativeTasbihActivity::class.java))
+                            "دفتر الكتابة" ->
+                                startActivity(Intent(this@MainActivity, NativeNotebookActivity::class.java))
                             else -> startActivity(Intent(this@MainActivity, LegacyWebActivity::class.java))
                         }
                     }
