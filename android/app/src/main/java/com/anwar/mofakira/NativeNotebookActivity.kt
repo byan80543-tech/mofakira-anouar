@@ -1210,13 +1210,12 @@ class NativeNotebookActivity : Activity() {
                 .put("title", note.title)
                 .put("type", note.type)
                 .put("text", note.text)
-                .put("html", plainTextToHtml(note.text))
                 .put("pin", note.pinned)
                 .put("ts", note.updatedAt)
                 .put("font", if (note.font == "sans-serif") "Cairo" else "Amiri")
                 .put("size", note.sizeSp)
                 .put("textColor", note.textColor)
-                .put("paper", externalPaper(note.paper))
+                .put("paper", note.paper)
                 .put("history", historyToPortableJson(note.history)))
         }
         return JSONObject()
@@ -1233,33 +1232,15 @@ class NativeNotebookActivity : Activity() {
             array.put(JSONObject()
                 .put("title", version.title)
                 .put("type", version.type)
-                .put("html", plainTextToHtml(version.text))
                 .put("text", version.text)
                 .put("ts", version.updatedAt)
                 .put("font", if (version.font == "sans-serif") "Cairo" else "Amiri")
                 .put("size", version.sizeSp)
                 .put("textColor", version.textColor)
-                .put("paper", externalPaper(version.paper))
+                .put("paper", version.paper)
                 .put("pin", version.pinned))
         }
         return array
-    }
-
-    private fun plainTextToHtml(value: String): String {
-        val escaped = value.replace("&", "&amp;")
-            .replace("<", "&lt;")
-            .replace(">", "&gt;")
-            .replace("\"", "&quot;")
-        return escaped.split("\n").joinToString("") { line ->
-            if (line.isEmpty()) "<div><br></div>" else "<div>$line</div>"
-        }
-    }
-
-    private fun externalPaper(value: String): String = when (value) {
-        "cream" -> "framed"
-        "parchment" -> "poetry"
-        "mint", "blue", "rose" -> "ruled"
-        else -> "plain"
     }
 
     private fun parsePortableNotes(plaintext: String): List<Note> {
