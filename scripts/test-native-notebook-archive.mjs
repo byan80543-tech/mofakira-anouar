@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { createCipheriv, createDecipheriv, pbkdf2Sync, randomBytes, webcrypto } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHmac, pbkdf2Sync, randomBytes, webcrypto } from 'node:crypto';
 
 if (!globalThis.crypto?.subtle) {
   Object.defineProperty(globalThis, 'crypto', { value: webcrypto, configurable: true });
@@ -66,6 +66,29 @@ function associatedData(envelope) {
     envelope.salt
   ].join('|'), 'utf8');
 }
+function derivePortableOneBlock(passwordText, salt, iterations) {
+  const passwordBytes = Buffer.from(passwordText, 'utf8');
+  const firstBlock = Buffer.concat([salt, Buffer.from([0, 0, 0, 1])]);
+  let u = createHmac('sha256', passwordBytes).update(firstBlock).digest();
+  const derived = Buffer.from(u);
+  for (let round = 1; round < iterations; round++) {
+    u = createHmac('sha256', passwordBytes).update(u).digest();
+    for (let index = 0; index < derived.length; index++) {
+      derived[index] ^= u[index];
+    }
+  }
+  passwordBytes.fill(0);
+  u.fill(0);
+  firstBlock.fill(0);
+  return derived;
+}
+const arabicPassword = 'عبارة مرور أنوار 2026';
+const pbkdfSalt = randomBytes(16);
+assert.equal(
+  derivePortableOneBlock(arabicPassword, pbkdfSalt, 600000).toString('hex'),
+  pbkdf2Sync(Buffer.from(arabicPassword, 'utf8'), pbkdfSalt, 600000, 32, 'sha256').toString('hex'),
+  'the Android UTF-8 one-block PBKDF2-HMAC-SHA-256 loop matches the standard implementation for Arabic passwords'
+);
 function decryptEnvelope(passwordText, envelope) {
   const encrypted = Buffer.from(envelope.ciphertext, 'base64');
   const tag = encrypted.subarray(encrypted.length - 16);
@@ -124,7 +147,10 @@ for (const feature of [
   'private fun readLimited',
   'ACTION_CREATE_DOCUMENT',
   'ACTION_OPEN_DOCUMENT',
-  'PBKDF2WithHmacSHA256',
+  'Mac.getInstance("HmacSHA256")',
+  'password.toByteArray(StandardCharsets.UTF_8)',
+  'var u = mac.doFinal(firstBlock)',
+  'u = mac.doFinal(u)',
   'AES/GCM/NoPadding',
   'PORTABLE_ITERATIONS = 600_000',
   'LEGACY_VAULT_FORMAT = "anwar-vault"',
