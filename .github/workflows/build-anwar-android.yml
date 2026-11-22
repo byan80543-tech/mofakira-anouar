@@ -72,6 +72,8 @@ jobs:
         run: node scripts/test-native-notebook-archive.mjs
       - name: Validate two native gateways and icon destinations
         run: node scripts/test-native-gateway.mjs
+      - name: Validate original-style local audio WebView and Media3 bridge
+        run: node scripts/test-native-web-audio.mjs
       - name: Build debug APK and run unit tests
         run: gradle -p android assembleDebug testDebugUnitTest
       - name: Upload debug APK
