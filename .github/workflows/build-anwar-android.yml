@@ -11,6 +11,8 @@ on:
       - "scripts/test-native-tasbih.mjs"
       - "scripts/test-native-notebook.mjs"
       - "scripts/test-native-notebook-archive.mjs"
+      - "scripts/test-native-gateway.mjs"
+      - "scripts/test-native-adhan.mjs"
       - "scripts/test-native-audio.mjs"
       - "scripts/test-native-adhkar.mjs"
       - ".github/workflows/build-anwar-android.yml"
@@ -66,6 +68,8 @@ jobs:
         run: node scripts/test-native-notebook.mjs
       - name: Validate portable notebook archive cryptography and PWA compatibility
         run: node scripts/test-native-notebook-archive.mjs
+      - name: Validate two native gateways and icon destinations
+        run: node scripts/test-native-gateway.mjs
       - name: Build debug APK and run unit tests
         run: gradle -p android assembleDebug testDebugUnitTest
       - name: Upload debug APK

@@ -56,6 +56,7 @@ assert.equal(
 const activity = read('android/app/src/main/java/com/anwar/mofakira/NativeTasbihActivity.kt');
 const manifest = read('android/app/src/main/AndroidManifest.xml');
 const home = read('android/app/src/main/java/com/anwar/mofakira/MainActivity.kt');
+const religiousGate = read('android/app/src/main/java/com/anwar/mofakira/ReligiousGateActivity.kt');
 const gradle = read('android/app/build.gradle.kts');
 const legacy = read('android/app/src/main/java/com/anwar/mofakira/LegacyWebActivity.kt');
 const oldController = read('tasbih-controller.js');
@@ -113,13 +114,13 @@ assert.doesNotMatch(activity, /put\("(transcript|speechText|recognizedWords|audi
 assert.match(manifest, /android\.permission\.RECORD_AUDIO/);
 assert.match(manifest, /android:name="\.NativeTasbihActivity"[\s\S]*?android:exported="false"/);
 assert.match(manifest, /android\.speech\.RecognitionService/);
-assert.match(home, /"📿" to "السبحة"/);
+assert.match(home, /Triple\("📿", "السبحة"\)/, "the first gateway keeps the tasbih quick shortcut");
 assert.match(home, /NativeTasbihActivity::class\.java/);
-assert.match(home, /فتح جميع خدمات المفكرة/);
-assert.match(home, /LegacyWebActivity::class\.java/);
+assert.match(home, /ReligiousGateActivity::class\.java/);
+assert.match(religiousGate, /LegacyWebActivity::class\.java/);
 assert.match(legacy, /WebView/);
-assert.match(gradle, /versionCode = 7/);
-assert.ok(gradle.includes('versionName = "0.7.0"'));
+assert.match(gradle, /versionCode = 8/);
+assert.ok(gradle.includes('versionName = "0.8.0"'));
 
 assert.ok(oldController.includes("preferences.set('tasbih'"),
   'the existing encrypted web preference adapter remains in place');

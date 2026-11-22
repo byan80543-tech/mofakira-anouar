@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 const read = (path) => fs.readFileSync(new URL('../' + path, import.meta.url), 'utf8');
 const manifest = read('android/app/src/main/AndroidManifest.xml');
 const home = read('android/app/src/main/java/com/anwar/mofakira/MainActivity.kt');
+const religiousGate = read('android/app/src/main/java/com/anwar/mofakira/ReligiousGateActivity.kt');
 const activity = read('android/app/src/main/java/com/anwar/mofakira/NativeAdhkarActivity.kt');
 const gradle = read('android/app/build.gradle.kts');
 const legacy = read('android/app/src/main/java/com/anwar/mofakira/LegacyWebActivity.kt');
@@ -12,8 +13,8 @@ const readme = read('android/README.md');
 
 assert.match(manifest, /android:name="\.NativeAdhkarActivity"[\s\S]*?android:exported="false"/,
   'the native personal adhkar screen is registered as an internal activity');
-assert.match(home, /"أذكار التحصين"[\s\S]*?NativeAdhkarActivity::class\.java/,
-  'the home protection tile opens the native personal adhkar screen');
+assert.match(religiousGate, /"أذكار التحصين"[\s\S]*?NativeAdhkarActivity::class\.java/,
+  'the religious gateway opens the native personal adhkar screen');
 assert.match(activity, /class NativeAdhkarActivity : Activity\(\)/);
 assert.doesNotMatch(activity, /WebView|WEB_MESSAGE_LISTENER|http:\/\/|https:\/\//,
   'the native personal notes screen has no web or remote service dependency');
@@ -42,8 +43,8 @@ assert.match(activity, /LegacyWebActivity::class\.java/,
   'the previous web notebook remains reachable for older notes and its font catalogue');
 assert.match(legacy, /WEB_MESSAGE_LISTENER/,
   'the existing web compatibility activity is retained');
-assert.match(gradle, /versionCode = 7/);
-assert.ok(gradle.includes('versionName = "0.7.0"'));
+assert.match(gradle, /versionCode = 8/);
+assert.ok(gradle.includes('versionName = "0.8.0"'));
 assert.match(migration, /أذكار التحصين الشخصية/);
 assert.match(migration, /لا يوجد حتى الآن استيراد تلقائي/);
 assert.match(readme, /NativeAdhkarActivity/);

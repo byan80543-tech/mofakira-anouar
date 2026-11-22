@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 const read = (path) => fs.readFileSync(new URL('../' + path, import.meta.url), 'utf8');
 const manifest = read('android/app/src/main/AndroidManifest.xml');
 const nativeHome = read('android/app/src/main/java/com/anwar/mofakira/MainActivity.kt');
+const religiousGate = read('android/app/src/main/java/com/anwar/mofakira/ReligiousGateActivity.kt');
 const activity = read('android/app/src/main/java/com/anwar/mofakira/LegacyWebActivity.kt');
 const scheduler = read('android/app/src/main/java/com/anwar/mofakira/alarm/PrayerAlarmScheduler.kt');
 const receiver = read('android/app/src/main/java/com/anwar/mofakira/alarm/PrayerAlarmReceiver.kt');
@@ -22,7 +23,10 @@ assert.match(manifest, /android:name="\.LegacyWebActivity"[\s\S]*?android:export
 assert.match(nativeHome, /class MainActivity : Activity\(\)/);
 assert.match(nativeHome, /مفكرة أنوار/);
 assert.match(nativeHome, /setContentView\(buildHome\(\)\)/);
-assert.match(nativeHome, /startActivity\(Intent\(this, LegacyWebActivity::class.java\)\)/);
+assert.match(nativeHome, /ReligiousGateActivity::class\.java/,
+  'the first gateway exposes a dedicated entrance to the religious services');
+assert.match(religiousGate, /startActivity\(Intent\(this, LegacyWebActivity::class.java\)\)/,
+  'remaining complete web services stay reachable inside the religious gateway');
 assert.doesNotMatch(nativeHome, /WebView|WEB_MESSAGE_LISTENER|mofakira-anouar\.pages\.dev/,
   'native launcher must not load the production web page as its main interface');
 
