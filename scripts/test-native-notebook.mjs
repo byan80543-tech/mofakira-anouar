@@ -15,10 +15,10 @@ const debugStrings = read('android/app/src/debug/res/values/strings.xml');
 
 assert.match(manifest, /android:name="\.NativeNotebookActivity"[\s\S]*?android:exported="false"/,
   'the native notebook is registered as an internal Android activity');
-assert.match(home, /"المفكرة"/,
-  "the first gateway visibly presents the notebook");
 assert.match(home, /NativeNotebookActivity::class\.java/,
-  "the notebook card opens the native notebook screen");
+  "the launcher opens the native notebook directly");
+assert.match(activity, /الخدمات القرآنية والدينية/,
+  "the original services button is visible in the notebook");
 assert.match(religiousGate, /LegacyWebActivity::class\.java/,
   'the complete legacy notebook remains reachable from the religious gateway');
 assert.match(activity, /class NativeNotebookActivity\s*:\s*Activity\(\)/);
@@ -123,7 +123,7 @@ assert.doesNotMatch(activity, /innerHTML|loadDataWithBaseURL/,
 assert.match(legacy, /WebView/);
 assert.match(gradle, /versionCode = 9/);
 assert.ok(gradle.includes('versionName = "0.9.0"'));
-assert.match(gradle, /applicationIdSuffix = "\.preview\.v08"/,
+assert.match(gradle, /applicationIdSuffix = "\.preview\.v09"/,
   'the versioned debug APK installs alongside stable and earlier preview apps without replacing their local vaults');
 assert.match(gradle, /versionNameSuffix = "-preview"/);
 assert.match(debugStrings, /<string name="app_name">مفكرة أنوار التجريبية<\/string>/);
