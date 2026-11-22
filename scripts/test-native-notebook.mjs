@@ -122,7 +122,9 @@ assert.match(activity, /"Amiri" -> "serif"/,
 assert.match(activity, /textColorChoices/);
 assert.match(activity, /paperChoices/);
 assert.match(activity, /selectedTextSize/);
-assert.match(activity, /applyEditorStyle\(\)/);
+assert.match(activity, /bodyInput\.textSize = selectedTextSize\.toFloat\(\)/);
+assert.match(activity, /bodyInput\.typeface = fontTypeface\(value\)/);
+assert.match(activity, /bodyInput\.background = paperBackground\(selectedPaper, 12\)/);
 assert.match(activity, /root\.optInt\("formatVersion", -1\)/);
 assert.match(activity, /body\.isBlank\(\)/,
   'empty work cannot be silently saved');
