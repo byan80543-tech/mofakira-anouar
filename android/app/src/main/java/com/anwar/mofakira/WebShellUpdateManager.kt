@@ -329,6 +329,7 @@ internal class WebShellUpdateManager(
         connection.requestMethod = "GET"
         connection.instanceFollowRedirects = true
 
+        var stagingDirectory: File? = null
         try {
             val status = connection.responseCode
             if (status !in 200..299) throw IllegalStateException("Web update download failed")
@@ -362,6 +363,7 @@ internal class WebShellUpdateManager(
                 if (!exists() && !mkdirs()) throw IllegalStateException("Cannot create update directory")
             }
             val staging = File(root, ".staging-" + update.sourceCommit)
+            stagingDirectory = staging
             val destination = File(root, update.sourceCommit)
             staging.deleteRecursively()
             if (!staging.mkdirs()) throw IllegalStateException("Cannot create update staging directory")
@@ -377,6 +379,7 @@ internal class WebShellUpdateManager(
             if (!staging.renameTo(destination)) {
                 throw IllegalStateException("Cannot activate downloaded update files")
             }
+            stagingDirectory = null
 
             val saved = preferences.edit()
                 .putString(KEY_ACTIVE_VERSION, update.sourceCommit)
@@ -388,6 +391,7 @@ internal class WebShellUpdateManager(
             cleanupOldUpdates(root, update.sourceCommit)
             return destination
         } catch (error: Throwable) {
+            stagingDirectory?.deleteRecursively()
             zipFile.delete()
             throw error
         } finally {
