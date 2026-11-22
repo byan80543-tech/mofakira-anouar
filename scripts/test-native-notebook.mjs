@@ -49,6 +49,24 @@ for (const feature of [
 }
 
 assert.match(activity, /TYPE_TEXT_FLAG_MULTI_LINE/);
+assert.match(activity, /richHtml: String = ""/, "notes keep optional formatted HTML alongside the legacy plain-text field");
+assert.match(activity, /put\("html", note\.richHtml\.ifBlank \{ plainTextToHtml\(note\.text\) \}\)/, "encrypted local records preserve editor formatting");
+assert.match(activity, /richHtmlFromEditor\(bodyInput\.text\)/, "the editor serializes styled spans before saving");
+assert.match(activity, /normalizeRichHtml\(item\.optString\("html", ""\)\)/, "legacy HTML is sanitized and retained on import");
+assert.match(activity, /richHtmlToText\(existing\?\.richHtml\.orEmpty\(\)\)/, "editing a saved work restores the formatted source");
+assert.match(activity, /StyleSpan\(Typeface\.BOLD\)/, "bold formatting is available");
+assert.match(activity, /StyleSpan\(Typeface\.ITALIC\)/, "italic formatting is available");
+assert.match(activity, /UnderlineSpan\(\)/, "underline formatting is available");
+assert.match(activity, /BackgroundColorSpan\(selectedHighlight\)/, "text highlighting is available");
+assert.match(activity, /ForegroundColorSpan\(selectedTextColor\)/, "selected text can receive its own color");
+assert.match(activity, /AlignmentSpan\.Standard/, "paragraph alignment is stored with formatted text");
+assert.match(activity, /insertPoetryCouplet\(bodyInput\)/, "the editor can insert a two-part poetry line");
+assert.match(activity, /startPoetryDictation\(bodyInput\)/, "Arabic voice dictation is accessible inside the editor");
+assert.match(activity, /RecognizerIntent\.ACTION_RECOGNIZE_SPEECH/, "voice dictation uses the Android speech recognizer");
+assert.match(activity, /TextToSpeech\.QUEUE_FLUSH/, "the editor can read text aloud");
+assert.match(activity, /"ruled" to "مخططة"/, "the original ruled page style remains available");
+assert.match(activity, /"poetry" to "الشعر العمودي"/, "the original vertical poetry page remains available");
+assert.match(activity, /"framed" to "مؤطرة"/, "the original framed page style remains available");
 assert.match(activity, /weightSum = 5f/, "all five filters share one visible row");
 assert.match(activity, /LinearLayout.LayoutParams\(\s*0,\s*dp\(38\),\s*1f\s*\)/, "filter chips share the available width");
 assert.match(activity, /Gravity.TOP or Gravity.CENTER_HORIZONTAL/, "the empty-state message stays near the top of the writing area");
