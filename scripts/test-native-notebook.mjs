@@ -49,6 +49,12 @@ for (const feature of [
 }
 
 assert.match(activity, /TYPE_TEXT_FLAG_MULTI_LINE/);
+assert.match(activity, /weightSum = 5f/, "all five filters share one visible row");
+assert.match(activity, /LinearLayout.LayoutParams\(\s*0,\s*dp\(38\),\s*1f\s*\)/, "filter chips share the available width");
+assert.match(activity, /Gravity.TOP or Gravity.CENTER_HORIZONTAL/, "the empty-state message stays near the top of the writing area");
+assert.match(activity, /applySavedAppearance\(screen\)/, "the chosen notebook appearance is restored at startup");
+assert.match(activity, /preferences.getInt\("palette_color"/, "the selected palette is persisted and restored");
+
 assert.match(activity, /put\("text", note\.text\)/,
   'native records store plain text using the legacy-compatible text field');
 assert.match(activity, /put\("type", note\.type\)/);
@@ -122,9 +128,9 @@ assert.doesNotMatch(activity, /innerHTML|loadDataWithBaseURL/,
   'saved content is rendered as ordinary Android text, not interpreted markup');
 
 assert.match(legacy, /WebView/);
-assert.match(gradle, /versionCode = 9/);
-assert.ok(gradle.includes('versionName = "0.9.0"'));
-assert.match(gradle, /applicationIdSuffix = "\.preview\.v09"/,
+assert.match(gradle, /versionCode = 10/);
+assert.ok(gradle.includes('versionName = "0.9.1"'));
+assert.match(gradle, /applicationIdSuffix = "\.preview\.v10"/,
   'the versioned debug APK installs alongside stable and earlier preview apps without replacing their local vaults');
 assert.match(gradle, /versionNameSuffix = "-preview"/);
 assert.match(debugStrings, /<string name="app_name">مفكرة أنوار التجريبية<\/string>/);

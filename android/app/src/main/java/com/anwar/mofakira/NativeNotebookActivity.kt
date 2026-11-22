@@ -134,7 +134,9 @@ class NativeNotebookActivity : Activity() {
             storageMessage = "تعذّر التحقق من سجل الكتابة المشفر. أوقفنا التعديل حمايةً لبياناتك، ولم نحذف السجل."
         }
 
-        setContentView(buildScreen())
+        val screen = buildScreen()
+        setContentView(screen)
+        applySavedAppearance(screen)
         renderFilters()
         renderNotes()
     }
@@ -262,16 +264,12 @@ class NativeNotebookActivity : Activity() {
         }
         rootContent.addView(searchInput, marginBottom(9))
 
-        val filterScroll = HorizontalScrollView(this).apply {
-            isHorizontalScrollBarEnabled = false
-            layoutDirection = View.LAYOUT_DIRECTION_RTL
-        }
         filterContainer = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             layoutDirection = View.LAYOUT_DIRECTION_RTL
+            weightSum = 5f
         }
-        filterScroll.addView(filterContainer)
-        rootContent.addView(filterScroll, marginBottom(8))
+        rootContent.addView(filterContainer, marginBottom(8))
 
         streakLabel = text("", 14f, navy, true)
         streakLabel.setPadding(dp(12), dp(11), dp(12), dp(11))
@@ -348,14 +346,21 @@ class NativeNotebookActivity : Activity() {
             .show()
     }
 
+    private fun applySavedAppearance(shell: View) {
+        val dark = preferences.getBoolean("night_mode", false)
+        val savedPalette = preferences.getInt("palette_color", Color.rgb(233, 236, 241))
+        val background = if (dark) Color.rgb(27, 29, 34) else savedPalette
+        shell.setBackgroundColor(background)
+        rootContent.setBackgroundColor(background)
+        val bars = if (dark) Color.rgb(18, 25, 35) else Color.rgb(8, 38, 76)
+        window.statusBarColor = bars
+        window.navigationBarColor = bars
+    }
+
     private fun toggleNotebookTheme(shell: View) {
         val dark = !preferences.getBoolean("night_mode", false)
         preferences.edit().putBoolean("night_mode", dark).apply()
-        val background = if (dark) Color.rgb(27, 29, 34) else Color.rgb(233, 236, 241)
-        shell.setBackgroundColor(background)
-        rootContent.setBackgroundColor(background)
-        window.statusBarColor = if (dark) Color.rgb(18, 25, 35) else Color.rgb(8, 38, 76)
-        window.navigationBarColor = window.statusBarColor
+        applySavedAppearance(shell)
         Toast.makeText(this, if (dark) "الوضع الليلي" else "الوضع النهاري", Toast.LENGTH_SHORT).show()
     }
 
@@ -373,8 +378,10 @@ class NativeNotebookActivity : Activity() {
             .setTitle("تخصيص ألوان المفكرة")
             .setItems(labels) { _, which ->
                 preferences.edit().putInt("palette_color", colors[which]).apply()
-                shell.setBackgroundColor(colors[which])
-                rootContent.setBackgroundColor(colors[which])
+                if (!preferences.getBoolean("night_mode", false)) {
+                    shell.setBackgroundColor(colors[which])
+                    rootContent.setBackgroundColor(colors[which])
+                }
             }
             .setNegativeButton("إغلاق", null)
             .show()
@@ -424,19 +431,21 @@ class NativeNotebookActivity : Activity() {
                 renderFilters()
                 renderNotes()
             }
-            chip.textSize = 13f
-            chip.setPadding(dp(13), dp(5), dp(13), dp(5))
+            chip.textSize = 11f
+            chip.maxLines = 1
+            chip.setPadding(dp(2), dp(5), dp(2), dp(5))
             chip.background = rounded(
                 intArrayOf(if (selected) Color.rgb(43, 87, 154) else Color.WHITE, if (selected) Color.rgb(43, 87, 154) else Color.WHITE),
                 22,
                 if (selected) Color.rgb(43, 87, 154) else border
             )
             filterContainer.addView(chip, LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                dp(38)
+                0,
+                dp(38),
+                1f
             ).apply {
-                marginEnd = dp(5)
-                marginStart = dp(5)
+                marginEnd = dp(2)
+                marginStart = dp(2)
             })
         }
     }
@@ -489,10 +498,10 @@ class NativeNotebookActivity : Activity() {
             moreButton.visibility = View.GONE
             val empty = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
-                gravity = Gravity.CENTER
+                gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
                 layoutDirection = View.LAYOUT_DIRECTION_RTL
-                setPadding(dp(18), dp(24), dp(18), dp(24))
-                minimumHeight = dp(320)
+                setPadding(dp(18), dp(38), dp(18), dp(12))
+                minimumHeight = dp(112)
             }
             empty.addView(text(
                 if (notes.isEmpty()) "لا شيء هنا بعد" else "لا توجد نتائج مطابقة",
