@@ -8,8 +8,11 @@ import android.content.pm.PackageManager
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.RadialGradient
+import android.graphics.Shader
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.LayerDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -636,7 +639,7 @@ class NativeTasbihActivity : Activity() {
         val stage = FrameLayout(this).apply {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(310)
+                dp(330)
             ).apply {
                 topMargin = dp(5)
                 bottomMargin = dp(3)
@@ -659,7 +662,13 @@ class NativeTasbihActivity : Activity() {
             isClickable = true
             isFocusable = true
             contentDescription = "عداد السبحة: اضغط للزيادة"
-            setOnClickListener { addCount(1) }
+            setOnClickListener {
+                animate().cancel()
+                scaleX = 0.97f
+                scaleY = 0.97f
+                animate().scaleX(1f).scaleY(1f).setDuration(150).start()
+                addCount(1)
+            }
             setOnKeyListener { _, keyCode, event ->
                 if (event.action == android.view.KeyEvent.ACTION_UP &&
                     (keyCode == android.view.KeyEvent.KEYCODE_ENTER ||
@@ -679,7 +688,7 @@ class NativeTasbihActivity : Activity() {
         )
         counterCenter.addView(countView)
         counterCenter.addView(textView("اضغط للعد", 10f, palette.muted, true, Gravity.CENTER))
-        stage.addView(counterCenter, FrameLayout.LayoutParams(dp(188), dp(188), Gravity.CENTER))
+        stage.addView(counterCenter, FrameLayout.LayoutParams(dp(236), dp(236), Gravity.CENTER))
         outer.addView(stage)
 
         val actions = LinearLayout(this).apply {
@@ -1367,12 +1376,38 @@ class NativeTasbihActivity : Activity() {
         setOnClickListener { onClick() }
     }
 
-    private fun counterBackground() = GradientDrawable(
-        GradientDrawable.Orientation.TL_BR,
-        intArrayOf(palette.surface, blend(palette.accentSoft, palette.surface, 0.30f))
-    ).apply {
-        shape = GradientDrawable.OVAL
-        setStroke(dp(4), palette.border)
+    /**
+     * The royal counter keeps the deep emerald face and double antique-gold
+     * rim from the approved web design, while each selectable theme supplies
+     * its own accent. Insets create a second fine inner rim without an image
+     * dependency, so the Android view remains crisp at every screen density.
+     */
+    private fun counterBackground(): LayerDrawable {
+        val outer = GradientDrawable(
+            GradientDrawable.Orientation.TL_BR,
+            intArrayOf(
+                blend(palette.accent, Color.BLACK, 0.38f),
+                palette.accent,
+                blend(palette.accent, Color.BLACK, 0.26f)
+            )
+        ).apply {
+            shape = GradientDrawable.OVAL
+            setStroke(dp(7), palette.border)
+        }
+        val inner = GradientDrawable(
+            GradientDrawable.Orientation.TL_BR,
+            intArrayOf(
+                blend(palette.accent, palette.surface, 0.18f),
+                blend(palette.accent, Color.BLACK, 0.08f),
+                blend(palette.accent, Color.BLACK, 0.22f)
+            )
+        ).apply {
+            shape = GradientDrawable.OVAL
+            setStroke(dp(1), palette.accentSoft)
+        }
+        return LayerDrawable(arrayOf(outer, inner)).apply {
+            setLayerInset(1, dp(9), dp(9), dp(9), dp(9))
+        }
     }
 
     private fun rounded(
@@ -1413,6 +1448,9 @@ class NativeTasbihActivity : Activity() {
 
     private inner class BeadRingView(activity: Activity) : View(activity) {
         private val beadPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+        private val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.argb(62, 0, 20, 15)
+        }
         private val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
             strokeWidth = dp(1).toFloat()
@@ -1439,11 +1477,34 @@ class NativeTasbihActivity : Activity() {
                 val x = centerX + kotlin.math.cos(angle).toFloat() * radius
                 val y = centerY + kotlin.math.sin(angle).toFloat() * radius
                 val isLit = index < lit
+
+                // Soft lower shadow gives each bead a rounded, polished edge.
+                canvas.drawCircle(x, y + dp(2), beadRadius, shadowPaint)
+
+                val highlight = if (palette.key == "emerald" || palette.key == "heritage") {
+                    Color.rgb(182, 208, 192)
+                } else {
+                    blend(palette.surface, palette.accent, 0.58f)
+                }
+                val middle = if (isLit) palette.tapEnd else palette.accent
+                val deep = blend(palette.accent, Color.BLACK, 0.48f)
+                val edge = blend(palette.accent, Color.BLACK, 0.76f)
                 beadPaint.style = Paint.Style.FILL
-                beadPaint.color = if (isLit) palette.accent else palette.surface
+                beadPaint.shader = RadialGradient(
+                    x - beadRadius * 0.32f,
+                    y - beadRadius * 0.38f,
+                    beadRadius * 1.25f,
+                    intArrayOf(highlight, middle, deep, edge),
+                    floatArrayOf(0f, 0.36f, 0.73f, 1f),
+                    Shader.TileMode.CLAMP
+                )
                 canvas.drawCircle(x, y, beadRadius, beadPaint)
+                beadPaint.shader = null
+
                 borderPaint.color = palette.border
+                borderPaint.strokeWidth = dp(1).toFloat()
                 canvas.drawCircle(x, y, beadRadius, borderPaint)
+
                 if (isLit && index == lit - 1) {
                     borderPaint.color = palette.accentSoft
                     borderPaint.strokeWidth = dp(2).toFloat()
