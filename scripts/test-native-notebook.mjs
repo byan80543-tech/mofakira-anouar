@@ -120,7 +120,7 @@ assert.doesNotMatch(activity, /innerHTML|loadDataWithBaseURL/,
 assert.match(legacy, /WebView/);
 assert.match(gradle, /versionCode = 8/);
 assert.ok(gradle.includes('versionName = "0.8.0"'));
-assert.match(gradle, /applicationIdSuffix = "\\.preview\\.v08"/,
+assert.match(gradle, /applicationIdSuffix = "\.preview\.v08"/,
   'the versioned debug APK installs alongside stable and earlier preview apps without replacing their local vaults');
 assert.match(gradle, /versionNameSuffix = "-preview"/);
 assert.match(debugStrings, /<string name="app_name">مفكرة أنوار التجريبية<\/string>/);
