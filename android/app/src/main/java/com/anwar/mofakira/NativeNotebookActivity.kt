@@ -1533,19 +1533,25 @@ class NativeNotebookActivity : Activity() {
     private fun normalizeRichHtml(value: String): String {
         if (value.isBlank()) return ""
         val bounded = value.take(MAX_RICH_HTML_LENGTH)
-        val safe = bounded
+        return bounded
             .replace(Regex("""(?is)<(script|style|iframe|object|embed)\b[^>]*>.*?</\1\s*>"""), "")
             .replace(Regex("""(?is)<(script|style|iframe|object|embed)\b[^>]*/\s*>"""), "")
             .replace(Regex("""(?i)\s+on[a-z]+\s*=\s*("[^"]*"|'[^']*')"""), "")
             .replace(Regex("""(?i)javascript\s*:"""), "")
-        return runCatching { Html.toHtml(Html.fromHtml(safe)) }
-            .getOrDefault("")
             .take(MAX_RICH_HTML_LENGTH)
     }
 
     private fun richHtmlToText(value: String): CharSequence {
         val safe = normalizeRichHtml(value)
-        return if (safe.isBlank()) "" else Html.fromHtml(safe)
+        if (safe.isBlank()) return ""
+        val poetryRows = Regex(
+            """(?is)<div\b[^>]*class=["'][^"']*\bv\b[^"']*["'][^>]*>\s*<span[^>]*>(.*?)</span>\s*<span[^>]*>(.*?)</span>\s*</div>"""
+        )
+        val readable = poetryRows.replace(safe) { match ->
+            "<div><b>" + match.groupValues[1] + "</b><span>　　</span>" +
+                match.groupValues[2] + "</div>"
+        }
+        return Html.fromHtml(readable)
     }
 
     private fun richHtmlFromEditor(value: Spanned): String =
