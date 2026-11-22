@@ -177,6 +177,9 @@ object NativeMediaCatalog {
         return combined.values.sortedBy { it.displayName }
     }
 
+    fun quickRadioStation(): LiveStation =
+        LiveStation("إذاعة زين بلادي للقرآن الكريم", "https://asmaki.ma:8000/radio.mp3")
+
     fun loadStations(): List<LiveStation> {
         val dynamic = runCatching {
             val root = getJson("https://www.mp3quran.net/api/v3/radios?language=ar")

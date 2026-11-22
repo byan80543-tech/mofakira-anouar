@@ -3,13 +3,30 @@ package com.anwar.mofakira
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
+import android.content.ComponentName
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.speech.RecognizerIntent
+import android.speech.tts.TextToSpeech
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.os.Build
 import android.text.Html
 import android.text.InputFilter
 import android.text.InputType
+import android.text.Editable
+import android.text.TextWatcher
+import android.text.Selection
+import android.text.Spanned
+import android.text.Layout
+import android.text.style.StyleSpan
+import android.text.style.UnderlineSpan
+import android.text.style.ForegroundColorSpan
+import android.text.style.BackgroundColorSpan
+import android.text.style.AlignmentSpan
+import android.text.style.TabStopSpan
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
@@ -19,6 +36,15 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Player
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
+import com.anwar.mofakira.playback.NativeMediaCatalog
+import com.anwar.mofakira.playback.NativeMediaService
+import com.google.common.util.concurrent.ListenableFuture
+import java.util.concurrent.Executor
 import android.util.Base64
 import org.json.JSONArray
 import org.json.JSONObject
@@ -59,7 +85,8 @@ class NativeNotebookActivity : Activity() {
         val sizeSp: Int,
         val textColor: Int,
         val paper: String,
-        val pinned: Boolean
+        val pinned: Boolean,
+        val richHtml: String = ""
     )
 
     private data class Note(
@@ -73,7 +100,8 @@ class NativeNotebookActivity : Activity() {
         val sizeSp: Int,
         val textColor: Int,
         val paper: String,
-        val history: List<HistoryVersion> = emptyList()
+        val history: List<HistoryVersion> = emptyList(),
+        val richHtml: String = ""
     )
 
     private val navy = Color.rgb(9, 38, 77)
@@ -93,7 +121,10 @@ class NativeNotebookActivity : Activity() {
         "wine" to "عنابي"
     )
     private val paperChoices = listOf(
-        "plain" to "أبيض",
+        "plain" to "بيضاء",
+        "ruled" to "مخططة",
+        "poetry" to "الشعر العمودي",
+        "framed" to "مؤطرة",
         "cream" to "كريمي",
         "parchment" to "رق",
         "mint" to "أخضر",
@@ -120,6 +151,17 @@ class NativeNotebookActivity : Activity() {
     private lateinit var storageNotice: TextView
     private lateinit var importButton: TextView
     private lateinit var exportButton: TextView
+    private var radioToolbarButton: TextView? = null
+    private var radioController: MediaController? = null
+    private var radioControllerFuture: ListenableFuture<MediaController>? = null
+    private var radioActionPending = false
+    private var pendingSpeechEditor: EditText? = null
+    private val radioMainExecutor = Executor { command -> runOnUiThread(command) }
+    private val radioPlayerListener = object : Player.Listener {
+        override fun onIsPlayingChanged(isPlaying: Boolean) = syncRadioToolbarState()
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) = syncRadioToolbarState()
+        override fun onPlaybackStateChanged(playbackState: Int) = syncRadioToolbarState()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -182,12 +224,10 @@ class NativeNotebookActivity : Activity() {
         toolbar.addView(toolbarIconButton("▤", "أرشيف أنوار") {
             showArchiveMenu()
         }, LinearLayout.LayoutParams(dp(39), dp(42)))
-        toolbar.addView(toolbarIconButton("📻", "تشغيل أو إيقاف إذاعة القرآن") {
-            startActivity(
-                Intent(this, NativeAudioActivity::class.java)
-                    .putExtra(NativeAudioActivity.EXTRA_MODE, NativeAudioActivity.MODE_RADIO)
-            )
-        }, LinearLayout.LayoutParams(dp(39), dp(42)))
+        radioToolbarButton = toolbarIconButton("📻", "تشغيل إذاعة القرآن") {
+            toggleRadioPlayback()
+        }
+        toolbar.addView(radioToolbarButton, LinearLayout.LayoutParams(dp(39), dp(42)))
         toolbar.addView(toolbarIconButton("☼", "تبديل الوضع الليلي والنهاري") {
             toggleNotebookTheme(shell)
         }, LinearLayout.LayoutParams(dp(39), dp(42)))
@@ -330,6 +370,113 @@ class NativeNotebookActivity : Activity() {
             isFocusable = true
             setOnClickListener { onClick() }
         }
+
+    private fun toggleRadioPlayback() {
+        if (radioActionPending) return
+        radioActionPending = true
+        val current = radioController
+        if (current != null) {
+            performRadioToggle(current)
+            return
+        }
+
+        val token = SessionToken(this, ComponentName(this, NativeMediaService::class.java))
+        val future = MediaController.Builder(this, token).buildAsync()
+        radioControllerFuture = future
+        future.addListener({
+            try {
+                val connected = future.get()
+                radioControllerFuture = null
+                if (isFinishing || isDestroyed) {
+                    connected.release()
+                    radioActionPending = false
+                    return@addListener
+                }
+                radioController = connected
+                connected.addListener(radioPlayerListener)
+                performRadioToggle(connected)
+            } catch (error: Exception) {
+                radioControllerFuture = null
+                radioActionPending = false
+                Toast.makeText(this, "تعذّر الاتصال بمشغل إذاعة أنوار.", Toast.LENGTH_LONG).show()
+                syncRadioToolbarState()
+            }
+        }, radioMainExecutor)
+    }
+
+    private fun performRadioToggle(controller: MediaController) {
+        val currentItem = controller.currentMediaItem
+        val isRadio = currentItem?.mediaId?.startsWith("radio:") == true
+        if (isRadio) {
+            if (controller.isPlaying) {
+                controller.pause()
+                Toast.makeText(this, "تم إيقاف الإذاعة مؤقتًا.", Toast.LENGTH_SHORT).show()
+            } else {
+                if (controller.playbackState == Player.STATE_IDLE ||
+                    controller.playbackState == Player.STATE_ENDED) {
+                    controller.prepare()
+                }
+                controller.play()
+                Toast.makeText(this, "جارٍ استئناف إذاعة أنوار.", Toast.LENGTH_SHORT).show()
+            }
+            radioActionPending = false
+            syncRadioToolbarState()
+            return
+        }
+
+        val station = NativeMediaCatalog.quickRadioStation()
+        val item = MediaItem.Builder()
+            .setMediaId("radio:" + station.url)
+            .setUri(station.url)
+            .setMediaMetadata(
+                MediaMetadata.Builder()
+                    .setTitle(station.name)
+                    .setArtist("إذاعات مفكرة أنوار")
+                    .setAlbumTitle("بث مباشر")
+                    .build()
+            )
+            .build()
+        controller.setMediaItem(item)
+        controller.prepare()
+        controller.play()
+        radioActionPending = false
+        syncRadioToolbarState()
+        Toast.makeText(this, "بدأ تشغيل إذاعة القرآن.", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun syncRadioToolbarState() {
+        val active = radioController?.let { controller ->
+            controller.isPlaying && controller.currentMediaItem?.mediaId?.startsWith("radio:") == true
+        } == true
+        radioToolbarButton?.apply {
+            isActivated = active
+            contentDescription = if (active) "إيقاف إذاعة القرآن مؤقتًا" else "تشغيل إذاعة القرآن"
+            alpha = if (active) 1f else 0.9f
+            background = rounded(
+                intArrayOf(
+                    if (active) Color.rgb(13, 83, 70) else Color.rgb(37, 78, 119),
+                    if (active) Color.rgb(13, 83, 70) else Color.rgb(37, 78, 119)
+                ),
+                10,
+                Color.rgb(199, 169, 106)
+            )
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        syncRadioToolbarState()
+    }
+
+    override fun onDestroy() {
+        radioController?.removeListener(radioPlayerListener)
+        radioController?.release()
+        radioController = null
+        radioControllerFuture?.cancel(false)
+        radioControllerFuture = null
+        pendingSpeechEditor = null
+        super.onDestroy()
+    }
 
     private fun showArchiveMenu() {
         val choices = arrayOf("تصدير نسخة مشفرة", "استيراد نسخة مشفرة", "فتح الخدمات الكاملة")
@@ -595,7 +742,7 @@ class NativeNotebookActivity : Activity() {
             return
         }
         if (existing == null && notes.size >= MAX_NOTES) {
-            Toast.makeText(this, "بلغت الحد الأقصى وهو " + MAX_NOTES + " عمل.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "بلغت المفكرة حدها الأقصى وهو " + MAX_NOTES + " عمل.", Toast.LENGTH_LONG).show()
             return
         }
 
@@ -604,6 +751,8 @@ class NativeNotebookActivity : Activity() {
         var selectedTextSize = existing?.sizeSp ?: 20
         var selectedTextColor = existing?.textColor ?: Color.rgb(35, 48, 58)
         var selectedPaper = existing?.paper ?: "plain"
+        var selectedHighlight = Color.rgb(255, 242, 168)
+
         val titleInput = EditText(this).apply {
             setText(existing?.title.orEmpty())
             hint = "عنوان العمل (اختياري)"
@@ -618,8 +767,14 @@ class NativeNotebookActivity : Activity() {
             setPadding(dp(12), dp(10), dp(12), dp(10))
             background = rounded(intArrayOf(Color.WHITE, Color.WHITE), 11, border)
         }
+
+        val initialContent: CharSequence = if (existing?.richHtml.isNullOrBlank()) {
+            existing?.text.orEmpty()
+        } else {
+            richHtmlToText(existing?.richHtml.orEmpty())
+        }
         val bodyInput = EditText(this).apply {
-            setText(existing?.text.orEmpty())
+            setText(initialContent)
             hint = "ابدأ الكتابة هنا…"
             textSize = selectedTextSize.toFloat()
             setTextColor(selectedTextColor)
@@ -631,121 +786,335 @@ class NativeNotebookActivity : Activity() {
             inputType = InputType.TYPE_CLASS_TEXT or
                 InputType.TYPE_TEXT_FLAG_MULTI_LINE or
                 InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
-            minLines = 9
-            maxLines = 16
+            minLines = 12
+            maxLines = 60
+            setHorizontallyScrolling(false)
             filters = arrayOf(InputFilter.LengthFilter(MAX_CONTENT_LENGTH))
-            setLineSpacing(dp(4).toFloat(), 1f)
-            setPadding(dp(13), dp(12), dp(13), dp(12))
+            setLineSpacing(dp(5).toFloat(), 1.05f)
+            setPadding(dp(15), dp(14), dp(15), dp(14))
             background = paperBackground(selectedPaper, 12)
         }
+
+        val stats = text("", 10f, muted, top = 5, bottom = 3)
+        var editorTts: TextToSpeech? = null
+        val toolForm = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            setPadding(dp(14), dp(7), dp(14), dp(8))
+        }
+
+        fun selectedLineRange(): Pair<Int, Int> {
+            val value = bodyInput.text
+            val length = value.length
+            var start = Selection.getSelectionStart(value).coerceIn(0, length)
+            var end = Selection.getSelectionEnd(value).coerceIn(0, length)
+            if (start > end) {
+                val swap = start
+                start = end
+                end = swap
+            }
+            val lineStart = value.toString().lastIndexOf('\n', (start - 1).coerceAtLeast(0))
+                .let { if (it < 0) 0 else it + 1 }
+            val lineEndFound = value.toString().indexOf('\n', end)
+            val lineEnd = if (lineEndFound < 0) length else lineEndFound + 1
+            return if (start == end) lineStart to lineEnd else start to end
+        }
+
+        fun applyInlineSpan(span: Any) {
+            val editable = bodyInput.text
+            val (start, end) = selectedLineRange()
+            if (end <= start) {
+                Toast.makeText(this, "حدد النص أولًا لتطبيق التنسيق.", Toast.LENGTH_SHORT).show()
+                return
+            }
+            editable.setSpan(span, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            bodyInput.setSelection(end.coerceAtMost(editable.length))
+        }
+
+        fun addToolButton(
+            row: LinearLayout,
+            label: String,
+            selected: Boolean = false,
+            width: Int = 74,
+            onClick: () -> Unit
+        ): TextView {
+            val button = actionButton(
+                label,
+                if (selected) Color.rgb(219, 230, 246) else Color.WHITE,
+                if (selected) Color.rgb(43, 87, 154) else ink,
+                onClick
+            ).apply {
+                textSize = 11f
+                setPadding(dp(7), dp(7), dp(7), dp(7))
+                minHeight = dp(42)
+            }
+            row.addView(button, LinearLayout.LayoutParams(dp(width), dp(44)).apply {
+                marginStart = dp(3)
+                marginEnd = dp(3)
+            })
+            return button
+        }
+
+        fun makeToolRow(): LinearLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+
+        fun horizontalStrip(row: LinearLayout): HorizontalScrollView =
+            HorizontalScrollView(this).apply {
+                isHorizontalScrollBarEnabled = false
+                layoutDirection = View.LAYOUT_DIRECTION_RTL
+                addView(row)
+            }
+
+        fun addLabel(label: String) {
+            toolForm.addView(text(label, 11f, muted, true, top = 7, bottom = 5))
+        }
+
+        val typeRow = makeToolRow()
+        fun refreshTypes() {
+            typeRow.removeAllViews()
+            listOf("poem" to "قصيدة", "text" to "نص", "idea" to "فكرة").forEach { (key, label) ->
+                addToolButton(typeRow, label, selectedType == key, width = 0) {
+                    selectedType = key
+                    refreshTypes()
+                }.also {
+                    val lp = it.layoutParams as LinearLayout.LayoutParams
+                    lp.width = 0
+                    lp.weight = 1f
+                    it.layoutParams = lp
+                }
+            }
+        }
+        refreshTypes()
+        addLabel("نوع العمل")
+        toolForm.addView(typeRow)
 
         val styleScroll = HorizontalScrollView(this).apply {
             isHorizontalScrollBarEnabled = false
             layoutDirection = View.LAYOUT_DIRECTION_RTL
         }
-        val styleRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            layoutDirection = View.LAYOUT_DIRECTION_RTL
-        }
+        val styleRow = makeToolRow()
         styleScroll.addView(styleRow)
-
-        fun applyEditorStyle() {
-            bodyInput.textSize = selectedTextSize.toFloat()
-            bodyInput.setTextColor(selectedTextColor)
-            bodyInput.typeface = fontTypeface(selectedFont)
-            bodyInput.background = paperBackground(selectedPaper, 12)
-        }
-
-        fun addStyleControl(label: String, onClick: () -> Unit) {
-            val control = actionButton(label, Color.WHITE, ink, onClick).apply {
-                textSize = 10f
-                setPadding(dp(8), dp(7), dp(8), dp(7))
-            }
-            styleRow.addView(control, LinearLayout.LayoutParams(dp(82), dp(46)).apply {
-                marginEnd = dp(3)
-                marginStart = dp(3)
-            })
-        }
-
-        fun refreshStyleControls() {
+        fun refreshStyleRow() {
             styleRow.removeAllViews()
-            addStyleControl("الخط\n" + fontLabel(selectedFont)) {
+            addToolButton(styleRow, "الخط\n" + fontLabel(selectedFont), width = 86) {
                 showOptionPicker("اختر الخط", fontChoices, selectedFont) { value ->
                     selectedFont = value
-                    applyEditorStyle()
-                    refreshStyleControls()
+                    bodyInput.typeface = fontTypeface(value)
+                    refreshStyleRow()
                 }
             }
-            addStyleControl("الحجم\n" + selectedTextSize) {
-                val sizes = listOf(16, 18, 20, 22, 24, 26, 28).map { it.toString() to "$it نقطة" }
+            addToolButton(styleRow, "الحجم\n" + selectedTextSize, width = 72) {
+                val sizes = listOf(14, 16, 18, 20, 22, 24, 28, 32, 40, 56)
+                    .map { it.toString() to "$it نقطة" }
                 showOptionPicker("حجم الكتابة", sizes, selectedTextSize.toString()) { value ->
                     selectedTextSize = value.toInt()
-                    applyEditorStyle()
-                    refreshStyleControls()
+                    bodyInput.textSize = selectedTextSize.toFloat()
+                    refreshStyleRow()
                 }
             }
-            val colorKey = textColorChoices.firstOrNull { textColorFor(it.first) == selectedTextColor }?.first ?: "ink"
-            addStyleControl("لون النص\n" + textColorLabel(colorKey)) {
+            val colorKey = textColorChoices.firstOrNull {
+                textColorFor(it.first) == selectedTextColor
+            }?.first ?: "ink"
+            addToolButton(styleRow, "لون النص\n" + textColorLabel(colorKey), width = 86) {
                 showOptionPicker("لون النص", textColorChoices, colorKey) { value ->
                     selectedTextColor = textColorFor(value)
-                    applyEditorStyle()
-                    refreshStyleControls()
+                    val (start, end) = selectedLineRange()
+                    if (end > start && Selection.getSelectionStart(bodyInput.text) != Selection.getSelectionEnd(bodyInput.text)) {
+                        bodyInput.text.setSpan(
+                            ForegroundColorSpan(selectedTextColor),
+                            start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                        )
+                    } else {
+                        bodyInput.setTextColor(selectedTextColor)
+                    }
+                    refreshStyleRow()
                 }
             }
-            addStyleControl("الورق\n" + paperLabel(selectedPaper)) {
-                showOptionPicker("شكل الورق", paperChoices, selectedPaper) { value ->
+            addToolButton(styleRow, "شكل الورقة\n" + paperLabel(selectedPaper), width = 100) {
+                showOptionPicker("شكل صفحة الكتابة", paperChoices, selectedPaper) { value ->
                     selectedPaper = value
-                    applyEditorStyle()
-                    refreshStyleControls()
+                    bodyInput.background = paperBackground(selectedPaper, 12)
+                    refreshStyleRow()
                 }
             }
         }
-        refreshStyleControls()
+        refreshStyleRow()
+        addLabel("الخط وشكل الصفحة")
+        toolForm.addView(styleScroll, marginBottom(3))
 
-        val typeButtons = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            layoutDirection = View.LAYOUT_DIRECTION_RTL
+        val inlineRow = makeToolRow()
+        addToolButton(inlineRow, "B عريض", width = 72) {
+            applyInlineSpan(StyleSpan(Typeface.BOLD))
         }
-        fun renderTypeButtons() {
-            typeButtons.removeAllViews()
-            listOf("poem" to "قصيدة", "text" to "نص", "idea" to "فكرة").forEach { (key, label) ->
-                val selected = selectedType == key
-                val button = actionButton(
-                    label,
-                    if (selected) green else Color.WHITE,
-                    if (selected) Color.WHITE else ink
-                ) { selectedType = key; renderTypeButtons() }
-                button.textSize = 12f
-                typeButtons.addView(button, LinearLayout.LayoutParams(0, dp(39), 1f).apply {
-                    marginEnd = dp(3)
-                    marginStart = dp(3)
-                })
+        addToolButton(inlineRow, "I مائل", width = 72) {
+            applyInlineSpan(StyleSpan(Typeface.ITALIC))
+        }
+        addToolButton(inlineRow, "U تسطير", width = 78) {
+            applyInlineSpan(UnderlineSpan())
+        }
+        addToolButton(inlineRow, "تمييز", width = 74) {
+            val highlights = listOf(
+                "yellow" to "أصفر هادئ",
+                "pink" to "وردي",
+                "blue" to "أزرق",
+                "green" to "أخضر"
+            )
+            val colors = mapOf(
+                "yellow" to Color.rgb(255, 242, 168),
+                "pink" to Color.rgb(255, 220, 229),
+                "blue" to Color.rgb(214, 232, 250),
+                "green" to Color.rgb(218, 239, 219)
+            )
+            showOptionPicker("تمييز النص", highlights, "yellow") { value ->
+                selectedHighlight = colors[value] ?: selectedHighlight
+                applyInlineSpan(BackgroundColorSpan(selectedHighlight))
             }
         }
-        renderTypeButtons()
+        addLabel("تنسيق النص")
+        toolForm.addView(inlineRow)
+
+        val paragraphRow = makeToolRow()
+        addToolButton(paragraphRow, "يمين", width = 58) {
+            applyParagraphAlignment(bodyInput, Layout.Alignment.ALIGN_NORMAL)
+        }
+        addToolButton(paragraphRow, "توسيط", width = 62) {
+            applyParagraphAlignment(bodyInput, Layout.Alignment.ALIGN_CENTER)
+        }
+        addToolButton(paragraphRow, "يسار", width = 58) {
+            applyParagraphAlignment(bodyInput, Layout.Alignment.ALIGN_OPPOSITE)
+        }
+        addToolButton(paragraphRow, "ضبط", width = 58) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                bodyInput.justificationMode = Layout.JUSTIFICATION_MODE_INTER_WORD
+            } else {
+                applyParagraphAlignment(bodyInput, Layout.Alignment.ALIGN_NORMAL)
+            }
+        }
+        addToolButton(paragraphRow, "• قائمة", width = 68) {
+            insertListPrefix(bodyInput, "• ")
+        }
+        addToolButton(paragraphRow, "1. قائمة", width = 72) {
+            insertNumberedList(bodyInput)
+        }
+        addLabel("الفقرات والقوائم")
+        toolForm.addView(horizontalStrip(paragraphRow), marginBottom(3))
+
+        fun readEditorAloud() {
+            val value = bodyInput.text.toString().trim()
+            if (value.isBlank()) {
+                Toast.makeText(this, "اكتب النص أولًا.", Toast.LENGTH_SHORT).show()
+                return
+            }
+            val activeTts = editorTts
+            if (activeTts != null) {
+                activeTts.speak(value, TextToSpeech.QUEUE_FLUSH, null, "anwar-editor-reading")
+            } else {
+                editorTts = TextToSpeech(this) { status ->
+                    if (status == TextToSpeech.SUCCESS) {
+                        val engine = editorTts
+                        if (engine != null) {
+                            val language = engine.setLanguage(Locale("ar"))
+                            if (language == TextToSpeech.LANG_MISSING_DATA ||
+                                language == TextToSpeech.LANG_NOT_SUPPORTED) {
+                                Toast.makeText(this, "لا يتوفر صوت عربي للقراءة على هذا الجهاز.", Toast.LENGTH_LONG).show()
+                            } else {
+                                engine.setSpeechRate(0.92f)
+                                engine.speak(value, TextToSpeech.QUEUE_FLUSH, null, "anwar-editor-reading")
+                            }
+                        }
+                    } else {
+                        Toast.makeText(this, "تعذّر تشغيل القراءة الصوتية.", Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        }
+
+        val writingRow = makeToolRow()
+        addToolButton(writingRow, "📜 إدراج بيت", width = 96) {
+            insertPoetryCouplet(bodyInput)
+            selectedPaper = "poetry"
+            bodyInput.background = paperBackground(selectedPaper, 12)
+            refreshStyleRow()
+        }
+        addToolButton(writingRow, "🎙 إلقاء صوتي", width = 104) {
+            startPoetryDictation(bodyInput)
+        }
+        addToolButton(writingRow, "🔊 قراءة النص", width = 96) {
+            readEditorAloud()
+        }
+        addToolButton(writingRow, "📋 نسخ", width = 66) {
+            val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+            clipboard.setPrimaryClip(ClipData.newPlainText(titleInput.text.toString(), bodyInput.text.toString()))
+            Toast.makeText(this, "تم نسخ النص.", Toast.LENGTH_SHORT).show()
+        }
+        addToolButton(writingRow, "💡 إلهام", width = 66) {
+            val prompts = listOf(
+                "اكتب عن معنى الوفاء حين تختبره الأيام.",
+                "ابدأ بيتك بصورة من الطبيعة ثم اختمه بحكمة.",
+                "دوّن خاطرة قصيرة عن أثر الكلمة الطيبة.",
+                "صف ذكرى صغيرة بقي أثرها في القلب."
+            )
+            Toast.makeText(this, prompts.random(), Toast.LENGTH_LONG).show()
+        }
+        addToolButton(writingRow, "✧ تركيز", width = 76) {
+            AlertDialog.Builder(this)
+                .setTitle("وضع التركيز")
+                .setMessage("اكتب بهدوء، ثم احفظ عملك. تبقى أدوات التنسيق متاحة من هذه النافذة.")
+                .setPositiveButton("متابعة الكتابة") { _, _ -> bodyInput.requestFocus() }
+                .setNegativeButton("إغلاق", null)
+                .show()
+        }
+        addLabel("أدوات الكتابة")
+        toolForm.addView(horizontalStrip(writingRow), marginBottom(3))
+
+        val statsTextWatcher = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                val value = s?.toString().orEmpty()
+                val words = Regex("\\\\S+").findAll(value).count()
+                val lines = value.lines().filter { it.isNotBlank() }
+                val readingMinutes = (words / 180).coerceAtLeast(if (words == 0) 0 else 1)
+                val base = words.toString() + " كلمة · قراءة ≈ " + readingMinutes + " د"
+                stats.text = if (selectedType == "poem" && lines.isNotEmpty()) {
+                    base + " · " + lines.size + " سطرًا"
+                } else base
+            }
+            override fun afterTextChanged(s: Editable?) = Unit
+        }
+        bodyInput.addTextChangedListener(statsTextWatcher)
+
+        val contentHeading = text("مساحة الكتابة", 12f, muted, true, top = 9, bottom = 5)
+        val contentFrame = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            setPadding(dp(9), dp(8), dp(9), dp(8))
+            background = paperBackground(selectedPaper, 13)
+        }
+        val bodyParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            dp(330)
+        )
+        contentFrame.addView(bodyInput, bodyParams)
 
         val form = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             layoutDirection = View.LAYOUT_DIRECTION_RTL
-            setPadding(dp(15), dp(8), dp(15), dp(5))
-            addView(text("نوع العمل", 11f, muted, bottom = 6))
-            addView(typeButtons, marginBottom(11))
-            addView(text("تنسيق الكتابة", 11f, muted, bottom = 6))
-            addView(styleScroll, marginBottom(12))
+            setPadding(dp(13), dp(8), dp(13), dp(18))
+            addView(toolForm, marginBottom(9))
             addView(text("العنوان", 11f, muted, bottom = 5))
-            addView(titleInput, marginBottom(11))
-            addView(text("المحتوى", 11f, muted, bottom = 5))
-            addView(bodyInput)
-            addView(text(
-                "النصوص تحفظ كنص عادي داخل مخزن Android المشفر. تنسيق الخطوط والورق المتقدم ما زال في النسخة الكاملة.",
-                10f, muted, top = 8
-            ))
+            addView(titleInput, marginBottom(7))
+            addView(contentHeading)
+            addView(contentFrame, marginBottom(5))
+            addView(stats)
         }
         val dialogScroll = ScrollView(this).apply {
             addView(form)
             isFillViewport = true
+            clipToPadding = false
         }
-
         val dialog = AlertDialog.Builder(this)
             .setTitle(if (existing == null) "عمل جديد" else "تحرير العمل")
             .setView(dialogScroll)
@@ -753,8 +1122,18 @@ class NativeNotebookActivity : Activity() {
             .setNegativeButton("إلغاء", null)
             .create()
 
+        dialog.setOnDismissListener {
+            editorTts?.stop()
+            editorTts?.shutdown()
+            editorTts = null
+            if (pendingSpeechEditor === bodyInput) pendingSpeechEditor = null
+        }
         dialog.setOnShowListener {
             dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+            dialog.window?.setLayout(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT
+            )
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val title = titleInput.text.toString().trim()
                 val body = bodyInput.text.toString().replace("\r\n", "\n").trimEnd()
@@ -767,12 +1146,18 @@ class NativeNotebookActivity : Activity() {
                     bodyInput.error = "تجاوز المحتوى الحد المسموح"
                     return@setOnClickListener
                 }
+                val richHtml = richHtmlFromEditor(bodyInput.text)
+                if (richHtml.length > MAX_RICH_HTML_LENGTH) {
+                    Toast.makeText(this, "حجم تنسيق العمل كبير جدًا؛ اختصر التنسيق أو قسّم العمل.", Toast.LENGTH_LONG).show()
+                    return@setOnClickListener
+                }
 
                 val previous = notes.toList()
                 val changed = existing != null && (
                     existing.title != title ||
                     existing.type != selectedType ||
                     existing.text != body ||
+                    existing.richHtml != richHtml ||
                     existing.font != selectedFont ||
                     existing.sizeSp != selectedTextSize ||
                     existing.textColor != selectedTextColor ||
@@ -792,7 +1177,8 @@ class NativeNotebookActivity : Activity() {
                     sizeSp = selectedTextSize,
                     textColor = selectedTextColor,
                     paper = selectedPaper,
-                    history = history
+                    history = history,
+                    richHtml = richHtml
                 )
                 if (existing == null) {
                     notes.add(0, updated)
@@ -815,10 +1201,112 @@ class NativeNotebookActivity : Activity() {
                 }
                 renderNotes()
                 dialog.dismiss()
-                Toast.makeText(this, "حُفظ العمل مشفرًا على هذا الجهاز.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "حُفظ العمل بتنسيقه داخل الخزنة المشفرة.", Toast.LENGTH_SHORT).show()
             }
         }
         dialog.show()
+        dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+        dialog.window?.setLayout(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.MATCH_PARENT
+        )
+        bodyInput.post {
+            bodyInput.requestFocus()
+            if (initialContent.isEmpty()) bodyInput.setSelection(0)
+        }
+    }
+
+    private fun applyParagraphAlignment(
+        editor: EditText,
+        alignment: Layout.Alignment
+    ) {
+        val editable = editor.text
+        val startSelection = Selection.getSelectionStart(editable).coerceIn(0, editable.length)
+        val endSelection = Selection.getSelectionEnd(editable).coerceIn(0, editable.length)
+        val low = minOf(startSelection, endSelection)
+        val high = maxOf(startSelection, endSelection)
+        val raw = editable.toString()
+        val start = raw.lastIndexOf('\n', (low - 1).coerceAtLeast(0))
+            .let { if (it < 0) 0 else it + 1 }
+        val endAt = raw.indexOf('\n', high)
+        val end = if (endAt < 0) editable.length else endAt + 1
+        if (end > start) {
+            editable.setSpan(AlignmentSpan.Standard(alignment), start, end, Spanned.SPAN_PARAGRAPH)
+            editor.setSelection(end.coerceAtMost(editable.length))
+        }
+    }
+
+    private fun insertListPrefix(editor: EditText, prefix: String) {
+        insertLinesPrefix(editor, prefix) { index -> prefix }
+    }
+
+    private fun insertNumberedList(editor: EditText) {
+        insertLinesPrefix(editor, "") { index -> (index + 1).toString() + ". " }
+    }
+
+    private fun insertLinesPrefix(editor: EditText, ignored: String, prefixForLine: (Int) -> String) {
+        val editable = editor.text
+        val selectionStart = Selection.getSelectionStart(editable).coerceIn(0, editable.length)
+        val selectionEnd = Selection.getSelectionEnd(editable).coerceIn(0, editable.length)
+        val low = minOf(selectionStart, selectionEnd)
+        val high = maxOf(selectionStart, selectionEnd)
+        val raw = editable.toString()
+        val first = raw.lastIndexOf('\n', (low - 1).coerceAtLeast(0))
+            .let { if (it < 0) 0 else it + 1 }
+        val last = raw.indexOf('\n', high).let { if (it < 0) raw.length else it }
+        val starts = mutableListOf<Int>()
+        starts.add(first)
+        for (index in first until last) if (raw[index] == '\n' && index + 1 <= last) starts.add(index + 1)
+        starts.withIndex().toList().asReversed().forEach { (lineIndex, position) ->
+            editable.insert(position, prefixForLine(lineIndex))
+        }
+        editor.setSelection((high + starts.size).coerceAtMost(editable.length))
+    }
+
+    private fun insertPoetryCouplet(editor: EditText) {
+        val editable = editor.text
+        val start = Selection.getSelectionStart(editable).coerceAtLeast(0)
+        val end = Selection.getSelectionEnd(editable).coerceAtLeast(start)
+        val insertAt = maxOf(start, end).coerceIn(0, editable.length)
+        val prefix = if (insertAt > 0 && editable[insertAt - 1] != '\n') "\n" else ""
+        val verse = prefix + "الشطر الأول\t\tالشطر الثاني\n"
+        editable.insert(insertAt, verse)
+        val lineStart = insertAt + prefix.length
+        val paragraphEnd = (lineStart + verse.length - prefix.length).coerceAtMost(editable.length)
+        if (paragraphEnd > lineStart) {
+            editable.setSpan(
+                AlignmentSpan.Standard(Layout.Alignment.ALIGN_CENTER),
+                lineStart,
+                paragraphEnd,
+                Spanned.SPAN_PARAGRAPH
+            )
+            editable.setSpan(
+                TabStopSpan.Standard(dp(166)),
+                lineStart,
+                paragraphEnd,
+                Spanned.SPAN_PARAGRAPH
+            )
+        }
+        val cursor = paragraphEnd.coerceAtMost(editable.length)
+        editor.setSelection(cursor)
+        editor.requestFocus()
+    }
+
+    private fun startPoetryDictation(editor: EditText) {
+        pendingSpeechEditor = editor
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ar-MA")
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "ar")
+            putExtra(RecognizerIntent.EXTRA_PROMPT, "ألق النص أو القصيدة بوضوح")
+            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
+        }
+        try {
+            startActivityForResult(intent, REQUEST_SPEECH)
+        } catch (error: Exception) {
+            pendingSpeechEditor = null
+            Toast.makeText(this, "الإملاء الصوتي غير متاح على هذا الجهاز.", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun Note.toHistoryVersion(): HistoryVersion = HistoryVersion(
@@ -830,7 +1318,8 @@ class NativeNotebookActivity : Activity() {
         sizeSp = sizeSp,
         textColor = textColor,
         paper = paper,
-        pinned = pinned
+        pinned = pinned,
+        richHtml = richHtml
     )
 
     private fun showHistory(note: Note) {
@@ -874,7 +1363,8 @@ class NativeNotebookActivity : Activity() {
                     textColor = version.textColor,
                     paper = version.paper,
                     pinned = version.pinned,
-                    history = nextHistory
+                    history = nextHistory,
+                    richHtml = version.richHtml
                 )
                 if (!saveEncryptedState()) {
                     notes.clear()
@@ -989,9 +1479,10 @@ class NativeNotebookActivity : Activity() {
             require(type in ALLOWED_TYPES) { "نوع عمل غير معروف." }
             require(timestamp > 0L) { "تاريخ عمل غير صالح." }
             val history = parseHistory(item.optJSONArray("history"))
+            val richHtml = normalizeRichHtml(item.optString("html", ""))
             parsed.add(Note(
                 id, title, type, body, item.optBoolean("pin", false), timestamp,
-                font, sizeSp, textColor, paper, history
+                font, sizeSp, textColor, paper, history, richHtml
             ))
         }
         return parsed
@@ -1020,12 +1511,40 @@ class NativeNotebookActivity : Activity() {
                     sizeSp = size,
                     textColor = item.optInt("textColor", Color.rgb(35, 48, 58)),
                     paper = nativePaperFromExternal(rawPaper),
-                    pinned = item.optBoolean("pin", false)
+                    pinned = item.optBoolean("pin", false),
+                    richHtml = normalizeRichHtml(item.optString("html", ""))
                 ))
             }
         }
         return parsed.takeLast(MAX_HISTORY)
     }
+
+    private fun normalizeRichHtml(value: String): String {
+        if (value.isBlank()) return ""
+        val bounded = value.take(MAX_RICH_HTML_LENGTH)
+        return bounded
+            .replace(Regex("""(?is)<(script|style|iframe|object|embed)\b[^>]*>.*?</\1\s*>"""), "")
+            .replace(Regex("""(?is)<(script|style|iframe|object|embed)\b[^>]*/\s*>"""), "")
+            .replace(Regex("""(?i)\s+on[a-z]+\s*=\s*("[^"]*"|'[^']*')"""), "")
+            .replace(Regex("""(?i)javascript\s*:"""), "")
+            .take(MAX_RICH_HTML_LENGTH)
+    }
+
+    private fun richHtmlToText(value: String): CharSequence {
+        val safe = normalizeRichHtml(value)
+        if (safe.isBlank()) return ""
+        val poetryRows = Regex(
+            """(?is)<div\b[^>]*class=["'][^"']*\bv\b[^"']*["'][^>]*>\s*<span[^>]*>(.*?)</span>\s*<span[^>]*>(.*?)</span>\s*</div>"""
+        )
+        val readable = poetryRows.replace(safe) { match ->
+            "<div><b>" + match.groupValues[1] + "</b><span>　　</span>" +
+                match.groupValues[2] + "</div>"
+        }
+        return Html.fromHtml(readable)
+    }
+
+    private fun richHtmlFromEditor(value: Spanned): String =
+        normalizeRichHtml(Html.toHtml(value))
 
     private fun noteTextFromJson(item: JSONObject): String {
         val raw = if (item.has("text") && !item.isNull("text")) {
@@ -1042,10 +1561,13 @@ class NativeNotebookActivity : Activity() {
     }
 
     private fun nativePaperFromExternal(value: String): String = when (value) {
-        "cream", "framed" -> "cream"
-        "parchment", "poetry" -> "parchment"
+        "framed" -> "framed"
+        "poetry" -> "poetry"
+        "ruled" -> "ruled"
+        "cream" -> "cream"
+        "parchment" -> "parchment"
         "mint" -> "mint"
-        "blue", "ruled" -> "blue"
+        "blue" -> "blue"
         "rose" -> "rose"
         else -> "plain"
     }
@@ -1115,6 +1637,7 @@ class NativeNotebookActivity : Activity() {
                 .put("size", note.sizeSp)
                 .put("textColor", note.textColor)
                 .put("paper", note.paper)
+                .put("html", note.richHtml.ifBlank { plainTextToHtml(note.text) })
                 .put("history", encodeHistory(note.history)))
         }
         return JSONObject()
@@ -1136,7 +1659,8 @@ class NativeNotebookActivity : Activity() {
                 .put("size", version.sizeSp)
                 .put("textColor", version.textColor)
                 .put("paper", version.paper)
-                .put("pin", version.pinned))
+                .put("pin", version.pinned)
+                .put("html", version.richHtml.ifBlank { plainTextToHtml(version.text) }))
         }
         return array
     }
@@ -1402,6 +1926,7 @@ class NativeNotebookActivity : Activity() {
                 .put("size", note.sizeSp)
                 .put("textColor", note.textColor)
                 .put("paper", externalPwaPaper(note.paper))
+                .put("html", note.richHtml.ifBlank { plainTextToHtml(note.text) })
                 .put("history", historyToPortableJson(note.history)))
         }
         return JSONObject()
@@ -1425,7 +1950,8 @@ class NativeNotebookActivity : Activity() {
                 .put("size", version.sizeSp)
                 .put("textColor", version.textColor)
                 .put("paper", externalPwaPaper(version.paper))
-                .put("pin", version.pinned))
+                .put("pin", version.pinned)
+                .put("html", version.richHtml.ifBlank { plainTextToHtml(version.text) }))
         }
         return array
     }
@@ -1443,6 +1969,9 @@ class NativeNotebookActivity : Activity() {
     private fun externalPwaPaper(value: String): String = when (value) {
         "cream" -> "framed"
         "parchment" -> "poetry"
+        "framed" -> "framed"
+        "poetry" -> "poetry"
+        "ruled" -> "ruled"
         "mint", "blue", "rose" -> "ruled"
         else -> "plain"
     }
@@ -1480,7 +2009,8 @@ class NativeNotebookActivity : Activity() {
                 sizeSp = size,
                 textColor = item.optInt("textColor", Color.rgb(35, 48, 58)),
                 paper = nativePaperFromExternal(rawPaper),
-                history = parseHistory(item.optJSONArray("history"))
+                history = parseHistory(item.optJSONArray("history")),
+                richHtml = normalizeRichHtml(item.optString("html", ""))
             ))
         }
         return parsed
@@ -1604,6 +2134,28 @@ class NativeNotebookActivity : Activity() {
     @Deprecated("Uses the Android document picker for broad device compatibility.")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_SPEECH) {
+            val editor = pendingSpeechEditor
+            pendingSpeechEditor = null
+            if (resultCode == RESULT_OK && editor != null && !isFinishing && !isDestroyed) {
+                val result = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                    ?.firstOrNull()
+                    ?.trim()
+                    .orEmpty()
+                if (result.isNotBlank()) {
+                    val editable = editor.text
+                    val start = Selection.getSelectionStart(editable).coerceIn(0, editable.length)
+                    val end = Selection.getSelectionEnd(editable).coerceIn(0, editable.length)
+                    val low = minOf(start, end)
+                    val high = maxOf(start, end)
+                    val prefix = if (low > 0 && editable[low - 1] != '\n' && editable[low - 1] != ' ') " " else ""
+                    editable.replace(low, high, prefix + result)
+                    editor.setSelection((low + prefix.length + result.length).coerceAtMost(editable.length))
+                    editor.requestFocus()
+                }
+            }
+            return
+        }
         if (resultCode != RESULT_OK) {
             if (requestCode == REQUEST_EXPORT) pendingExportJson = null
             if (requestCode == REQUEST_IMPORT) pendingImportJson = null
@@ -1660,20 +2212,20 @@ class NativeNotebookActivity : Activity() {
         paperChoices.firstOrNull { it.first == key }?.second ?: "أبيض"
 
     private fun paperColor(key: String): Int = when (key) {
-        "cream" -> Color.rgb(255, 253, 247)
-        "parchment" -> Color.rgb(248, 239, 220)
+        "cream", "framed" -> Color.rgb(255, 253, 247)
+        "parchment", "poetry" -> Color.rgb(248, 239, 220)
         "mint" -> Color.rgb(237, 246, 239)
-        "blue" -> Color.rgb(238, 244, 251)
+        "blue", "ruled" -> Color.rgb(238, 244, 251)
         "rose" -> Color.rgb(252, 239, 242)
         else -> Color.WHITE
     }
 
     private fun paperBorderColor(key: String): Int = when (key) {
-        "parchment" -> Color.rgb(211, 190, 151)
+        "parchment", "poetry" -> Color.rgb(211, 190, 151)
         "mint" -> Color.rgb(190, 218, 197)
-        "blue" -> Color.rgb(190, 210, 232)
+        "blue", "ruled" -> Color.rgb(190, 210, 232)
         "rose" -> Color.rgb(231, 197, 205)
-        "cream" -> Color.rgb(228, 218, 193)
+        "cream", "framed" -> Color.rgb(228, 218, 193)
         else -> border
     }
 
@@ -1765,6 +2317,7 @@ class NativeNotebookActivity : Activity() {
         private const val MAX_NOTES = 2500
         private const val MAX_TITLE_LENGTH = 300
         private const val MAX_CONTENT_LENGTH = 450_000
+        private const val MAX_RICH_HTML_LENGTH = 1_350_000
         private const val MAX_PLAINTEXT_BYTES = 6 * 1024 * 1024
         private const val MAX_HISTORY = 15
         // Shared envelope format lets PWA and Android open each other's encrypted backups.
@@ -1780,6 +2333,7 @@ class NativeNotebookActivity : Activity() {
         private const val MAX_PORTABLE_FILE_BYTES = 12 * 1024 * 1024
         private const val REQUEST_EXPORT = 7301
         private const val REQUEST_IMPORT = 7302
+        private const val REQUEST_SPEECH = 7402
         private val ALLOWED_TYPES = setOf("poem", "text", "idea")
     }
 }
