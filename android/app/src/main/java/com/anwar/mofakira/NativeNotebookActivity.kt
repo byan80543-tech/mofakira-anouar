@@ -2,10 +2,12 @@ package com.anwar.mofakira
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.text.Html
 import android.text.InputFilter
 import android.text.InputType
 import android.view.Gravity
@@ -21,8 +23,11 @@ import android.util.Base64
 import org.json.JSONArray
 import org.json.JSONObject
 import java.nio.ByteBuffer
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
 import java.nio.charset.StandardCharsets
 import java.security.KeyStore
+import java.security.SecureRandom
 import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
@@ -30,7 +35,10 @@ import java.util.UUID
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
+import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.GCMParameterSpec
+import javax.crypto.spec.PBEKeySpec
+import javax.crypto.spec.SecretKeySpec
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 
@@ -42,6 +50,18 @@ import android.security.keystore.KeyProperties
  * encrypted backup-before-replace write sequence.
  */
 class NativeNotebookActivity : Activity() {
+    private data class HistoryVersion(
+        val title: String,
+        val type: String,
+        val text: String,
+        val updatedAt: Long,
+        val font: String,
+        val sizeSp: Int,
+        val textColor: Int,
+        val paper: String,
+        val pinned: Boolean
+    )
+
     private data class Note(
         val id: String,
         val title: String,
@@ -52,7 +72,8 @@ class NativeNotebookActivity : Activity() {
         val font: String,
         val sizeSp: Int,
         val textColor: Int,
-        val paper: String
+        val paper: String,
+        val history: List<HistoryVersion> = emptyList()
     )
 
     private val navy = Color.rgb(9, 38, 77)
@@ -85,6 +106,8 @@ class NativeNotebookActivity : Activity() {
     private var storageAvailable = true
     private var storageMessage = ""
     private var renderLimit = PAGE_SIZE
+    private var pendingExportJson: String? = null
+    private var pendingImportJson: String? = null
 
     private lateinit var rootContent: LinearLayout
     private lateinit var noteContainer: LinearLayout
@@ -94,6 +117,8 @@ class NativeNotebookActivity : Activity() {
     private lateinit var addButton: TextView
     private lateinit var moreButton: TextView
     private lateinit var storageNotice: TextView
+    private lateinit var importButton: TextView
+    private lateinit var exportButton: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -199,7 +224,27 @@ class NativeNotebookActivity : Activity() {
 
         addButton = actionButton("＋ عمل جديد", gold, navy) { showEditor(null) }
         addButton.textSize = 15f
-        rootContent.addView(addButton, marginBottom(12))
+        rootContent.addView(addButton, marginBottom(10))
+
+        val backupActions = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+        }
+        exportButton = actionButton("تصدير نسخة مشفرة", Color.rgb(235, 242, 237), green) {
+            exportPortableBackup()
+        }.apply { textSize = 12f }
+        importButton = actionButton("استيراد نسخة", Color.WHITE, navy) {
+            selectBackupFile()
+        }.apply { textSize = 12f }
+        backupActions.addView(exportButton, LinearLayout.LayoutParams(0, dp(43), 1f).apply {
+            marginEnd = dp(3)
+            marginStart = dp(3)
+        })
+        backupActions.addView(importButton, LinearLayout.LayoutParams(0, dp(43), 1f).apply {
+            marginEnd = dp(3)
+            marginStart = dp(3)
+        })
+        rootContent.addView(backupActions, marginBottom(12))
 
         noteContainer = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -270,10 +315,18 @@ class NativeNotebookActivity : Activity() {
             storageNotice.visibility = View.VISIBLE
             addButton.isEnabled = false
             addButton.alpha = 0.45f
+            importButton.isEnabled = false
+            exportButton.isEnabled = false
+            importButton.alpha = 0.45f
+            exportButton.alpha = 0.45f
         } else {
             storageNotice.visibility = View.GONE
             addButton.isEnabled = true
             addButton.alpha = 1f
+            importButton.isEnabled = true
+            exportButton.isEnabled = true
+            importButton.alpha = 1f
+            exportButton.alpha = 1f
         }
 
         if (filtered.isEmpty()) {
@@ -362,6 +415,16 @@ class NativeNotebookActivity : Activity() {
         }, LinearLayout.LayoutParams(0, dp(38), 1f).apply { marginStart = dp(3) })
         if (!storageAvailable) actions.visibility = View.GONE
         card.addView(actions, marginTop(10))
+        val historyButton = actionButton(
+            "سجل الإصدارات · " + note.history.size,
+            Color.rgb(247, 243, 234),
+            navy
+        ) { showHistory(note) }.apply {
+            textSize = 11f
+            alpha = if (note.history.isEmpty()) 0.72f else 1f
+            isEnabled = storageAvailable
+        }
+        card.addView(historyButton, marginTop(7))
         return card
     }
 
@@ -545,6 +608,18 @@ class NativeNotebookActivity : Activity() {
                 }
 
                 val previous = notes.toList()
+                val changed = existing != null && (
+                    existing.title != title ||
+                    existing.type != selectedType ||
+                    existing.text != body ||
+                    existing.font != selectedFont ||
+                    existing.sizeSp != selectedTextSize ||
+                    existing.textColor != selectedTextColor ||
+                    existing.paper != selectedPaper
+                )
+                val history = existing?.history.orEmpty().toMutableList().apply {
+                    if (changed && existing != null) add(existing.toHistoryVersion())
+                }.takeLast(MAX_HISTORY)
                 val updated = Note(
                     id = existing?.id ?: UUID.randomUUID().toString(),
                     title = title,
@@ -555,7 +630,8 @@ class NativeNotebookActivity : Activity() {
                     font = selectedFont,
                     sizeSp = selectedTextSize,
                     textColor = selectedTextColor,
-                    paper = selectedPaper
+                    paper = selectedPaper,
+                    history = history
                 )
                 if (existing == null) {
                     notes.add(0, updated)
@@ -582,6 +658,74 @@ class NativeNotebookActivity : Activity() {
             }
         }
         dialog.show()
+    }
+
+    private fun Note.toHistoryVersion(): HistoryVersion = HistoryVersion(
+        title = title,
+        type = type,
+        text = text,
+        updatedAt = updatedAt,
+        font = font,
+        sizeSp = sizeSp,
+        textColor = textColor,
+        paper = paper,
+        pinned = pinned
+    )
+
+    private fun showHistory(note: Note) {
+        if (note.history.isEmpty()) {
+            Toast.makeText(this, "لا توجد إصدارات سابقة لهذا العمل بعد.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val reversed = note.history.withIndex().toList().asReversed()
+        val labels = reversed.map { (_, version) ->
+            (version.title.ifBlank { "بلا عنوان" }) + " · " +
+                typeName(version.type) + " · " + formatDate(version.updatedAt)
+        }.toTypedArray()
+        AlertDialog.Builder(this)
+            .setTitle("سجل إصدارات العمل")
+            .setItems(labels) { _, selected ->
+                val entry = reversed.getOrNull(selected) ?: return@setItems
+                confirmRestoreHistory(note, entry.index)
+            }
+            .setNegativeButton("إغلاق", null)
+            .show()
+    }
+
+    private fun confirmRestoreHistory(note: Note, historyIndex: Int) {
+        val currentIndex = notes.indexOfFirst { it.id == note.id }
+        if (currentIndex < 0 || !storageAvailable) return
+        val version = notes[currentIndex].history.getOrNull(historyIndex) ?: return
+        AlertDialog.Builder(this)
+            .setTitle("استعادة هذا الإصدار؟")
+            .setMessage("سيُحفظ الإصدار الحالي أولًا في السجل، ثم تُستعاد النسخة المحددة.")
+            .setPositiveButton("استعادة") { _, _ ->
+                val previous = notes.toList()
+                val current = notes[currentIndex]
+                val nextHistory = (current.history + current.toHistoryVersion()).takeLast(MAX_HISTORY)
+                notes[currentIndex] = current.copy(
+                    title = version.title,
+                    type = version.type,
+                    text = version.text,
+                    updatedAt = System.currentTimeMillis(),
+                    font = version.font,
+                    sizeSp = version.sizeSp,
+                    textColor = version.textColor,
+                    paper = version.paper,
+                    pinned = version.pinned,
+                    history = nextHistory
+                )
+                if (!saveEncryptedState()) {
+                    notes.clear()
+                    notes.addAll(previous)
+                    Toast.makeText(this, storageMessage, Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(this, "تمت استعادة الإصدار مع حفظ الحالة السابقة.", Toast.LENGTH_SHORT).show()
+                }
+                renderNotes()
+            }
+            .setNegativeButton("إلغاء", null)
+            .show()
     }
 
     private fun togglePin(note: Note) {
@@ -683,12 +827,66 @@ class NativeNotebookActivity : Activity() {
             require(body.isNotBlank() && body.length <= MAX_CONTENT_LENGTH) { "محتوى عمل غير صالح أو يتجاوز الحد." }
             require(type in ALLOWED_TYPES) { "نوع عمل غير معروف." }
             require(timestamp > 0L) { "تاريخ عمل غير صالح." }
+            val history = parseHistory(item.optJSONArray("history"))
             parsed.add(Note(
                 id, title, type, body, item.optBoolean("pin", false), timestamp,
-                font, sizeSp, textColor, paper
+                font, sizeSp, textColor, paper, history
             ))
         }
         return parsed
+    }
+
+    private fun parseHistory(array: JSONArray?): List<HistoryVersion> {
+        if (array == null) return emptyList()
+        val parsed = ArrayList<HistoryVersion>()
+        val start = (array.length() - MAX_HISTORY).coerceAtLeast(0)
+        for (index in start until array.length()) {
+            val item = array.optJSONObject(index) ?: continue
+            runCatching {
+                val textValue = noteTextFromJson(item)
+                require(textValue.isNotBlank() && textValue.length <= MAX_CONTENT_LENGTH)
+                val rawFont = item.optString("font", "serif")
+                val size = item.optInt("size", 20).coerceIn(16, 28)
+                val rawPaper = item.optString("paper", "plain")
+                val stamp = item.optLong("ts", System.currentTimeMillis()).takeIf { it > 0L }
+                    ?: System.currentTimeMillis()
+                parsed.add(HistoryVersion(
+                    title = item.optString("title", "").take(MAX_TITLE_LENGTH),
+                    type = item.optString("type", "text").takeIf { it in ALLOWED_TYPES } ?: "text",
+                    text = textValue,
+                    updatedAt = stamp,
+                    font = nativeFontFromExternal(rawFont),
+                    sizeSp = size,
+                    textColor = item.optInt("textColor", Color.rgb(35, 48, 58)),
+                    paper = nativePaperFromExternal(rawPaper),
+                    pinned = item.optBoolean("pin", false)
+                ))
+            }
+        }
+        return parsed.takeLast(MAX_HISTORY)
+    }
+
+    private fun noteTextFromJson(item: JSONObject): String {
+        val raw = if (item.has("text") && !item.isNull("text")) {
+            item.optString("text", "")
+        } else {
+            Html.fromHtml(item.optString("html", "")).toString()
+        }
+        return raw.replace("\u0000", "").replace("\r\n", "\n").trimEnd()
+    }
+
+    private fun nativeFontFromExternal(value: String): String = when (value.trim().lowercase(Locale.ROOT)) {
+        "cairo", "sans-serif", "ibm plex sans arabic", "tajawal", "noto sans arabic" -> "sans-serif"
+        else -> "serif"
+    }
+
+    private fun nativePaperFromExternal(value: String): String = when (value) {
+        "cream", "framed" -> "cream"
+        "parchment", "poetry" -> "parchment"
+        "mint" -> "mint"
+        "blue", "ruled" -> "blue"
+        "rose" -> "rose"
+        else -> "plain"
     }
 
     private fun saveEncryptedState(): Boolean {
@@ -755,13 +953,31 @@ class NativeNotebookActivity : Activity() {
                 .put("font", note.font)
                 .put("size", note.sizeSp)
                 .put("textColor", note.textColor)
-                .put("paper", note.paper))
+                .put("paper", note.paper)
+                .put("history", encodeHistory(note.history)))
         }
         return JSONObject()
             .put("formatVersion", FORMAT_VERSION)
             .put("notes", array)
             .toString()
             .toByteArray(StandardCharsets.UTF_8)
+    }
+
+    private fun encodeHistory(history: List<HistoryVersion>): JSONArray {
+        val array = JSONArray()
+        history.takeLast(MAX_HISTORY).forEach { version ->
+            array.put(JSONObject()
+                .put("title", version.title.take(MAX_TITLE_LENGTH))
+                .put("type", version.type)
+                .put("text", version.text)
+                .put("ts", version.updatedAt)
+                .put("font", version.font)
+                .put("size", version.sizeSp)
+                .put("textColor", version.textColor)
+                .put("paper", version.paper)
+                .put("pin", version.pinned))
+        }
+        return array
     }
 
     private fun getKeystoreKey(createIfMissing: Boolean): SecretKey {
@@ -816,6 +1032,401 @@ class NativeNotebookActivity : Activity() {
             GCMParameterSpec(128, iv)
         )
         return cipher.doFinal(ciphertext)
+    }
+
+    private fun exportPortableBackup() {
+        if (!storageAvailable) return
+        askPassphrase("حماية النسخة الاحتياطية", confirm = true) { password ->
+            try {
+                val envelope = encryptPortableBackup(password)
+                pendingExportJson = envelope.toString(2)
+                val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                    addCategory(Intent.CATEGORY_OPENABLE)
+                    type = "application/json"
+                    putExtra(Intent.EXTRA_TITLE, "mofakira-anouar-encrypted-backup.json")
+                }
+                startActivityForResult(intent, REQUEST_EXPORT)
+            } catch (error: Exception) {
+                pendingExportJson = null
+                Toast.makeText(this, error.message ?: "تعذّر تجهيز النسخة المشفرة.", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun selectBackupFile() {
+        if (!storageAvailable) return
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "application/json"
+            putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("application/json", "text/plain"))
+        }
+        runCatching { startActivityForResult(intent, REQUEST_IMPORT) }
+            .onFailure { Toast.makeText(this, "تعذّر فتح منتقي ملفات النسخ الاحتياطية.", Toast.LENGTH_LONG).show() }
+    }
+
+    private fun askPassphrase(title: String, confirm: Boolean, onSubmit: (String) -> Unit) {
+        val fields = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            setPadding(dp(18), dp(8), dp(18), dp(4))
+        }
+        val passwordInput = EditText(this).apply {
+            hint = if (confirm) "عبارة مرور من 12 محرفًا على الأقل" else "عبارة مرور النسخة الاحتياطية"
+            textSize = 14f
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            setTextColor(ink)
+            setHintTextColor(muted)
+            gravity = Gravity.CENTER_VERTICAL or Gravity.END
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+        }
+        fields.addView(passwordInput)
+        val confirmInput = if (confirm) EditText(this).apply {
+            hint = "أعد كتابة عبارة المرور"
+            textSize = 14f
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            setTextColor(ink)
+            setHintTextColor(muted)
+            gravity = Gravity.CENTER_VERTICAL or Gravity.END
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+        } else null
+        confirmInput?.let { fields.addView(it, marginTop(8)) }
+        fields.addView(text(
+            if (confirm) "هذه العبارة مطلوبة عند استيراد النسخة لاحقًا. احتفظ بها في مكان آمن؛ لا يمكن استعادتها إذا نسيتها."
+            else "لن تُرفع النسخة إلى أي خادم. ستُفك على الجهاز ثم يعاد حفظ الأعمال في الخزنة المحلية المشفرة.",
+            10f, muted, top = 8
+        ))
+        val dialog = AlertDialog.Builder(this)
+            .setTitle(title)
+            .setView(fields)
+            .setPositiveButton("متابعة", null)
+            .setNegativeButton("إلغاء", null)
+            .create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val password = passwordInput.text.toString()
+                if (password.length < MIN_EXPORT_PASSWORD_LENGTH || password.length > MAX_EXPORT_PASSWORD_LENGTH) {
+                    passwordInput.error = "استخدم عبارة مرور بين 12 و2048 محرفًا."
+                    return@setOnClickListener
+                }
+                if (confirmInput != null && confirmInput.text.toString() != password) {
+                    confirmInput.error = "عبارتا المرور غير متطابقتين."
+                    return@setOnClickListener
+                }
+                passwordInput.setText("")
+                confirmInput?.setText("")
+                dialog.dismiss()
+                onSubmit(password)
+            }
+        }
+        dialog.show()
+    }
+
+    private fun encryptPortableBackup(password: String): JSONObject {
+        val plaintext = buildPortableSnapshot().toByteArray(StandardCharsets.UTF_8)
+        require(plaintext.size <= MAX_PORTABLE_PLAINTEXT_BYTES) {
+            "حجم النسخة الاحتياطية يتجاوز الحد الآمن."
+        }
+        val salt = ByteArray(16).also { SecureRandom().nextBytes(it) }
+        val iv = ByteArray(12).also { SecureRandom().nextBytes(it) }
+        val saltText = Base64.encodeToString(salt, Base64.NO_WRAP)
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        cipher.init(
+            Cipher.ENCRYPT_MODE,
+            derivePortableKey(password, salt),
+            GCMParameterSpec(128, iv)
+        )
+        cipher.updateAAD(portableAad(PORTABLE_FORMAT, saltText))
+        val ciphertext = cipher.doFinal(plaintext)
+        return JSONObject()
+            .put("format", PORTABLE_FORMAT)
+            .put("version", PORTABLE_VERSION)
+            .put("kdf", PORTABLE_KDF)
+            .put("iterations", PORTABLE_ITERATIONS)
+            .put("cipher", PORTABLE_CIPHER)
+            .put("salt", saltText)
+            .put("iv", Base64.encodeToString(iv, Base64.NO_WRAP))
+            .put("ciphertext", Base64.encodeToString(ciphertext, Base64.NO_WRAP))
+    }
+
+    private fun derivePortableKey(password: String, salt: ByteArray): SecretKeySpec {
+        require(password.length in MIN_EXPORT_PASSWORD_LENGTH..MAX_EXPORT_PASSWORD_LENGTH) {
+            "عبارة المرور يجب أن تتراوح بين 12 و2048 محرفًا."
+        }
+        val spec = PBEKeySpec(password.toCharArray(), salt, PORTABLE_ITERATIONS, 256)
+        return try {
+            val keyBytes = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
+                .generateSecret(spec).encoded
+            SecretKeySpec(keyBytes, "AES").also { keyBytes.fill(0) }
+        } finally {
+            spec.clearPassword()
+        }
+    }
+
+    private fun portableAad(format: String, salt: String): ByteArray =
+        listOf(format, PORTABLE_VERSION, PORTABLE_KDF, PORTABLE_CIPHER, PORTABLE_ITERATIONS, salt)
+            .joinToString("|").toByteArray(StandardCharsets.UTF_8)
+
+    private fun decryptPortableBackup(password: String, envelope: JSONObject): String {
+        val format = envelope.optString("format")
+        require(format == PORTABLE_FORMAT || format == LEGACY_VAULT_FORMAT) {
+            "صيغة النسخة الاحتياطية غير مدعومة."
+        }
+        require(envelope.optInt("version", -1) == PORTABLE_VERSION) {
+            "إصدار النسخة الاحتياطية غير مدعوم."
+        }
+        require(envelope.optString("kdf") == PORTABLE_KDF &&
+            envelope.optString("cipher") == PORTABLE_CIPHER &&
+            envelope.optInt("iterations", -1) == PORTABLE_ITERATIONS) {
+            "إعدادات تشفير النسخة غير مدعومة."
+        }
+        val saltText = envelope.optString("salt")
+        val salt = Base64.decode(saltText, Base64.NO_WRAP)
+        val iv = Base64.decode(envelope.optString("iv"), Base64.NO_WRAP)
+        val ciphertext = Base64.decode(envelope.optString("ciphertext"), Base64.NO_WRAP)
+        require(salt.size == 16 && iv.size == 12 && ciphertext.size in 16..MAX_PORTABLE_CIPHERTEXT_BYTES) {
+            "بنية ملف النسخة الاحتياطية غير صالحة أو يتجاوز حجمها الحد الآمن."
+        }
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        cipher.init(
+            Cipher.DECRYPT_MODE,
+            derivePortableKey(password, salt),
+            GCMParameterSpec(128, iv)
+        )
+        cipher.updateAAD(portableAad(format, saltText))
+        val plaintext = cipher.doFinal(ciphertext)
+        require(plaintext.size <= MAX_PORTABLE_PLAINTEXT_BYTES) {
+            "محتوى النسخة الاحتياطية يتجاوز الحد الآمن."
+        }
+        return String(plaintext, StandardCharsets.UTF_8)
+    }
+
+    private fun buildPortableSnapshot(): String {
+        val array = JSONArray()
+        notes.forEach { note ->
+            array.put(JSONObject()
+                .put("id", note.id)
+                .put("title", note.title)
+                .put("type", note.type)
+                .put("text", note.text)
+                .put("html", plainTextToHtml(note.text))
+                .put("pin", note.pinned)
+                .put("ts", note.updatedAt)
+                .put("font", if (note.font == "sans-serif") "Cairo" else "Amiri")
+                .put("size", note.sizeSp)
+                .put("textColor", note.textColor)
+                .put("paper", externalPaper(note.paper))
+                .put("history", historyToPortableJson(note.history)))
+        }
+        return JSONObject()
+            .put("snapshotFormat", PORTABLE_FORMAT)
+            .put("snapshotVersion", PORTABLE_VERSION)
+            .put("createdAt", System.currentTimeMillis())
+            .put("notes", array)
+            .toString()
+    }
+
+    private fun historyToPortableJson(history: List<HistoryVersion>): JSONArray {
+        val array = JSONArray()
+        history.takeLast(MAX_HISTORY).forEach { version ->
+            array.put(JSONObject()
+                .put("title", version.title)
+                .put("type", version.type)
+                .put("html", plainTextToHtml(version.text))
+                .put("text", version.text)
+                .put("ts", version.updatedAt)
+                .put("font", if (version.font == "sans-serif") "Cairo" else "Amiri")
+                .put("size", version.sizeSp)
+                .put("textColor", version.textColor)
+                .put("paper", externalPaper(version.paper))
+                .put("pin", version.pinned))
+        }
+        return array
+    }
+
+    private fun plainTextToHtml(value: String): String {
+        val escaped = value.replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("\"", "&quot;")
+        return escaped.split("\n").joinToString("") { line ->
+            if (line.isEmpty()) "<div><br></div>" else "<div>$line</div>"
+        }
+    }
+
+    private fun externalPaper(value: String): String = when (value) {
+        "cream" -> "framed"
+        "parchment" -> "poetry"
+        "mint", "blue", "rose" -> "ruled"
+        else -> "plain"
+    }
+
+    private fun parsePortableNotes(plaintext: String): List<Note> {
+        require(plaintext.toByteArray(StandardCharsets.UTF_8).size <= MAX_PORTABLE_PLAINTEXT_BYTES) {
+            "حجم بيانات النسخة الاحتياطية يتجاوز الحد الآمن."
+        }
+        val root = JSONObject(plaintext)
+        val array = root.optJSONArray("notes") ?: throw IllegalStateException("قائمة الأعمال غير موجودة في النسخة.")
+        require(array.length() <= MAX_NOTES) { "عدد الأعمال في النسخة يتجاوز الحد الأقصى وهو 2500." }
+        val parsed = ArrayList<Note>(array.length())
+        val ids = HashSet<String>()
+        for (index in 0 until array.length()) {
+            val item = array.optJSONObject(index) ?: throw IllegalStateException("يوجد عمل غير صالح في النسخة.")
+            val idFromFile = item.optString("id").trim().take(80)
+            val id = if (idFromFile.isBlank() || !ids.add(idFromFile)) UUID.randomUUID().toString().also { ids.add(it) } else idFromFile
+            val body = noteTextFromJson(item)
+            require(body.isNotBlank() && body.length <= MAX_CONTENT_LENGTH) {
+                "يوجد عمل فارغ أو يتجاوز حد 450 ألف حرف؛ لم نستورد أي عمل."
+            }
+            val rawFont = item.optString("font", "Amiri")
+            val size = item.optInt("size", 20).coerceIn(16, 28)
+            val rawPaper = item.optString("paper", "plain")
+            val stamp = item.optLong("ts", System.currentTimeMillis()).takeIf { it > 0L }
+                ?: System.currentTimeMillis()
+            parsed.add(Note(
+                id = id,
+                title = item.optString("title", "").take(MAX_TITLE_LENGTH),
+                type = item.optString("type", "text").takeIf { it in ALLOWED_TYPES } ?: "text",
+                text = body,
+                pinned = item.optBoolean("pin", false),
+                updatedAt = stamp,
+                font = nativeFontFromExternal(rawFont),
+                sizeSp = size,
+                textColor = item.optInt("textColor", Color.rgb(35, 48, 58)),
+                paper = nativePaperFromExternal(rawPaper),
+                history = parseHistory(item.optJSONArray("history"))
+            ))
+        }
+        return parsed
+    }
+
+    private fun mergeImportedNotes(imported: List<Note>, replaceExisting: Boolean) {
+        if (!storageAvailable) return
+        val previous = notes.toList()
+        val next = if (replaceExisting) {
+            imported
+        } else {
+            val ids = notes.map { it.id }.toMutableSet()
+            val additions = imported.map { item ->
+                if (ids.add(item.id)) item else item.copy(id = UUID.randomUUID().toString()).also { ids.add(it.id) }
+            }
+            notes + additions
+        }
+        if (next.size > MAX_NOTES) {
+            Toast.makeText(this, "سيؤدي الدمج إلى تجاوز 2500 عمل. اختر الاستبدال أو قسّم النسخة.", Toast.LENGTH_LONG).show()
+            return
+        }
+        notes.clear()
+        notes.addAll(next)
+        if (!saveEncryptedState()) {
+            notes.clear()
+            notes.addAll(previous)
+            Toast.makeText(this, storageMessage, Toast.LENGTH_LONG).show()
+            return
+        }
+        renderNotes()
+        Toast.makeText(
+            this,
+            if (replaceExisting) "تم استبدال الأعمال بعد التحقق من النسخة وحفظها محليًا."
+            else "تم دمج الأعمال المستوردة مع الأعمال الحالية.",
+            Toast.LENGTH_LONG
+        ).show()
+    }
+
+    private fun chooseImportMode(imported: List<Note>) {
+        if (imported.isEmpty()) {
+            Toast.makeText(this, "النسخة لا تحتوي على أعمال قابلة للاستيراد.", Toast.LENGTH_LONG).show()
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("كيف تريد استيراد الأعمال؟")
+            .setItems(arrayOf("دمج مع الأعمال الحالية", "استبدال الأعمال الحالية")) { _, which ->
+                if (which == 0) {
+                    mergeImportedNotes(imported, replaceExisting = false)
+                } else {
+                    AlertDialog.Builder(this)
+                        .setTitle("تأكيد استبدال الأعمال")
+                        .setMessage("سيتم استبدال قائمة الأعمال الحالية بعد أن تكون النسخة قد فُكّت وفُحصت. ستُحفظ الحالة المشفرة الحالية كسجل احتياطي.")
+                        .setPositiveButton("استبدال") { _, _ -> mergeImportedNotes(imported, replaceExisting = true) }
+                        .setNegativeButton("إلغاء", null)
+                        .show()
+                }
+            }
+            .setNegativeButton("إلغاء", null)
+            .show()
+    }
+
+    private fun readLimited(input: InputStream, maxBytes: Int): ByteArray {
+        val output = ByteArrayOutputStream()
+        val buffer = ByteArray(8192)
+        var total = 0
+        while (true) {
+            val count = input.read(buffer)
+            if (count < 0) break
+            total += count
+            require(total <= maxBytes) { "حجم ملف النسخة يتجاوز الحد الآمن." }
+            output.write(buffer, 0, count)
+        }
+        return output.toByteArray()
+    }
+
+    private fun handleImportFile(uri: android.net.Uri) {
+        val raw = try {
+            contentResolver.openInputStream(uri)?.use { input ->
+                String(readLimited(input, MAX_PORTABLE_FILE_BYTES), StandardCharsets.UTF_8)
+            } ?: throw IllegalStateException("تعذّرت قراءة ملف النسخة.")
+        } catch (error: Exception) {
+            Toast.makeText(this, error.message ?: "تعذّرت قراءة الملف.", Toast.LENGTH_LONG).show()
+            return
+        }
+        pendingImportJson = raw
+        askPassphrase("فك تشفير النسخة الاحتياطية", confirm = false) { password ->
+            val imported = try {
+                val envelope = JSONObject(pendingImportJson ?: throw IllegalStateException("انتهى ملف الاستيراد."))
+                val plaintext = decryptPortableBackup(password, envelope)
+                parsePortableNotes(plaintext)
+            } catch (error: Exception) {
+                Toast.makeText(this, error.message ?: "كلمة المرور غير صحيحة أو النسخة تالفة.", Toast.LENGTH_LONG).show()
+                pendingImportJson = null
+                return@askPassphrase
+            }
+            pendingImportJson = null
+            chooseImportMode(imported)
+        }
+    }
+
+    private fun persistExportFile(uri: android.net.Uri) {
+        val value = pendingExportJson ?: return
+        try {
+            val bytes = value.toByteArray(StandardCharsets.UTF_8)
+            contentResolver.openOutputStream(uri, "w")?.use { output ->
+                output.write(bytes)
+                output.flush()
+            } ?: throw IllegalStateException("تعذّر فتح ملف الوجهة للكتابة.")
+            val readBack = contentResolver.openInputStream(uri)?.use { input ->
+                readLimited(input, MAX_PORTABLE_FILE_BYTES)
+            } ?: throw IllegalStateException("تعذّرت مراجعة الملف بعد التصدير.")
+            require(readBack.contentEquals(bytes)) { "لم تتطابق مراجعة ملف النسخة المصدّرة." }
+            pendingExportJson = null
+            Toast.makeText(this, "تم حفظ نسخة مشفرة والتحقق من تطابق الملف.", Toast.LENGTH_LONG).show()
+        } catch (error: Exception) {
+            pendingExportJson = null
+            Toast.makeText(this, error.message ?: "تعذّر تصدير النسخة.", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    @Deprecated("Uses the Android document picker for broad device compatibility.")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode != RESULT_OK) {
+            if (requestCode == REQUEST_EXPORT) pendingExportJson = null
+            if (requestCode == REQUEST_IMPORT) pendingImportJson = null
+            return
+        }
+        val uri = data?.data ?: return
+        when (requestCode) {
+            REQUEST_EXPORT -> persistExportFile(uri)
+            REQUEST_IMPORT -> handleImportFile(uri)
+        }
     }
 
     private fun showOptionPicker(
@@ -963,6 +1574,20 @@ class NativeNotebookActivity : Activity() {
         private const val MAX_TITLE_LENGTH = 300
         private const val MAX_CONTENT_LENGTH = 450_000
         private const val MAX_PLAINTEXT_BYTES = 6 * 1024 * 1024
+        private const val MAX_HISTORY = 15
+        private const val PORTABLE_FORMAT = "anwar-native-notebook"
+        private const val LEGACY_VAULT_FORMAT = "anwar-vault"
+        private const val PORTABLE_VERSION = 1
+        private const val PORTABLE_KDF = "PBKDF2-HMAC-SHA-256"
+        private const val PORTABLE_CIPHER = "AES-256-GCM"
+        private const val PORTABLE_ITERATIONS = 600_000
+        private const val MIN_EXPORT_PASSWORD_LENGTH = 12
+        private const val MAX_EXPORT_PASSWORD_LENGTH = 2048
+        private const val MAX_PORTABLE_PLAINTEXT_BYTES = 8 * 1024 * 1024
+        private const val MAX_PORTABLE_CIPHERTEXT_BYTES = 8 * 1024 * 1024
+        private const val MAX_PORTABLE_FILE_BYTES = 12 * 1024 * 1024
+        private const val REQUEST_EXPORT = 7301
+        private const val REQUEST_IMPORT = 7302
         private val ALLOWED_TYPES = setOf("poem", "text", "idea")
     }
 }
