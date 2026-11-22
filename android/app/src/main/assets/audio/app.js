@@ -338,7 +338,7 @@
       item.setAttribute('aria-current',String(index===state.selectedLesson));
       item.append(makeTulip('lesson-tulip'));
       item.append(text('span','lesson-item-name',name));
-      const play=makeRoseButton('lesson-item-play','تشغيل '+name,index,()=>{
+      const play=makeRoseButton('reciter-play lesson-item-play','تشغيل '+name,index,()=>{
         state.selectedLesson=index;
         call('playLesson',Number(selected.index),index);
         renderLessons();
@@ -393,9 +393,17 @@
     $('elapsedTime').textContent=formatTime(position);
     $('durationTime').textContent=formatTime(duration);
     const playingId=String(player.mediaId||'');
-    document.querySelectorAll('.reciter-play,.reciter-version,.lesson-item-play,.station-play').forEach(button=>{
-      const active=button.dataset.index!==undefined&&
-        playingId.includes('quran:')&&Number(button.dataset.index)===Number(state.selectedEdition);
+    document.querySelectorAll('.reciter-play[data-index],.reciter-version[data-index]').forEach(button=>{
+      const active=button.dataset.index!==undefined&&playingId.startsWith('quran:')&&
+        Number(button.dataset.index)===Number(state.selectedEdition);
+      button.dataset.playing=String(!!(active&&player.isPlaying));
+    });
+    document.querySelectorAll('.lesson-item-play[data-index]').forEach(button=>{
+      const active=!!activeSeries&&Number(button.dataset.index)===Number(activeSeries[2]);
+      button.dataset.playing=String(!!(active&&player.isPlaying));
+    });
+    document.querySelectorAll('.station-play[data-index]').forEach(button=>{
+      const active=playingId.startsWith('radio:')&&Number(button.dataset.index)===Number(state.selectedStation);
       button.dataset.playing=String(!!(active&&player.isPlaying));
     });
     const activeSeries=playingId.match(/^lesson:([^:]+):(\d+)$/);
@@ -459,7 +467,6 @@
       if(station)state.selectedStation=Number(station.index);
     }
     syncPlayingControls();
-    if(state.mode==='quran')renderReciters();
   }
 
   function onNativeStatus(message){
