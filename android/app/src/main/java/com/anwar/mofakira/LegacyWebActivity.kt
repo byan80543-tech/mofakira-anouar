@@ -16,6 +16,7 @@ import android.webkit.WebResourceResponse
 import android.widget.Toast
 import androidx.webkit.WebViewAssetLoader
 import androidx.webkit.WebViewClientCompat
+import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import com.anwar.mofakira.alarm.PrayerAlarmScheduler
 import com.anwar.mofakira.alarm.PrayerRefreshWorker
@@ -78,7 +79,7 @@ class LegacyWebActivity : Activity() {
                 ): Boolean {
                     val uri = request?.url ?: return true
                     if (uri.scheme == "https" && uri.host == SITE_HOST) return false
-                    return if (uri.scheme in setOf("https", "http", "mailto", "tel")) {
+                    return if (uri.scheme == "https" || uri.scheme == "http" || uri.scheme == "mailto" || uri.scheme == "tel") {
                         try {
                             startActivity(Intent(Intent.ACTION_VIEW, uri))
                             true
