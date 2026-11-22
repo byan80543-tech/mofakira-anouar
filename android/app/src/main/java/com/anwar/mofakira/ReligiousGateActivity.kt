@@ -60,46 +60,27 @@ class ReligiousGateActivity : Activity() {
             layoutDirection = View.LAYOUT_DIRECTION_RTL
             gravity = Gravity.CENTER_VERTICAL
         }
-        header.addView(text("بوابة الدين", 25f, navy, true), LinearLayout.LayoutParams(0, dp(48), 1f))
+        header.addView(text("الخدمات القرآنية والدينية", 18f, navy, true), LinearLayout.LayoutParams(0, dp(48), 1f))
         val home = TextView(this).apply {
-            text = "⌂"
+            text = "×"
             textSize = 26f
             setTextColor(navy)
             gravity = Gravity.CENTER
             background = ripple(intArrayOf(Color.WHITE, Color.rgb(255, 253, 248)), 14, gold)
             isClickable = true
             isFocusable = true
-            contentDescription = "العودة إلى البوابة الأولى"
+            contentDescription = "إغلاق الخدمات والعودة إلى المفكرة"
             setOnClickListener { finish() }
         }
         header.addView(home, LinearLayout.LayoutParams(dp(46), dp(46)))
         content.addView(header)
 
-        content.addView(heroCard(), marginTop(14))
-        content.addView(text("أقسام البوابة", 16f, green, true, top = 22, bottom = 10))
+        content.addView(text("الأقسام الرئيسية", 16f, green, true, top = 18, bottom = 10))
         content.addView(serviceGrid())
-        content.addView(homeButton(), marginTop(18))
+        content.addView(actionButton("المكتبة", Color.WHITE, navy) {
+            startActivity(Intent(this, LegacyWebActivity::class.java))
+        }, marginTop(8))
         return scroll
-    }
-
-    private fun heroCard(): View {
-        val card = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            layoutDirection = View.LAYOUT_DIRECTION_RTL
-            gravity = Gravity.END
-            setPadding(dp(19), dp(19), dp(19), dp(19))
-            background = rounded(intArrayOf(green, navy), 20, gold)
-            elevation = dp(2).toFloat()
-        }
-        card.addView(text("زاد يومك بالقرآن والذكر", 19f, Color.WHITE, true, bottom = 7))
-        card.addView(
-            text(
-                "اختر القسم الذي تقصده، وستبقى كل خدمة في مساحتها المستقلة.",
-                12f,
-                Color.rgb(239, 236, 224)
-            )
-        )
-        return card
     }
 
     private fun serviceGrid(): View {
@@ -108,23 +89,23 @@ class ReligiousGateActivity : Activity() {
             layoutDirection = View.LAYOUT_DIRECTION_RTL
         }
         val items = listOf(
-            PortalItem("📖", "القرآن الكريم", "القراء والسور والتلاوة") {
+            PortalItem("🎙️", "أصوات الأذان", "اختيار الصوت والتنبيهات") {
+                startActivity(Intent(this, NativePrayerActivity::class.java))
+            },
+            PortalItem("📖", "القرآن الكريم", "السور والقراء والتلاوات") {
                 openAudio(NativeAudioActivity.MODE_QURAN)
+            },
+            PortalItem("📻", "الإذاعات", "محطات البث المباشر") {
+                openAudio(NativeAudioActivity.MODE_RADIO)
             },
             PortalItem("🎧", "الدروس والمحاضرات", "السلاسل والدروس الصوتية") {
                 openAudio(NativeAudioActivity.MODE_LESSONS)
             },
-            PortalItem("🕌", "مواقيت الصلاة", "المواقيت وخيارات الأذان") {
-                startActivity(Intent(this, NativePrayerActivity::class.java))
-            },
-            PortalItem("🤲", "أذكار التحصين", "الأذكار اليومية وأوراد الحفظ") {
+            PortalItem("🤲", "أذكار التحصين", "الأذكار اليومية والرقية") {
                 startActivity(Intent(this, NativeAdhkarActivity::class.java))
             },
-            PortalItem("📿", "السبحة", "الذكر والعدّاد وسجل التسبيح") {
+            PortalItem("📿", "السبحة", "") {
                 startActivity(Intent(this, NativeTasbihActivity::class.java))
-            },
-            PortalItem("☷", "الخدمات الكاملة", "المكتبة وبقية الأقسام المتاحة") {
-                startActivity(Intent(this, LegacyWebActivity::class.java))
             }
         )
 
@@ -171,25 +152,33 @@ class ReligiousGateActivity : Activity() {
             gravity = Gravity.CENTER
             textAlignment = View.TEXT_ALIGNMENT_CENTER
         })
-        tile.addView(text(item.description, 10f, muted).apply {
-            gravity = Gravity.CENTER
-            textAlignment = View.TEXT_ALIGNMENT_CENTER
-            maxLines = 2
-        })
+        if (item.description.isNotBlank()) {
+            tile.addView(text(item.description, 10f, muted).apply {
+                gravity = Gravity.CENTER
+                textAlignment = View.TEXT_ALIGNMENT_CENTER
+                maxLines = 2
+            })
+        }
         return tile
     }
 
-    private fun homeButton(): View = TextView(this).apply {
-        text = "العودة إلى البوابة الأولى"
-        textSize = 14f
-        setTextColor(navy)
+    private fun actionButton(
+        label: String,
+        backgroundColor: Int,
+        textColor: Int,
+        onClick: () -> Unit
+    ): TextView = TextView(this).apply {
+        text = label
+        textSize = 13f
+        setTextColor(textColor)
         gravity = Gravity.CENTER
+        textAlignment = View.TEXT_ALIGNMENT_CENTER
         typeface = Typeface.create("sans-serif", Typeface.BOLD)
-        setPadding(dp(14), dp(13), dp(14), dp(13))
-        background = ripple(intArrayOf(Color.rgb(249, 241, 222), Color.rgb(249, 241, 222)), 14, gold)
+        setPadding(dp(12), dp(9), dp(12), dp(9))
+        background = rounded(intArrayOf(backgroundColor, backgroundColor), 11)
         isClickable = true
         isFocusable = true
-        setOnClickListener { finish() }
+        setOnClickListener { onClick() }
     }
 
     private fun text(

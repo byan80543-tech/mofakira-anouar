@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 const read = (path) => fs.readFileSync(new URL('../' + path, import.meta.url), 'utf8');
 const manifest = read('android/app/src/main/AndroidManifest.xml');
 const nativeHome = read('android/app/src/main/java/com/anwar/mofakira/MainActivity.kt');
+const notebook = read('android/app/src/main/java/com/anwar/mofakira/NativeNotebookActivity.kt');
 const religiousGate = read('android/app/src/main/java/com/anwar/mofakira/ReligiousGateActivity.kt');
 const activity = read('android/app/src/main/java/com/anwar/mofakira/LegacyWebActivity.kt');
 const scheduler = read('android/app/src/main/java/com/anwar/mofakira/alarm/PrayerAlarmScheduler.kt');
@@ -21,10 +22,10 @@ assert.match(manifest, /RECEIVE_BOOT_COMPLETED/);
 assert.match(manifest, /android:name="\.MainActivity"[\s\S]*?android:exported="true"[\s\S]*?android.intent.action.MAIN[\s\S]*?android.intent.category.LAUNCHER/);
 assert.match(manifest, /android:name="\.LegacyWebActivity"[\s\S]*?android:exported="false"/);
 assert.match(nativeHome, /class MainActivity : Activity\(\)/);
-assert.match(nativeHome, /مفكرة أنوار/);
-assert.match(nativeHome, /setContentView\(buildHome\(\)\)/);
-assert.match(nativeHome, /ReligiousGateActivity::class\.java/,
-  'the first gateway exposes a dedicated entrance to the religious services');
+assert.match(nativeHome, /NativeNotebookActivity::class\.java/);
+assert.match(notebook, /الخدمات القرآنية والدينية/);
+assert.match(notebook, /ReligiousGateActivity::class\.java/);
+assert.match(religiousGate, /NativePrayerActivity::class\.java/);
 assert.match(religiousGate, /startActivity\(Intent\(this, LegacyWebActivity::class.java\)\)/,
   'remaining complete web services stay reachable inside the religious gateway');
 assert.doesNotMatch(nativeHome, /WebView|WEB_MESSAGE_LISTENER|mofakira-anouar\.pages\.dev/,
@@ -73,8 +74,6 @@ const nativePrayer = read('android/app/src/main/java/com/anwar/mofakira/NativePr
 const prayerSettings = read('android/app/src/main/java/com/anwar/mofakira/PrayerSettings.kt');
 assert.match(manifest, /android:name="\.NativePrayerActivity"[\s\S]*?android:exported="false"/,
   'native prayer times screen is registered as an internal activity');
-assert.match(nativeHome, /NativePrayerActivity::class\.java/,
-  'the prayer tile opens the native prayer screen');
 assert.match(nativePrayer, /class NativePrayerActivity : Activity\(\)/);
 assert.doesNotMatch(nativePrayer, /WebView|WEB_MESSAGE_LISTENER|mofakira-anouar\.pages\.dev/,
   'native prayer times screen must not depend on the web notebook');

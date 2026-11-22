@@ -30,6 +30,7 @@ import java.security.KeyStore
 import java.security.SecureRandom
 import java.text.DateFormat
 import java.util.Date
+import java.util.Calendar
 import java.util.Locale
 import java.util.UUID
 import javax.crypto.Cipher
@@ -113,6 +114,7 @@ class NativeNotebookActivity : Activity() {
     private lateinit var filterContainer: LinearLayout
     private lateinit var searchInput: EditText
     private lateinit var countLabel: TextView
+    private lateinit var streakLabel: TextView
     private lateinit var addButton: TextView
     private lateinit var moreButton: TextView
     private lateinit var storageNotice: TextView
@@ -138,59 +140,109 @@ class NativeNotebookActivity : Activity() {
     }
 
     private fun buildScreen(): View {
+        val shell = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            setBackgroundColor(Color.rgb(233, 236, 241))
+        }
+
+        val toolbar = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            setPadding(dp(7), dp(7), dp(7), dp(7))
+            background = rounded(intArrayOf(Color.rgb(8, 38, 76), Color.rgb(23, 77, 118)), 0)
+        }
+        toolbar.addView(toolbarIconButton("🔒", "قفل المفكرة المشفرة") {
+            AlertDialog.Builder(this)
+                .setTitle("قفل المفكرة المشفرة")
+                .setMessage("تُحفظ أعمالك محليًا مشفرة على هذا الجهاز. إغلاق المفكرة يخفي محتواها من الشاشة.")
+                .setNegativeButton("إلغاء", null)
+                .setPositiveButton("إغلاق المفكرة") { _, _ -> finish() }
+                .show()
+        }, LinearLayout.LayoutParams(dp(39), dp(42)))
+
+        val brand = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
+            layoutDirection = View.LAYOUT_DIRECTION_LTR
+            setPadding(dp(5), 0, dp(5), 0)
+        }
+        brand.addView(text("مفكرة أنوار", 20f, Color.rgb(255, 242, 197), true).apply {
+            gravity = Gravity.CENTER
+            textAlignment = View.TEXT_ALIGNMENT_CENTER
+        }, LinearLayout.LayoutParams(0, dp(42), 1f))
+        brand.addView(text("✒", 23f, Color.rgb(231, 193, 109), true).apply {
+            gravity = Gravity.CENTER
+        }, LinearLayout.LayoutParams(dp(27), dp(42)))
+        toolbar.addView(brand, LinearLayout.LayoutParams(0, dp(44), 1f))
+
+        toolbar.addView(toolbarIconButton("▤", "أرشيف أنوار") {
+            showArchiveMenu()
+        }, LinearLayout.LayoutParams(dp(39), dp(42)))
+        toolbar.addView(toolbarIconButton("📻", "تشغيل أو إيقاف إذاعة القرآن") {
+            startActivity(
+                Intent(this, NativeAudioActivity::class.java)
+                    .putExtra(NativeAudioActivity.EXTRA_MODE, NativeAudioActivity.MODE_RADIO)
+            )
+        }, LinearLayout.LayoutParams(dp(39), dp(42)))
+        toolbar.addView(toolbarIconButton("☼", "تبديل الوضع الليلي والنهاري") {
+            toggleNotebookTheme(shell)
+        }, LinearLayout.LayoutParams(dp(39), dp(42)))
+        toolbar.addView(toolbarIconButton("🎨", "تغيير ألوان المفكرة") {
+            showPalettePicker(shell)
+        }, LinearLayout.LayoutParams(dp(39), dp(42)))
+        shell.addView(toolbar)
+
+        val serviceRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            setPadding(dp(9), dp(6), dp(9), dp(6))
+            setBackgroundColor(Color.rgb(225, 237, 248))
+        }
+        val serviceButton = actionButton(
+            "🌷  الخدمات القرآنية والدينية  ⌄",
+            Color.rgb(239, 245, 251),
+            Color.rgb(35, 59, 80)
+        ) {
+            startActivity(Intent(this@NativeNotebookActivity, ReligiousGateActivity::class.java))
+        }.apply {
+            textSize = 14f
+            setPadding(dp(17), dp(8), dp(17), dp(8))
+            background = rounded(intArrayOf(Color.rgb(245, 249, 253), Color.rgb(229, 239, 249)), 25, Color.rgb(205, 218, 231))
+            contentDescription = "الخدمات القرآنية والدينية"
+        }
+        serviceRow.addView(serviceButton, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT, dp(42)
+        ))
+        shell.addView(serviceRow)
+
         val scroll = ScrollView(this).apply {
-            setBackgroundColor(cream)
+            setBackgroundColor(Color.rgb(233, 236, 241))
             isFillViewport = true
             clipToPadding = false
         }
         rootContent = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             layoutDirection = View.LAYOUT_DIRECTION_RTL
-            setPadding(dp(15), dp(16), dp(15), dp(28))
+            setPadding(dp(13), dp(12), dp(13), dp(18))
         }
         scroll.addView(rootContent)
 
-        val header = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            layoutDirection = View.LAYOUT_DIRECTION_RTL
-        }
-        val heading = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            layoutDirection = View.LAYOUT_DIRECTION_RTL
-        }
-        heading.addView(text("دفتر الكتابة", 24f, navy, true))
-        heading.addView(text("قصائدك ونصوصك وأفكارك في مكان واحد", 12f, muted, top = 3))
-        header.addView(heading, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
-        header.addView(actionButton("رجوع", Color.WHITE, navy) { finish() })
-        rootContent.addView(header)
-
-        val intro = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            layoutDirection = View.LAYOUT_DIRECTION_RTL
-            setPadding(dp(16), dp(15), dp(16), dp(15))
-            background = rounded(intArrayOf(green, navy), 18)
-        }
-        intro.addView(text("مساحة هادئة للكلمة", 17f, Color.WHITE, true, bottom = 5))
-        intro.addView(text(
-            "أنشئ قصيدة أو نصًا أو فكرة، واحتفظ بها محليًا على هذا الجهاز.",
-            12f,
-            Color.rgb(239, 235, 222)
-        ))
-        rootContent.addView(intro, marginTop(15))
-
-        countLabel = text("", 11f, muted, top = 16, bottom = 7)
+        countLabel = text("", 1f, muted)
+        countLabel.visibility = View.GONE
         rootContent.addView(countLabel)
 
         storageNotice = text("", 11f, Color.rgb(133, 63, 43), true)
         storageNotice.setPadding(dp(12), dp(10), dp(12), dp(10))
         storageNotice.background = rounded(intArrayOf(Color.rgb(255, 244, 234), Color.rgb(255, 244, 234)), 11, Color.rgb(224, 184, 157))
         storageNotice.visibility = View.GONE
-        rootContent.addView(storageNotice, marginBottom(10))
+        rootContent.addView(storageNotice, marginBottom(9))
 
         searchInput = EditText(this).apply {
-            hint = "ابحث في العناوين والمحتوى…"
-            textSize = 14f
+            hint = "ابحث…"
+            textSize = 16f
             setSingleLine(true)
             setTextColor(ink)
             setHintTextColor(muted)
@@ -198,8 +250,8 @@ class NativeNotebookActivity : Activity() {
             textAlignment = View.TEXT_ALIGNMENT_VIEW_END
             layoutDirection = View.LAYOUT_DIRECTION_RTL
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
-            setPadding(dp(13), dp(10), dp(13), dp(10))
-            background = rounded(intArrayOf(Color.WHITE, Color.WHITE), 12, border)
+            setPadding(dp(13), dp(12), dp(13), dp(12))
+            background = rounded(intArrayOf(Color.rgb(235, 238, 243), Color.rgb(235, 238, 243)), 11, Color.rgb(211, 216, 224))
             addTextChangedListener(object : android.text.TextWatcher {
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
@@ -219,44 +271,137 @@ class NativeNotebookActivity : Activity() {
             layoutDirection = View.LAYOUT_DIRECTION_RTL
         }
         filterScroll.addView(filterContainer)
-        rootContent.addView(filterScroll, marginBottom(11))
+        rootContent.addView(filterScroll, marginBottom(8))
 
-        addButton = actionButton("＋ عمل جديد", gold, navy) { showEditor(null) }
-        addButton.textSize = 15f
-        rootContent.addView(addButton, marginBottom(10))
+        streakLabel = text("", 14f, navy, true)
+        streakLabel.setPadding(dp(12), dp(11), dp(12), dp(11))
+        streakLabel.background = rounded(intArrayOf(Color.rgb(219, 230, 246), Color.rgb(219, 230, 246)), 10)
+        streakLabel.visibility = View.GONE
+        rootContent.addView(streakLabel, marginBottom(10))
 
-        val backupActions = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            layoutDirection = View.LAYOUT_DIRECTION_RTL
-        }
-        exportButton = actionButton("تصدير نسخة مشفرة", Color.rgb(235, 242, 237), green) {
-            exportPortableBackup()
-        }.apply { textSize = 12f }
-        importButton = actionButton("استيراد نسخة", Color.WHITE, navy) {
-            selectBackupFile()
-        }.apply { textSize = 12f }
-        backupActions.addView(exportButton, LinearLayout.LayoutParams(0, dp(43), 1f).apply {
-            marginEnd = dp(3)
-            marginStart = dp(3)
-        })
-        backupActions.addView(importButton, LinearLayout.LayoutParams(0, dp(43), 1f).apply {
-            marginEnd = dp(3)
-            marginStart = dp(3)
-        })
-        rootContent.addView(backupActions, marginBottom(12))
+        // These actions are opened from «أرشيف أنوار», not shown as extra buttons
+        // in the compact writing screen.
+        exportButton = actionButton("تصدير نسخة مشفرة", Color.WHITE, navy) { exportPortableBackup() }
+        importButton = actionButton("استيراد نسخة", Color.WHITE, navy) { selectBackupFile() }
 
         noteContainer = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             layoutDirection = View.LAYOUT_DIRECTION_RTL
         }
         rootContent.addView(noteContainer)
+
         moreButton = actionButton("عرض المزيد", Color.WHITE, navy) {
             renderLimit += PAGE_SIZE
             renderNotes(keepPage = true)
         }
         moreButton.visibility = View.GONE
-        rootContent.addView(moreButton, marginTop(11))
-        return scroll
+        rootContent.addView(moreButton, marginTop(10))
+
+        shell.addView(scroll, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f
+        ))
+
+        addButton = actionButton("+ عمل جديد", Color.rgb(43, 87, 154), Color.WHITE) {
+            showEditor(null)
+        }.apply {
+            textSize = 18f
+            setPadding(dp(12), dp(14), dp(12), dp(14))
+            background = rounded(intArrayOf(Color.rgb(43, 87, 154), Color.rgb(43, 87, 154)), 9)
+        }
+        shell.addView(addButton, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, dp(58)
+        ).apply {
+            marginStart = dp(13)
+            marginEnd = dp(13)
+            topMargin = dp(7)
+            bottomMargin = dp(8)
+        })
+        return shell
+    }
+
+    private fun toolbarIconButton(glyph: String, label: String, onClick: () -> Unit): TextView =
+        TextView(this).apply {
+            text = glyph
+            textSize = if (glyph == "🔒" || glyph == "📻" || glyph == "🎨") 21f else 23f
+            setTextColor(Color.WHITE)
+            gravity = Gravity.CENTER
+            textAlignment = View.TEXT_ALIGNMENT_CENTER
+            background = rounded(intArrayOf(Color.rgb(37, 78, 119), Color.rgb(37, 78, 119)), 10, Color.rgb(199, 169, 106))
+            contentDescription = label
+            isClickable = true
+            isFocusable = true
+            setOnClickListener { onClick() }
+        }
+
+    private fun showArchiveMenu() {
+        val choices = arrayOf("تصدير نسخة مشفرة", "استيراد نسخة مشفرة", "فتح الخدمات الكاملة")
+        AlertDialog.Builder(this)
+            .setTitle("أرشيف أنوار")
+            .setItems(choices) { _, which ->
+                when (which) {
+                    0 -> exportPortableBackup()
+                    1 -> selectBackupFile()
+                    2 -> startActivity(Intent(this, LegacyWebActivity::class.java))
+                }
+            }
+            .setNegativeButton("إغلاق", null)
+            .show()
+    }
+
+    private fun toggleNotebookTheme(shell: View) {
+        val dark = !preferences.getBoolean("night_mode", false)
+        preferences.edit().putBoolean("night_mode", dark).apply()
+        val background = if (dark) Color.rgb(27, 29, 34) else Color.rgb(233, 236, 241)
+        shell.setBackgroundColor(background)
+        rootContent.setBackgroundColor(background)
+        window.statusBarColor = if (dark) Color.rgb(18, 25, 35) else Color.rgb(8, 38, 76)
+        window.navigationBarColor = window.statusBarColor
+        Toast.makeText(this, if (dark) "الوضع الليلي" else "الوضع النهاري", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showPalettePicker(shell: View) {
+        val labels = arrayOf("أزرق هادئ", "أخضر مريح", "بنفسجي", "وردي ناعم", "عنبر دافئ", "رمادي أنيق")
+        val colors = intArrayOf(
+            Color.rgb(233, 236, 241),
+            Color.rgb(234, 241, 236),
+            Color.rgb(240, 237, 245),
+            Color.rgb(246, 237, 239),
+            Color.rgb(244, 240, 230),
+            Color.rgb(233, 237, 240)
+        )
+        AlertDialog.Builder(this)
+            .setTitle("تخصيص ألوان المفكرة")
+            .setItems(labels) { _, which ->
+                preferences.edit().putInt("palette_color", colors[which]).apply()
+                shell.setBackgroundColor(colors[which])
+                rootContent.setBackgroundColor(colors[which])
+            }
+            .setNegativeButton("إغلاق", null)
+            .show()
+    }
+
+    private fun writingStreakDays(): Int {
+        if (notes.isEmpty()) return 0
+        fun dayStart(time: Long): Long {
+            val calendar = Calendar.getInstance().apply {
+                timeInMillis = time
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            return calendar.timeInMillis
+        }
+        val activeDays = notes.map { dayStart(it.updatedAt) }.toSet()
+        val oneDay = 24L * 60L * 60L * 1000L
+        var cursor = dayStart(System.currentTimeMillis())
+        if (cursor !in activeDays) cursor -= oneDay
+        var streak = 0
+        while (cursor in activeDays && streak < 3650) {
+            streak++
+            cursor -= oneDay
+        }
+        return streak
     }
 
     private fun renderFilters() {
@@ -266,20 +411,26 @@ class NativeNotebookActivity : Activity() {
             "poem" to "قصائد",
             "text" to "نصوص",
             "idea" to "أفكار",
-            "pinned" to "المثبتة"
+            "pinned" to "⭐ المثبتة"
         )
         filters.forEach { (key, label) ->
             val selected = activeFilter == key
             val chip = actionButton(
                 label,
-                if (selected) green else Color.WHITE,
+                if (selected) Color.rgb(43, 87, 154) else Color.WHITE,
                 if (selected) Color.WHITE else ink
             ) {
                 activeFilter = key
                 renderFilters()
                 renderNotes()
             }
-            chip.textSize = 12f
+            chip.textSize = 13f
+            chip.setPadding(dp(13), dp(5), dp(13), dp(5))
+            chip.background = rounded(
+                intArrayOf(if (selected) Color.rgb(43, 87, 154) else Color.WHITE, if (selected) Color.rgb(43, 87, 154) else Color.WHITE),
+                22,
+                if (selected) Color.rgb(43, 87, 154) else border
+            )
             filterContainer.addView(chip, LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 dp(38)
@@ -308,6 +459,12 @@ class NativeNotebookActivity : Activity() {
             .sortedWith(compareByDescending<Note> { it.pinned }.thenByDescending { it.updatedAt })
 
         countLabel.text = "الأعمال المحفوظة على هذا الجهاز: " + notes.size
+        val activeStreak = writingStreakDays()
+        streakLabel.visibility = if (activeStreak > 0) View.VISIBLE else View.GONE
+        streakLabel.text = when (activeStreak) {
+            1 -> "🔥 تكتب منذ يوم واحد"
+            else -> "🔥 تكتب منذ " + activeStreak + " أيام متتالية"
+        }
 
         if (!storageAvailable) {
             storageNotice.text = storageMessage
@@ -335,15 +492,11 @@ class NativeNotebookActivity : Activity() {
                 gravity = Gravity.CENTER
                 layoutDirection = View.LAYOUT_DIRECTION_RTL
                 setPadding(dp(18), dp(24), dp(18), dp(24))
-                background = rounded(intArrayOf(Color.WHITE, Color.WHITE), 15, border)
+                minimumHeight = dp(320)
             }
             empty.addView(text(
-                if (notes.isEmpty()) "لم تبدأ الكتابة بعد" else "لا توجد نتائج مطابقة",
-                15f, green, true, bottom = 7
-            ).apply { gravity = Gravity.CENTER })
-            empty.addView(text(
-                if (notes.isEmpty()) "اضغط «عمل جديد» لتكتب أول قصيدة أو نص أو فكرة." else "جرّب كلمة بحث أخرى أو غيّر نوع العرض.",
-                11f, muted
+                if (notes.isEmpty()) "لا شيء هنا بعد" else "لا توجد نتائج مطابقة",
+                16f, muted
             ).apply { gravity = Gravity.CENTER })
             noteContainer.addView(empty)
             return

@@ -7,15 +7,16 @@ const gradle = read('android/app/build.gradle.kts');
 const rootGradle = read('android/build.gradle.kts');
 const androidAppGradle = gradle;
 const home = read('android/app/src/main/java/com/anwar/mofakira/MainActivity.kt');
+const notebook = read('android/app/src/main/java/com/anwar/mofakira/NativeNotebookActivity.kt');
 const religiousGate = read('android/app/src/main/java/com/anwar/mofakira/ReligiousGateActivity.kt');
 const audioActivity = read('android/app/src/main/java/com/anwar/mofakira/NativeAudioActivity.kt');
 const audioService = read('android/app/src/main/java/com/anwar/mofakira/playback/NativeMediaService.kt');
 const catalog = read('android/app/src/main/java/com/anwar/mofakira/playback/NativeMediaCatalog.kt');
 const legacy = read('android/app/src/main/java/com/anwar/mofakira/LegacyWebActivity.kt');
 
-assert.match(androidAppGradle, /versionCode = 8/,
+assert.match(androidAppGradle, /versionCode = 9/,
   "native tasbih migration increments the Android version code");
-assert.match(androidAppGradle, /versionName = "0.8.0"/,
+assert.match(androidAppGradle, /versionName = "0.9.0"/,
   "native tasbih migration increments the Android version name");
 assert.match(gradle, /androidx\.media3:media3-exoplayer:1\.11\.1/);
 assert.match(gradle, /androidx\.media3:media3-session:1\.11\.1/);
@@ -56,8 +57,6 @@ assert.match(audioActivity, /seekToPreviousMediaItem/);
 assert.match(audioActivity, /seekToNextMediaItem/);
 assert.match(audioActivity, /setMediaItem\(item\)/,
   'live radio uses the same native player engine as other audio');
-assert.match(home, /NativeAudioActivity\.MODE_QURAN/);
-assert.match(home, /NativeAudioActivity\.MODE_RADIO/);
 assert.match(religiousGate, /NativeAudioActivity\.MODE_LESSONS/,
   'lesson mode is opened from the dedicated religious gateway rather than cluttering the first screen');
 assert.match(legacy, /WEB_MESSAGE_LISTENER/,
@@ -72,4 +71,7 @@ assert.match(catalog, /أغيب وذو اللطائف لا يغيب/);
 for (const id of ['tawhid','wasitiyya','dawa','usul','usul2','qawaid','nawqid','kashf','masail','usulIman','usulAqaid','kabair','sharia','maarij','jawhara']) {
   assert.ok(catalog.includes('"' + id + '"'), 'native audio catalog preserves lesson series ' + id);
 }
+assert.match(notebook, /NativeAudioActivity\.MODE_RADIO/);
+assert.match(religiousGate, /NativeAudioActivity\.MODE_QURAN/);
+assert.match(religiousGate, /NativeAudioActivity\.MODE_RADIO/);
 console.log('Native Media3 playback, Quran, radio, lessons and devotional catalog tests passed.');
