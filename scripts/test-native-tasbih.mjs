@@ -114,9 +114,6 @@ assert.doesNotMatch(activity, /put\("(transcript|speechText|recognizedWords|audi
 assert.match(manifest, /android\.permission\.RECORD_AUDIO/);
 assert.match(manifest, /android:name="\.NativeTasbihActivity"[\s\S]*?android:exported="false"/);
 assert.match(manifest, /android\.speech\.RecognitionService/);
-assert.match(home, /Triple\("📿", "السبحة"\)/, "the first gateway keeps the tasbih quick shortcut");
-assert.match(home, /NativeTasbihActivity::class\.java/);
-assert.match(home, /ReligiousGateActivity::class\.java/);
 assert.match(religiousGate, /LegacyWebActivity::class\.java/);
 assert.match(legacy, /WebView/);
 assert.match(gradle, /versionCode = 9/);
@@ -128,6 +125,8 @@ assert.ok(oldBehaviorTests.includes('royal tasbih ring renders exactly 33 beads'
 assert.ok(oldBehaviorTests.includes('recognition prefers the visitor’s Moroccan Arabic locale'));
 assert.ok(oldOpenTests.includes('encrypted counter preferences and saved state remain active'));
 
+assert.match(religiousGate, /PortalItem\("📿", "السبحة"/);
+assert.match(religiousGate, /NativeTasbihActivity::class\.java/);
 console.log(
   'Native tasbih checks passed: ' + catalog.length +
   ' official adhkar entries, nine tasbih-specific entries, 33 beads, six themes, ' +
