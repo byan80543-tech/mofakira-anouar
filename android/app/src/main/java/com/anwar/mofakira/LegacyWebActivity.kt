@@ -15,6 +15,8 @@ import android.webkit.PermissionRequest
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebResourceResponse
+import android.webkit.ServiceWorkerClient
+import android.webkit.ServiceWorkerController
 import android.view.Gravity
 import android.view.View
 import android.graphics.Color
@@ -41,6 +43,7 @@ import com.anwar.mofakira.playback.VoiceCatalog
 class LegacyWebActivity : Activity() {
     private lateinit var webView: WebView
     private var appUpdateManager: AppUpdateManager? = null
+    private var webShellUpdateManager: WebShellUpdateManager? = null
     private var unsupportedVoiceToastShown = false
     private var pendingWebMicrophoneRequest: PermissionRequest? = null
 
@@ -84,7 +87,7 @@ class LegacyWebActivity : Activity() {
                     request: WebResourceRequest?
                 ): WebResourceResponse? {
                     val uri = request?.url ?: return null
-                    return assetLoader.shouldInterceptRequest(uri)
+                    return webShellUpdateManager?.intercept(uri) ?: assetLoader.shouldInterceptRequest(uri)
                 }
 
                 @Suppress("DEPRECATION")
@@ -92,7 +95,10 @@ class LegacyWebActivity : Activity() {
                     view: WebView?,
                     url: String?
                 ): WebResourceResponse? {
-                    return url?.let { assetLoader.shouldInterceptRequest(Uri.parse(it)) }
+                    return url?.let { address ->
+                        val uri = Uri.parse(address)
+                        webShellUpdateManager?.intercept(uri) ?: assetLoader.shouldInterceptRequest(uri)
+                    }
                 }
 
                 override fun shouldOverrideUrlLoading(
@@ -142,7 +148,22 @@ class LegacyWebActivity : Activity() {
             }
         )
         setContentView(appRoot)
-        appUpdateManager = AppUpdateManager(this, updateButton).also { it.start() }
+        val shellUpdater = WebShellUpdateManager(this, webView) {
+            appUpdateManager?.refreshButtonVisibility()
+        }
+        webShellUpdateManager = shellUpdater
+        appUpdateManager = AppUpdateManager(this, updateButton, shellUpdater).also { it.start() }
+
+        // Service-worker fetches use a separate interception callback on Android.
+        // Route those requests through the same trusted OTA files and APK fallback.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            ServiceWorkerController.getInstance().setServiceWorkerClient(object : ServiceWorkerClient() {
+                override fun shouldInterceptRequest(request: WebResourceRequest): WebResourceResponse? {
+                    val uri = request.url
+                    return webShellUpdateManager?.intercept(uri) ?: assetLoader.shouldInterceptRequest(uri)
+                }
+            })
+        }
 
         if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
             WebViewCompat.addWebMessageListener(
@@ -461,6 +482,10 @@ class LegacyWebActivity : Activity() {
     override fun onDestroy() {
         appUpdateManager?.destroy()
         appUpdateManager = null
+        webShellUpdateManager = null
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            runCatching { ServiceWorkerController.getInstance().setServiceWorkerClient(null) }
+        }
         if (::webView.isInitialized) {
             webView.stopLoading()
             webView.destroy()
