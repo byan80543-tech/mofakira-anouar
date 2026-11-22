@@ -22,14 +22,14 @@ assert.match(manifest, /RECEIVE_BOOT_COMPLETED/);
 assert.match(manifest, /android:name="\.MainActivity"[\s\S]*?android:exported="true"[\s\S]*?android.intent.action.MAIN[\s\S]*?android.intent.category.LAUNCHER/);
 assert.match(manifest, /android:name="\.LegacyWebActivity"[\s\S]*?android:exported="false"/);
 assert.match(nativeHome, /class MainActivity : Activity\(\)/);
-assert.match(nativeHome, /NativeNotebookActivity::class\.java/);
+assert.match(nativeHome, /LegacyWebActivity::class\.java/, 'the launcher opens the complete packaged PWA shell');
 assert.match(notebook, /الخدمات القرآنية والدينية/);
 assert.match(notebook, /ReligiousGateActivity::class\.java/);
 assert.match(religiousGate, /NativePrayerActivity::class\.java/);
 assert.match(religiousGate, /startActivity\(Intent\(this, LegacyWebActivity::class.java\)\)/,
   'remaining complete web services stay reachable inside the religious gateway');
-assert.doesNotMatch(nativeHome, /WebView|WEB_MESSAGE_LISTENER|mofakira-anouar\.pages\.dev/,
-  'native launcher must not load the production web page as its main interface');
+assert.doesNotMatch(nativeHome, /https?:\/\//,
+  'launcher delegates the complete UI to the bundled WebView activity without hard-coded remote URLs');
 
 assert.match(activity, /WEB_MESSAGE_LISTENER/);
 assert.match(activity, /setOf\(SITE_ORIGIN\)/);
