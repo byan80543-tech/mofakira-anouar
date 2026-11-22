@@ -12,9 +12,10 @@ import android.provider.Settings
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
-import android.webkit.WebViewClient
+import android.webkit.WebResourceResponse
 import android.widget.Toast
-import androidx.webkit.WebViewCompat
+import androidx.webkit.WebViewAssetLoader
+import androidx.webkit.WebViewClientCompat
 import androidx.webkit.WebViewFeature
 import com.anwar.mofakira.alarm.PrayerAlarmScheduler
 import com.anwar.mofakira.alarm.PrayerRefreshWorker
@@ -37,6 +38,12 @@ class LegacyWebActivity : Activity() {
         window.statusBarColor = android.graphics.Color.rgb(9, 38, 77)
         window.navigationBarColor = android.graphics.Color.rgb(9, 38, 77)
 
+        // Package the complete, original PWA inside the APK. The HTTPS-style
+        // appassets origin keeps same-origin storage/fetch behavior without file:// access.
+        val assetLoader = WebViewAssetLoader.Builder()
+            .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
+            .build()
+
         webView = WebView(this).apply {
             setBackgroundColor(android.graphics.Color.rgb(247, 243, 234))
             settings.javaScriptEnabled = true
@@ -44,19 +51,41 @@ class LegacyWebActivity : Activity() {
             settings.databaseEnabled = true
             settings.allowFileAccess = false
             settings.allowContentAccess = false
+            settings.javaScriptCanOpenWindowsAutomatically = false
+            settings.setSupportMultipleWindows(false)
             settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW
             webChromeClient = WebChromeClient()
-            webViewClient = object : WebViewClient() {
+            webViewClient = object : WebViewClientCompat() {
+                override fun shouldInterceptRequest(
+                    view: WebView?,
+                    request: WebResourceRequest?
+                ): WebResourceResponse? {
+                    val uri = request?.url ?: return null
+                    return assetLoader.shouldInterceptRequest(uri)
+                }
+
+                @Suppress("DEPRECATION")
+                override fun shouldInterceptRequest(
+                    view: WebView?,
+                    url: String?
+                ): WebResourceResponse? {
+                    return url?.let { assetLoader.shouldInterceptRequest(Uri.parse(it)) }
+                }
+
                 override fun shouldOverrideUrlLoading(
                     view: WebView?,
                     request: WebResourceRequest?
                 ): Boolean {
-                    val uri = request?.url ?: return false
+                    val uri = request?.url ?: return true
                     if (uri.scheme == "https" && uri.host == SITE_HOST) return false
-                    return try {
-                        startActivity(Intent(Intent.ACTION_VIEW, uri))
-                        true
-                    } catch (_: Exception) {
+                    return if (uri.scheme in setOf("https", "http", "mailto", "tel")) {
+                        try {
+                            startActivity(Intent(Intent.ACTION_VIEW, uri))
+                            true
+                        } catch (_: Exception) {
+                            true
+                        }
+                    } else {
                         true
                     }
                 }
@@ -285,9 +314,9 @@ class LegacyWebActivity : Activity() {
     }
 
     companion object {
-        private const val SITE_HOST = "mofakira-anouar.pages.dev"
-        private const val SITE_ORIGIN = "https://mofakira-anouar.pages.dev"
-        private const val SITE_URL = "$SITE_ORIGIN/mofakira-anouar/"
+        private const val SITE_HOST = "appassets.androidplatform.net"
+        private const val SITE_ORIGIN = "https://appassets.androidplatform.net"
+        private const val SITE_URL = "$SITE_ORIGIN/assets/www/index.html"
         private const val REQUEST_NOTIFICATIONS = 721
     }
 }
