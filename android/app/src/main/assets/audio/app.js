@@ -227,7 +227,9 @@
     const stations=state.catalog?.stations||[];
     const matches=stations.filter(station=>!query||String(station.name).toLocaleLowerCase('ar').includes(query));
     matches.forEach(station=>{
-      const card=makeButton('live-station-option',station.name);
+      const card=text('div','live-station-option','');
+      card.setAttribute('role','listitem');
+      card.setAttribute('tabindex','0');
       const selected=Number(station.index)===Number(state.selectedStation);
       card.setAttribute('aria-selected',String(selected));
       card.append(makeTulip('station-tulip'));
@@ -238,10 +240,14 @@
         renderStations();
       });
       card.append(play);
-      card.addEventListener('click',event=>{
+      const selectStation=event=>{
         if(event.target.closest('.station-play'))return;
         state.selectedStation=Number(station.index);
         renderStations();
+      };
+      card.addEventListener('click',selectStation);
+      card.addEventListener('keydown',event=>{
+        if(event.key==='Enter'||event.key===' '){event.preventDefault();selectStation(event)}
       });
       grid.append(card);
     });
@@ -333,7 +339,9 @@
     list.replaceChildren();
     for(let index=0;index<Number(selected.count);index++){
       const name=selected.tracks?.[index]||('الدرس '+String(index+1).padStart(2,'0')+' من '+selected.count);
-      const item=makeButton('lesson-item',name);
+      const item=text('div','lesson-item','');
+      item.setAttribute('role','listitem');
+      item.setAttribute('tabindex','0');
       item.dataset.lessonIndex=String(index);
       item.setAttribute('aria-current',String(index===state.selectedLesson));
       item.append(makeTulip('lesson-tulip'));
@@ -344,11 +352,15 @@
         renderLessons();
       });
       item.append(play);
-      item.addEventListener('click',event=>{
+      const playThisLesson=event=>{
         if(event.target.closest('.lesson-item-play'))return;
         state.selectedLesson=index;
         call('playLesson',Number(selected.index),index);
         renderLessons();
+      };
+      item.addEventListener('click',playThisLesson);
+      item.addEventListener('keydown',event=>{
+        if(event.key==='Enter'||event.key===' '){event.preventDefault();playThisLesson(event)}
       });
       list.append(item);
     }
@@ -362,14 +374,20 @@
     const tracks=state.catalog?.devotionalTracks||[];
     $('devotionalCount').textContent=arabicNumber(tracks.length)+' صوتيات';
     tracks.forEach(track=>{
-      const item=makeButton('lesson-item',track.title);
+      const item=text('div','lesson-item','');
+      item.setAttribute('role','listitem');
+      item.setAttribute('tabindex','0');
       item.append(makeTulip('lesson-tulip'));
       item.append(text('span','lesson-item-name',track.title+' · '+(track.sourceLabel||'')));
       const play=makeRoseButton('lesson-item-play','تشغيل '+track.title,track.index,()=>call('playDevotional',Number(track.index)));
       item.append(play);
-      item.addEventListener('click',event=>{
+      const playDevotionalTrack=event=>{
         if(event.target.closest('.lesson-item-play'))return;
         call('playDevotional',Number(track.index));
+      };
+      item.addEventListener('click',playDevotionalTrack);
+      item.addEventListener('keydown',event=>{
+        if(event.key==='Enter'||event.key===' '){event.preventDefault();playDevotionalTrack(event)}
       });
       list.append(item);
     });
