@@ -9,7 +9,7 @@ const gradle = read('android/app/build.gradle.kts');
 const providerPaths = read('android/app/src/main/res/xml/update_file_paths.xml');
 const releaseWorkflow = read('.github/workflows/android-release.yml');
 
-assert.match(activity, /AppUpdateManager\(this, updateButton\)/,
+assert.match(activity, /AppUpdateManager\(this, updateButton, shellUpdater\)/,
   'the native WebView shell must expose the in-app update affordance');
 assert.match(activity, /Gravity\.TOP or Gravity\.END/,
   'the update affordance must float above the existing original web interface');
@@ -39,8 +39,8 @@ assert.match(manifest, /androidx\.core\.content\.FileProvider/,
 assert.match(manifest, /android:authorities="\$\{applicationId\}\.updates"/);
 assert.match(providerPaths, /<cache-path[\s\S]*?path="updates\/"/);
 
-assert.match(gradle, /versionCode = 17/);
-assert.match(gradle, /versionName = "0\.9\.8"/);
+assert.match(gradle, /versionCode = 18/);
+assert.match(gradle, /versionName = "0\.9\.9"/);
 assert.match(gradle, /create\("release"\)/,
   'a stable release signing config must be available for upgrade-compatible APKs');
 
