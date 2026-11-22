@@ -73,9 +73,9 @@ for (const id of ['tawhid','wasitiyya','dawa','usul','usul2','qawaid','nawqid','
 }
 assert.match(notebook, /radioToolbarButton = toolbarIconButton/);
 assert.match(notebook, /private fun toggleRadioPlayback/);
-assert.match(notebook, /NativeMediaCatalog\\.loadStations\\(\\)\\.firstOrNull\\(\\)/);
-assert.match(notebook, /controller\\.setMediaItem\\(item\\)/);
-assert.match(notebook, /controller\\.pause\\(\\)/);
+assert.match(notebook, /NativeMediaCatalog\.loadStations\(\)\.firstOrNull\(\)/);
+assert.match(notebook, /controller\.setMediaItem\(item\)/);
+assert.match(notebook, /controller\.pause\(\)/);
 const radioToolbar = notebook.slice(notebook.indexOf('radioToolbarButton ='), notebook.indexOf('shell.addView(toolbar)'));
 assert.doesNotMatch(radioToolbar, /startActivity|NativeAudioActivity/,
   'the home radio button starts and pauses the shared player directly instead of opening the audio library');
