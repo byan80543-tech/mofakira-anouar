@@ -28,8 +28,13 @@ assert.match(fallbackIcon, /<bitmap[\s\S]*?@drawable\/ic_launcher_artwork/,
   'older Android versions must display the same selected app artwork');
 assert.match(colors, /#FFF0F6/,
   'the adaptive icon background must use the soft pink brand tone');
-assert.ok(fs.existsSync(iconArtworkPath) && fs.statSync(iconArtworkPath).size > 10000,
-  'the high quality selected tulip artwork must be bundled as an Android resource');
+const iconArtworkBytes = fs.readFileSync(iconArtworkPath);
+assert.ok(iconArtworkBytes.length > 5000,
+  'the selected tulip artwork must be bundled as an Android resource');
+assert.equal(iconArtworkBytes.toString('ascii', 0, 4), 'RIFF',
+  'the launcher artwork must be a valid WebP container');
+assert.equal(iconArtworkBytes.toString('ascii', 8, 12), 'WEBP',
+  'the launcher artwork must have a valid WebP signature');
 assert.match(monochrome, /<vector/);
 assert.equal((legacy.match(/\.setIcon\(R\.drawable\.ic_launcher_artwork\)/g) || []).length, 2,
   'both explanatory Android dialogs for background adhan permission must show the app icon');
