@@ -63,6 +63,7 @@ class NativeNotebookActivity : Activity() {
     private var activeFilter = "all"
     private var storageAvailable = true
     private var storageMessage = ""
+    private var renderLimit = PAGE_SIZE
 
     private lateinit var rootContent: LinearLayout
     private lateinit var noteContainer: LinearLayout
@@ -70,6 +71,7 @@ class NativeNotebookActivity : Activity() {
     private lateinit var searchInput: EditText
     private lateinit var countLabel: TextView
     private lateinit var addButton: TextView
+    private lateinit var moreButton: TextView
     private lateinit var storageNotice: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -183,6 +185,12 @@ class NativeNotebookActivity : Activity() {
             layoutDirection = View.LAYOUT_DIRECTION_RTL
         }
         rootContent.addView(noteContainer)
+        moreButton = actionButton("عرض المزيد", Color.WHITE, navy) {
+            renderLimit += PAGE_SIZE
+            renderNotes(keepPage = true)
+        }
+        moreButton.visibility = View.GONE
+        rootContent.addView(moreButton, marginTop(11))
         return scroll
     }
 
@@ -217,8 +225,9 @@ class NativeNotebookActivity : Activity() {
         }
     }
 
-    private fun renderNotes() {
+    private fun renderNotes(keepPage: Boolean = false) {
         if (!::noteContainer.isInitialized) return
+        if (!keepPage) renderLimit = PAGE_SIZE
         noteContainer.removeAllViews()
         val query = if (::searchInput.isInitialized) searchInput.text.toString().trim().lowercase(Locale.ROOT) else ""
         val filtered = notes
@@ -247,6 +256,7 @@ class NativeNotebookActivity : Activity() {
         }
 
         if (filtered.isEmpty()) {
+            moreButton.visibility = View.GONE
             val empty = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
                 gravity = Gravity.CENTER
@@ -266,8 +276,15 @@ class NativeNotebookActivity : Activity() {
             return
         }
 
-        filtered.forEachIndexed { index, note ->
-            noteContainer.addView(noteCard(note), marginBottom(if (index == filtered.lastIndex) 0 else 9))
+        val visible = filtered.take(renderLimit)
+        visible.forEachIndexed { index, note ->
+            noteContainer.addView(noteCard(note), marginBottom(if (index == visible.lastIndex) 0 else 9))
+        }
+        if (filtered.size > renderLimit) {
+            moreButton.text = "عرض 50 عملاً آخر · المتبقي " + (filtered.size - renderLimit)
+            moreButton.visibility = View.VISIBLE
+        } else {
+            moreButton.visibility = View.GONE
         }
     }
 
@@ -772,6 +789,7 @@ class NativeNotebookActivity : Activity() {
         private const val BACKUP_KEY = "notes_backup_v1"
         private const val KEY_ALIAS = "anwar_mofakira_notebook_aes_gcm_v1"
         private const val FORMAT_VERSION = 1
+        private const val PAGE_SIZE = 50
         private const val MAX_NOTES = 2500
         private const val MAX_TITLE_LENGTH = 300
         private const val MAX_CONTENT_LENGTH = 450_000
