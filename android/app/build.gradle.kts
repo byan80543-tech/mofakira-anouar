@@ -9,14 +9,14 @@ android {
         applicationId = "com.anwar.mofakira"
         minSdk = 23
         targetSdk = 35
-        versionCode = 12
-        versionName = "0.9.3"
+        versionCode = 13
+        versionName = "0.9.4"
     }
     buildTypes {
         getByName("debug") {
             // Keep the test APK alongside the previously installed stable app.
             // Release builds keep the production application ID unchanged.
-            applicationIdSuffix = ".preview.v12"
+            applicationIdSuffix = ".preview.v13"
             versionNameSuffix = "-preview"
         }
     }
@@ -36,4 +36,35 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.10.1")
     implementation("androidx.media3:media3-exoplayer:1.11.1")
     implementation("androidx.media3:media3-session:1.11.1")
+}
+
+
+// Keep the canonical web application in one place. The Android APK receives
+// the complete PWA shell and its local assets at build time; no menu is rebuilt
+// or maintained as a separate Android-only copy.
+val anwarWebSourceRoot = rootProject.projectDir.parentFile
+val anwarWebAssets = layout.projectDirectory.dir("src/main/assets/www")
+val syncAnwarWebAssets = tasks.register<Sync>("syncAnwarWebAssets") {
+    from(anwarWebSourceRoot) {
+        include("index.html")
+        include("*.js")
+        include("*.css")
+        include("*.webmanifest")
+        include("*.json")
+        include("*.png")
+        include("*.jpg")
+        include("*.jpeg")
+        include("*.svg")
+        include("*.webp")
+        include("_headers")
+        include("assets/**")
+        include("vendor/**")
+        include("workers/**")
+        include("functions/**")
+        exclude("**/node_modules/**")
+    }
+    into(anwarWebAssets)
+}
+tasks.named("preBuild").configure {
+    dependsOn(syncAnwarWebAssets)
 }

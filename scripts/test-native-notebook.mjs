@@ -16,8 +16,8 @@ const debugStrings = read('android/app/src/debug/res/values/strings.xml');
 assert.match(manifest, /android:name="\.NativeNotebookActivity"[\s\S]*?android:exported="false"/,
   'the native notebook is registered as an internal Android activity');
 assert.match(activity, /الخدمات القرآنية والدينية/);
-assert.match(home, /NativeNotebookActivity::class\.java/,
-  "the launcher opens the native notebook directly");
+assert.match(home, /LegacyWebActivity::class\.java/,
+  "the launcher opens the full packaged PWA while native notebook storage remains available");
 assert.match(activity, /الخدمات القرآنية والدينية/,
   "the original services button is visible in the notebook");
 assert.match(religiousGate, /LegacyWebActivity::class\.java/,
@@ -151,9 +151,9 @@ assert.doesNotMatch(activity, /innerHTML|loadDataWithBaseURL/,
   'saved content is rendered as ordinary Android text, not interpreted markup');
 
 assert.match(legacy, /WebView/);
-assert.match(gradle, /versionCode = 12/);
-assert.ok(gradle.includes('versionName = "0.9.3"'));
-assert.match(gradle, /applicationIdSuffix = "\.preview\.v12"/,
+assert.match(gradle, /versionCode = 13/);
+assert.ok(gradle.includes('versionName = "0.9.4"'));
+assert.match(gradle, /applicationIdSuffix = "\.preview.v13"/,
   'the versioned debug APK installs alongside stable and earlier preview apps without replacing their local vaults');
 assert.match(gradle, /versionNameSuffix = "-preview"/);
 assert.match(debugStrings, /<string name="app_name">مفكرة أنوار التجريبية<\/string>/);
