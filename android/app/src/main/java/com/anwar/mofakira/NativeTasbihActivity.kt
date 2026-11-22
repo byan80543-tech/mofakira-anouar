@@ -94,11 +94,11 @@ class NativeTasbihActivity : Activity() {
             Color.rgb(184, 142, 69), Color.rgb(232, 203, 139), Color.rgb(188, 145, 74)
         ),
         ThemeSpec(
-            "pink", "التوليب الوردي",
-            Color.rgb(251, 232, 238), Color.rgb(255, 248, 250),
-            Color.rgb(113, 50, 68), Color.rgb(148, 107, 119),
-            Color.rgb(183, 66, 104), Color.rgb(242, 195, 208),
-            Color.rgb(227, 165, 184), Color.rgb(244, 196, 210), Color.rgb(210, 133, 157)
+            "pink", "الباقات الوردية",
+            Color.rgb(255, 247, 241), Color.rgb(255, 252, 248),
+            Color.rgb(35, 72, 61), Color.rgb(115, 128, 116),
+            Color.rgb(207, 132, 151), Color.rgb(249, 222, 228),
+            Color.rgb(228, 181, 186), Color.rgb(247, 226, 224), Color.rgb(212, 161, 167)
         ),
         ThemeSpec(
             "night", "الليلي",
@@ -157,7 +157,7 @@ class NativeTasbihActivity : Activity() {
     private var selectedKey = "builtin:legacy-default"
     private var selectedTitle = "سبوح قدوس رب الملائكة والروح"
     private var selectedText = "سبوح قدوس رب الملائكة والروح."
-    private var themeKey = "emerald"
+    private var themeKey = "pink"
     private var storageAvailable = true
     private var storageFailureMessage = ""
 
@@ -289,8 +289,9 @@ class NativeTasbihActivity : Activity() {
             val raw = decryptState(envelope)
             val json = JSONObject(String(raw, StandardCharsets.UTF_8))
             count = json.optInt("count", 0).coerceIn(0, MAX_COUNT)
-            themeKey = json.optString("theme", "emerald")
-                .takeIf { value -> themes.any { it.key == value } } ?: "emerald"
+            themeKey = json.optString("theme", "pink")
+                .let { saved -> if (saved == "emerald") "pink" else saved }
+                .takeIf { value -> themes.any { it.key == value } } ?: "pink"
             customDhikrs.clear()
             val custom = json.optJSONArray("customDhikrs") ?: JSONArray()
             for (index in 0 until custom.length()) {
@@ -423,18 +424,19 @@ class NativeTasbihActivity : Activity() {
             setBackgroundColor(palette.background)
             isFillViewport = true
             clipToPadding = false
+            isVerticalScrollBarEnabled = false
         }
         rootContent = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             layoutDirection = View.LAYOUT_DIRECTION_RTL
-            setPadding(dp(13), dp(16), dp(13), dp(28))
+            setPadding(dp(11), dp(12), dp(11), dp(22))
         }
         scroll.addView(rootContent)
 
         val outer = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             layoutDirection = View.LAYOUT_DIRECTION_RTL
-            setPadding(dp(11), dp(11), dp(11), dp(14))
+            setPadding(dp(9), dp(9), dp(9), dp(12))
             background = rounded(palette.surface, 24, palette.border, 2)
             elevation = dp(2).toFloat()
         }
@@ -444,49 +446,41 @@ class NativeTasbihActivity : Activity() {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             layoutDirection = View.LAYOUT_DIRECTION_RTL
-            setPadding(dp(9), dp(10), dp(9), dp(10))
+            setPadding(dp(8), dp(9), dp(8), dp(9))
             background = GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
-                intArrayOf(palette.accent, blend(palette.accent, Color.BLACK, 0.18f))
+                intArrayOf(Color.rgb(42, 79, 66), Color.rgb(27, 57, 49))
             ).apply {
-                cornerRadius = dp(17).toFloat()
+                cornerRadius = dp(18).toFloat()
                 setStroke(dp(1), palette.border)
             }
         }
-        val back = actionButton("‹  العودة", palette.surface, palette.text, 11f) { finish() }
-        header.addView(back, LinearLayout.LayoutParams(dp(82), dp(41)))
+        header.addView(actionButton("‹", palette.surface, palette.text, 23f) {
+            finish()
+        }, LinearLayout.LayoutParams(dp(40), dp(40)))
         header.addView(textView(
-            "السبحة الإلكترونية",
+            "الباقيات الصالحات",
             18f,
             Color.WHITE,
             true,
             Gravity.CENTER
         ), LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
-        themeToggle = actionButton("⚙", palette.accentSoft, palette.text, 19f) {
+        themeToggle = actionButton("⚙", Color.rgb(235, 215, 211), Color.rgb(42, 79, 66), 18f) {
             themeExpanded = !themeExpanded
             themePanel.visibility = if (themeExpanded) View.VISIBLE else View.GONE
             themeToggle.text = if (themeExpanded) "×" else "⚙"
         }
-        header.addView(themeToggle, LinearLayout.LayoutParams(dp(42), dp(41)))
+        header.addView(themeToggle, LinearLayout.LayoutParams(dp(40), dp(40)))
         outer.addView(header)
 
         themePanel = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             layoutDirection = View.LAYOUT_DIRECTION_RTL
             setPadding(dp(10), dp(9), dp(10), dp(9))
-            background = rounded(palette.background, 13, palette.border)
+            background = rounded(palette.background, 15, palette.border)
             visibility = if (themeExpanded) View.VISIBLE else View.GONE
         }
         themePanel.addView(textView("ألوان السبحة", 13f, palette.text, true))
-        themePanel.addView(textView(
-            "اختر المظهر الذي يريح عينك",
-            10f,
-            palette.muted,
-            false,
-            Gravity.END,
-            top = 3,
-            bottom = 7
-        ))
         themes.chunked(3).forEach { rowThemes ->
             val row = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
@@ -505,7 +499,7 @@ class NativeTasbihActivity : Activity() {
                     if (spec.key == themeKey) spec.accent else spec.border,
                     if (spec.key == themeKey) 2 else 1
                 )
-                row.addView(choice, LinearLayout.LayoutParams(0, dp(47), 1f).apply {
+                row.addView(choice, LinearLayout.LayoutParams(0, dp(44), 1f).apply {
                     marginStart = dp(3)
                     marginEnd = dp(3)
                     topMargin = dp(4)
@@ -513,164 +507,83 @@ class NativeTasbihActivity : Activity() {
             }
             themePanel.addView(row)
         }
-        outer.addView(themePanel, marginTop(9))
+        outer.addView(themePanel, marginTop(8))
 
-        // Keep the selected dhikr inscription compact and visually integrated
-        // with the bead ring; use Android's Arabic sans family, never the bulky
-        // Amiri heading face that was rejected in the previous tasbih design.
-        phraseView = textView(
-            selectedText,
-            17f,
-            palette.text,
-            true,
-            Gravity.CENTER,
-            top = 14,
-            bottom = 4
-        ).apply {
-            setLineSpacing(dp(3).toFloat(), 1f)
-            setPadding(dp(7), 0, dp(7), 0)
-        }
-        outer.addView(phraseView)
-
-        val ornament = LinearLayout(this).apply {
+        val mainRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER
-            layoutDirection = View.LAYOUT_DIRECTION_LTR
-            setPadding(dp(20), dp(2), dp(20), dp(8))
+            gravity = Gravity.TOP
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
         }
-        ornament.addView(View(this).apply { setBackgroundColor(palette.border) },
-            LinearLayout.LayoutParams(0, dp(1), 1f))
-        ornament.addView(textView("✿", 17f, palette.accent, true, Gravity.CENTER),
-            LinearLayout.LayoutParams(dp(34), dp(24)))
-        ornament.addView(View(this).apply { setBackgroundColor(palette.border) },
-            LinearLayout.LayoutParams(0, dp(1), 1f))
-        outer.addView(ornament)
-
-        listToggle = actionButton(
-            "☷  اختيار الذكر  ⌄",
-            palette.background,
-            palette.text,
-            12f
-        ) {
-            listExpanded = !listExpanded
-            listPanel.visibility = if (listExpanded) View.VISIBLE else View.GONE
-            listToggle.text = if (listExpanded) "☷  إخفاء قائمة الأذكار  ⌃" else "☷  اختيار الذكر  ⌄"
-        }
-        outer.addView(listToggle, LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            dp(42)
-        ).apply {
-            gravity = Gravity.CENTER_HORIZONTAL
-            leftMargin = dp(35)
-            rightMargin = dp(35)
-            bottomMargin = dp(8)
-        })
 
         listPanel = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             layoutDirection = View.LAYOUT_DIRECTION_RTL
-            setPadding(dp(9), dp(9), dp(9), dp(9))
-            background = rounded(palette.background, 14, palette.border)
-            visibility = if (listExpanded) View.VISIBLE else View.GONE
+            setPadding(dp(7), dp(8), dp(7), dp(8))
+            background = rounded(palette.background, 18, palette.border)
+            visibility = View.VISIBLE
         }
+        listPanel.addView(textView(
+            "أعظمها كلمات الذكر:",
+            13f,
+            palette.text,
+            true,
+            Gravity.CENTER,
+            bottom = 7
+        ))
         listContainer = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             layoutDirection = View.LAYOUT_DIRECTION_RTL
         }
         listPanel.addView(listContainer)
+        mainRow.addView(listPanel, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.38f).apply {
+            marginEnd = dp(6)
+        })
 
-        listPanel.addView(textView(
-            "إضافة ذكر خاص",
-            12f,
+        val counterColumn = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+        }
+        phraseView = textView(
+            selectedTitle,
+            11f,
             palette.text,
             true,
-            top = 11,
-            bottom = 5
-        ))
-        val customRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            Gravity.CENTER
+        ).apply {
+            maxLines = 2
+            setPadding(dp(4), dp(5), dp(4), dp(5))
+            background = rounded(palette.accentSoft, 13, palette.border)
         }
-        customInput = EditText(this).apply {
-            textSize = 13f
-            setTextColor(palette.text)
-            setHintTextColor(palette.muted)
-            hint = "اكتب الذكر هنا"
-            gravity = Gravity.CENTER_VERTICAL or Gravity.END
-            textAlignment = View.TEXT_ALIGNMENT_VIEW_END
-            layoutDirection = View.LAYOUT_DIRECTION_RTL
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
-            filters = arrayOf(InputFilter.LengthFilter(MAX_CUSTOM_LENGTH))
-            setSingleLine(true)
-            setPadding(dp(10), dp(8), dp(10), dp(8))
-            background = rounded(palette.surface, 11, palette.border)
-        }
-        customRow.addView(customInput, LinearLayout.LayoutParams(0, dp(43), 1f).apply {
-            marginEnd = dp(5)
-        })
-        customRow.addView(actionButton("إضافة", palette.accent, Color.WHITE, 11f) {
-            addCustomDhikr()
-        }, LinearLayout.LayoutParams(dp(76), dp(43)))
-        listPanel.addView(customRow)
+        counterColumn.addView(phraseView, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            dp(38)
+        ).apply { bottomMargin = dp(7) })
 
-        customStatus = textView("", 10f, palette.muted, false, top = 5)
-        listPanel.addView(customStatus)
-        listPanel.addView(textView(
-            "حتى 30 ذكراً مخصصاً، وبحد أقصى 200 محرف لكل ذكر.",
-            9f,
-            palette.muted,
-            false,
-            top = 2
-        ))
-        removeButton = actionButton("إزالة الذكر المحدد", palette.surface, palette.text, 10f) {
-            removeSelectedDhikr()
-        }
-        listPanel.addView(removeButton, marginTop(8))
-        restoreButton = actionButton("استعادة الأذكار التي أزيلت", palette.accentSoft, palette.text, 10f) {
-            restoreRemovedDhikrs()
-        }
-        listPanel.addView(restoreButton, marginTop(6))
-        listPanel.addView(textView(
-            "الإزالة تخص قائمتك على هذا الجهاز فقط، ويمكنك استعادة الأذكار الرسمية متى شئت.",
-            9f,
-            palette.muted,
-            false,
-            top = 6
-        ))
-        outer.addView(listPanel)
-
-        val stage = FrameLayout(this).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(330)
+        val counterFrame = FrameLayout(this).apply {
+            background = GradientDrawable(
+                GradientDrawable.Orientation.TL_BR,
+                intArrayOf(Color.rgb(255, 231, 234), Color.rgb(247, 211, 220))
             ).apply {
-                topMargin = dp(5)
-                bottomMargin = dp(3)
+                cornerRadius = dp(23).toFloat()
+                setStroke(dp(2), palette.border)
             }
+            elevation = dp(2).toFloat()
         }
-        beadRing = BeadRingView(this).apply {
-            setProgress(count)
-            contentDescription = "حلقة السبحة المكونة من 33 حبة"
-        }
-        stage.addView(beadRing, FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.MATCH_PARENT,
-            FrameLayout.LayoutParams.MATCH_PARENT
-        ))
         counterCenter = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
             layoutDirection = View.LAYOUT_DIRECTION_RTL
-            setPadding(dp(14), dp(10), dp(14), dp(10))
-            background = counterBackground()
+            setPadding(dp(5), dp(6), dp(5), dp(6))
+            background = rounded(Color.TRANSPARENT, 20, Color.rgb(255, 250, 247))
             isClickable = true
             isFocusable = true
             contentDescription = "عداد السبحة: اضغط للزيادة"
             setOnClickListener {
                 animate().cancel()
-                scaleX = 0.97f
-                scaleY = 0.97f
-                animate().scaleX(1f).scaleY(1f).setDuration(150).start()
+                scaleX = 0.96f
+                scaleY = 0.96f
+                animate().scaleX(1f).scaleY(1f).setDuration(140).start()
                 addCount(1)
             }
             setOnKeyListener { _, keyCode, event ->
@@ -685,92 +598,129 @@ class NativeTasbihActivity : Activity() {
         }
         countView = textView(
             arabicNumber(count),
-            49f,
-            palette.accent,
+            43f,
+            Color.rgb(42, 79, 66),
             true,
             Gravity.CENTER
         )
         counterCenter.addView(countView)
-        counterCenter.addView(textView("اضغط للعد", 10f, palette.muted, true, Gravity.CENTER))
-        stage.addView(counterCenter, FrameLayout.LayoutParams(dp(236), dp(236), Gravity.CENTER))
-        outer.addView(stage)
+        counterCenter.addView(textView("العدد", 10f, palette.muted, true, Gravity.CENTER))
+        counterFrame.addView(counterCenter, FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT
+        ).apply {
+            setMargins(dp(7), dp(7), dp(7), dp(7))
+        })
+        counterColumn.addView(counterFrame, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            dp(139)
+        ))
 
-        val actions = LinearLayout(this).apply {
+        val countActions = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER
             layoutDirection = View.LAYOUT_DIRECTION_RTL
         }
-        actions.addView(actionButton("−", palette.surface, palette.accent, 26f) {
+        countActions.addView(actionButton("+", palette.surface, Color.rgb(42, 79, 66), 21f) {
+            addCount(1)
+        }, LinearLayout.LayoutParams(0, dp(38), 1f).apply { marginEnd = dp(3) })
+        countActions.addView(actionButton("−", palette.surface, Color.rgb(42, 79, 66), 21f) {
             addCount(-1)
-        }, LinearLayout.LayoutParams(dp(48), dp(46)).apply { marginEnd = dp(5) })
-        actions.addView(actionButton("تصفير العد", palette.accent, Color.WHITE, 12f) {
-            resetCount()
-        }, LinearLayout.LayoutParams(dp(145), dp(46)).apply {
-            marginStart = dp(5)
-            marginEnd = dp(5)
-        })
-        outer.addView(actions, marginTop(2))
+        }, LinearLayout.LayoutParams(0, dp(38), 1f).apply { marginStart = dp(3) })
+        counterColumn.addView(countActions, marginTop(7))
 
-        val voiceCard = LinearLayout(this).apply {
+        counterColumn.addView(actionButton("↻  تصفير", Color.rgb(48, 91, 74), Color.WHITE, 11f) {
+            resetCount()
+        }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(38)).apply {
+            topMargin = dp(6)
+        })
+
+        voiceButton = actionButton(
+            if (voiceRequested) "■" else "🎙",
+            Color.rgb(48, 91, 74),
+            Color.WHITE,
+            17f
+        ) { toggleVoice() }.apply {
+            contentDescription = if (voiceRequested) "إيقاف العد الصوتي" else "ابدأ العد الصوتي"
+        }
+        counterColumn.addView(voiceButton, LinearLayout.LayoutParams(dp(52), dp(49)).apply {
+            gravity = Gravity.CENTER_HORIZONTAL
+            topMargin = dp(7)
+        })
+        voiceStatus = textView("", 9f, palette.muted, false, Gravity.CENTER, top = 5).apply {
+            visibility = View.GONE
+        }
+        counterColumn.addView(voiceStatus)
+        mainRow.addView(counterColumn, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+
+        outer.addView(mainRow, marginTop(10))
+
+        val managementPanel = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             layoutDirection = View.LAYOUT_DIRECTION_RTL
-            setPadding(dp(11), dp(10), dp(11), dp(10))
-            background = rounded(palette.background, 14, palette.border)
+            setPadding(dp(10), dp(10), dp(10), dp(10))
+            background = rounded(palette.surface, 17, palette.border)
         }
-        val voiceRow = LinearLayout(this).apply {
+        managementPanel.addView(textView("أذكاري الخاصة", 12f, palette.text, true, bottom = 6))
+        val customRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             layoutDirection = View.LAYOUT_DIRECTION_RTL
         }
-        voiceButton = actionButton(
-            if (voiceRequested) "إيقاف العد الصوتي" else "ابدأ العد الصوتي",
-            palette.accent,
-            Color.WHITE,
-            11f
-        ) { toggleVoice() }
-        voiceRow.addView(voiceButton, LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            dp(40)
-        ))
-        voiceRow.addView(textView(
-            "العد بالنطق",
-            12f,
-            palette.text,
-            true
-        ), LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
-            marginStart = dp(8)
+        customInput = EditText(this).apply {
+            textSize = 13f
+            setTextColor(palette.text)
+            setHintTextColor(palette.muted)
+            hint = "أضف ذكراً خاصاً"
+            gravity = Gravity.CENTER_VERTICAL or Gravity.END
+            textAlignment = View.TEXT_ALIGNMENT_VIEW_END
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+            filters = arrayOf(InputFilter.LengthFilter(MAX_CUSTOM_LENGTH))
+            setSingleLine(true)
+            setPadding(dp(10), dp(8), dp(10), dp(8))
+            background = rounded(palette.background, 12, palette.border)
+        }
+        customRow.addView(customInput, LinearLayout.LayoutParams(0, dp(42), 1f).apply {
+            marginEnd = dp(5)
         })
-        voiceCard.addView(voiceRow)
-        voiceStatus = textView(
-            "انطق الذكر المختار كاملاً. لا تُعرض الكلمات المسموعة ولا تُحفظ في سجل السبحة.",
-            10f,
-            palette.muted,
-            false,
-            top = 6
-        )
-        voiceCard.addView(voiceStatus)
-        voiceCard.addView(textView(
-            "يتطلب إذن الميكروفون وخدمة التعرف الصوتي في الجهاز؛ وقد تتطلب الخدمة اتصالاً بالإنترنت حسب مزودها.",
-            9f,
-            palette.muted,
-            false,
-            top = 5
-        ))
-        outer.addView(voiceCard, marginTop(12))
+        customRow.addView(actionButton("إضافة", Color.rgb(48, 91, 74), Color.WHITE, 11f) {
+            addCustomDhikr()
+        }, LinearLayout.LayoutParams(dp(68), dp(42)))
+        managementPanel.addView(customRow)
+        customStatus = textView("", 9f, palette.muted, false, top = 5)
+        managementPanel.addView(customStatus)
+        val managementActions = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+        }
+        removeButton = actionButton("إزالة المحدد", palette.background, palette.text, 10f) {
+            removeSelectedDhikr()
+        }
+        restoreButton = actionButton("استعادة المحذوف", palette.accentSoft, palette.text, 10f) {
+            restoreRemovedDhikrs()
+        }
+        managementActions.addView(removeButton, LinearLayout.LayoutParams(0, dp(38), 1f).apply {
+            marginEnd = dp(4)
+            topMargin = dp(7)
+        })
+        managementActions.addView(restoreButton, LinearLayout.LayoutParams(0, dp(38), 1f).apply {
+            marginStart = dp(4)
+            topMargin = dp(7)
+        })
+        managementPanel.addView(managementActions)
+        outer.addView(managementPanel, marginTop(10))
 
-        rootContent.addView(textView(
-            if (storageAvailable) {
-                "حفظ محلي مشفّر على الجهاز. تبقى بيانات السبحة القديمة في شاشة المفكرة الكاملة إلى أن ننفذ استيراداً آمناً لها."
-            } else {
-                storageFailureMessage
-            },
-            10f,
-            palette.muted,
-            false,
-            Gravity.CENTER,
-            top = 12
-        ))
-
+        if (!storageAvailable) {
+            rootContent.addView(textView(
+                storageFailureMessage,
+                10f,
+                palette.muted,
+                false,
+                Gravity.CENTER,
+                top = 10
+            ))
+        }
         return scroll
     }
 
@@ -778,13 +728,18 @@ class NativeTasbihActivity : Activity() {
         if (!::listContainer.isInitialized) return
         listContainer.removeAllViews()
 
+        val featuredIds = listOf("subhan", "hamd", "tahlil", "takbir")
+        val featured = builtInDhikrs.filter {
+            it.id in featuredIds && !removedDhikrs.contains("builtin:" + it.id)
+        }
+        if (featured.isNotEmpty()) addDhikrSection("أعظمها كلمات الذكر:", featured, false)
+
         val periods = listOf(
             "tasbih" to "أذكار السبحة الرسمية",
             "morning" to "أذكار الصباح الرسمية",
             "evening" to "أذكار المساء الرسمية",
             "daily" to "أذكار يومية"
         )
-
         periods.forEach { (period, title) ->
             val items = officialDhikrs.filter {
                 it.period == period && !removedDhikrs.contains("official:" + it.id)
@@ -792,10 +747,12 @@ class NativeTasbihActivity : Activity() {
             if (items.isNotEmpty()) addDhikrSection(title, items, true)
         }
 
-        builtInDhikrs.groupBy { it.category }.forEach { (category, items) ->
-            val visible = items.filter { !removedDhikrs.contains("builtin:" + it.id) }
-            if (visible.isNotEmpty()) addDhikrSection(category, visible, false)
-        }
+        builtInDhikrs.filterNot { it.id in featuredIds }
+            .groupBy { it.category }
+            .forEach { (category, items) ->
+                val visible = items.filter { !removedDhikrs.contains("builtin:" + it.id) }
+                if (visible.isNotEmpty()) addDhikrSection(category, visible, false)
+            }
 
         if (customDhikrs.isNotEmpty()) {
             val customItems = customDhikrs.mapIndexed { index, value ->
@@ -826,14 +783,24 @@ class NativeTasbihActivity : Activity() {
         official: Boolean,
         custom: Boolean = false
     ) {
-        listContainer.addView(textView(
-            title,
-            11f,
-            palette.accent,
-            true,
-            top = 9,
-            bottom = 5
-        ))
+        if (title.isNotBlank() && title != "أعظمها كلمات الذكر:") {
+            listContainer.addView(textView(
+                title,
+                10f,
+                palette.text,
+                true,
+                top = 7,
+                bottom = 4
+            ))
+        }
+
+        val cardColors = listOf(
+            Color.rgb(249, 220, 226),
+            Color.rgb(224, 234, 220),
+            Color.rgb(250, 232, 203),
+            Color.rgb(235, 225, 239),
+            Color.rgb(224, 235, 234)
+        )
         items.forEach { item ->
             val key = when {
                 custom -> "custom:" + item.text
@@ -841,29 +808,50 @@ class NativeTasbihActivity : Activity() {
                 else -> "builtin:" + item.id
             }
             val selected = key == selectedKey
+            val colorIndex = listContainer.childCount % cardColors.size
+            val cardColor = cardColors[colorIndex]
             val card = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
                 layoutDirection = View.LAYOUT_DIRECTION_RTL
-                setPadding(dp(10), dp(9), dp(10), dp(9))
+                setPadding(dp(8), dp(8), dp(8), dp(8))
                 background = rounded(
-                    if (selected) palette.accentSoft else palette.surface,
-                    11,
-                    if (selected) palette.accent else palette.border,
+                    if (selected) blend(cardColor, palette.accentSoft, 0.42f) else cardColor,
+                    12,
+                    if (selected) palette.accent else blend(cardColor, palette.border, 0.28f),
                     if (selected) 2 else 1
                 )
                 isClickable = true
                 isFocusable = true
                 setOnClickListener { chooseDhikr(key, item) }
             }
-            card.addView(textView(item.title, 12f, palette.text, true))
+            val itemHeading = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                layoutDirection = View.LAYOUT_DIRECTION_RTL
+            }
+            itemHeading.addView(textView(
+                item.title,
+                11f,
+                palette.text,
+                true
+            ), LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+            itemHeading.addView(textView(
+                if (selected) "✓" else "✿",
+                15f,
+                if (selected) palette.accent else Color.rgb(112, 132, 105),
+                true,
+                Gravity.CENTER
+            ), LinearLayout.LayoutParams(dp(20), LinearLayout.LayoutParams.WRAP_CONTENT))
+            card.addView(itemHeading)
+
             if (item.text != item.title || official) {
                 card.addView(textView(
                     item.text,
-                    11f,
+                    10f,
                     palette.text,
                     false,
-                    top = 4
-                ).apply { setLineSpacing(dp(2).toFloat(), 1f) })
+                    top = 3
+                ).apply { setLineSpacing(dp(1).toFloat(), 1f) })
             }
             if (official) {
                 val details = mutableListOf<String>()
@@ -872,16 +860,13 @@ class NativeTasbihActivity : Activity() {
                 if (item.source.isNotBlank()) details.add(item.source)
                 card.addView(textView(
                     details.joinToString("  •  "),
-                    9f,
+                    8f,
                     palette.muted,
                     false,
-                    top = 5
+                    top = 4
                 ))
             }
-            if (selected) {
-                card.addView(textView("الذكر المحدد", 9f, palette.accent, true, top = 4))
-            }
-            listContainer.addView(card, marginTop(5))
+            listContainer.addView(card, marginTop(4))
         }
     }
 
@@ -891,9 +876,6 @@ class NativeTasbihActivity : Activity() {
         selectedTitle = item.title
         selectedText = item.text
         count = 0
-        listExpanded = false
-        listPanel.visibility = View.GONE
-        listToggle.text = "☷  اختيار الذكر  ⌄"
         saveEncryptedState()
         updateSelectedPhrase()
         updateCounter()
@@ -902,7 +884,7 @@ class NativeTasbihActivity : Activity() {
     }
 
     private fun updateSelectedPhrase() {
-        if (::phraseView.isInitialized) phraseView.text = selectedText
+        if (::phraseView.isInitialized) phraseView.text = selectedTitle
         if (::counterCenter.isInitialized) {
             counterCenter.contentDescription = "عداد السبحة: " + arabicNumber(count) +
                 ". الذكر المحدد: " + selectedTitle + ". اضغط للزيادة."
@@ -1118,12 +1100,12 @@ class NativeTasbihActivity : Activity() {
 
     private val recognitionListener = object : RecognitionListener {
         override fun onReadyForSpeech(params: Bundle?) {
-            if (voiceRequested) setVoiceStatus("الميكروفون نشط. انطق الذكر المختار كاملاً.", false)
+            if (voiceRequested) setVoiceStatus("الميكروفون نشط.", false)
         }
 
         override fun onBeginningOfSpeech() {
             restartCount = 0
-            if (voiceRequested) setVoiceStatus("جارٍ الاستماع والتحقق من الذكر.", false)
+            if (voiceRequested) setVoiceStatus("جارٍ الاستماع.", false)
         }
 
         override fun onRmsChanged(rmsdB: Float) = Unit
@@ -1226,7 +1208,7 @@ class NativeTasbihActivity : Activity() {
                 false
             )
         } else if (finalResult) {
-            setVoiceStatus("تم التحقق من نتيجة الاستماع. واصل النطق بالذكر كاملاً.", false)
+            setVoiceStatus("لم يُحتسب تكرار جديد.", false)
         }
     }
 
@@ -1323,10 +1305,13 @@ class NativeTasbihActivity : Activity() {
     private fun setVoiceStatus(message: String, error: Boolean) {
         if (::voiceStatus.isInitialized) {
             voiceStatus.text = message
+            voiceStatus.visibility = if (message.isBlank()) View.GONE else View.VISIBLE
             voiceStatus.setTextColor(if (error) Color.rgb(158, 65, 57) else palette.muted)
         }
         if (::voiceButton.isInitialized) {
-            voiceButton.text = if (voiceRequested) "إيقاف العد الصوتي" else "ابدأ العد الصوتي"
+            voiceButton.text = if (voiceRequested) "■" else "🎙"
+            voiceButton.contentDescription =
+                if (voiceRequested) "إيقاف العد الصوتي" else "ابدأ العد الصوتي"
             voiceButton.isEnabled = true
             voiceButton.alpha = 1f
         }
