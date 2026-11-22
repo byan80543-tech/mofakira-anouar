@@ -10,6 +10,7 @@ const legacy = read('android/app/src/main/java/com/anwar/mofakira/LegacyWebActiv
 const workflow = read('.github/workflows/build-anwar-android.yml');
 const migration = read('android/NATIVE_APP_MIGRATION.md');
 const readme = read('android/README.md');
+const debugStrings = read('android/app/src/debug/res/values/strings.xml');
 
 assert.match(manifest, /android:name="\.NativeNotebookActivity"[\s\S]*?android:exported="false"/,
   'the native notebook is registered as an internal Android activity');
@@ -93,6 +94,10 @@ assert.doesNotMatch(activity, /innerHTML|loadDataWithBaseURL/,
 assert.match(legacy, /WebView/);
 assert.match(gradle, /versionCode = 6/);
 assert.ok(gradle.includes('versionName = "0.6.0"'));
+assert.match(gradle, /applicationIdSuffix = "\.preview"/,
+  'the debug APK installs alongside the previous app instead of overwriting its local vault');
+assert.match(gradle, /versionNameSuffix = "-preview"/);
+assert.match(debugStrings, /<string name="app_name">مفكرة أنوار التجريبية<\/string>/);
 assert.match(workflow, /node scripts\/test-native-notebook\.mjs/);
 assert.match(migration, /دفتر الكتابة الأصلي \(المرحلة الأولى\)/);
 assert.match(migration, /لا يوجد استيراد تلقائي/);
