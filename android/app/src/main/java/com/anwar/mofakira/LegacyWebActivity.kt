@@ -74,10 +74,10 @@ class LegacyWebActivity : Activity() {
                 }
 
                 override fun shouldOverrideUrlLoading(
-                    view: WebView?,
-                    request: WebResourceRequest?
+                    view: WebView,
+                    request: WebResourceRequest
                 ): Boolean {
-                    val uri = request?.url ?: return true
+                    val uri = request.url
                     if (uri.scheme == "https" && uri.host == SITE_HOST) return false
                     return if (uri.scheme == "https" || uri.scheme == "http" || uri.scheme == "mailto" || uri.scheme == "tel") {
                         try {
