@@ -126,7 +126,7 @@ assert.match(gradle, /versionNameSuffix = "-preview"/);
 assert.match(debugStrings, /<string name="app_name">مفكرة أنوار التجريبية<\/string>/);
 assert.match(workflow, /node scripts\/test-native-notebook\.mjs/);
 assert.match(migration, /دفتر الكتابة الأصلي \(المرحلة الأولى\)/);
-assert.match(migration, /لا تُقرأ بيانات المتصفح تلقائيًا/);
+assert.match(migration, /استيراد تلقائي من Chrome\/PWA/);
 assert.match(readme, /NativeNotebookActivity/);
 assert.match(readme, /لا يجري استيراد أعمال خزنة الويب/);
 
