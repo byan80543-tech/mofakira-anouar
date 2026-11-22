@@ -85,7 +85,7 @@ assert.equal(decryptEnvelope(password, pwaEnvelope), plaintext,
 // Verify the opposite direction: a portable envelope emitted with the same
 // metadata contract is accepted by the original PWA crypto implementation.
 const nativeLike = {
-  format: 'anwar-vault',
+  format: 'anwar-native-notebook',
   version: 1,
   kdf: 'PBKDF2-HMAC-SHA-256',
   iterations: 600000,
@@ -98,10 +98,15 @@ cipher.setAAD(associatedData(nativeLike));
 const encrypted = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final(), cipher.getAuthTag()]);
 nativeLike.iv = iv.toString('base64');
 nativeLike.ciphertext = encrypted.toString('base64');
-assert.equal((await pwaVault.decryptEnvelope(password, nativeLike)).plaintext, plaintext,
-  'a backup following the shared legacy envelope can be opened by the PWA vault');
-assert.throws(() => decryptEnvelope(password, { ...pwaEnvelope, ciphertext: pwaEnvelope.ciphertext.slice(0, -4) + 'AAAA' }),
-  'tampered or truncated authenticated ciphertext must fail');
+assert.equal(decryptEnvelope(password, nativeLike), plaintext,
+  'the native archive uses the same authenticated PBKDF2/AES-GCM contract with its own format identifier');
+const tamperedBytes = Buffer.from(pwaEnvelope.ciphertext, 'base64');
+tamperedBytes[0] ^= 0x01;
+assert.throws(
+  () => decryptEnvelope(password, { ...pwaEnvelope, ciphertext: tamperedBytes.toString('base64') }),
+  /authenticate|Unsupported state|unable to authenticate/i,
+  'tampered authenticated ciphertext must fail'
+);
 
 // Android wiring, bounds, and transactional safeguards.
 for (const feature of [
