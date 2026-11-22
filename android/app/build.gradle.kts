@@ -16,7 +16,7 @@ android {
         getByName("debug") {
             // Keep the test APK alongside the previously installed stable app.
             // Release builds keep the production application ID unchanged.
-            applicationIdSuffix = ".preview"
+            applicationIdSuffix = ".preview.v07"
             versionNameSuffix = "-preview"
         }
     }
