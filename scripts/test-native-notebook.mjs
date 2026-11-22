@@ -15,8 +15,10 @@ const debugStrings = read('android/app/src/debug/res/values/strings.xml');
 
 assert.match(manifest, /android:name="\.NativeNotebookActivity"[\s\S]*?android:exported="false"/,
   'the native notebook is registered as an internal Android activity');
-assert.match(home, /"المفكرة"[\s\S]*?NativeNotebookActivity::class\.java/,
-  'the home tile opens the native notebook screen');
+assert.match(home, /"المفكرة"/,
+  "the first gateway visibly presents the notebook");
+assert.match(home, /NativeNotebookActivity::class\.java/,
+  "the notebook card opens the native notebook screen");
 assert.match(religiousGate, /LegacyWebActivity::class\.java/,
   'the complete legacy notebook remains reachable from the religious gateway');
 assert.match(activity, /class NativeNotebookActivity\s*:\s*Activity\(\)/);
