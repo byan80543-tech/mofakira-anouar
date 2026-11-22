@@ -1160,7 +1160,7 @@ class NativeNotebookActivity : Activity() {
         // TextEncoder behavior on Arabic passwords, including older Android providers.
         val passwordBytes = password.toByteArray(StandardCharsets.UTF_8)
         val mac = Mac.getInstance("HmacSHA256")
-        try {
+        return try {
             mac.init(SecretKeySpec(passwordBytes, "HmacSHA256"))
             val firstBlock = ByteArray(salt.size + 4)
             salt.copyInto(firstBlock)
