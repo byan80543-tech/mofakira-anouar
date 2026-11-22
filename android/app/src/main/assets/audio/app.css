@@ -1,0 +1,231 @@
+@charset "UTF-8";
+:root{
+ --navy:#09264d;--navy2:#174d76;--gold:#c9a96a;--gold2:#f4e6c4;--tx:#20364b;--mu:#78818a;
+ --green:#245c43;--green2:#e7f1e8;--ink:#20364b;--muted:#78818a;
+ --bg:#fff;--sf:#f7f8fa;--bd:#d8dde3;--ac:#204f7d;--ac2:#e0ebf8;
+ color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#fff;color:var(--ink);font-family:Tahoma,Arial,sans-serif}
+body{direction:rtl;-webkit-tap-highlight-color:transparent}
+button,input,select{font:inherit}
+button{cursor:pointer;touch-action:manipulation}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #c9a96a;outline-offset:2px}
+.curtain-head{height:76px;display:flex;align-items:center;justify-content:space-between;padding:10px 17px;background:linear-gradient(110deg,#09264d,#1d5777);border-bottom:2px solid #d0b371;color:white}
+.audio-close{width:48px;height:48px;border:1px solid #ffffff70;border-radius:50%;background:#ffffff18;color:#fff;font-size:28px;line-height:1}
+.morocco-seal{width:48px;height:48px;display:grid;place-items:center;flex:none;border:1px solid #d7b96f;border-radius:50%;background:#c1272d;box-shadow:0 2px 6px #09264d35;overflow:hidden}.morocco-seal svg{display:block;width:100%;height:100%}
+#rd{width:100%;max-width:760px;margin:0 auto;padding:16px 16px 24px;background:#fff;color:var(--ink)}
+.service-page-head{display:flex;justify-content:flex-start;margin:3px 0 12px}
+.service-back{display:flex;align-items:center;gap:7px;min-height:42px;padding:7px 13px;border:1px solid #d8dde3;border-radius:12px;background:#fff;color:#345b7d;font-size:13px;font-weight:800}
+.audio-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:4px 0 17px}
+.audio-tabs button{min-height:39px;padding:8px 3px;border:1px solid #d6dce1;border-radius:10px;background:#f5f7f9;color:#35516a;font-size:12px;font-weight:800}
+.audio-tabs button[aria-selected=true]{border-color:#c9a96a;background:linear-gradient(110deg,#fff7e3,#f1e2c0);color:#153a5b;box-shadow:inset 0 0 0 1px #e0c989}
+.audio-screen[hidden]{display:none!important}
+.audio-title{margin:12px 0 17px;color:#214e79;font-family:Georgia,serif;font-size:24px;font-weight:900;text-align:center;line-height:1.45}
+.radio-hero{display:flex;align-items:center;gap:13px;margin:8px 0 17px;padding:16px 14px;border:1px solid #c9a96a;border-radius:17px;background:linear-gradient(120deg,#09264d,#174d76 62%,#1d6175);color:#fff;box-shadow:0 8px 22px #09264d24}
+.radio-orbit{width:88px;height:88px;flex:none;display:grid;place-items:center;border:1px solid #e6ca87;border-radius:18px;background:linear-gradient(145deg,#fff1c8,#c99d4c);box-shadow:0 0 0 5px #ffffff12;font-size:46px}.radio-vintage-icon svg{display:block;width:82px;height:72px;max-width:100%;max-height:100%}
+.radio-hero-copy{display:grid;gap:4px;min-width:0;flex:1}
+.radio-hero-copy small{color:#f1dca9;font-size:11px}
+.radio-hero-copy strong{font-size:16px;line-height:1.6}
+.radio-hero-copy span{font-size:12px;color:#e2edf7}
+.radio-hero button{margin-top:7px;padding:7px 10px;border:1px solid #dfc58d;border-radius:8px;background:#fff3d3;color:#173b58;font-size:11px;font-weight:900}
+#rq,#stationSearch{width:100%;min-height:48px;margin:0 0 15px;padding:10px 14px;border:1px solid #d0d5db;border-radius:14px;background:#eef0f3;color:#26394c;font-size:15px;outline:none}
+#rq:focus,#stationSearch:focus{border-color:#9fb5ca;box-shadow:0 0 0 3px #dce9f8}
+.reciter-list-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px;padding:10px 13px;border:1px solid #d9c18d;border-radius:12px;background:linear-gradient(110deg,#fff8e8,#f2e4c7);color:#183a57}
+.reciter-list-title{font-family:Georgia,serif;font-size:18px;font-weight:900}
+.reciter-count{padding:5px 10px;border:1px solid #ddc995;border-radius:999px;background:#fffdf6;color:#72572e;font-size:10px;font-weight:800;white-space:nowrap}
+.reciter-catalog-note{display:block;margin:0 3px 13px;color:#7b8188;font-size:11px;line-height:1.8}
+.reciter-grid{display:grid;grid-template-columns:1fr;gap:9px;max-height:none;min-height:100px;padding:3px 2px 8px;overflow:visible}
+.reciter-card{position:relative;display:flex;align-items:center;gap:10px;min-width:0;min-height:74px;padding:10px 13px;border:1px solid #d4d9df;border-radius:17px;background:linear-gradient(145deg,#f7f8fa,#e9edf2);color:#1e2c38;box-shadow:0 2px 7px rgba(8,38,77,.075);transition:border-color .18s,box-shadow .18s,transform .18s}
+.reciter-card[aria-selected=true]{border-color:#c9a96a;box-shadow:inset 3px 0 #c9a96a,0 2px 8px rgba(8,38,77,.08)}
+.reciter-seal{width:48px;height:48px;display:grid;place-items:center;flex:none;overflow:hidden;border:1px solid #dfc58d;border-radius:50%;background:linear-gradient(145deg,#fffaf0,#f0e2c1);box-shadow:inset 0 1px 2px #ffffffb8,0 1px 3px #18334b12}
+.reciter-seal img{display:block;width:40px;height:44px;object-fit:contain;object-position:center bottom}
+.reciter-body{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+.reciter-name{display:block;flex:1;min-width:0;overflow-wrap:anywhere;font-size:16px;font-weight:900;line-height:1.7;color:#172a3a}
+.reciter-play{width:42px;height:42px;flex:none}
+.reciter-variants-menu{position:relative;flex:none;width:24px;height:26px}
+.reciter-variants-menu>summary{display:grid;place-items:center;width:24px;height:26px;border:1px solid #d9c38e;border-radius:8px;background:#fff7e3;color:#664e20;font-weight:900;list-style:none}
+.reciter-variants-menu>summary::-webkit-details-marker{display:none}
+.reciter-variants-menu>summary::before{content:"⌄";font-size:19px}
+.reciter-variants{position:absolute;z-index:40;top:calc(100% + 6px);inset-inline-end:0;display:grid;gap:5px;width:min(220px,70vw);max-height:210px;overflow:auto;padding:7px;border:1px solid #c9a96a;border-radius:12px;background:#fffdf8;box-shadow:0 8px 22px #102f5030}
+.reciter-version{display:flex;align-items:center;gap:8px;width:100%;min-height:38px;padding:6px 9px;border:1px solid #d8c28f;border-radius:9px;background:linear-gradient(145deg,#fffaf0,#f2e5c7);color:#263b50;font-size:11px;font-weight:800;text-align:right;line-height:1.55}
+.reciter-version::before{content:"";width:26px;height:26px;flex:none;background:url("royal-rose-closed.svg") center/contain no-repeat}
+.reciter-version[data-playing=true]::before{background-image:url("royal-rose-open.svg")}
+.reciter-empty{padding:20px;text-align:center;color:#7b8188;font-size:13px}
+.reciter-more,.primary-gold{width:100%;min-height:58px;margin:13px 0;padding:11px 14px;border:1px solid #c9a96a;border-radius:14px;background:linear-gradient(110deg,#fff8e8,#ead39c);color:#183a57;font-size:16px;font-weight:900;box-shadow:0 2px 6px #142f4d0c}
+.reciter-more:active,.primary-gold:active{transform:scale(.995)}
+.surah-picker-bar{display:block;margin:15px 0 12px;padding:0;border:0;background:transparent}
+.surah-picker-button{display:flex;align-items:center;justify-content:flex-start;width:100%;min-height:76px;padding:18px 22px;border:1px solid #b8d2bd;border-radius:15px;background:linear-gradient(135deg,#f1f8f1,#e2efe4);color:#214b32;text-align:right;box-shadow:0 2px 7px #1b56350c}
+.surah-picker-button-copy{display:block;width:100%}
+.surah-picker-button-copy small{display:none}
+.surah-picker-button-copy strong{font-size:25px;font-weight:900;color:#214b32}
+.reader-advance-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0;padding:12px;border:1px solid #d9c18d;border-radius:13px;background:linear-gradient(115deg,#fff9eb,#f1e4c8);box-shadow:0 2px 8px rgba(8,38,77,.045)}
+.reader-advance-copy{display:grid;gap:3px;min-width:0;color:#183a57}
+.reader-advance-copy strong{font-size:14px}
+.reader-advance-copy small{font-size:11px;color:#78694e}
+.reader-advance-bar select{flex:1;min-width:0;max-width:260px;min-height:42px;padding:7px 10px;border:1px solid #d9c18d;border-radius:9px;background:#fffdf8;color:#183a57;font:inherit;font-size:12px}
+.radio-mode-choices{display:grid;gap:8px;margin:17px 2px}
+.radio-mode-choices label{display:flex;align-items:center;gap:10px;min-height:38px;color:#4d535b;font-size:14px}
+.radio-mode-choices input{width:20px;height:20px;accent-color:#2670b8}
+.player-dock{position:sticky;bottom:0;z-index:20;margin:12px -16px 0;padding:10px 15px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid #d7dce2;background:rgba(255,255,255,.97);box-shadow:0 -7px 22px rgba(20,44,71,.08);backdrop-filter:blur(7px)}
+.now-playing{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.now-playing-copy{flex:1;min-width:0;display:grid;gap:2px}
+.now-playing-copy small{font-size:10px;color:#7b8188}
+.now-playing-copy strong{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.player-controls{display:flex;align-items:center;gap:10px;padding:8px;border:1px solid #d5d9df;border-radius:17px;background:#eef0f3}
+.player-controls button{width:48px;height:48px;flex:none;border:1px solid #d4d9df;border-radius:12px;background:transparent;color:#182c3e;font-size:23px;font-weight:900}
+.player-controls #rpp{width:48px;height:48px}
+.volume-range{flex:1;min-width:60px;accent-color:#285c9b}
+.progress-row{display:flex;align-items:center;gap:8px;margin-top:6px;color:#7a8087;font-size:10px}
+.progress-range{flex:1;min-width:0;accent-color:#285c9b}
+.audio-status{display:block;min-height:35px;margin-top:8px;padding:8px 10px;border-radius:10px;background:#dce8f7;color:#294c6c;font-size:11px;line-height:1.6}
+.station-grid{display:grid;grid-template-columns:1fr;gap:8px;max-height:48vh;overflow:auto;padding:2px}
+.live-station-option{display:flex;align-items:center;gap:11px;width:100%;min-height:66px;padding:9px 12px;border:1px solid #c9ddcc;border-radius:13px;background:linear-gradient(110deg,#f0f7f0,#e5f0e6);color:#254d32;text-align:right}
+.live-station-option[aria-selected=true]{border-color:#245c43;background:linear-gradient(110deg,#2d704d,#20563b);color:white}
+.live-station-option .station-name{flex:1;min-width:0;font-size:14px;font-weight:800}
+.station-tulip{width:39px;height:43px;display:grid;place-items:center;flex:none;border:1px solid #d5e3d2;border-radius:10px;background:#fbf8eb}
+.station-tulip img{width:32px;height:38px;object-fit:contain}
+.lesson-box{display:grid;gap:10px;padding:12px;border:1px solid #c9ddcc;border-radius:14px;background:#f7faf7}
+.lesson-series-button{display:flex;align-items:center;gap:12px;width:100%;min-width:0;min-height:78px;padding:12px 15px;border:1px solid #b8d2bd;border-radius:14px;background:linear-gradient(110deg,#f0f7f0,#e4f0e5);color:#214b32;text-align:right;box-shadow:0 2px 7px rgba(25,75,47,.07)}
+.lesson-series-button-tulip{width:42px;height:46px;display:grid;place-items:center;flex:none;border:1px solid #d5e3d2;border-radius:11px;background:#fbf8eb}
+.lesson-series-button-tulip img{width:34px;height:40px;object-fit:contain}
+.lesson-series-button-copy{display:grid;gap:3px;flex:1;min-width:0}
+.lesson-series-button-copy small{font-size:10px;color:#66826c}
+.lesson-series-button-copy strong{font-size:14px;line-height:1.6;color:#214b32;white-space:normal;overflow-wrap:anywhere}
+.lesson-list{display:grid;gap:8px;max-height:48vh;overflow:auto;overscroll-behavior:contain;padding:2px}
+.lesson-item{display:flex;align-items:center;gap:9px;width:100%;min-height:60px;padding:8px 10px;border:1px solid #c9ddcc;border-radius:12px;background:linear-gradient(110deg,#f0f7f0,#e5f0e6);color:#254d32;text-align:right}
+.lesson-item[aria-current=true]{border-color:#245c43;background:linear-gradient(110deg,#2d704d,#20563b);color:white}
+.lesson-tulip{width:36px;height:38px;display:grid;place-items:center;flex:none;overflow:hidden;border-radius:10px;border:1px solid #d5e3d2;background:#fbf8eb}
+.lesson-tulip img{width:29px;height:34px;object-fit:contain}
+.lesson-item-name{flex:1;min-width:0;font-size:13px;font-weight:800}
+.lesson-item-play{width:36px;height:36px;flex:none}
+.lesson-series-modal,.surah-picker-modal{position:fixed;inset:0;z-index:100900;display:grid;place-items:center;padding:calc(12px + env(safe-area-inset-top,0px)) 12px calc(12px + env(safe-area-inset-bottom,0px));background:rgba(7,24,16,.5);backdrop-filter:blur(3px)}
+.lesson-series-modal[hidden],.surah-picker-modal[hidden]{display:none!important}
+.surah-picker-dialog,.lesson-series-dialog{display:flex;flex-direction:column;width:min(100%,560px);max-height:min(88dvh,780px);min-height:0;padding:13px;border:1px solid #c5d9c7;border-radius:22px;background:#fbfdfb;color:#203b2a;box-shadow:0 18px 55px rgba(0,0,0,.24);overflow:hidden}
+.surah-picker-dialog-head,.lesson-series-dialog-head{display:flex;justify-content:flex-start;gap:12px;padding:2px 0 9px}
+.surah-picker-close,.lesson-series-close{width:36px;height:36px;display:grid;place-items:center;border:1px solid #d5e2d6;border-radius:50%;background:#edf5ee;color:#315b3e;font-size:18px}
+.surah-picker-search-wrap,.lesson-series-search{display:flex;align-items:center;gap:9px;min-height:45px;margin:4px 0 10px;padding:0 12px;border:1px solid #cbdccf;border-radius:11px;background:#f1f7f2;color:#497253}
+.surah-picker-search-wrap input,.lesson-series-search input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:#203b2a;font-size:13px}
+.surah-picker-list,.lesson-series-list{display:grid;gap:7px;min-height:0;overflow:auto;overscroll-behavior:contain;padding:2px 2px 6px}
+.lesson-series-group{display:grid;gap:7px;margin-bottom:9px}
+.lesson-series-group-title{padding:5px 4px 2px;color:#315f40;font-family:Georgia,serif;font-size:15px;font-weight:900}
+.lesson-series-option,.surah-picker-option{display:flex;align-items:center;gap:11px;width:100%;min-height:56px;padding:8px 11px;border:1px solid #c9ddcc;border-radius:12px;background:linear-gradient(110deg,#f0f7f0,#e5f0e6);color:#254d32;text-align:right}
+.lesson-series-option[aria-selected=true],.surah-picker-option[aria-selected=true]{border-color:#245c43;background:linear-gradient(110deg,#2d704d,#20563b);color:#fff}
+.lesson-series-option-tulip{width:39px;height:43px;display:grid;place-items:center;flex:none;border:1px solid #d5e3d2;border-radius:10px;background:#fbf8eb}
+.lesson-series-option-tulip img{width:32px;height:38px;object-fit:contain}
+.lesson-series-option-copy{display:grid;gap:2px;flex:1;min-width:0}
+.lesson-series-option-name{font-size:13px;font-weight:800;line-height:1.65}
+.lesson-series-option-meta{font-size:10px;opacity:.75}
+.lesson-series-option-check{width:22px;flex:none;text-align:center;font-size:18px;font-weight:900}
+.surah-picker-option-tulip{width:31px;height:34px;display:grid;place-items:center;flex:none;border:1px solid #d8e4cf;border-radius:9px;background:#fbf8eb}
+.surah-picker-option-tulip img{width:25px;height:30px;object-fit:contain}
+.surah-picker-option-copy{display:flex;align-items:baseline;gap:6px;flex:1;min-width:0}
+.surah-picker-option-number{font-size:11px;opacity:.72;direction:ltr}
+.surah-picker-option-name{font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:420px){
+ #rd{padding:12px 13px 20px}
+ .audio-title{font-size:22px}
+ .radio-hero{padding:12px}
+ .radio-orbit{width:76px;height:76px}
+ .reciter-name{font-size:15px}
+ .reciter-card{min-height:72px}
+ .reader-advance-bar{align-items:stretch;flex-direction:column;gap:7px}
+ .reader-advance-bar select{width:100%;max-width:none}
+ .player-controls{gap:7px;padding:7px}
+ .player-controls button{width:43px;height:43px}
+ .player-controls #rpp{width:43px;height:43px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+
+/* قوائم خضراء هادئة مع إعادة استخدام زهرة التوليب المحلية نفسها */
+.surah-picker-native{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;opacity:0!important;pointer-events:none!important}
+.surah-picker-button{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-width:0;min-height:48px;padding:7px 12px;border:1px solid #b8d2bd;border-radius:11px;background:linear-gradient(135deg,#f1f8f1,#e2efe4);color:#214b32;text-align:right;font:inherit;box-shadow:0 2px 6px rgba(25,75,47,.06)}
+.surah-picker-button-copy{display:grid;gap:1px;min-width:0}
+.surah-picker-button-copy small{font-size:10px;color:#63816a}
+.surah-picker-button-copy strong{font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.surah-picker-button-caret{display:grid;place-items:center;flex:none;width:29px;height:29px;border-radius:9px;background:#d2e5d5;color:#245c43;font-size:21px}
+.surah-picker-button:active{transform:scale(.995)}
+.surah-picker-modal{position:fixed;inset:0;z-index:100800;display:grid;place-items:center;padding:calc(12px + env(safe-area-inset-top,0px)) 12px calc(12px + env(safe-area-inset-bottom,0px));background:rgba(7,24,16,.48);backdrop-filter:blur(3px)}
+.surah-picker-modal[hidden]{display:none!important}
+.surah-picker-dialog{display:flex;flex-direction:column;width:min(100%,520px);max-height:min(86dvh,760px);min-height:0;padding:13px;border:1px solid #c5d9c7;border-radius:22px;background:#fbfdfb;color:#203b2a;box-shadow:0 18px 55px rgba(0,0,0,.24);overflow:hidden}
+.surah-picker-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:3px 2px 11px;border-bottom:1px solid #e0e9e1}
+.surah-picker-dialog-head>div{display:grid;gap:3px;min-width:0}
+.surah-picker-dialog-head strong{font-family:'Aref Ruqaa',Amiri,serif;font-size:19px;color:#245c43}
+.surah-picker-dialog-head small{font-size:10px;color:#748879}
+.surah-picker-close{width:34px;height:34px;display:grid;place-items:center;flex:none;border:1px solid #d5e2d6;border-radius:50%;background:#edf5ee;color:#315b3e;font-size:17px}
+.surah-picker-search-wrap{display:flex;align-items:center;gap:9px;min-height:43px;margin:11px 0 9px;padding:0 12px;border:1px solid #cbdccf;border-radius:11px;background:#f1f7f2;color:#497253}
+.surah-picker-search-wrap span{font-size:23px;line-height:1}
+.surah-picker-search-wrap input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:#203b2a;font:inherit;font-size:13px}
+.surah-picker-list{display:grid;grid-template-columns:1fr;gap:7px;min-height:0;overflow:auto;overscroll-behavior:contain;padding:2px 2px 5px}
+.surah-picker-option{display:flex;align-items:center;gap:11px;width:100%;min-height:48px;padding:7px 11px;border:1px solid #d1e2d3;border-radius:11px;background:linear-gradient(110deg,#f0f7f0,#e6f1e7);color:#254d32;text-align:right;font:inherit;transition:background .12s,border-color .12s}
+.surah-picker-option:active{transform:scale(.995)}
+.surah-picker-option[aria-selected="true"]{border-color:#245c43;background:linear-gradient(110deg,#2d704d,#20563b);color:#fff;box-shadow:0 3px 9px rgba(27,84,53,.16)}
+.surah-picker-option-tulip{width:31px;height:34px;display:grid;place-items:center;flex:none;border:1px solid #d8e4cf;border-radius:9px;background:#fbf8eb}
+.surah-picker-option-tulip img{display:block;width:25px;height:30px;object-fit:contain;object-position:center bottom}
+.surah-picker-option-copy{display:flex;align-items:baseline;gap:6px;flex:1;min-width:0}
+.surah-picker-option-number{font-size:11px;opacity:.72;direction:ltr}
+.surah-picker-option-name{font-size:14px;font-weight:750;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.surah-picker-empty{padding:20px 8px;text-align:center;color:#718777;font-size:12px}
+#rd .lesson-list{gap:8px;padding:3px 2px 6px}
+#rd .lesson-item{min-height:50px;padding:8px 11px;border:1px solid #c9ddcc;border-radius:11px;background:linear-gradient(110deg,#f0f7f0,#e5f0e6);color:#254d32;box-shadow:0 2px 6px rgba(30,78,45,.055)}
+#rd .lesson-item[aria-current="true"]{border-color:#245c43;background:linear-gradient(110deg,#2d704d,#20563b);color:#fff;box-shadow:0 3px 9px rgba(27,84,53,.15)}
+#rd .lesson-tulip{width:34px;height:36px;border:1px solid #d5e3d2;border-radius:9px;background:#fbf8eb;box-shadow:none}
+#rd .lesson-tulip img{width:28px;height:33px}
+#rd .lesson-item-name{font-size:13px;line-height:1.55}
+#rd #lessonSeries{width:100%;min-height:44px;padding:8px 12px;border:1px solid #b8d2bd;border-radius:11px;background:linear-gradient(135deg,#f1f8f1,#e2efe4);color:#214b32;font:inherit;font-size:13px;font-weight:700}
+@media(prefers-reduced-motion:reduce){.surah-picker-option,.surah-picker-button{transition:none!important}}
+/* إطار السورة نفسه قابل للنقر، بلا سهم أو عناوين مكررة */
+.surah-picker-bar{display:block;padding:0;border:0;background:transparent;box-shadow:none}
+.surah-picker-button{display:flex;align-items:center;justify-content:flex-start;min-height:76px;padding:18px 22px;border:1px solid #b8d2bd;border-radius:15px;background:linear-gradient(135deg,#f1f8f1,#e2efe4);color:#214b32;text-align:right}
+.surah-picker-button-copy{display:block;width:100%}
+.surah-picker-button-copy strong{font-size:21px;font-weight:800;color:#214b32}
+.surah-picker-dialog-head{justify-content:flex-start;padding:0 0 8px;border:0}
+.surah-picker-close{width:34px;height:34px;opacity:.86}
+@media(prefers-reduced-motion:reduce){.surah-picker-option,.surah-picker-button{transition:none!important}}
+
+
+/* بطاقات السلاسل العلمية: مستطيلات عريضة مع التوليب المحلي نفسه */
+#rd .lesson-series-native{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;opacity:0!important;pointer-events:none!important}
+#rd .lesson-series-button{display:flex;align-items:center;gap:12px;width:100%;min-width:0;min-height:78px;padding:12px 15px;border:1px solid #b8d2bd;border-radius:14px;background:linear-gradient(110deg,#f0f7f0,#e4f0e5);color:#214b32;text-align:right;font:inherit;box-shadow:0 2px 7px rgba(25,75,47,.07)}
+#rd .lesson-series-button-tulip{width:42px;height:46px;display:grid;place-items:center;flex:none;border:1px solid #d5e3d2;border-radius:11px;background:#fbf8eb}
+#rd .lesson-series-button-tulip img{width:34px;height:40px;object-fit:contain}
+#rd .lesson-series-button-copy{display:grid;gap:3px;flex:1;min-width:0}
+#rd .lesson-series-button-copy small{font-size:10px;color:#66826c}
+#rd .lesson-series-button-copy strong{font-size:14px;line-height:1.6;color:#214b32;white-space:normal;overflow-wrap:anywhere}
+.lesson-series-modal{position:fixed;inset:0;z-index:100900;display:grid;place-items:center;padding:calc(12px + env(safe-area-inset-top,0px)) 12px calc(12px + env(safe-area-inset-bottom,0px));background:rgba(7,24,16,.5);backdrop-filter:blur(3px)}
+.lesson-series-modal[hidden]{display:none!important}
+.lesson-series-dialog{display:flex;flex-direction:column;width:min(100%,560px);max-height:min(88dvh,780px);min-height:0;padding:13px;border:1px solid #c5d9c7;border-radius:22px;background:#fbfdfb;color:#203b2a;box-shadow:0 18px 55px rgba(0,0,0,.24);overflow:hidden}
+.lesson-series-dialog-head{display:flex;justify-content:flex-start;padding:0 0 7px}
+.lesson-series-close{width:34px;height:34px;display:grid;place-items:center;border:1px solid #d5e2d6;border-radius:50%;background:#edf5ee;color:#315b3e;font-size:17px}
+.lesson-series-search{display:flex;align-items:center;gap:9px;min-height:43px;margin:2px 0 10px;padding:0 12px;border:1px solid #cbdccf;border-radius:11px;background:#f1f7f2;color:#497253}
+.lesson-series-search span{font-size:23px;line-height:1}
+.lesson-series-search input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:#203b2a;font:inherit;font-size:13px}
+.lesson-series-list{display:grid;gap:8px;min-height:0;overflow:auto;overscroll-behavior:contain;padding:2px 2px 6px}
+.lesson-series-group{display:grid;gap:7px}
+.lesson-series-group-title{padding:5px 4px 2px;color:#315f40;font-family:'Aref Ruqaa',Amiri,serif;font-size:15px;font-weight:700}
+.lesson-series-option{display:flex;align-items:center;gap:12px;width:100%;min-width:0;min-height:66px;padding:9px 12px;border:1px solid #c9ddcc;border-radius:12px;background:linear-gradient(110deg,#f0f7f0,#e5f0e6);color:#254d32;text-align:right;font:inherit;box-shadow:0 2px 6px rgba(30,78,45,.05)}
+.lesson-series-option:active{transform:scale(.995)}
+.lesson-series-option[aria-selected="true"]{border-color:#245c43;background:linear-gradient(110deg,#2d704d,#20563b);color:#fff;box-shadow:0 3px 9px rgba(27,84,53,.16)}
+.lesson-series-option-tulip{width:39px;height:43px;display:grid;place-items:center;flex:none;border:1px solid #d5e3d2;border-radius:10px;background:#fbf8eb}
+.lesson-series-option-tulip img{display:block;width:32px;height:38px;object-fit:contain;object-position:center bottom}
+.lesson-series-option-copy{display:grid;gap:2px;flex:1;min-width:0}
+.lesson-series-option-name{font-size:14px;font-weight:750;line-height:1.65;overflow-wrap:anywhere}
+.lesson-series-option-meta{font-size:10px;opacity:.75}
+.lesson-series-option-check{width:23px;flex:none;text-align:center;font-size:18px;font-weight:900}
+.lesson-series-group[hidden]{display:none!important}
+.lesson-series-empty{padding:20px 8px;text-align:center;color:#718777;font-size:12px}
+@media(max-width:420px){.lesson-series-dialog{width:100%;max-height:min(88dvh,780px);padding:11px}.lesson-series-option{min-height:70px;padding:10px}.lesson-series-option-name{font-size:14px}}
+@media(prefers-reduced-motion:reduce){.lesson-series-option,.lesson-series-button{transition:none!important}}
+
+#rpp,.reciter-play,#lessonPlay{position:relative;display:inline-grid;place-items:center;flex:none;border:0!important;border-radius:0!important;background:transparent!important;color:transparent!important;font-size:0!important;box-shadow:none!important;overflow:visible;padding:0!important}
+#rpp::before,.reciter-play::before,#lessonPlay::before{content:'';display:block;width:31px;height:31px;border:0!important;background:url('royal-rose-closed.svg') center/contain no-repeat!important;transform:scale(.94);transform-origin:center;transition:transform .36s cubic-bezier(.2,.7,.25,1),filter .36s ease;filter:drop-shadow(0 1px 1px #233c3020)}
+
+/* زر التشغيل الأخضر مدمج هندسياً في SVG الخاص ببرعم الوردة */
+#rpp[data-playing="true"]::before,.reciter-play[data-playing="true"]::before,#lessonPlay[data-playing="true"]::before{width:31px;height:31px;background-image:url('royal-rose-open.svg')!important;animation:anwarFlowerBloom .58s cubic-bezier(.18,.78,.22,1.12) both;filter:drop-shadow(0 1px 1.5px #a83d6a30)}
+@keyframes anwarFlowerBloom{0%{transform:perspective(120px) rotateX(38deg) scale(.34);opacity:.35;filter:blur(1.2px)}48%{transform:perspective(120px) rotateX(-5deg) scale(1.12);opacity:1;filter:blur(0)}76%{transform:perspective(120px) rotateX(2deg) scale(.97)}100%{transform:perspective(120px) rotateX(0) scale(1);opacity:1;filter:blur(0)}}
+
+.radio-live-dot{width:9px;height:9px;border-radius:50%;background:#8b9aab;flex:none;box-shadow:0 0 0 4px #ffffff12}
+.radio-live-dot.playing{background:#65e6a2;box-shadow:0 0 0 5px #65e6a226,0 0 15px #65e6a2;animation:radioPulse 1.7s infinite}
+@keyframes radioPulse{50%{transform:scale(.8);opacity:.7}}
+.station-play{width:38px;height:38px}

@@ -29,15 +29,17 @@ for (const label of ['أصوات الأذان','اختيار الصوت والت
 }
 assert.doesNotMatch(portal, /بوابة الدين/, 'The visible service screen must not be named بوابة الدين.');
 assert.match(portal, /NativeAudioActivity\.MODE_LESSONS/);
+assert.match(portal, /NativeAudioWebActivity::class\.java/);
 assert.match(portal, /NativePrayerActivity::class\.java/);
 assert.match(portal, /NativeAdhkarActivity::class\.java/);
 assert.match(portal, /NativeTasbihActivity::class\.java/);
 assert.match(portal, /LegacyWebActivity::class\.java/);
 assert.match(portal, /setOnClickListener \{ finish\(\) \}/, 'Close returns to the notebook.');
 assert.match(manifest, /android:name="\.ReligiousGateActivity"/);
-assert.match(gradle, /versionCode = 11/);
-assert.match(gradle, /versionName = "0\.9\.2"/);
-assert.match(gradle, /applicationIdSuffix = "\.preview\.v11"/);
+assert.match(manifest, /android:name="\.NativeAudioWebActivity"[\s\S]*?android:exported="false"/);
+assert.match(gradle, /versionCode = 12/);
+assert.match(gradle, /versionName = "0\.9\.3"/);
+assert.match(gradle, /applicationIdSuffix = "\.preview\.v12"/);
 assert.match(workflow, /node scripts\/test-native-gateway\.mjs/);
 
 console.log('Original notebook landing, exact service labels, navigation, archive and isolated preview version are valid.');

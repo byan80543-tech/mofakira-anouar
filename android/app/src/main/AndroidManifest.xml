@@ -38,6 +38,10 @@
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
             android:exported="false" />
         <activity
+            android:name=".NativeAudioWebActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
+            android:exported="false" />
+        <activity
             android:name=".NativePrayerActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
             android:exported="false" />

@@ -10,13 +10,20 @@ const home = read('android/app/src/main/java/com/anwar/mofakira/MainActivity.kt'
 const notebook = read('android/app/src/main/java/com/anwar/mofakira/NativeNotebookActivity.kt');
 const religiousGate = read('android/app/src/main/java/com/anwar/mofakira/ReligiousGateActivity.kt');
 const audioActivity = read('android/app/src/main/java/com/anwar/mofakira/NativeAudioActivity.kt');
+const webAudioActivity = read('android/app/src/main/java/com/anwar/mofakira/NativeAudioWebActivity.kt');
+const audioHtml = read('android/app/src/main/assets/audio/index.html');
+const audioCss = read('android/app/src/main/assets/audio/app.css');
+const audioJs = read('android/app/src/main/assets/audio/app.js');
+const tulip = read('android/app/src/main/assets/audio/tulip-cutout.svg');
+const roseClosed = read('android/app/src/main/assets/audio/royal-rose-closed.svg');
+const roseOpen = read('android/app/src/main/assets/audio/royal-rose-open.svg');
 const audioService = read('android/app/src/main/java/com/anwar/mofakira/playback/NativeMediaService.kt');
 const catalog = read('android/app/src/main/java/com/anwar/mofakira/playback/NativeMediaCatalog.kt');
 const legacy = read('android/app/src/main/java/com/anwar/mofakira/LegacyWebActivity.kt');
 
-assert.match(androidAppGradle, /versionCode = 11/,
+assert.match(androidAppGradle, /versionCode = 12/,
   "native tasbih migration increments the Android version code");
-assert.match(androidAppGradle, /versionName = "0.9.2"/,
+assert.match(androidAppGradle, /versionName = "0.9.3"/,
   "native tasbih migration increments the Android version name");
 assert.match(gradle, /androidx\.media3:media3-exoplayer:1\.11\.1/);
 assert.match(gradle, /androidx\.media3:media3-session:1\.11\.1/);
@@ -24,6 +31,30 @@ assert.match(gradle, /androidx\.media3:media3-session:1\.11\.1/);
 assert.match(rootGradle, /org\.jetbrains\.kotlin\.android.*2\.3\.21/,
   "Kotlin Gradle plugin is aligned with the Media3 transitive Kotlin metadata");assert.match(manifest, /FOREGROUND_SERVICE_MEDIA_PLAYBACK/);
 assert.match(manifest, /android:name="\.NativeAudioActivity"[\s\S]*?android:exported="false"/);
+assert.match(manifest, /android:name="\.NativeAudioWebActivity"[\s\S]*?android:exported="false"/);
+assert.match(religiousGate, /NativeAudioWebActivity::class\.java/);
+assert.match(webAudioActivity, /file:\/\/\/android_asset\/audio\/index\.html/);
+assert.match(webAudioActivity, /addJavascriptInterface\(AudioBridge\(\), "AnwarAudioBridge"\)/);
+assert.match(webAudioActivity, /NativeMediaService::class\.java/);
+assert.match(webAudioActivity, /NativeMediaCatalog\.loadReciters\(\)/);
+assert.match(webAudioActivity, /NativeMediaCatalog\.loadStations\(\)/);
+assert.match(webAudioActivity, /player\.setMediaItems\(items, startIndex/);
+assert.match(webAudioActivity, /@JavascriptInterface fun playEdition/);
+assert.match(webAudioActivity, /@JavascriptInterface fun playLesson/);
+assert.match(audioHtml, /id="reciterGrid"/);
+assert.match(audioHtml, /id="surahPickerModal"/);
+assert.match(audioHtml, /id="lessonSeriesModal"/);
+assert.match(audioHtml, /id="lessonList"/);
+assert.match(audioCss, /\.reciter-card/);
+assert.match(audioCss, /royal-rose-closed\.svg/);
+assert.match(audioCss, /royal-rose-open\.svg/);
+assert.match(audioCss, /surah-picker-option/);
+assert.match(audioCss, /lesson-series-option/);
+assert.match(audioJs, /AnwarAudioBridge/);
+assert.match(audioJs, /playEdition/);
+assert.match(audioJs, /playLesson/);
+assert.ok(tulip.includes('data:image/webp;base64,'), 'the original real tulip asset is bundled locally');
+assert.ok(roseClosed.includes('<svg') && roseOpen.includes('<svg'), 'the original rose play states are bundled locally');
 assert.match(manifest, /android:name="\.playback\.NativeMediaService"[\s\S]*?android:exported="true"[\s\S]*?android:foregroundServiceType="mediaPlayback"/);
 assert.match(manifest, /androidx\.media3\.session\.MediaSessionService/);
 assert.match(audioService, /class NativeMediaService : MediaSessionService\(\)/);

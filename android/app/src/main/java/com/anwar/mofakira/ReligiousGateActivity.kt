@@ -219,7 +219,7 @@ class ReligiousGateActivity : Activity() {
 
     private fun openAudio(mode: String) {
         startActivity(
-            Intent(this, NativeAudioActivity::class.java)
+            Intent(this, NativeAudioWebActivity::class.java)
                 .putExtra(NativeAudioActivity.EXTRA_MODE, mode)
         )
     }
