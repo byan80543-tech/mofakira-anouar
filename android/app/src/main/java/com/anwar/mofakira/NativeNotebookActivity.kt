@@ -1,8 +1,10 @@
 package com.anwar.mofakira
 
+import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.ComponentName
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -1294,6 +1296,24 @@ class NativeNotebookActivity : Activity() {
 
     private fun startPoetryDictation(editor: EditText) {
         pendingSpeechEditor = editor
+        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermissions(
+                arrayOf(Manifest.permission.RECORD_AUDIO),
+                REQUEST_MICROPHONE
+            )
+            return
+        }
+        launchPoetryDictation()
+    }
+
+    private fun launchPoetryDictation() {
+        val editor = pendingSpeechEditor ?: return
+        if (isFinishing || isDestroyed) {
+            pendingSpeechEditor = null
+            return
+        }
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ar-MA")
@@ -1306,6 +1326,28 @@ class NativeNotebookActivity : Activity() {
         } catch (error: Exception) {
             pendingSpeechEditor = null
             Toast.makeText(this, "الإملاء الصوتي غير متاح على هذا الجهاز.", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode != REQUEST_MICROPHONE) return
+        if (grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED &&
+            checkSelfPermission(Manifest.permission.RECORD_AUDIO) ==
+                PackageManager.PERMISSION_GRANTED
+        ) {
+            launchPoetryDictation()
+        } else {
+            pendingSpeechEditor = null
+            Toast.makeText(
+                this,
+                "لم يُسمح بالميكروفون. يمكنك متابعة الكتابة يدويًا.",
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 
@@ -2333,6 +2375,7 @@ class NativeNotebookActivity : Activity() {
         private const val MAX_PORTABLE_FILE_BYTES = 12 * 1024 * 1024
         private const val REQUEST_EXPORT = 7301
         private const val REQUEST_IMPORT = 7302
+        private const val REQUEST_MICROPHONE = 7401
         private const val REQUEST_SPEECH = 7402
         private val ALLOWED_TYPES = setOf("poem", "text", "idea")
     }
