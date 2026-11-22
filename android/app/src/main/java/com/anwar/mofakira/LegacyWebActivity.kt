@@ -283,6 +283,7 @@ class LegacyWebActivity : Activity() {
         permissionFlowInProgress = true
         AlertDialog.Builder(this)
             .setTitle("تفعيل الأذان خارج المفكرة")
+            .setIcon(R.drawable.ic_launcher_artwork)
             .setMessage(
                 "حتى يعمل الأذان عند موعد الصلاة بعد مغادرة المفكرة، يحتاج تطبيق أنوار إلى إذن الإشعارات، " +
                     "وإذن «المنبهات والتذكيرات» حتى يوقظ الهاتف في الوقت المحدد. " +
@@ -318,6 +319,7 @@ class LegacyWebActivity : Activity() {
 
         AlertDialog.Builder(this)
             .setTitle("السماح بالأذان في وقته")
+            .setIcon(R.drawable.ic_launcher_artwork)
             .setMessage(
                 "افتح إعدادات Android وفعّل خيار «المنبهات والتذكيرات» لتطبيق مفكرة أنوار. " +
                     "هذا الإذن مطلوب لجدولة الأذان بدقة حتى عندما تكون المفكرة مغلقة."

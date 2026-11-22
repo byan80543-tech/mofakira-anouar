@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="anwar_icon_background">#073D34</color>
+    <color name="anwar_icon_background">#FFF0F6</color>
     <color name="anwar_icon_gold">#D5AF61</color>
     <color name="anwar_icon_page">#F6EDD9</color>
 </resources>
