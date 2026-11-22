@@ -9,6 +9,7 @@ on:
       - "official-adhkar.js"
       - "scripts/generate-native-adhkar-catalog.mjs"
       - "scripts/test-native-tasbih.mjs"
+      - "scripts/test-native-notebook.mjs"
       - "scripts/test-native-audio.mjs"
       - "scripts/test-native-adhkar.mjs"
       - ".github/workflows/build-anwar-android.yml"
@@ -58,6 +59,8 @@ jobs:
         run: node scripts/generate-native-adhkar-catalog.mjs
       - name: Validate native tasbih behavior, encryption and voice counting
         run: node scripts/test-native-tasbih.mjs
+      - name: Validate native notebook editor, encryption and recovery
+        run: node scripts/test-native-notebook.mjs
       - name: Build debug APK and run unit tests
         run: gradle -p android assembleDebug testDebugUnitTest
       - name: Upload debug APK
