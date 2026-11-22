@@ -118,8 +118,8 @@ assert.match(home, /NativeTasbihActivity::class\.java/);
 assert.match(home, /فتح جميع خدمات المفكرة/);
 assert.match(home, /LegacyWebActivity::class\.java/);
 assert.match(legacy, /WebView/);
-assert.match(gradle, /versionCode = 7/);
-assert.ok(gradle.includes('versionName = "0.7.0"'));
+assert.match(gradle, /versionCode = 8/);
+assert.ok(gradle.includes('versionName = "0.8.0"'));
 
 assert.ok(oldController.includes("preferences.set('tasbih'"),
   'the existing encrypted web preference adapter remains in place');
