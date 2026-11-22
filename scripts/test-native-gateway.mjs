@@ -37,9 +37,9 @@ assert.match(portal, /LegacyWebActivity::class\.java/);
 assert.match(portal, /setOnClickListener \{ finish\(\) \}/, 'Close returns to the notebook.');
 assert.match(manifest, /android:name="\.ReligiousGateActivity"/);
 assert.match(manifest, /android:name="\.NativeAudioWebActivity"[\s\S]*?android:exported="false"/);
-assert.match(gradle, /versionCode = 12/);
-assert.match(gradle, /versionName = "0\.9\.3"/);
-assert.match(gradle, /applicationIdSuffix = "\.preview\.v12"/);
+assert.match(gradle, /versionCode = 13/);
+assert.match(gradle, /versionName = "0.9.4"/);
+assert.match(gradle, /applicationIdSuffix = "\.preview.v13"/);
 assert.match(workflow, /node scripts\/test-native-gateway\.mjs/);
 
 console.log('Original notebook landing, exact service labels, navigation, archive and isolated preview version are valid.');
