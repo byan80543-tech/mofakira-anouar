@@ -1100,12 +1100,12 @@ class NativeTasbihActivity : Activity() {
 
     private val recognitionListener = object : RecognitionListener {
         override fun onReadyForSpeech(params: Bundle?) {
-            if (voiceRequested) setVoiceStatus("الميكروفون نشط. انطق الذكر المختار كاملاً.", false)
+            if (voiceRequested) setVoiceStatus("الميكروفون نشط.", false)
         }
 
         override fun onBeginningOfSpeech() {
             restartCount = 0
-            if (voiceRequested) setVoiceStatus("جارٍ الاستماع والتحقق من الذكر.", false)
+            if (voiceRequested) setVoiceStatus("جارٍ الاستماع.", false)
         }
 
         override fun onRmsChanged(rmsdB: Float) = Unit
@@ -1208,7 +1208,7 @@ class NativeTasbihActivity : Activity() {
                 false
             )
         } else if (finalResult) {
-            setVoiceStatus("تم التحقق من نتيجة الاستماع. واصل النطق بالذكر كاملاً.", false)
+            setVoiceStatus("لم يُحتسب تكرار جديد.", false)
         }
     }
 
