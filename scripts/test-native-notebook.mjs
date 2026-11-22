@@ -12,6 +12,7 @@ const workflow = read('.github/workflows/build-anwar-android.yml');
 const migration = read('android/NATIVE_APP_MIGRATION.md');
 const readme = read('android/README.md');
 const debugStrings = read('android/app/src/debug/res/values/strings.xml');
+const releaseStrings = read('android/app/src/main/res/values/strings.xml');
 
 assert.match(manifest, /android:name="\.NativeNotebookActivity"[\s\S]*?android:exported="false"/,
   'the native notebook is registered as an internal Android activity');
@@ -151,12 +152,14 @@ assert.doesNotMatch(activity, /innerHTML|loadDataWithBaseURL/,
   'saved content is rendered as ordinary Android text, not interpreted markup');
 
 assert.match(legacy, /WebView/);
-assert.match(gradle, /versionCode = 16/);
-assert.ok(gradle.includes('versionName = "0.9.7"'));
-assert.match(gradle, /applicationIdSuffix = "\.preview.v16"/,
+assert.match(gradle, /versionCode = 17/);
+assert.ok(gradle.includes('versionName = "0.9.8"'));
+assert.match(gradle, /applicationIdSuffix = "\.preview.v17"/,
   'the versioned debug APK installs alongside stable and earlier preview apps without replacing their local vaults');
 assert.match(gradle, /versionNameSuffix = "-preview"/);
-assert.match(debugStrings, /<string name="app_name">مفكرة أنوار التجريبية<\/string>/);
+assert.match(debugStrings, /<string name="app_name">مفكرة أنوار<\/string>/);
+assert.match(releaseStrings, /<string name="app_name">مفكرة أنوار<\/string>/);
+assert.doesNotMatch(debugStrings, /التجريبية/);
 assert.match(workflow, /node scripts\/test-native-notebook\.mjs/);
 assert.match(migration, /دفتر الكتابة الأصلي \(المرحلة الأولى\)/);
 assert.match(migration, /استيراد تلقائي من Chrome\/PWA/);
