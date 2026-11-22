@@ -54,6 +54,9 @@ assert.match(activity, /put\("html", note\.richHtml\.ifBlank \{ plainTextToHtml\
 assert.match(activity, /richHtmlFromEditor\(bodyInput\.text\)/, "the editor serializes styled spans before saving");
 assert.match(activity, /normalizeRichHtml\(item\.optString\("html", ""\)\)/, "legacy HTML is sanitized and retained on import");
 assert.match(activity, /richHtmlToText\(existing\?\.richHtml\.orEmpty\(\)\)/, "editing a saved work restores the formatted source");
+assert.match(activity, /poetryRows = Regex/, "the old web verse-row layout is recognized during migration");
+assert.match(activity, /match\.groupValues\[1\]/, "both halves of a legacy vertical-verse row are retained");
+assert.match(activity, /normalizeRichHtml\(Html\.toHtml\(value\)\)/, "native rich content is sanitized before it is stored");
 assert.match(activity, /StyleSpan\(Typeface\.BOLD\)/, "bold formatting is available");
 assert.match(activity, /StyleSpan\(Typeface\.ITALIC\)/, "italic formatting is available");
 assert.match(activity, /UnderlineSpan\(\)/, "underline formatting is available");
