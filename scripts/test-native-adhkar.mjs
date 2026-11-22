@@ -26,8 +26,10 @@ assert.match(activity, /MAX_TEXT_LENGTH = 3000/);
 assert.match(activity, /MAX_ENTRIES = 100/);
 assert.match(activity, /InputFilter\.LengthFilter\(MAX_TEXT_LENGTH\)/);
 assert.match(activity, /setTextIsSelectable\(true\)/);
-assert.match(activity, /body\.textContent|setText\(value\)/,
-  'the editor renders the saved text as text rather than HTML');
+assert.match(activity, /text = value/,
+  'saved adhkar are rendered through Android text views rather than parsed markup');
+assert.doesNotMatch(activity, /innerHTML|loadDataWithBaseURL/,
+  'personal adhkar are never interpreted as HTML or loaded into a WebView');
 assert.match(activity, /fun showEditor\(existing: Entry\?\)/);
 assert.match(activity, /fun showManager\(\)/);
 assert.match(activity, /fun confirmDelete\(entry: Entry\)/);
