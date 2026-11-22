@@ -12,7 +12,7 @@ const workflow = read('.github/workflows/build-anwar-android.yml');
 assert.match(main, /NativeNotebookActivity::class\.java/, 'The launcher opens the notebook directly.');
 assert.match(notebook, /الخدمات القرآنية والدينية/, 'The services launcher uses the exact original label.');
 assert.match(notebook, /أرشيف أنوار/, 'The archive control remains available.');
-assert.match(notebook, /تشغيل أو إيقاف إذاعة القرآن/, 'The radio toolbar control remains available.');
+assert.match(notebook, /تشغيل إذاعة القرآن/, 'The radio toolbar control remains available.');
 assert.match(notebook, /تبديل الوضع الليلي والنهاري/, 'The theme control remains available.');
 assert.match(notebook, /تغيير ألوان المفكرة/, 'The palette control remains available.');
 assert.match(notebook, /لا شيء هنا بعد/, 'The empty state matches the original copy.');
