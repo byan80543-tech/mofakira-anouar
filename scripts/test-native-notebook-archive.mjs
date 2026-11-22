@@ -82,8 +82,8 @@ function decryptEnvelope(passwordText, envelope) {
 assert.equal(decryptEnvelope(password, pwaEnvelope), plaintext,
   'PWA AES-GCM envelope decrypts with UTF-8 PBKDF2-HMAC-SHA-256 and the shared AAD');
 
-// Verify the opposite direction: a portable envelope emitted with the same
-// metadata contract is accepted by the original PWA crypto implementation.
+// Verify round-trip encryption for the Android-specific archive format while
+// keeping the same PBKDF2/AES-GCM metadata and authenticated-data layout.
 const nativeLike = {
   format: 'anwar-native-notebook',
   version: 1,
@@ -99,7 +99,7 @@ const encrypted = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final(
 nativeLike.iv = iv.toString('base64');
 nativeLike.ciphertext = encrypted.toString('base64');
 assert.equal(decryptEnvelope(password, nativeLike), plaintext,
-  'the native archive uses the same authenticated PBKDF2/AES-GCM contract with its own format identifier');
+  'the Android-specific archive format uses the authenticated PBKDF2/AES-GCM contract');
 const tamperedBytes = Buffer.from(pwaEnvelope.ciphertext, 'base64');
 tamperedBytes[0] ^= 0x01;
 assert.throws(
