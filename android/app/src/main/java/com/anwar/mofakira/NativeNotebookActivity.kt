@@ -1194,7 +1194,7 @@ class NativeNotebookActivity : Activity() {
 
     private fun decryptPortableBackup(password: String, envelope: JSONObject): String {
         val format = envelope.optString("format")
-        require(format == PORTABLE_FORMAT || format == LEGACY_VAULT_FORMAT) {
+        require(format == PORTABLE_FORMAT) {
             "صيغة النسخة الاحتياطية غير مدعومة."
         }
         require(envelope.optInt("version", -1) == PORTABLE_VERSION) {
@@ -1239,7 +1239,7 @@ class NativeNotebookActivity : Activity() {
                 .put("font", if (note.font == "sans-serif") "Cairo" else "Amiri")
                 .put("size", note.sizeSp)
                 .put("textColor", note.textColor)
-                .put("paper", note.paper)
+                .put("paper", externalPwaPaper(note.paper))
                 .put("history", historyToPortableJson(note.history)))
         }
         return JSONObject()
@@ -1256,15 +1256,33 @@ class NativeNotebookActivity : Activity() {
             array.put(JSONObject()
                 .put("title", version.title)
                 .put("type", version.type)
+                .put("html", plainTextToHtml(version.text))
                 .put("text", version.text)
                 .put("ts", version.updatedAt)
                 .put("font", if (version.font == "sans-serif") "Cairo" else "Amiri")
                 .put("size", version.sizeSp)
                 .put("textColor", version.textColor)
-                .put("paper", version.paper)
+                .put("paper", externalPwaPaper(version.paper))
                 .put("pin", version.pinned))
         }
         return array
+    }
+
+    private fun plainTextToHtml(value: String): String {
+        val escaped = value.replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("\"", "&quot;")
+        return escaped.split("\n").joinToString("") { line ->
+            if (line.isEmpty()) "<div><br></div>" else "<div>$line</div>"
+        }
+    }
+
+    private fun externalPwaPaper(value: String): String = when (value) {
+        "cream" -> "framed"
+        "parchment" -> "poetry"
+        "mint", "blue", "rose" -> "ruled"
+        else -> "plain"
     }
 
     private fun parsePortableNotes(plaintext: String): List<Note> {
@@ -1587,8 +1605,8 @@ class NativeNotebookActivity : Activity() {
         private const val MAX_CONTENT_LENGTH = 450_000
         private const val MAX_PLAINTEXT_BYTES = 6 * 1024 * 1024
         private const val MAX_HISTORY = 15
-        private const val PORTABLE_FORMAT = "anwar-native-notebook"
-        private const val LEGACY_VAULT_FORMAT = "anwar-vault"
+        // Shared envelope format lets PWA and Android open each other's encrypted backups.
+        private const val PORTABLE_FORMAT = "anwar-vault"
         private const val PORTABLE_VERSION = 1
         private const val PORTABLE_KDF = "PBKDF2-HMAC-SHA-256"
         private const val PORTABLE_CIPHER = "AES-256-GCM"
