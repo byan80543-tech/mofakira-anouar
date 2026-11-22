@@ -146,7 +146,7 @@ class NativeNotebookActivity : Activity() {
         searchInput = EditText(this).apply {
             hint = "ابحث في العناوين والمحتوى…"
             textSize = 14f
-            singleLine = true
+            setSingleLine(true)
             setTextColor(ink)
             setHintTextColor(muted)
             gravity = Gravity.CENTER_VERTICAL or Gravity.END
