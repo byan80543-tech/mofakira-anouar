@@ -175,7 +175,7 @@ assert.match(activity, /if \(!saveEncryptedState\(\)\) \{[\s\S]*?notes\.clear\(\
 assert.match(activity, /setPositiveButton\("استبدال"\)/,
   'replacing existing records requires explicit confirmation');
 assert.match(test, /persistent font\/size\/color\/paper formatting/);
-assert.match(gradle, /versionCode = 12/);
+assert.match(gradle, /versionCode = 13/);
 assert.ok(gradle.includes('versionName = "0.9.3"'));
 assert.match(workflow, /test-native-notebook-archive\.mjs/);
 
