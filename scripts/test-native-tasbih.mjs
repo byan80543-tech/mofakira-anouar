@@ -119,7 +119,7 @@ assert.match(home, /فتح جميع خدمات المفكرة/);
 assert.match(home, /LegacyWebActivity::class\.java/);
 assert.match(legacy, /WebView/);
 assert.match(gradle, /versionCode = 4/);
-assert.match(gradle, /versionName = "0\.4\.0"/);
+assert.ok(gradle.includes('versionName = "0.4.0"'));
 
 assert.ok(oldController.includes("preferences.set('tasbih'"),
   'the existing encrypted web preference adapter remains in place');
