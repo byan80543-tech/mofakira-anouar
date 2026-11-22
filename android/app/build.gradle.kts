@@ -1,9 +1,10 @@
-val anwarWebBaselineTimestamp = System.getenv("ANWAR_WEB_BASELINE_TIMESTAMP")?.toLongOrNull() ?: 0L
-
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
 }
+
+val anwarWebBaselineTimestamp = System.getenv("ANWAR_WEB_BASELINE_TIMESTAMP")?.toLongOrNull() ?: 0L
+
 android {
     namespace = "com.anwar.mofakira"
     compileSdk = 36
