@@ -35,9 +35,8 @@ import java.util.UUID
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
-import javax.crypto.SecretKeyFactory
+import javax.crypto.Mac
 import javax.crypto.spec.GCMParameterSpec
-import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
@@ -1101,6 +1100,11 @@ class NativeNotebookActivity : Activity() {
             .setPositiveButton("متابعة", null)
             .setNegativeButton("إلغاء", null)
             .create()
+        dialog.setOnCancelListener {
+            passwordInput.setText("")
+            confirmInput?.setText("")
+            if (!confirm) pendingImportJson = null
+        }
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val password = passwordInput.text.toString()
@@ -1152,15 +1156,35 @@ class NativeNotebookActivity : Activity() {
         require(password.length in MIN_EXPORT_PASSWORD_LENGTH..MAX_EXPORT_PASSWORD_LENGTH) {
             "عبارة المرور يجب أن تتراوح بين 12 و2048 محرفًا."
         }
-        val passwordChars = password.toCharArray()
-        val spec = PBEKeySpec(passwordChars, salt, PORTABLE_ITERATIONS, 256)
-        return try {
-            val keyBytes = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
-                .generateSecret(spec).encoded
-            SecretKeySpec(keyBytes, "AES").also { keyBytes.fill(0) }
+        // Implement PBKDF2 directly over UTF-8 bytes so this matches WebCrypto's
+        // TextEncoder behavior on Arabic passwords, including older Android providers.
+        val passwordBytes = password.toByteArray(StandardCharsets.UTF_8)
+        val mac = Mac.getInstance("HmacSHA256")
+        try {
+            mac.init(SecretKeySpec(passwordBytes, "HmacSHA256"))
+            val firstBlock = ByteArray(salt.size + 4)
+            salt.copyInto(firstBlock)
+            firstBlock[firstBlock.lastIndex - 3] = 0
+            firstBlock[firstBlock.lastIndex - 2] = 0
+            firstBlock[firstBlock.lastIndex - 1] = 0
+            firstBlock[firstBlock.lastIndex] = 1
+            var u = mac.doFinal(firstBlock)
+            val derived = u.copyOf()
+            try {
+                repeat(PORTABLE_ITERATIONS - 1) {
+                    u = mac.doFinal(u)
+                    for (index in derived.indices) {
+                        derived[index] = (derived[index].toInt() xor u[index].toInt()).toByte()
+                    }
+                }
+                SecretKeySpec(derived, "AES")
+            } finally {
+                u.fill(0)
+                derived.fill(0)
+                firstBlock.fill(0)
+            }
         } finally {
-            spec.clearPassword()
-            passwordChars.fill('\u0000')
+            passwordBytes.fill(0)
         }
     }
 
@@ -1405,7 +1429,12 @@ class NativeNotebookActivity : Activity() {
             if (requestCode == REQUEST_IMPORT) pendingImportJson = null
             return
         }
-        val uri = data?.data ?: return
+        val uri = data?.data
+        if (uri == null) {
+            if (requestCode == REQUEST_EXPORT) pendingExportJson = null
+            if (requestCode == REQUEST_IMPORT) pendingImportJson = null
+            return
+        }
         when (requestCode) {
             REQUEST_EXPORT -> persistExportFile(uri)
             REQUEST_IMPORT -> handleImportFile(uri)
