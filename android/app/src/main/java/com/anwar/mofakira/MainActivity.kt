@@ -139,12 +139,20 @@ class MainActivity : Activity() {
                     isClickable = true
                     isFocusable = true
                     setOnClickListener {
-                        val destination = if (label == "مواقيت الصلاة والأذان") {
-                            NativePrayerActivity::class.java
-                        } else {
-                            LegacyWebActivity::class.java
+                        when (label) {
+                            "مواقيت الصلاة والأذان" ->
+                                startActivity(Intent(this@MainActivity, NativePrayerActivity::class.java))
+                            "القرآن الكريم والقراء" ->
+                                startActivity(Intent(this@MainActivity, NativeAudioActivity::class.java)
+                                    .putExtra(NativeAudioActivity.EXTRA_MODE, NativeAudioActivity.MODE_QURAN))
+                            "الإذاعات والابتهالات" ->
+                                startActivity(Intent(this@MainActivity, NativeAudioActivity::class.java)
+                                    .putExtra(NativeAudioActivity.EXTRA_MODE, NativeAudioActivity.MODE_RADIO))
+                            "الدروس والمحاضرات" ->
+                                startActivity(Intent(this@MainActivity, NativeAudioActivity::class.java)
+                                    .putExtra(NativeAudioActivity.EXTRA_MODE, NativeAudioActivity.MODE_LESSONS))
+                            else -> startActivity(Intent(this@MainActivity, LegacyWebActivity::class.java))
                         }
-                        startActivity(Intent(this@MainActivity, destination))
                     }
                 }
                 row.addView(tile, LinearLayout.LayoutParams(0, dp(86), 1f).apply {
