@@ -4,7 +4,10 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
 import android.content.ComponentName
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.speech.RecognizerIntent
+import android.speech.tts.TextToSpeech
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -804,6 +807,7 @@ class NativeNotebookActivity : Activity() {
         }
 
         val stats = text("", 10f, muted, top = 5, bottom = 3)
+        var editorTts: TextToSpeech? = null
         val toolForm = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             layoutDirection = View.LAYOUT_DIRECTION_RTL
@@ -998,6 +1002,34 @@ class NativeNotebookActivity : Activity() {
         addLabel("الفقرات والقوائم")
         toolForm.addView(paragraphRow)
 
+        fun readEditorAloud() {
+            val value = bodyInput.text.toString().trim()
+            if (value.isBlank()) {
+                Toast.makeText(this, "اكتب النص أولًا.", Toast.LENGTH_SHORT).show()
+                return
+            }
+            val activeTts = editorTts
+            if (activeTts != null) {
+                activeTts.speak(value, TextToSpeech.QUEUE_FLUSH, null, "anwar-editor-reading")
+            } else {
+                editorTts = TextToSpeech(this) { status ->
+                    if (status == TextToSpeech.SUCCESS) {
+                        val engine = editorTts ?: return@TextToSpeech
+                        val language = engine.setLanguage(Locale("ar"))
+                        if (language == TextToSpeech.LANG_MISSING_DATA ||
+                            language == TextToSpeech.LANG_NOT_SUPPORTED) {
+                            Toast.makeText(this, "لا يتوفر صوت عربي للقراءة على هذا الجهاز.", Toast.LENGTH_LONG).show()
+                        } else {
+                            engine.setSpeechRate(0.92f)
+                            engine.speak(value, TextToSpeech.QUEUE_FLUSH, null, "anwar-editor-reading")
+                        }
+                    } else {
+                        Toast.makeText(this, "تعذّر تشغيل القراءة الصوتية.", Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        }
+
         val writingRow = makeToolRow()
         addToolButton(writingRow, "📜 إدراج بيت", width = 96) {
             insertPoetryCouplet(bodyInput)
@@ -1007,6 +1039,23 @@ class NativeNotebookActivity : Activity() {
         }
         addToolButton(writingRow, "🎙 إلقاء صوتي", width = 104) {
             startPoetryDictation(bodyInput)
+        }
+        addToolButton(writingRow, "🔊 قراءة النص", width = 96) {
+            readEditorAloud()
+        }
+        addToolButton(writingRow, "📋 نسخ", width = 66) {
+            val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+            clipboard.setPrimaryClip(ClipData.newPlainText(titleInput.text.toString(), bodyInput.text.toString()))
+            Toast.makeText(this, "تم نسخ النص.", Toast.LENGTH_SHORT).show()
+        }
+        addToolButton(writingRow, "💡 إلهام", width = 66) {
+            val prompts = listOf(
+                "اكتب عن معنى الوفاء حين تختبره الأيام.",
+                "ابدأ بيتك بصورة من الطبيعة ثم اختمه بحكمة.",
+                "دوّن خاطرة قصيرة عن أثر الكلمة الطيبة.",
+                "صف ذكرى صغيرة بقي أثرها في القلب."
+            )
+            Toast.makeText(this, prompts.random(), Toast.LENGTH_LONG).show()
         }
         addToolButton(writingRow, "✧ تركيز", width = 76) {
             AlertDialog.Builder(this)
@@ -1071,6 +1120,12 @@ class NativeNotebookActivity : Activity() {
             .setNegativeButton("إلغاء", null)
             .create()
 
+        dialog.setOnDismissListener {
+            editorTts?.stop()
+            editorTts?.shutdown()
+            editorTts = null
+            if (pendingSpeechEditor === bodyInput) pendingSpeechEditor = null
+        }
         dialog.setOnShowListener {
             dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
             dialog.window?.setLayout(
