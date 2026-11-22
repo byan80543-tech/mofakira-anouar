@@ -23,7 +23,7 @@ const legacy = read('android/app/src/main/java/com/anwar/mofakira/LegacyWebActiv
 
 assert.match(androidAppGradle, /versionCode = 13/,
   "native tasbih migration increments the Android version code");
-assert.match(androidAppGradle, /versionName = "0.9.3"/,
+assert.match(androidAppGradle, /versionName = "0.9.4"/,
   "native tasbih migration increments the Android version name");
 assert.match(gradle, /androidx\.media3:media3-exoplayer:1\.11\.1/);
 assert.match(gradle, /androidx\.media3:media3-session:1\.11\.1/);
