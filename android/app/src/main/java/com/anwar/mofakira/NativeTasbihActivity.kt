@@ -528,6 +528,7 @@ class NativeTasbihActivity : Activity() {
             bottom = 4
         ).apply {
             setLineSpacing(dp(3).toFloat(), 1f)
+            setPadding(dp(7), 0, dp(7), 0)
         }
         outer.addView(phraseView)
 
