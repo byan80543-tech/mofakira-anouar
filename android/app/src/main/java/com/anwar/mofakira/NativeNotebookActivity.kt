@@ -12,6 +12,7 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.os.Build
 import android.text.Html
 import android.text.InputFilter
 import android.text.InputType
@@ -25,6 +26,7 @@ import android.text.style.UnderlineSpan
 import android.text.style.ForegroundColorSpan
 import android.text.style.BackgroundColorSpan
 import android.text.style.AlignmentSpan
+import android.text.style.TabStopSpan
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
@@ -872,6 +874,13 @@ class NativeNotebookActivity : Activity() {
             gravity = Gravity.CENTER_VERTICAL
         }
 
+        fun horizontalStrip(row: LinearLayout): HorizontalScrollView =
+            HorizontalScrollView(this).apply {
+                isHorizontalScrollBarEnabled = false
+                layoutDirection = View.LAYOUT_DIRECTION_RTL
+                addView(row)
+            }
+
         fun addLabel(label: String) {
             toolForm.addView(text(label, 11f, muted, true, top = 7, bottom = 5))
         }
@@ -947,7 +956,7 @@ class NativeNotebookActivity : Activity() {
         }
         refreshStyleRow()
         addLabel("الخط وشكل الصفحة")
-        toolForm.addView(styleScroll)
+        toolForm.addView(styleScroll, marginBottom(3))
 
         val inlineRow = makeToolRow()
         addToolButton(inlineRow, "B عريض", width = 72) {
@@ -982,16 +991,20 @@ class NativeNotebookActivity : Activity() {
 
         val paragraphRow = makeToolRow()
         addToolButton(paragraphRow, "يمين", width = 58) {
-            applyParagraphAlignment(bodyInput, Layout.Alignment.ALIGN_OPPOSITE)
+            applyParagraphAlignment(bodyInput, Layout.Alignment.ALIGN_NORMAL)
         }
         addToolButton(paragraphRow, "توسيط", width = 62) {
             applyParagraphAlignment(bodyInput, Layout.Alignment.ALIGN_CENTER)
         }
         addToolButton(paragraphRow, "يسار", width = 58) {
-            applyParagraphAlignment(bodyInput, Layout.Alignment.ALIGN_NORMAL)
+            applyParagraphAlignment(bodyInput, Layout.Alignment.ALIGN_OPPOSITE)
         }
         addToolButton(paragraphRow, "ضبط", width = 58) {
-            applyParagraphAlignment(bodyInput, Layout.Alignment.ALIGN_NORMAL)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                bodyInput.justificationMode = Layout.JUSTIFICATION_MODE_INTER_WORD
+            } else {
+                applyParagraphAlignment(bodyInput, Layout.Alignment.ALIGN_NORMAL)
+            }
         }
         addToolButton(paragraphRow, "• قائمة", width = 68) {
             insertListPrefix(bodyInput, "• ")
@@ -1000,7 +1013,7 @@ class NativeNotebookActivity : Activity() {
             insertNumberedList(bodyInput)
         }
         addLabel("الفقرات والقوائم")
-        toolForm.addView(paragraphRow)
+        toolForm.addView(horizontalStrip(paragraphRow), marginBottom(3))
 
         fun readEditorAloud() {
             val value = bodyInput.text.toString().trim()
@@ -1066,7 +1079,7 @@ class NativeNotebookActivity : Activity() {
                 .show()
         }
         addLabel("أدوات الكتابة")
-        toolForm.addView(writingRow)
+        toolForm.addView(horizontalStrip(writingRow), marginBottom(3))
 
         val statsTextWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
@@ -1274,6 +1287,12 @@ class NativeNotebookActivity : Activity() {
         if (paragraphEnd > lineStart) {
             editable.setSpan(
                 AlignmentSpan.Standard(Layout.Alignment.ALIGN_CENTER),
+                lineStart,
+                paragraphEnd,
+                Spanned.SPAN_PARAGRAPH
+            )
+            editable.setSpan(
+                TabStopSpan.Standard(dp(166)),
                 lineStart,
                 paragraphEnd,
                 Spanned.SPAN_PARAGRAPH
