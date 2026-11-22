@@ -1152,13 +1152,15 @@ class NativeNotebookActivity : Activity() {
         require(password.length in MIN_EXPORT_PASSWORD_LENGTH..MAX_EXPORT_PASSWORD_LENGTH) {
             "عبارة المرور يجب أن تتراوح بين 12 و2048 محرفًا."
         }
-        val spec = PBEKeySpec(password.toCharArray(), salt, PORTABLE_ITERATIONS, 256)
+        val passwordChars = password.toCharArray()
+        val spec = PBEKeySpec(passwordChars, salt, PORTABLE_ITERATIONS, 256)
         return try {
             val keyBytes = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
                 .generateSecret(spec).encoded
             SecretKeySpec(keyBytes, "AES").also { keyBytes.fill(0) }
         } finally {
             spec.clearPassword()
+            passwordChars.fill('\u0000')
         }
     }
 
