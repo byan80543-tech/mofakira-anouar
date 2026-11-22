@@ -6,14 +6,6 @@ on:
     branches: [main]
     paths:
       - "android/**"
-      - "*.js"
-      - "*.css"
-      - "*.html"
-      - "*.json"
-      - "*.webmanifest"
-      - "assets/**"
-      - "vendor/**"
-      - "workers/**"
       - ".github/workflows/android-release.yml"
 
 permissions:
@@ -66,6 +58,10 @@ jobs:
           printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_PATH"
           chmod 600 "$KEYSTORE_PATH"
           echo "ANWAR_RELEASE_KEYSTORE_PATH=$KEYSTORE_PATH" >> "$GITHUB_ENV"
+
+      - name: Record bundled web-shell baseline
+        run: |
+          echo "ANWAR_WEB_BASELINE_TIMESTAMP=$(git show -s --format=%ct HEAD)" >> "$GITHUB_ENV"
 
       - name: Build the signed production APK
         if: steps.signing.outputs.ready == 'true'
