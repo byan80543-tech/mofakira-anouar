@@ -48,7 +48,11 @@ class NativeNotebookActivity : Activity() {
         val type: String,
         val text: String,
         val pinned: Boolean,
-        val updatedAt: Long
+        val updatedAt: Long,
+        val font: String,
+        val sizeSp: Int,
+        val textColor: Int,
+        val paper: String
     )
 
     private val navy = Color.rgb(9, 38, 77)
@@ -58,6 +62,23 @@ class NativeNotebookActivity : Activity() {
     private val ink = Color.rgb(35, 48, 58)
     private val muted = Color.rgb(101, 112, 120)
     private val border = Color.rgb(224, 216, 200)
+    private val fontChoices = listOf("serif" to "نسخي", "sans-serif" to "حديث")
+    private val textColorChoices = listOf(
+        "ink" to "فحمي",
+        "black" to "أسود",
+        "navy" to "كحلي",
+        "green" to "أخضر",
+        "brown" to "بني",
+        "wine" to "عنابي"
+    )
+    private val paperChoices = listOf(
+        "plain" to "أبيض",
+        "cream" to "كريمي",
+        "parchment" to "رق",
+        "mint" to "أخضر",
+        "blue" to "أزرق",
+        "rose" to "وردي"
+    )
 
     private val notes = mutableListOf<Note>()
     private var activeFilter = "all"
@@ -293,7 +314,7 @@ class NativeNotebookActivity : Activity() {
             orientation = LinearLayout.VERTICAL
             layoutDirection = View.LAYOUT_DIRECTION_RTL
             setPadding(dp(14), dp(12), dp(14), dp(12))
-            background = rounded(intArrayOf(Color.WHITE, Color.rgb(255, 253, 247)), 15, border)
+            background = paperBackground(note.paper, 15)
             elevation = dp(1).toFloat()
             isClickable = true
             isFocusable = true
@@ -315,10 +336,11 @@ class NativeNotebookActivity : Activity() {
             16f, green, true, top = 7, bottom = 5
         ))
         val preview = note.text.replace(Regex("\\s+"), " ").trim().take(190)
-        card.addView(text(
+        val previewText = text(
             preview.ifBlank { "لا يوجد محتوى نصي" },
-            12f, ink
-        ))
+            12f, note.textColor
+        ).apply { typeface = fontTypeface(note.font) }
+        card.addView(previewText)
         card.addView(text(formatDate(note.updatedAt), 10f, muted, top = 8))
 
         val actions = LinearLayout(this).apply {
@@ -354,6 +376,10 @@ class NativeNotebookActivity : Activity() {
         }
 
         var selectedType = existing?.type ?: "poem"
+        var selectedFont = existing?.font ?: "serif"
+        var selectedTextSize = existing?.sizeSp ?: 20
+        var selectedTextColor = existing?.textColor ?: Color.rgb(35, 48, 58)
+        var selectedPaper = existing?.paper ?: "plain"
         val titleInput = EditText(this).apply {
             setText(existing?.title.orEmpty())
             hint = "عنوان العمل (اختياري)"
@@ -371,8 +397,9 @@ class NativeNotebookActivity : Activity() {
         val bodyInput = EditText(this).apply {
             setText(existing?.text.orEmpty())
             hint = "ابدأ الكتابة هنا…"
-            textSize = 17f
-            setTextColor(ink)
+            textSize = selectedTextSize.toFloat()
+            setTextColor(selectedTextColor)
+            typeface = fontTypeface(selectedFont)
             setHintTextColor(muted)
             gravity = Gravity.TOP or Gravity.END
             textAlignment = View.TEXT_ALIGNMENT_VIEW_END
@@ -385,8 +412,71 @@ class NativeNotebookActivity : Activity() {
             filters = arrayOf(InputFilter.LengthFilter(MAX_CONTENT_LENGTH))
             setLineSpacing(dp(4).toFloat(), 1f)
             setPadding(dp(13), dp(12), dp(13), dp(12))
-            background = rounded(intArrayOf(Color.WHITE, Color.WHITE), 12, border)
+            background = paperBackground(selectedPaper, 12)
         }
+
+        val styleScroll = HorizontalScrollView(this).apply {
+            isHorizontalScrollBarEnabled = false
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+        }
+        val styleRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+        }
+        styleScroll.addView(styleRow)
+
+        fun applyEditorStyle() {
+            bodyInput.textSize = selectedTextSize.toFloat()
+            bodyInput.setTextColor(selectedTextColor)
+            bodyInput.typeface = fontTypeface(selectedFont)
+            bodyInput.background = paperBackground(selectedPaper, 12)
+        }
+
+        fun addStyleControl(label: String, onClick: () -> Unit) {
+            val control = actionButton(label, Color.WHITE, ink, onClick).apply {
+                textSize = 10f
+                setPadding(dp(8), dp(7), dp(8), dp(7))
+            }
+            styleRow.addView(control, LinearLayout.LayoutParams(dp(82), dp(46)).apply {
+                marginEnd = dp(3)
+                marginStart = dp(3)
+            })
+        }
+
+        fun refreshStyleControls() {
+            styleRow.removeAllViews()
+            addStyleControl("الخط\n" + fontLabel(selectedFont)) {
+                showOptionPicker("اختر الخط", fontChoices, selectedFont) { value ->
+                    selectedFont = value
+                    applyEditorStyle()
+                    refreshStyleControls()
+                }
+            }
+            addStyleControl("الحجم\n" + selectedTextSize) {
+                val sizes = listOf(16, 18, 20, 22, 24, 26, 28).map { it.toString() to "$it نقطة" }
+                showOptionPicker("حجم الكتابة", sizes, selectedTextSize.toString()) { value ->
+                    selectedTextSize = value.toInt()
+                    applyEditorStyle()
+                    refreshStyleControls()
+                }
+            }
+            val colorKey = textColorChoices.firstOrNull { textColorFor(it.first) == selectedTextColor }?.first ?: "ink"
+            addStyleControl("لون النص\n" + textColorLabel(colorKey)) {
+                showOptionPicker("لون النص", textColorChoices, colorKey) { value ->
+                    selectedTextColor = textColorFor(value)
+                    applyEditorStyle()
+                    refreshStyleControls()
+                }
+            }
+            addStyleControl("الورق\n" + paperLabel(selectedPaper)) {
+                showOptionPicker("شكل الورق", paperChoices, selectedPaper) { value ->
+                    selectedPaper = value
+                    applyEditorStyle()
+                    refreshStyleControls()
+                }
+            }
+        }
+        refreshStyleControls()
 
         val typeButtons = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -416,6 +506,8 @@ class NativeNotebookActivity : Activity() {
             setPadding(dp(15), dp(8), dp(15), dp(5))
             addView(text("نوع العمل", 11f, muted, bottom = 6))
             addView(typeButtons, marginBottom(11))
+            addView(text("تنسيق الكتابة", 11f, muted, bottom = 6))
+            addView(styleScroll, marginBottom(12))
             addView(text("العنوان", 11f, muted, bottom = 5))
             addView(titleInput, marginBottom(11))
             addView(text("المحتوى", 11f, muted, bottom = 5))
@@ -459,7 +551,11 @@ class NativeNotebookActivity : Activity() {
                     type = selectedType,
                     text = body,
                     pinned = existing?.pinned ?: false,
-                    updatedAt = System.currentTimeMillis()
+                    updatedAt = System.currentTimeMillis(),
+                    font = selectedFont,
+                    sizeSp = selectedTextSize,
+                    textColor = selectedTextColor,
+                    paper = selectedPaper
                 )
                 if (existing == null) {
                     notes.add(0, updated)
@@ -572,12 +668,25 @@ class NativeNotebookActivity : Activity() {
             val type = item.optString("type", "text")
             val body = item.optString("text", "")
             val timestamp = item.optLong("ts", 0L)
+            val rawFont = item.optString("font", "serif")
+            val font = when (rawFont) {
+                "Amiri" -> "serif"
+                "Cairo" -> "sans-serif"
+                else -> rawFont.takeIf { it == "serif" || it == "sans-serif" } ?: "serif"
+            }
+            val sizeSp = item.optInt("size", 20).coerceIn(16, 28)
+            val textColor = item.optInt("textColor", Color.rgb(35, 48, 58))
+            val rawPaper = item.optString("paper", "plain")
+            val paper = rawPaper.takeIf { key -> paperChoices.any { it.first == key } } ?: "plain"
             require(id.isNotBlank() && id.length <= 80 && ids.add(id)) { "معرّف عمل مكرر أو غير صالح." }
             require(title.length <= MAX_TITLE_LENGTH) { "عنوان عمل يتجاوز الحد." }
             require(body.isNotBlank() && body.length <= MAX_CONTENT_LENGTH) { "محتوى عمل غير صالح أو يتجاوز الحد." }
             require(type in ALLOWED_TYPES) { "نوع عمل غير معروف." }
             require(timestamp > 0L) { "تاريخ عمل غير صالح." }
-            parsed.add(Note(id, title, type, body, item.optBoolean("pin", false), timestamp))
+            parsed.add(Note(
+                id, title, type, body, item.optBoolean("pin", false), timestamp,
+                font, sizeSp, textColor, paper
+            ))
         }
         return parsed
     }
@@ -643,9 +752,10 @@ class NativeNotebookActivity : Activity() {
                 .put("text", note.text)
                 .put("pin", note.pinned)
                 .put("ts", note.updatedAt)
-                .put("font", "Amiri")
-                .put("size", 20)
-                .put("paper", "plain"))
+                .put("font", note.font)
+                .put("size", note.sizeSp)
+                .put("textColor", note.textColor)
+                .put("paper", note.paper))
         }
         return JSONObject()
             .put("formatVersion", FORMAT_VERSION)
@@ -707,6 +817,65 @@ class NativeNotebookActivity : Activity() {
         )
         return cipher.doFinal(ciphertext)
     }
+
+    private fun showOptionPicker(
+        title: String,
+        options: List<Pair<String, String>>,
+        selected: String,
+        onSelected: (String) -> Unit
+    ) {
+        val selectedIndex = options.indexOfFirst { it.first == selected }.coerceAtLeast(0)
+        AlertDialog.Builder(this)
+            .setTitle(title)
+            .setSingleChoiceItems(options.map { it.second }.toTypedArray(), selectedIndex) { dialog, which ->
+                options.getOrNull(which)?.first?.let(onSelected)
+                dialog.dismiss()
+            }
+            .setNegativeButton("إلغاء", null)
+            .show()
+    }
+
+    private fun fontLabel(key: String): String =
+        fontChoices.firstOrNull { it.first == key }?.second ?: "نسخي"
+
+    private fun fontTypeface(key: String): Typeface =
+        Typeface.create(if (key == "sans-serif") "sans-serif" else "serif", Typeface.NORMAL)
+
+    private fun textColorFor(key: String): Int = when (key) {
+        "black" -> Color.rgb(18, 18, 18)
+        "navy" -> Color.rgb(24, 55, 95)
+        "green" -> Color.rgb(24, 83, 62)
+        "brown" -> Color.rgb(105, 69, 39)
+        "wine" -> Color.rgb(115, 45, 56)
+        else -> Color.rgb(35, 48, 58)
+    }
+
+    private fun textColorLabel(key: String): String =
+        textColorChoices.firstOrNull { it.first == key }?.second ?: "فحمي"
+
+    private fun paperLabel(key: String): String =
+        paperChoices.firstOrNull { it.first == key }?.second ?: "أبيض"
+
+    private fun paperColor(key: String): Int = when (key) {
+        "cream" -> Color.rgb(255, 253, 247)
+        "parchment" -> Color.rgb(248, 239, 220)
+        "mint" -> Color.rgb(237, 246, 239)
+        "blue" -> Color.rgb(238, 244, 251)
+        "rose" -> Color.rgb(252, 239, 242)
+        else -> Color.WHITE
+    }
+
+    private fun paperBorderColor(key: String): Int = when (key) {
+        "parchment" -> Color.rgb(211, 190, 151)
+        "mint" -> Color.rgb(190, 218, 197)
+        "blue" -> Color.rgb(190, 210, 232)
+        "rose" -> Color.rgb(231, 197, 205)
+        "cream" -> Color.rgb(228, 218, 193)
+        else -> border
+    }
+
+    private fun paperBackground(key: String, radius: Int): GradientDrawable =
+        rounded(intArrayOf(paperColor(key), paperColor(key)), radius, paperBorderColor(key))
 
     private fun typeName(type: String): String = when (type) {
         "poem" -> "قصيدة"
