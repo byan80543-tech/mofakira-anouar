@@ -114,7 +114,7 @@ assert.doesNotMatch(activity, /put\("(transcript|speechText|recognizedWords|audi
 assert.match(manifest, /android\.permission\.RECORD_AUDIO/);
 assert.match(manifest, /android:name="\.NativeTasbihActivity"[\s\S]*?android:exported="false"/);
 assert.match(manifest, /android\.speech\.RecognitionService/);
-assert.match(home, /"📿" to "السبحة"/);
+assert.match(home, /Triple\("📿", "السبحة"\)/, "the first gateway keeps the tasbih quick shortcut");
 assert.match(home, /NativeTasbihActivity::class\.java/);
 assert.match(home, /ReligiousGateActivity::class\.java/);
 assert.match(religiousGate, /LegacyWebActivity::class\.java/);
