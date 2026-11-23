@@ -11,6 +11,8 @@
     project: 'مفكرة أنوار',
     creator: 'Anouar Oumlili (أنوار أومليلي)',
     publicLocation: 'الحسيمة، المغرب',
+    documentedConceptOriginDate: '2026-11-17',
+    designDistinction: 'بنية مفكرة متكاملة تجمع الكتابة والمكتبة والقرآن والسبحة وإنشاء الكتب في تجربة واحدة، وليست مجرد دفتر ملاحظات تقليدي.',
     officialUrl: 'https://byan80543-tech.github.io/mofakira-anouar/',
     sourceRepository: 'https://github.com/byan80543-tech/mofakira-anouar'
   });
@@ -58,17 +60,17 @@
 
     const detail = document.createElement('p');
     detail.textContent =
-      'هذه النسخة تعمل على نطاق غير مدرج ضمن النطاقات الأصلية المعتمدة. هوية المشروع الأصلية محفوظة في ملفات المصدر.';
+      'مفكرة أنوار ليست مجرد دفتر ملاحظات تقليدي؛ إنها بنية متكاملة ابتكر تصورها أنوار أومليلي، تجمع الكتابة الأدبية والمكتبة والقرآن والسبحة وإنشاء الكتب في تجربة واحدة، مع أدواتها المساندة.';
 
     const attribution = document.createElement('p');
     attribution.className = 'anouar-origin-attribution';
-    attribution.textContent = 'صاحب المشروع والمطوّر: Anouar Oumlili (أنوار أومليلي) — الحسيمة، المغرب';
+    attribution.textContent = 'صاحب ابتكار هذا التصور وبنية المفكرة: Anouar Oumlili (أنوار أومليلي) — الحسيمة، المغرب. أصل الفكرة موثق في سجل المشروع.';
 
     const source = document.createElement('a');
     source.href = identity.sourceRepository;
     source.target = '_blank';
     source.rel = 'noopener noreferrer';
-    source.textContent = 'الاطلاع على سجل المصدر والملكية';
+    source.textContent = 'معرفة تفاصيل الابتكار وسجل المصدر والملكية';
 
     const close = document.createElement('button');
     close.type = 'button';
