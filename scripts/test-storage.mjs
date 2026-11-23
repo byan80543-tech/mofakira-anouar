@@ -130,6 +130,19 @@ h=makeHarness({'anwar_v1':state(note('n1'))});
 h.api.load();
 assert(h.api.snapshot().S.notes.length===1&&h.api.snapshot().S.notes[0].id==='n1','valid primary storage loads');
 
+h=makeHarness({'anwar_v1':state({id:'legacy-no-body',title:'عمل قديم بلا حقل محتوى'})});
+h.api.load();
+assert(!h.api.snapshot().storageRecoveryBlocked&&h.api.snapshot().S.notes.length===1&&h.api.snapshot().S.notes[0].html==='','legacy note without html/text is normalized instead of misclassified as corrupt');
+
+h=makeHarness({'anwar_v1':state({id:'legacy-text-fallback',html:42,text:'محتوى نصي قديم'})});
+h.api.load();
+assert(!h.api.snapshot().storageRecoveryBlocked&&h.api.snapshot().S.notes[0]?.html==='<div>محتوى نصي قديم</div>','legacy non-string html falls back to a valid text body');
+
+const oversizedLegacy=state({id:'oversized-legacy',html:'x'.repeat(450001)});
+h=makeHarness({'anwar_v1':oversizedLegacy});
+h.api.load();
+assert(h.api.snapshot().storageRecoveryBlocked&&h.api.snapshot().storageRecoveryRaw===oversizedLegacy,'oversized legacy body is still rejected without changing the raw record');
+
 h=makeHarness({'anwar_v1':'{broken-json','anwar_v1_backup_v2':state(note('backup'))});
 h.api.load();
 assert(h.api.snapshot().storageRecoveryBlocked&&h.api.snapshot().storageRecoveryRaw==='{broken-json','corrupt primary enters recovery without losing its raw value');

@@ -181,10 +181,16 @@ function showStorageRecoveryNotice(title,message,raw){
  if(panel)panel.hidden=false;
  updateStorageRecoveryNotice();
 }
+function noteContentTooLarge(note){
+ if(!note||typeof note!=='object'||Array.isArray(note))return false;
+ // Match cleanNote(): old records without html/text normalize to an empty body.
+ const content=typeof note.html==='string'?note.html:(typeof note.text==='string'?note.text:'');
+ return content.length>450000;
+}
 function readStoredState(raw){
  const parsed=JSON.parse(raw);
  if(!parsed||typeof parsed!=='object'||Array.isArray(parsed)||!Array.isArray(parsed.notes))throw new Error('بنية سجل التخزين غير معروفة');
- if(parsed.notes.length>2500||parsed.notes.some(n=>n&&typeof n==='object'&&!Array.isArray(n)&&(typeof n.html==='string'?n.html:n.text).length>450000))throw new Error('سجل التخزين يتجاوز حدود السلامة');
+ if(parsed.notes.length>2500||parsed.notes.some(noteContentTooLarge))throw new Error('سجل التخزين يتجاوز حدود السلامة');
  const normalized=normalizeState(parsed);
  if(parsed.notes.length>0&&normalized.notes.length===0)throw new Error('لم يبق أي سجل صالح بعد فحص البيانات');
  return normalized;
@@ -359,7 +365,7 @@ async function persistVaultSnapshot(plaintext){
  const snapshot=JSON.parse(plaintext);
  if(!snapshot||typeof snapshot!=='object'||Array.isArray(snapshot)||!Array.isArray(snapshot.notes))throw new Error('بنية بيانات المفكرة غير صالحة؛ لم نغيّر الخزنة المحفوظة.');
  if(snapshot.notes.length>2500)throw new Error('بلغت المفكرة الحد الأقصى وهو 2500 عمل. صدّر نسخة احتياطية قبل إنشاء أعمال إضافية.');
- if(snapshot.notes.some(note=>note&&typeof note==='object'&&!Array.isArray(note)&&(typeof note.html==='string'?note.html:note.text).length>450000))throw new Error('أحد الأعمال تجاوز الحد الآمن وهو 450 ألف حرف. قسّمه إلى أعمال أصغر قبل الحفظ.');
+ if(snapshot.notes.some(noteContentTooLarge))throw new Error('أحد الأعمال تجاوز الحد الآمن وهو 450 ألف حرف. قسّمه إلى أعمال أصغر قبل الحفظ.');
  const mainEnvelope=await AnwarVaultCrypto.encryptWithKey(vaultKey,vaultTemplate,plaintext);
  const mainText=JSON.stringify(mainEnvelope);
  await AnwarVaultStorage.set(VAULT_STORAGE_KEY,mainText);
