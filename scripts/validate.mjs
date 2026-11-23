@@ -86,11 +86,17 @@ ok(adhkarPageHtml.includes('id="adhkarPanel"') && adhkarPageHtml.includes('class
 ok(tasbihPageHtml.includes('id="tasbihPanel"') && tasbihPageHtml.includes('id="tasbihCount"') && tasbihPageHtml.includes('id="tasbihVoice"') && tasbihPageHtml.includes('id="tasbihThemePicker"'), 'the dedicated tasbih page keeps the existing counter, voice and theme controls');
 ok(html.includes('data-anwar-service="adhkar"') && html.includes('aria-controls="anwarAdhkarPage"') && html.includes('data-anwar-service="tasbih"') && html.includes('aria-controls="anwarTasbihPage"'), 'the home dashboard exposes separate adhkar and tasbih cards');
 ok(html.includes('id="anwar-tasbih-sixth-reference-v1"') && html.includes('aspect-ratio:1 / 1!important') && html.includes('class="tasbih-reset-housing"') && html.includes('class="tasbih-inner-dhikr-frame"'), 'tasbih follows the sixth reference with a circular dhikr face and integrated reset housing');
-ok(html.includes('id="tasbihCustomDhikrInput"') && html.includes('placeholder="اكتب الذكر هنا"') && html.includes('id="tasbihAddCustomDhikr"'), 'the dhikr face contains a simple framed manual entry field');
+ok(html.includes('id="tasbihCustomDhikrInput"') && html.includes('placeholder="أو اكتب ذكراً خاصاً هنا"') && html.includes('id="tasbihAddCustomDhikr"'), 'the dhikr chooser contains a simple framed manual entry field');
+const dhikrChooserStart=html.indexOf('id="tasbihDhikrListPanel"');
+const manualDhikrField=html.indexOf('class="tasbih-inner-dhikr-frame"',dhikrChooserStart);
+const tasbihFaceStart=html.indexOf('class="anwar-tasbih-counter anwar-tasbih-sixth-face"');
+ok(manualDhikrField>dhikrChooserStart && manualDhikrField<tasbihFaceStart, 'manual dhikr input is inside the expanded chooser, not the clock face');
 ok((html.match(/id="tasbihPhrase"/g)||[]).length===1, 'the selected dhikr text has a single canonical DOM node');
 ok(html.includes('id="tasbihMinus" class="tasbih-minus-control"') && html.includes('id="tasbihReset" class="anwar-tasbih-reset"') && html.includes('id="tasbihRemoveDhikr" class="tasbih-management-remove"'), 'the integrated reset, decrement and list-management controls remain available');
 ok((html.match(/id="tasbihRemoveDhikr"/g)||[]).length===1, 'the tasbih delete action has one unique control in the dhikr manager');
 ok(!html.includes('id="adhkarTab"') && !html.includes('id="adhkarTasbihToggle"'), 'obsolete ownership-tab and intermediate tasbih launcher are removed');
+ok(html.includes('id="tasbihClockDial"') && html.includes('id="tasbihHourHand"') && html.includes('id="tasbihMinuteHand"') && html.includes('id="tasbihSecondHand"') && html.includes('id="tasbihElapsedTime"') && html.includes('id="anwar-tasbih-real-clock-v1"'), 'the tasbih interface has an analog clock and visible elapsed-time readout');
+ok(tasbihController.includes('function updateClockUi(now)') && tasbihController.includes('window.setInterval(') && tasbihController.includes('elapsedMs:currentElapsedMs()'), 'clock hands follow local time and elapsed session duration is saved through encrypted preferences');
 const tasbihScript=htmlAudit.script_sources.find(src=>src.startsWith('./tasbih-controller.js?v='));
 ok(!!tasbihScript && serviceWorker.includes("'./tasbih-controller.js'") && /const CACHE_NAME='anwar-shell-[0-9]{4}-[0-9]{2}-[0-9]{2}-v[0-9]+';/.test(serviceWorker), 'standalone tasbih controller is versioned and precached for offline use');
 ok(htmlAudit.script_sources.some(src=>src.startsWith('./poetry-dictation.js')) && serviceWorker.includes("'./poetry-dictation.js'") && appCore.includes('window.AnwarPoetryDictation'), 'poetry dictation controller is versioned and precached for offline use');
