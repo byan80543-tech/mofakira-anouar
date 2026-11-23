@@ -2,7 +2,7 @@
 
 [![Deploy Anwar API Gateway](https://github.com/byan80543-tech/mofakira-anouar/actions/workflows/deploy-anwar-api-gateway.yml/badge.svg)](https://github.com/byan80543-tech/mofakira-anouar/actions/workflows/deploy-anwar-api-gateway.yml)
 
-تطبيق ويب عربي لتدوين القصائد والنصوص والأفكار، مع أدوات تنسيق وتصدير ومحتوى صوتي وأذكار.
+تطبيق ويب عربي متكامل يجمع الكتابة الأدبية والمكتبة وإذاعة القرآن الكريم والدروس الصوتية والسبحة والأذكار وإنشاء الكتب، مع أدوات للأرشفة والنسخ الاحتياطي وإنشاء رموز QR.
 
 ## بيانات المشروع والملكية
 
@@ -21,6 +21,7 @@
 - [LICENSE.md](LICENSE.md): إشعار الحقوق وعدم منح ترخيص عام مستقل.
 - [COPYRIGHT.md](COPYRIGHT.md): نطاق حقوق الملكية الفكرية وحدودها.
 - [PROVENANCE.md](PROVENANCE.md): بيانات النسبة وسجل المصدر.
+- [ORIGIN-DESIGN-RECORD.md](ORIGIN-DESIGN-RECORD.md): سجل وصف التصور المتكامل للمفكرة ومساحاته الخمس، بما فيها إذاعة القرآن والدروس الصوتية، وحدود ادعاء الأسبقية.
 - [EVIDENCE.md](EVIDENCE.md): لقطة الأدلة الرقمية الحالية وحالة عناصر الإثبات.
 - [OWNERSHIP-DECLARATION.md](OWNERSHIP-DECLARATION.md): مسودة إقرار ملكية تستكمل وتوقّع وتحفظ نسختها الأصلية سراً.
 - [EVIDENCE-PROTOCOL.md](EVIDENCE-PROTOCOL.md): بروتوكول حفظ الأدلة وسلسلة الحيازة.

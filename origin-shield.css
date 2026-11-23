@@ -1,0 +1,73 @@
+/* ANOUAR-MOFKIRA-ORIGIN-2026-01 — visible only on unverified hostnames */
+.anouar-origin-notice {
+  position: fixed;
+  z-index: 2147483000;
+  inset-inline: max(12px, env(safe-area-inset-left, 0px)) max(12px, env(safe-area-inset-right, 0px));
+  inset-block-end: calc(12px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: min(620px, calc(100% - 24px));
+  margin-inline: auto;
+  padding: 13px 15px;
+  border: 1px solid #c9a96a;
+  border-inline-start: 4px solid #c9a96a;
+  border-radius: 13px;
+  background: #102d4c;
+  color: #fff;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, .3);
+  font: 12px/1.8 Tahoma, Arial, sans-serif;
+  text-align: right;
+}
+.anouar-origin-notice-copy {
+  flex: 1;
+  min-width: 0;
+}
+.anouar-origin-notice strong {
+  display: block;
+  margin-block-end: 4px;
+  color: #ffe4a8;
+  font-size: 13px;
+}
+.anouar-origin-notice p {
+  margin: 3px 0;
+  color: #f2f5f8;
+}
+.anouar-origin-notice .anouar-origin-attribution {
+  color: #ffe4a8;
+  font-weight: 700;
+}
+.anouar-origin-notice a {
+  display: inline-block;
+  margin-block-start: 5px;
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.anouar-origin-notice a:focus-visible,
+.anouar-origin-close:focus-visible {
+  outline: 2px solid #ffe4a8;
+  outline-offset: 3px;
+}
+.anouar-origin-close {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 50%;
+  background: rgba(255,255,255,.1);
+  color: #fff;
+  font: 22px/1 Tahoma, Arial, sans-serif;
+  cursor: pointer;
+}
+@media (max-width: 420px) {
+  .anouar-origin-notice {
+    inset-inline: 9px;
+    width: auto;
+    padding: 11px 12px;
+    font-size: 11px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .anouar-origin-notice { scroll-behavior: auto; }
+}

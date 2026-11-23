@@ -1,0 +1,51 @@
+{
+  "format": "anouar-origin-manifest/v1",
+  "marker": "ANOUAR-MOFKIRA-ORIGIN-2026-01",
+  "project": "مفكرة أنوار",
+  "declaredCreator": "Anouar Oumlili (أنوار أومليلي)",
+  "publicLocation": "الحسيمة، المغرب",
+  "officialDeployment": "https://byan80543-tech.github.io/mofakira-anouar/",
+  "sourceRepository": "https://github.com/byan80543-tech/mofakira-anouar",
+  "documentedConceptOriginDate": "2026-11-17",
+  "originalityClaim": "The creator attributes the conception and design of this distinctive integrated notebook architecture to Anouar Oumlili. This records the creator's claim and project provenance; it is not an independent worldwide novelty determination.",
+  "inventionDescription": "Unlike a conventional notes-only notebook, the documented concept brings five connected spaces into one notebook experience: literary writing for poems, texts and ideas; an in-app reading library; Quran radio and spoken lessons; a tasbeeh and remembrance counter; and book creation from the user's writing with import and export. Supporting tools include archive, radio access, day/night appearance, colors, backup, and one-tap QR creation for pages, websites and poems.",
+  "designDistinction": "The claimed innovation is the integrated structure and workflow of these literary, reading, audio, devotional and publishing spaces in one notebook experience, not the generic idea of a digital notebook.",
+  "purpose": "Attribution, provenance, and identification of the creator's distinctive notebook concept in project files and deployments.",
+  "verificationStatus": "Attribution marker only; not yet a cryptographic signature. The originality statement is the creator's claim and is not a substitute for independent prior-art research or legal registration.",
+  "privacy": "No visitor data collection, telemetry, remote reporting, or local-storage access. Public location is city and country only.",
+  "coreSpaces": [
+    {
+      "id": "literary-writing",
+      "label": "الكتابة الأدبية",
+      "description": "تحرير القصائد والنصوص والأفكار داخل المفكرة."
+    },
+    {
+      "id": "reading-library",
+      "label": "المكتبة",
+      "description": "مساحة لفتح الكتب وقراءتها داخل تجربة المفكرة."
+    },
+    {
+      "id": "quran-radio",
+      "label": "إذاعة القرآن الكريم والدروس الصوتية",
+      "description": "مساحة استماع إذاعي للمحتوى القرآني والدروس الصوتية."
+    },
+    {
+      "id": "tasbeeh",
+      "label": "السبحة والأذكار",
+      "description": "مساحة للذكر والتسبيح والعد."
+    },
+    {
+      "id": "book-creation",
+      "label": "إنشاء الكتب",
+      "description": "تجميع كتابات المستخدم في كتب وملفات مع إمكانات الاستيراد والتصدير."
+    }
+  ],
+  "supportingTools": [
+    "الأرشيف",
+    "النسخ الاحتياطي والاستعادة",
+    "تبديل المظهر والألوان",
+    "إنشاء رموز QR للصفحات والمواقع والقصائد"
+  ],
+  "documentedConceptOriginDateBasis": "2026-11-17 is the earliest currently available project-conversation record identified for this integrated concept. It is a documentation reference, not independent proof of the date of invention, public disclosure, or worldwide novelty.",
+  "claimScope": "The creator's claim concerns the original integrated arrangement, presentation, and workflow of the notebook's connected spaces and supporting tools. It does not claim ownership of generic features or third-party content, libraries, recordings, APIs, or services."
+}
