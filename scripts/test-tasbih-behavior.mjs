@@ -165,7 +165,9 @@ assert.equal(officialApp.nodes.tasbihDhikrCards.children[0].children[0].textCont
 assert.ok(officialApp.nodes.tasbihDhikrCards.children[0].children.some(card=>card.dataset.anwarOfficialId==='tasbih-after-prayer'),'the official tasbih card is visible in the first list section');
 const renderedOfficialCards=officialApp.nodes.tasbihDhikrCards.children.flatMap(group=>group.children).filter(card=>card.dataset.anwarOfficialId);
 assert.ok(renderedOfficialCards.length>=35,'official morning/evening/daily adhkar render visibly in tasbih cards using native DOM children');
-assert.ok(officialApp.nodes.tasbihDhikrCards.children.some(group=>group.children.some(card=>card.className==='tasbih-dhikr-card'&&card.children.some(child=>child.className==='tasbih-dhikr-card-name'&&child.textContent==='سبحان الله'))),'the original basic tasbih adhkar remain alongside the new official morning/evening sections');
+assert.ok(officialApp.nodes.tasbihDhikrCards.children.some(group=>group.children.some(card=>card.className==='tasbih-dhikr-card'&&card.children.some(child=>child.className==='tasbih-dhikr-card-name'&&child.textContent==='سبحان الله'))),'the basic tasbih adhkar remain accessible through the official collection');
+const subhanCards=officialApp.nodes.tasbihDhikrCards.children.flatMap(group=>group.children).filter(card=>card.className==='tasbih-dhikr-card'&&card.children.some(child=>child.className==='tasbih-dhikr-card-name'&&child.textContent==='سبحان الله'));
+assert.equal(subhanCards.length,1,'the same dhikr is not repeated by the legacy and official lists');
 assert.ok(officialOptions.some(option=>option.textContent==='آية الكرسي'&&option.dataset.dhikrText.includes('الْحَيُّ الْقَيُّومُ')),'the full Ayat al-Kursi text is available');
 assert.ok(officialOptions.some(option=>option.textContent==='سور الإخلاص والفلق والناس'&&option.dataset.repeat==='3'),'the three Quls are complete and marked three times');
 assert.ok(officialOptions.some(option=>option.textContent==='سبحان الله وبحمده'&&option.dataset.repeat==='100'),'the hundred-repetition dhikr includes its count');
@@ -180,7 +182,11 @@ assert.equal(officialApp.nodes.tasbihPhrase.textContent,kursiOptions[1].dataset.
 
 const officialCard=officialApp.nodes.tasbihDhikrCards.children.flatMap(group=>group.children).find(card=>card.className==='tasbih-dhikr-card'&&card.children.some(child=>child.className==='tasbih-dhikr-card-meta'));
 assert.ok(officialCard,'official adhkar render as designed cards with details');
-assert.ok(officialCard.children.some(child=>child.className==='tasbih-dhikr-card-text'),'official cards display the full dhikr text');
+assert.ok(!officialCard.children.some(child=>child.className==='tasbih-dhikr-card-text')&&officialCard.children.filter(child=>child.className==='tasbih-dhikr-card-name').length===1,'official cards show one dhikr title without repeating the full text');
+officialApp.nodes.tasbihCustomDhikrInput.value='سُبْحَانَ اللَّهِ';
+officialApp.nodes.tasbihAddCustomDhikr.click();
+assert.equal(officialApp.state.tasbih.customDhikrs.length,0,'tashkeel differences do not create a duplicate custom dhikr');
+assert.equal(officialApp.nodes.tasbihDhikr.value,'official:tasbih-after-prayer','typing a formatted official dhikr selects the existing official entry');
 assert.ok(!controller.includes('tasbih-dhikr-tulip')&&!controller.includes('secondFlower'),'the dhikr cards no longer render repeated tulip icons');
 assert.ok(html.includes('id="anwar-tulip-adhkar-board-v1"')&&html.includes('#tasbihPanel .tasbih-dhikr-cards::before')&&html.includes('assets/tulip-cutout.svg'),'the tulip artwork is applied to the shared dhikr-list board');
 const longOfficial=officialOptions.find(option=>option.dataset.dhikrText.length>200);
