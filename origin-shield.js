@@ -12,7 +12,7 @@
     creator: 'Anouar Oumlili (أنوار أومليلي)',
     publicLocation: 'الحسيمة، المغرب',
     documentedConceptOriginDate: '2026-11-17',
-    designDistinction: 'بنية مفكرة متكاملة تجمع الكتابة والمكتبة والقرآن والسبحة وإنشاء الكتب في تجربة واحدة، وليست مجرد دفتر ملاحظات تقليدي.',
+    designDistinction: 'بنية مفكرة متكاملة تجمع الكتابة الأدبية والمكتبة وإذاعة القرآن الكريم والدروس الصوتية والسبحة والأذكار وإنشاء الكتب، مع أدوات الأرشفة والنسخ الاحتياطي وإنشاء رموز QR.',
     officialUrl: 'https://byan80543-tech.github.io/mofakira-anouar/',
     sourceRepository: 'https://github.com/byan80543-tech/mofakira-anouar'
   });
@@ -60,11 +60,11 @@
 
     const detail = document.createElement('p');
     detail.textContent =
-      'مفكرة أنوار ليست دفتر ملاحظات تقليديًا؛ إنها بنية متكاملة تجمع الكتابة الأدبية والمكتبة والقرآن والسبحة وإنشاء الكتب في تجربة واحدة. ويُسجّل المشروع أسبقية أنوار أومليلي في ابتكار هذا التصور وفق سجلّه الموثق.';
+      'مفكرة أنوار ليست دفتر ملاحظات تقليديًا؛ إنها بنية متكاملة تجمع الكتابة الأدبية والمكتبة وإذاعة القرآن الكريم والدروس الصوتية والسبحة وإنشاء الكتب، مع أدوات للأرشفة والنسخ الاحتياطي وإنشاء رموز QR. ويُسجّل المشروع أسبقية أنوار أومليلي في ابتكار هذا التصور وفق سجلّه الموثق.';
 
     const attribution = document.createElement('p');
     attribution.className = 'anouar-origin-attribution';
-    attribution.textContent = 'صاحب ابتكار هذا التصور وبنية المفكرة: Anouar Oumlili (أنوار أومليلي) — الحسيمة، المغرب. أصل الفكرة موثق في سجل المشروع.';
+    attribution.textContent = 'صاحب ابتكار هذا التصور وبنية المفكرة: Anouar Oumlili (أنوار أومليلي) — الحسيمة، المغرب. أول توثيق متاح للتصور في سجل المشروع: 17 نوفمبر 2026.';
 
     const source = document.createElement('a');
     source.href = identity.sourceRepository;
