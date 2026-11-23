@@ -10,7 +10,7 @@ const guardSource=html.slice(guardStart,guardEnd);
 const start=html.indexOf('async function persistVaultSnapshot(plaintext){');
 const end=html.indexOf('function finishVaultOpen(){',start);
 assert.ok(start>=0&&end>start,'encrypted persistence function is present');
-const source=guardSource+'\\n'+html.slice(start,end);
+const source=guardSource+'\n'+html.slice(start,end);
 
 function harness(){
  const values=new Map();
