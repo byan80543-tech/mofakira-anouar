@@ -645,6 +645,11 @@
   const item=el('div','anwar-prayer-time');item.append(el('b','',prayer.name),el('strong','','—'));return item;
  }));
  updateHeader();
+ // Reconcile previously saved PWA settings with the native Android alarm
+ // bridge on startup. Preserve native settings when this is a fresh WebView.
+ try{
+  if(localStorage.getItem(SETTINGS_KEY)!==null)syncNativeBackground();
+ }catch(_e){}
  lastTick=Date.now();
  refreshTimes(false);
  window.setInterval(tick,1000);
