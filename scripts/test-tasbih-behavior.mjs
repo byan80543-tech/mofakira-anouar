@@ -187,6 +187,12 @@ officialApp.nodes.tasbihCustomDhikrInput.value='سُبْحَانَ اللَّه�
 officialApp.nodes.tasbihAddCustomDhikr.click();
 assert.equal(officialApp.state.tasbih.customDhikrs.length,0,'tashkeel differences do not create a duplicate custom dhikr');
 assert.equal(officialApp.nodes.tasbihDhikr.value,'official:tasbih-after-prayer','typing a formatted official dhikr selects the existing official entry');
+const distinctArabicWords=buildApp();
+distinctArabicWords.nodes.tasbihCustomDhikrInput.value='رحمة';
+distinctArabicWords.nodes.tasbihAddCustomDhikr.click();
+distinctArabicWords.nodes.tasbihCustomDhikrInput.value='رحمه';
+distinctArabicWords.nodes.tasbihAddCustomDhikr.click();
+assert.deepEqual(distinctArabicWords.state.tasbih.customDhikrs,['رحمة','رحمه'],'distinct Arabic letters are never collapsed by duplicate detection');
 assert.ok(!controller.includes('tasbih-dhikr-tulip')&&!controller.includes('secondFlower'),'the dhikr cards no longer render repeated tulip icons');
 assert.ok(html.includes('id="anwar-tulip-adhkar-board-v1"')&&html.includes('#tasbihPanel .tasbih-dhikr-cards::before')&&html.includes('assets/tulip-cutout.svg'),'the tulip artwork is applied to the shared dhikr-list board');
 const longOfficial=officialOptions.find(option=>option.dataset.dhikrText.length>200);
