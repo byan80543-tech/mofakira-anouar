@@ -196,7 +196,7 @@
       button.addEventListener('click',()=>chooseDhikr(option.value,true));
       section.appendChild(button);
      });
-     if(section.querySelector('.tasbih-dhikr-card'))cards.appendChild(section);
+     if(section.children.length>1)cards.appendChild(section);
     });
    if(!cards.children.length){
     const empty=document.createElement('div');
@@ -443,7 +443,16 @@
    if(!window.confirm(message))return;
    if(voiceActive)stopVoice('توقف العد الصوتي بسبب تعديل قائمة الأذكار.');
    if(custom)customDhikrs=customDhikrs.filter(item=>item!==selected.value);
-   else {const officialId=selected.dataset&&selected.dataset.anwarOfficialId;const removalKey=officialId||selected.value;if(!removedOfficialDhikrs.includes(removalKey))removedOfficialDhikrs.push(removalKey)}
+   else {
+    const removalKeys=new Set([selected.dataset&&selected.dataset.anwarOfficialId||selected.value]);
+    if(!(selected.dataset&&selected.dataset.anwarOfficialId)){
+     const selectedKey=normalizeDhikrKey(optionText(selected));
+     Array.from(select.options)
+      .filter(option=>option.dataset.anwarOfficialDhikr==='true'&&normalizeDhikrKey(optionText(option))===selectedKey)
+      .forEach(option=>removalKeys.add(option.dataset.anwarOfficialId||option.value));
+    }
+    removalKeys.forEach(key=>{if(!removedOfficialDhikrs.includes(key))removedOfficialDhikrs.push(key)});
+   }
    renderCustomOptions();
    const next=firstVisible();
    select.value=next?next.value:'';
