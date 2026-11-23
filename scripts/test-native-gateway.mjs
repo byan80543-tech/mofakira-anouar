@@ -40,7 +40,7 @@ assert.match(manifest, /android:name="\.ReligiousGateActivity"/);
 assert.match(manifest, /android:name="\.NativeAudioWebActivity"[\s\S]*?android:exported="false"/);
 assert.match(gradle, /versionCode = 18/);
 assert.match(gradle, /versionName = "0.9.9"/);
-assert.match(gradle, /applicationIdSuffix = "\.preview.v17"/);
+assert.match(gradle, /applicationIdSuffix = "\.preview.v18"/);
 assert.match(workflow, /node scripts\/test-native-gateway\.mjs/);
 
 console.log('Original notebook landing, exact service labels, navigation, archive and isolated preview version are valid.');
