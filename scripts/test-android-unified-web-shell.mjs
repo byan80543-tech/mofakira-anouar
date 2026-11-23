@@ -8,6 +8,7 @@ const read = (path) => readFileSync(resolve(root, path), "utf8");
 
 const main = read("android/app/src/main/java/com/anwar/mofakira/MainActivity.kt");
 const legacy = read("android/app/src/main/java/com/anwar/mofakira/LegacyWebActivity.kt");
+const notebook = read("android/app/src/main/java/com/anwar/mofakira/NativeNotebookActivity.kt");
 const gradle = read("android/app/build.gradle.kts");
 const manifest = read("android/app/src/main/AndroidManifest.xml");
 
