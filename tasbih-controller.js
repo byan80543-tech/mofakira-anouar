@@ -141,6 +141,7 @@
   }
   function renderClockTicks(){
    clockTicks.replaceChildren();
+   clockTicks.classList.add('has-generated-ticks');
    for(let i=0;i<60;i++){
     const tick=document.createElement('div');
     tick.className='tasbih-clock-tick'+(i%5===0?' major':'');
