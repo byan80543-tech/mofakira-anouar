@@ -40,8 +40,8 @@ assert.doesNotMatch(activity, /feat-native-background-adhan\.mofakira-anouar\.pa
 assert.match(scheduler, /setAlarmClock/);
 assert.match(scheduler, /AlarmClockInfo/);
 assert.match(scheduler, /setAndAllowWhileIdle/);
-assert.match(scheduler, /Build\.VERSION\.SDK_INT < Build\.VERSION_CODES\.S \|\| alarmManager\.canScheduleExactAlarms\(\)/,
-  'Android 6–11 keep exact alarms; only Android 12+ without special access uses the inexact fallback');
+assert.match(scheduler, /canScheduleExactAlarms\(\)/,
+  'exact AlarmClock scheduling is used only when Android grants exact-alarm access');
 assert.match(receiver, /PrayerAlarmScheduler.scheduleNext\(context\)/);
 assert.match(receiver, /startForegroundService/);
 assert.match(service, /ServiceCompat.startForeground/);
