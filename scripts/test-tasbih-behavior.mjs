@@ -146,12 +146,12 @@ function count(app){return app.state.tasbih.count}
 
 const timedClock=buildApp({now:Date.UTC(2026,10,23,10,0,0)});
 assert.equal(timedClock.nodes.tasbihElapsedTime.textContent,'٠٠:٠٠:٠٠','the session clock starts at zero');
-const initialMinuteAngle=timedClock.nodes.tasbihMinuteHand.style['--clock-angle'];
+const initialMinuteAngle=timedClock.nodes.tasbihMinuteHand.style.transform;
 timedClock.nodes.tasbihCounterControl.click();
 timedClock.advanceTime(61000);
 assert.equal(timedClock.nodes.tasbihElapsedTime.textContent,'٠٠:٠١:٠١','the real elapsed timer advances once per second');
 assert.ok(timedClock.state.tasbih.elapsedMs>=60000,'elapsed session time is persisted with encrypted preferences');
-assert.notEqual(timedClock.nodes.tasbihMinuteHand.style['--clock-angle'],initialMinuteAngle,'the analog minute hand follows local time');
+assert.notEqual(timedClock.nodes.tasbihMinuteHand.style.transform,initialMinuteAngle,'the analog minute hand follows local time using direct CSS transforms');
 timedClock.nodes.tasbihReset.click();
 assert.equal(timedClock.nodes.tasbihElapsedTime.textContent,'٠٠:٠٠:٠٠','reset clears the counter and session duration');
 const restoredClock=buildApp({initialCount:6,initialDhikr:'سبحان الله',initialElapsedMs:90000});
