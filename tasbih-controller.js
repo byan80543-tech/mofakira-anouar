@@ -175,7 +175,9 @@
       button.type='button';
       button.className='tasbih-dhikr-card';
       if(option.dataset.anwarOfficialId)button.dataset.anwarOfficialId=option.dataset.anwarOfficialId;
-      button.setAttribute('aria-pressed',key===selectedKey?'true':'false');
+      const selectedMatches=!!selectedOption&&(option.value===selectedOption.value||
+       (selectedOption.dataset.anwarOfficialDhikr!=='true'&&isOfficial&&key===selectedKey));
+      button.setAttribute('aria-pressed',selectedMatches?'true':'false');
       button.setAttribute('aria-label','اختيار الذكر: '+option.textContent);
       const name=document.createElement('span');
       name.className='tasbih-dhikr-card-name';
@@ -350,7 +352,7 @@
     customStatus.textContent='أُعيد الذكر.';
     return;
    }
-   const existing=Array.from(select.options).find(option=>normalizeDhikrKey(optionText(option))===normalizedValue&&(isCustomOption(option)||!isRemovedOfficial(option)));
+   const existing=visibleOptions().find(option=>normalizeDhikrKey(optionText(option))===normalizedValue);
    if(existing){customInput.value='';chooseDhikr(existing.value,true);customStatus.textContent='الذكر موجود.';return}
    if(customDhikrs.length>=30){customStatus.textContent='وصلت إلى الحد الأقصى وهو 30 ذكراً مضافاً.';return}
    customDhikrs.push(value);
