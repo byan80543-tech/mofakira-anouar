@@ -75,7 +75,7 @@ function buildApp(options={}){
   'tasbihReset','tasbihDhikrCards','tasbihCustomDhikrInput','tasbihAddCustomDhikr','tasbihCustomDhikrStatus',
   'tasbihRemoveDhikr','tasbihRestoreOfficial','tasbihVoicePanel','tasbihVoice','tasbihVoiceState',
   'tasbihVoiceStatus','tasbihVoiceButtonLabel','tasbihBeads','morningTab','eveningTab',
-  'tasbihCounterControl','tasbihClockDial','tasbihHourHand','tasbihMinuteHand','tasbihSecondHand','tasbihElapsedTime','tasbihThemeToggle','tasbihThemePicker','tasbihThemeEmerald','tasbihThemeDark','tasbihThemePink','tasbihThemeNight','tasbihThemeHeritage','tasbihThemeGlass'
+  'tasbihCounterControl','tasbihClockDial','tasbihClockTicks','tasbihClockNumbers','tasbihHourHand','tasbihMinuteHand','tasbihSecondHand','tasbihElapsedTime','tasbihThemeToggle','tasbihThemePicker','tasbihThemeEmerald','tasbihThemeDark','tasbihThemePink','tasbihThemeNight','tasbihThemeHeritage','tasbihThemeGlass'
  ];
  for(const id of ids)nodes[id]=id==='tasbihDhikr'?new FakeSelect(id):new FakeElement(id,id==='ownerDialog'?'DIALOG':'DIV');
  const themeNames=['emerald','dark','pink','night','heritage','glass'];
@@ -234,6 +234,8 @@ restoredRemoved.nodes.tasbihRestoreOfficial.click();
 assert.ok(restoredRemoved.nodes.tasbihDhikrCards.children.flatMap(group=>group.children).some(card=>card.dataset.anwarOfficialId===longOfficial.dataset.anwarOfficialId),'the official dhikr returns to the visible cards after restoration');
 
 const app=buildApp();
+assert.equal(app.nodes.tasbihClockNumbers.children.length,12,'the rendered clock has twelve generated numeral wrappers');
+assert.deepEqual(app.nodes.tasbihClockNumbers.children.map(wrapper=>wrapper.children[0].textContent),['١','٢','٣','٤','٥','٦','٧','٨','٩','١٠','١١','١٢'],'all twelve clock numerals render in Arabic and in order');
 assert.equal(app.sandbox.__ANWAR_TASBIH_CONTROLLER_READY__,true,'the controller initializes when the required UI is present');
 assert.equal(app.sandbox.AnwarTasbihController.open(),true,'the public tasbih controller opens the panel');
 assert.equal(app.nodes.tasbihPanel.hidden,false,'the tasbih panel becomes visible when opened');
@@ -246,7 +248,8 @@ const counterFaceAt=html.indexOf('class="anwar-tasbih-counter anwar-tasbih-sixth
 assert.ok(manualFieldAt>chooserStart&&manualFieldAt<counterFaceAt,'manual dhikr input sits inside the opened selection list, not the clock face');
 assert.ok(controller.includes('const progress=index/32;')&&controller.includes('(240-(progress*120))*Math.PI/180'),'the 33 beads form one draped side strand, not a full ring');
 assert.ok(html.includes('id="tasbihClockDial"')&&html.includes('id="tasbihHourHand"')&&html.includes('id="tasbihMinuteHand"')&&html.includes('id="tasbihSecondHand"'),'the clock includes hour, minute and second hands');
-assert.equal((html.match(/class="tasbih-clock-number tasbih-clock-n-\d+"/g)||[]).length,12,'the classic clock face shows all twelve Arabic numerals');
+assert.ok(html.includes('id="tasbihClockNumbers"')&&controller.includes('function renderClockNumbers()'),'the classic clock builds its numeral layout with the controller');
+assert.ok(controller.includes("for(let number=1;number<=12;number++)")&&controller.includes("rotate(-'+angle+'deg)"),'the numeral wrappers counter-rotate so all twelve Arabic numbers remain upright');
 const clockDialStart=html.indexOf('<div class="tasbih-clock-dial"');
 const clockDialEnd=html.indexOf('\n      </div>\n      <div class="tasbih-elapsed-readout"',clockDialStart);
 assert.ok(clockDialStart>=0&&clockDialEnd>clockDialStart&&html.slice(clockDialStart,clockDialEnd).includes('id="tasbihCounterControl"'),'the tasbih count button is positioned in the center of the analog clock dial');
