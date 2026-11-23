@@ -10,7 +10,7 @@ const deployedHeaders=fs.readFileSync(new URL('../_headers',import.meta.url),'ut
 const cspContent=htmlAudit.csp_meta;
 assert.ok(cspContent,'an enforced document CSP meta policy is present');
 const directives=new Map(cspContent.split(';').map(part=>{
-  const tokens=part.trim().split(/\\s+/);
+  const tokens=part.trim().split(/\s+/);
   return [tokens.shift(),tokens];
 }));
 const requireDirective=(name,...required)=>{
@@ -56,10 +56,10 @@ const firstResource=Math.min(...['<link ','<script','<style'].map(token=>{
 assert.ok(cspIndex>=0&&cspIndex<firstResource,'CSP appears before the first resource-bearing element');
 assert.equal(htmlAudit.referrer_meta,'strict-origin-when-cross-origin','a conservative referrer policy is declared');
 assert.ok(!cspContent.includes('frame-ancestors')&&!cspContent.includes('report-uri')&&!cspContent.includes('report-to'),'header-only CSP directives are not presented as active meta controls');
-const deployedCsp=deployedHeaders.match(/Content-Security-Policy:\\s*([^\\n]+)/);
+const deployedCsp=deployedHeaders.match(/Content-Security-Policy:\s*([^\n]+)/);
 assert.ok(deployedCsp,'Cloudflare _headers includes a CSP response header');
 const deployedDirectives=new Map(deployedCsp[1].split(';').map(part=>{
- const tokens=part.trim().split(/\\s+/);
+ const tokens=part.trim().split(/\s+/);
  return [tokens.shift(),tokens];
 }));
 const deployedConnectSources=deployedDirectives.get('connect-src');
