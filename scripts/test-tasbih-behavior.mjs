@@ -246,6 +246,10 @@ const counterFaceAt=html.indexOf('class="anwar-tasbih-counter anwar-tasbih-sixth
 assert.ok(manualFieldAt>chooserStart&&manualFieldAt<counterFaceAt,'manual dhikr input sits inside the opened selection list, not the clock face');
 assert.ok(controller.includes('const progress=index/32;')&&controller.includes('(240-(progress*120))*Math.PI/180'),'the 33 beads form one draped side strand, not a full ring');
 assert.ok(html.includes('id="tasbihClockDial"')&&html.includes('id="tasbihHourHand"')&&html.includes('id="tasbihMinuteHand"')&&html.includes('id="tasbihSecondHand"'),'the clock includes hour, minute and second hands');
+assert.equal((html.match(/class="tasbih-clock-number tasbih-clock-n-\d+"/g)||[]).length,12,'the classic clock face shows all twelve Arabic numerals');
+const clockDialStart=html.indexOf('<div class="tasbih-clock-dial"');
+const clockDialEnd=html.indexOf('\n      </div>\n      <div class="tasbih-elapsed-readout"',clockDialStart);
+assert.ok(clockDialStart>=0&&clockDialEnd>clockDialStart&&html.slice(clockDialStart,clockDialEnd).includes('id="tasbihCounterControl"'),'the tasbih count button is positioned in the center of the analog clock dial');
 assert.ok(html.includes('id="tasbihElapsedTime"')&&controller.includes('elapsedMs:currentElapsedMs()'),'session duration is visible and saved with encrypted private preferences');
 assert.equal(app.nodes.tasbihBeads.children.filter(bead=>bead.classList.contains('is-counted')).length,0,'the bead ring begins uncounted');
 assert.equal(app.nodes.ownerDialog.open,false,'opening the tasbih no longer opens the ownership dialog');
