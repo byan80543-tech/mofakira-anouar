@@ -12,7 +12,7 @@
   const beadTrack=$('tasbihBeads');
   const counterControl=panel&&panel.querySelector('.anwar-tasbih-counter');
   const counterTap=$('tasbihCounterControl');
-  const clockDial=$('tasbihClockDial'),hourHand=$('tasbihHourHand'),minuteHand=$('tasbihMinuteHand'),secondHand=$('tasbihSecondHand'),elapsedNode=$('tasbihElapsedTime');
+  const clockDial=$('tasbihClockDial'),clockTicks=$('tasbihClockTicks'),clockNumbers=$('tasbihClockNumbers'),hourHand=$('tasbihHourHand'),minuteHand=$('tasbihMinuteHand'),secondHand=$('tasbihSecondHand'),elapsedNode=$('tasbihElapsedTime');
   const themeToggle=$('tasbihThemeToggle'),themePicker=$('tasbihThemePicker');
   const themeIds=['emerald','dark','pink','night','heritage','glass'];
   const themeButtons=themeIds.map(name=>({name,button:$('tasbihTheme'+name[0].toUpperCase()+name.slice(1))}));
@@ -24,7 +24,7 @@
   const voicePanel=$('tasbihVoicePanel'),voiceButton=$('tasbihVoice');
   const voiceState=$('tasbihVoiceState'),voiceStatus=$('tasbihVoiceStatus');
   const voiceButtonLabel=$('tasbihVoiceButtonLabel');
-  const required={panel,select,countNode,phraseNode,beadTrack,counterControl,counterTap,tap,minus,reset,cards,dhikrToggle,dhikrList,customInput,customAdd,customStatus,removeButton,restoreButton,voicePanel,voiceButton,voiceState,voiceStatus,voiceButtonLabel,themeToggle,themePicker,clockDial,hourHand,minuteHand,secondHand,elapsedNode,...Object.fromEntries(themeButtons.map(item=>['theme'+item.name,item.button]))};
+  const required={panel,select,countNode,phraseNode,beadTrack,counterControl,counterTap,tap,minus,reset,cards,dhikrToggle,dhikrList,customInput,customAdd,customStatus,removeButton,restoreButton,voicePanel,voiceButton,voiceState,voiceStatus,voiceButtonLabel,themeToggle,themePicker,clockDial,clockTicks,clockNumbers,hourHand,minuteHand,secondHand,elapsedNode,...Object.fromEntries(themeButtons.map(item=>['theme'+item.name,item.button]))};
   const missing=Object.keys(required).filter(key=>!required[key]);
   if(missing.length){
    console.error('تعذر تهيئة السبحة؛ عناصر الواجهة الناقصة:',missing);
@@ -123,6 +123,21 @@
    const totalSeconds=Math.floor(Math.max(0,milliseconds)/1000);
    const hours=Math.floor(totalSeconds/3600),minutes=Math.floor((totalSeconds%3600)/60),seconds=totalSeconds%60;
    return arabicDigits([hours,minutes,seconds].map(part=>String(part).padStart(2,'0')).join(':'));
+  }
+  function renderClockNumbers(){
+   clockNumbers.replaceChildren();
+   for(let number=1;number<=12;number++){
+    const angle=number*30;
+    const wrapper=document.createElement('div');
+    wrapper.className='tasbih-number-wrapper';
+    wrapper.style.transform='rotate('+angle+'deg)';
+    const numeral=document.createElement('span');
+    numeral.className='tasbih-number-text';
+    numeral.textContent=arabicDigits(String(number));
+    numeral.style.transform='translateX(-50%) rotate(-'+angle+'deg)';
+    wrapper.appendChild(numeral);
+    clockNumbers.appendChild(wrapper);
+   }
   }
   function updateClockUi(now){
    const stamp=Number.isFinite(now)?now:Date.now();
@@ -443,6 +458,7 @@
   const savedOption=Array.from(select.options).find(option=>option.value===initial.dhikr&&(isCustomOption(option)||!isRemovedOfficial(option)));
   if(savedOption)select.value=savedOption.value;
   else if(!visibleOptions().some(option=>option.value===select.value))select.value=firstVisible()?firstVisible().value:'';
+  renderClockNumbers();
   update();
   // Migrate old preferences to the approved emerald style once; future color choices remain saved.
   if(initial.designVersion!==DESIGN_VERSION)persist();

@@ -3465,19 +3465,8 @@ dialog[open]>.float-head{display:none!important}
      <div class="anwar-tasbih-counter anwar-tasbih-sixth-face" aria-label="قرص الساعة والعداد">
       <div id="tasbihPhrase" class="tasbih-selected-phrase" aria-live="polite">أستغفر الله العظيم وأتوب إليه</div>
       <div class="tasbih-clock-dial" id="tasbihClockDial" role="group" aria-label="ساعة تناظرية وعداد التسبيح">
-       <div class="tasbih-clock-marks" aria-hidden="true"></div>
-       <span class="tasbih-clock-number tasbih-clock-n-12" aria-hidden="true">١٢</span>
-       <span class="tasbih-clock-number tasbih-clock-n-1" aria-hidden="true">١</span>
-       <span class="tasbih-clock-number tasbih-clock-n-2" aria-hidden="true">٢</span>
-       <span class="tasbih-clock-number tasbih-clock-n-3" aria-hidden="true">٣</span>
-       <span class="tasbih-clock-number tasbih-clock-n-4" aria-hidden="true">٤</span>
-       <span class="tasbih-clock-number tasbih-clock-n-5" aria-hidden="true">٥</span>
-       <span class="tasbih-clock-number tasbih-clock-n-6" aria-hidden="true">٦</span>
-       <span class="tasbih-clock-number tasbih-clock-n-7" aria-hidden="true">٧</span>
-       <span class="tasbih-clock-number tasbih-clock-n-8" aria-hidden="true">٨</span>
-       <span class="tasbih-clock-number tasbih-clock-n-9" aria-hidden="true">٩</span>
-       <span class="tasbih-clock-number tasbih-clock-n-10" aria-hidden="true">١٠</span>
-       <span class="tasbih-clock-number tasbih-clock-n-11" aria-hidden="true">١١</span>
+       <div class="tasbih-clock-marks" id="tasbihClockTicks" aria-hidden="true"></div>
+       <div class="tasbih-clock-numbers" id="tasbihClockNumbers" aria-hidden="true"></div>
        <div class="tasbih-clock-hands" aria-hidden="true">
         <span class="tasbih-clock-hand tasbih-hour-hand" id="tasbihHourHand"></span>
         <span class="tasbih-clock-hand tasbih-minute-hand" id="tasbihMinuteHand"></span>
@@ -3695,7 +3684,7 @@ dialog[open]>.float-head{display:none!important}
 <script src="./adhkar-page-theme.js?v=20261121-2" defer></script>
 <script src="./ibtihalat-radio.js?v=20261121-1" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
-<script src="./tasbih-controller.js?v=20261123-74" defer></script>
+<script src="./tasbih-controller.js?v=20261123-75" defer></script>
 <script src="./prayer-times.js?v=20261123-1" defer></script>
 
 
@@ -4274,6 +4263,32 @@ dialog[open]>.float-head{display:none!important}
  #rd #tasbihPanel .tasbih-clock-hand{transition:none!important}
  #rd #tasbihPanel .tasbih-count-tap{transition:none!important}
 }
+</style>
+<style id="anwar-tasbih-number-wrapper-clock-v1">
+/* توزيع أرقام الميناء حسابياً: الأرقام تبقى مستقيمة مثل الساعة الحقيقية */
+#rd #tasbihPanel .tasbih-clock-numbers{
+ position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:50%;
+}
+#rd #tasbihPanel .tasbih-number-wrapper{
+ position:absolute;inset:0;width:100%;height:100%;text-align:center;
+}
+#rd #tasbihPanel .tasbih-number-text{
+ position:absolute;top:10%;left:50%;display:block;
+ min-width:18px;color:#174936;
+ font:700 clamp(12px,3.6vw,16px)/1 Amiri,"Times New Roman",serif;
+ text-shadow:0 1px 0 #fff,0 0 5px rgba(255,255,255,.8);
+ transform:translateX(-50%);
+}
+#rd #tasbihPanel .tasbih-clock-marks{
+ z-index:1;pointer-events:none;border-radius:50%;
+ background:
+  repeating-conic-gradient(from 0deg,rgba(36,78,57,.76) 0deg 0.8deg,transparent .8deg 6deg),
+  repeating-conic-gradient(from 0deg,rgba(150,111,48,.96) 0deg 1.6deg,transparent 1.6deg 30deg);
+ -webkit-mask:radial-gradient(circle,transparent 0 79%,#000 81% 88%,transparent 90%);
+ mask:radial-gradient(circle,transparent 0 79%,#000 81% 88%,transparent 90%);
+}
+#rd #tasbihPanel .tasbih-clock-hands{z-index:3}
+#rd #tasbihPanel .tasbih-clock-dial .tasbih-count-tap{z-index:7}
 </style>
 </body>
 </html>
