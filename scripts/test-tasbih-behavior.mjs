@@ -212,7 +212,7 @@ assert.equal(app.sandbox.__ANWAR_TASBIH_CONTROLLER_READY__,true,'the controller 
 assert.equal(app.sandbox.AnwarTasbihController.open(),true,'the public tasbih controller opens the panel');
 assert.equal(app.nodes.tasbihPanel.hidden,false,'the tasbih panel becomes visible when opened');
 assert.equal(app.nodes.tasbihBeads.children.length,33,'the royal ring contains 33 beads');
-assert.ok(html.includes('class="anwar-tasbih-sixth-stage"')&&html.includes('class="tasbih-reset-housing"'),'the sixth-reference counter uses its integrated lower reset housing');
+assert.ok(html.includes('class="anwar-tasbih-stage anwar-tasbih-sixth-stage"')&&html.includes('class="tasbih-reset-housing"'),'the sixth-reference counter uses its integrated lower reset housing');
 assert.ok(html.includes('class="tasbih-inner-dhikr-frame"')&&html.includes('id="tasbihCustomDhikrInput"'),'manual dhikr entry is framed inside the counter face');
 assert.ok(controller.includes('const progress=index/32;')&&controller.includes('(240-(progress*120))*Math.PI/180'),'the 33 beads form one draped side strand, not a full ring');
 assert.equal(app.nodes.tasbihBeads.children.filter(bead=>bead.classList.contains('is-counted')).length,0,'the bead ring begins uncounted');
