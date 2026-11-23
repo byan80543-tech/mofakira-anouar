@@ -54,6 +54,8 @@ assert.match(activity, /optBoolean\("requestPermissions", false\)/);
 assert.match(activity, /if \(explicitPermissionRequest\) \{\s*permissionPromptDeferred = false/);
 assert.match(activity, /أذونات الأذان الخلفي مفعّلة بالفعل/);
 assert.match(prayer, /bridge\.postMessage\(JSON\.stringify\(payload\)\)/);
+assert.match(prayer, /if\(localStorage\.getItem\(SETTINGS_KEY\)!==null\)syncNativeBackground\(\)/,
+  'saved prayer preferences are synchronized with native Android on WebView startup');
 assert.match(prayer, /enabledInput\.addEventListener/);
 assert.match(companionReadme, /Chrome.*PWA/);
 assert.match(companionReadme, /المنبهات والتذكيرات/);
