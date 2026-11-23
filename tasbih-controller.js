@@ -220,6 +220,7 @@
    renderBeads();
    const selectedOption=Array.from(select.options).find(option=>option.value===select.value);
    phraseNode.textContent=selectedOption?optionText(selectedOption):'لم يتم اختيار ذكر بعد';
+   if(document.activeElement!==customInput)customInput.value=selectedOption?optionText(selectedOption):'';
    renderCards();
    const selected=Array.from(select.options).find(option=>option.value===select.value);
    removeButton.disabled=!selected;
@@ -353,7 +354,13 @@
     return;
    }
    const existing=visibleOptions().find(option=>normalizeDhikrKey(optionText(option))===normalizedValue);
-   if(existing){customInput.value='';chooseDhikr(existing.value,true);customStatus.textContent='الذكر موجود.';return}
+   if(existing){
+    const current=Array.from(select.options).find(option=>option.value===select.value);
+    const sameSelectedText=!!current&&normalizeDhikrKey(optionText(current))===normalizedValue;
+    chooseDhikr(existing.value,!sameSelectedText);
+    customStatus.textContent='الذكر موجود.';
+    return;
+   }
    if(customDhikrs.length>=30){customStatus.textContent='وصلت إلى الحد الأقصى وهو 30 ذكراً مضافاً.';return}
    customDhikrs.push(value);
    renderCustomOptions();
@@ -387,9 +394,10 @@
    const bead=document.createElement('span');
    bead.className='anwar-tasbih-bead';
    bead.style.setProperty('--bead-index',String(index));
-   const angle=(index/33)*Math.PI*2-Math.PI/2;
-   bead.style.left=(50+44*Math.cos(angle)).toFixed(3)+'%';
-   bead.style.top=(50+40*Math.sin(angle)).toFixed(3)+'%';
+   const progress=index/32;
+   const angle=(240-(progress*120))*Math.PI/180;
+   bead.style.left=(64+44*Math.cos(angle)).toFixed(3)+'%';
+   bead.style.top=(42+45*Math.sin(angle)).toFixed(3)+'%';
    beadTrack.appendChild(bead);
   }
   renderOfficialOptions();
@@ -424,8 +432,9 @@
   tap.addEventListener('click',()=>add(1));
   minus.addEventListener('click',()=>add(-1));
   reset.addEventListener('click',()=>{count=0;saveAndUpdate()});
-  customAdd.addEventListener('click',addCustomDhikr);
-  customInput.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();addCustomDhikr()}});
+  customAdd.addEventListener('click',event=>{event.stopPropagation();addCustomDhikr()});
+  customInput.addEventListener('click',event=>event.stopPropagation());
+  customInput.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();event.stopPropagation();addCustomDhikr()}});
   select.addEventListener('change',()=>{
    if(voiceActive)stopVoice('توقف التسجيل لأن الذكر المختار تغيّر.');
    voiceTargetPhrase=optionText(Array.from(select.options).find(option=>option.value===select.value))||'';
