@@ -8,11 +8,12 @@ const read = (path) => readFileSync(resolve(root, path), "utf8");
 
 const main = read("android/app/src/main/java/com/anwar/mofakira/MainActivity.kt");
 const legacy = read("android/app/src/main/java/com/anwar/mofakira/LegacyWebActivity.kt");
+const notebook = read("android/app/src/main/java/com/anwar/mofakira/NativeNotebookActivity.kt");
 const gradle = read("android/app/build.gradle.kts");
 const manifest = read("android/app/src/main/AndroidManifest.xml");
 
-assert.match(main, /LegacyWebActivity::class\.java/, "The launcher must open the unified original app shell.");
-assert.match(legacy, /WebViewAssetLoader\.Builder\(\)/, "The Android wrapper must load packaged web assets securely.");
+assert.match(main, /NativeNotebookActivity::class\.java/, "The launcher restores the migrated native notebook.");
+assert.match(legacy, /WebViewAssetLoader\.Builder\(\)/, "The complete original web experience remains available through the native services gateway.");
 assert.match(legacy, /WebViewClientCompat/, "The WebView must route local resources through WebViewAssetLoader.");
 assert.match(legacy, /appassets\.androidplatform\.net/, "The packaged page must use the HTTPS appassets origin.");
 assert.match(legacy, /assets\/www\/index\.html/, "The complete bundled PWA entry point must be used.");

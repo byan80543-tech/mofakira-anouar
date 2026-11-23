@@ -99,7 +99,7 @@ assert.match(html,/<small>أصوات الأذان<\/small><strong>اختيار �
 assert.match(html,/#rd \.curtain-head #ownerBtn\.radio-owner-pen[\s\S]*?width:34px!important;height:34px!important/,'ownership button matches the close button dimensions');
 assert.match(html,/<div class="curtain-head"><button type="button" id="ownerBtn"/,'purple radio header contains only its functional controls');
 assert.doesNotMatch(html,/<div class="curtain-head"><b>الخدمات القرآنية والدينية<\/b>/,'duplicate services title is removed from purple radio header');
-assert.match(html,/prayer-times\.js\?v=20261121-8/,'HTML loads the updated prayer controller after radio header title removal');
+assert.match(html,/prayer-times\.js\?v=20261123-1/,'HTML loads the updated prayer controller after radio header title removal');
 const cacheVersion=worker.match(/const CACHE_NAME='anwar-shell-\d{4}-\d{2}-\d{2}-v(\d+)';/);
 assert.ok(cacheVersion&&Number(cacheVersion[1])>=157,'the updated prayer controller has a refreshed offline shell version');
 assert.match(worker,/\.\/prayer-card-design\.css/,'service worker precaches the canonical prayer card stylesheet');

@@ -22,8 +22,9 @@ assert.match(manifest, /RECEIVE_BOOT_COMPLETED/);
 assert.match(manifest, /android:name="\.MainActivity"[\s\S]*?android:exported="true"[\s\S]*?android.intent.action.MAIN[\s\S]*?android.intent.category.LAUNCHER/);
 assert.match(manifest, /android:name="\.LegacyWebActivity"[\s\S]*?android:exported="false"/);
 assert.match(nativeHome, /class MainActivity : Activity\(\)/);
-assert.match(nativeHome, /LegacyWebActivity::class\.java/, 'the launcher opens the complete packaged PWA shell');
+assert.match(nativeHome, /NativeNotebookActivity::class\.java/, 'the launcher restores the native Android notebook');
 assert.match(notebook, /الخدمات القرآنية والدينية/);
+assert.match(notebook, /NativePrayerActivity::class\.java/, 'the native notebook exposes the native prayer screen directly');
 assert.match(notebook, /ReligiousGateActivity::class\.java/);
 assert.match(religiousGate, /NativePrayerActivity::class\.java/);
 assert.match(religiousGate, /startActivity\(Intent\(this, LegacyWebActivity::class.java\)\)/,
@@ -84,6 +85,10 @@ assert.match(nativePrayer, /الدولة/);
 assert.match(nativePrayer, /المدينة/);
 assert.match(nativePrayer, /مستوى الصوت/);
 assert.match(nativePrayer, /تشغيل الأذان تلقائيًا عند دخول وقت الصلاة/);
+assert.match(nativePrayer, /تجربة صوت الأذان الآن/);
+assert.match(nativePrayer, /AdhanPlaybackService\.EXTRA_TEST_MODE/);
+assert.match(service, /EXTRA_TEST_MODE/);
+assert.match(service, /Log\.e\(TAG, "Adhan media playback failed/);
 assert.match(nativePrayer, /PrayerCalendarRepository\.refreshAndSchedule\(this\)/,
   'the native prayer screen refreshes and stores its own calendar');
 assert.match(nativePrayer, /Settings\.ACTION_REQUEST_SCHEDULE_EXACT_ALARM/,

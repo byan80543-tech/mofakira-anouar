@@ -14,6 +14,7 @@ import android.media.MediaPlayer
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import com.anwar.mofakira.MainActivity
@@ -38,12 +39,15 @@ class AdhanPlaybackService : Service() {
 
         val config = PrayerSettings.read(this)
         val voice = VoiceCatalog.get(config.voiceKey)
-        if (!config.enabled || voice == null) {
+        val testMode = intent.getBooleanExtra(EXTRA_TEST_MODE, false)
+        if ((!config.enabled && !testMode) || voice == null) {
+            Log.w(TAG, "Playback rejected: disabled schedule or unsupported voice")
             stopSelf(startId)
             return START_NOT_STICKY
         }
 
         val prayerName = intent.getStringExtra(EXTRA_PRAYER_NAME) ?: "الصلاة"
+        Log.i(TAG, "Preparing adhan audio for $prayerName; testMode=$testMode; voice=${config.voiceKey}")
         startAsForeground(prayerName)
         stopPlayerOnly()
         requestAudioFocus()
@@ -59,13 +63,17 @@ class AdhanPlaybackService : Service() {
                 .build()
         )
         media.setOnPreparedListener { prepared ->
-            if (player === prepared) prepared.start()
+            if (player === prepared) {
+                prepared.start()
+                Log.i(TAG, "Adhan playback started successfully")
+            }
         }
         media.setOnCompletionListener {
             stopPlayback()
             stopSelf()
         }
-        media.setOnErrorListener { _, _, _ ->
+        media.setOnErrorListener { _, what, extra ->
+            Log.e(TAG, "Adhan media playback failed: what=$what extra=$extra")
             stopPlayback()
             stopSelf()
             true
@@ -76,7 +84,8 @@ class AdhanPlaybackService : Service() {
             if (cached != null) media.setDataSource(cached.absolutePath)
             else media.setDataSource(voice.url)
             media.prepareAsync()
-        } catch (_: Exception) {
+        } catch (error: Exception) {
+            Log.e(TAG, "Unable to prepare adhan audio source", error)
             stopPlayback()
             stopSelf()
         }
@@ -180,6 +189,8 @@ class AdhanPlaybackService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     companion object {
+        private const val TAG = "AnwarAdhan"
+        const val EXTRA_TEST_MODE = "test_mode"
         const val ACTION_PLAY = "com.anwar.mofakira.action.PLAY_ADHAN"
         const val ACTION_STOP = "com.anwar.mofakira.action.STOP_ADHAN"
         const val EXTRA_PRAYER_NAME = "prayer_name"

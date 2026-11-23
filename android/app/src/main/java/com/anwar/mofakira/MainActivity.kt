@@ -5,14 +5,13 @@ import android.content.Intent
 import android.os.Bundle
 
 /**
- * The app opens the complete original Anwar PWA in one packaged WebView shell.
- * Native Android services (including scheduled adhan) remain attached through
- * LegacyWebActivity's origin-restricted bridge.
+ * Launch the gradually migrated native Android notebook.
+ * The complete original web experience remains available from the services gateway.
  */
 class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        startActivity(Intent(this, LegacyWebActivity::class.java))
+        startActivity(Intent(this, NativeNotebookActivity::class.java))
         finish()
     }
 }

@@ -245,6 +245,18 @@ class NativeNotebookActivity : Activity() {
             setPadding(dp(9), dp(6), dp(9), dp(6))
             setBackgroundColor(Color.rgb(225, 237, 248))
         }
+        val prayerButton = actionButton(
+            "🕌  مواقيت الصلاة والأذان",
+            Color.rgb(239, 245, 251),
+            Color.rgb(35, 59, 80)
+        ) {
+            startActivity(Intent(this@NativeNotebookActivity, NativePrayerActivity::class.java))
+        }.apply {
+            textSize = 12f
+            setPadding(dp(5), dp(8), dp(5), dp(8))
+            background = rounded(intArrayOf(Color.rgb(245, 249, 253), Color.rgb(229, 239, 249)), 25, Color.rgb(205, 218, 231))
+            contentDescription = "مواقيت الصلاة والأذان"
+        }
         val serviceButton = actionButton(
             "🌷  الخدمات القرآنية والدينية  ⌄",
             Color.rgb(239, 245, 251),
@@ -252,14 +264,17 @@ class NativeNotebookActivity : Activity() {
         ) {
             startActivity(Intent(this@NativeNotebookActivity, ReligiousGateActivity::class.java))
         }.apply {
-            textSize = 14f
-            setPadding(dp(17), dp(8), dp(17), dp(8))
+            textSize = 12f
+            setPadding(dp(5), dp(8), dp(5), dp(8))
             background = rounded(intArrayOf(Color.rgb(245, 249, 253), Color.rgb(229, 239, 249)), 25, Color.rgb(205, 218, 231))
             contentDescription = "الخدمات القرآنية والدينية"
         }
-        serviceRow.addView(serviceButton, LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT, dp(42)
-        ))
+        serviceRow.addView(prayerButton, LinearLayout.LayoutParams(0, dp(42), 1f).apply {
+            marginEnd = dp(4)
+        })
+        serviceRow.addView(serviceButton, LinearLayout.LayoutParams(0, dp(42), 1f).apply {
+            marginStart = dp(4)
+        })
         shell.addView(serviceRow)
 
         val scroll = ScrollView(this).apply {
