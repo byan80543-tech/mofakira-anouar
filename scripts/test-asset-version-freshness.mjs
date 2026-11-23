@@ -27,7 +27,7 @@ function lastModifiedTimestamp(relativePath) {
     ['log', '-1', '--format=%ct', '--', relativePath],
     { cwd: root, encoding: 'utf8' }
   ).trim();
-  assert.match(timestamp, /^\d+$/, \`Git history is required to timestamp \${relativePath}\`);
+  assert.match(timestamp, /^\d+$/, 'Git history is required to timestamp ' + relativePath);
   return Number(timestamp);
 }
 
@@ -95,10 +95,10 @@ for (const match of shellBlock[1].matchAll(assetPattern)) {
   const modifiedDate = lastModifiedDate(relativePath);
   const modifiedTimestamp = lastModifiedTimestamp(relativePath);
   if (cacheDate < modifiedDate) {
-    staleShellAssets.push(\`\${relativePath} (changed \${modifiedDate}; shell \${cacheDate})\`);
+    staleShellAssets.push(relativePath + ' (changed ' + modifiedDate + '; shell ' + cacheDate + ')');
   }
   if (workerTimestamp < modifiedTimestamp) {
-    staleShellAssets.push(\`\${relativePath} (updated after service-worker.js; rebuild the app-shell cache)\`);
+    staleShellAssets.push(relativePath + ' (updated after service-worker.js; rebuild the app-shell cache)');
   }
 }
 
