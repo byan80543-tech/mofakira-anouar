@@ -9,7 +9,7 @@ const manifest = read('android/app/src/main/AndroidManifest.xml');
 const gradle = read('android/app/build.gradle.kts');
 const workflow = read('.github/workflows/build-anwar-android.yml');
 
-assert.match(main, /LegacyWebActivity::class\.java/, 'The launcher opens the complete packaged original web app.');
+assert.match(main, /NativeNotebookActivity::class\.java/, 'The launcher opens the migrated native Android notebook.');
 assert.match(notebook, /الخدمات القرآنية والدينية/, 'The services launcher uses the exact original label.');
 assert.match(notebook, /أرشيف أنوار/, 'The archive control remains available.');
 assert.match(notebook, /تشغيل إذاعة القرآن/, 'The radio toolbar control remains available.');
@@ -37,8 +37,8 @@ assert.match(portal, /LegacyWebActivity::class\.java/);
 assert.match(portal, /setOnClickListener \{ finish\(\) \}/, 'Close returns to the notebook.');
 assert.match(manifest, /android:name="\.ReligiousGateActivity"/);
 assert.match(manifest, /android:name="\.NativeAudioWebActivity"[\s\S]*?android:exported="false"/);
-assert.match(gradle, /versionCode = 17/);
-assert.match(gradle, /versionName = "0.9.8"/);
+assert.match(gradle, /versionCode = 18/);
+assert.match(gradle, /versionName = "0.9.9"/);
 assert.match(gradle, /applicationIdSuffix = "\.preview.v17"/);
 assert.match(workflow, /node scripts\/test-native-gateway\.mjs/);
 
