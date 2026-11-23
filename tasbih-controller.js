@@ -12,6 +12,7 @@
   const beadTrack=$('tasbihBeads');
   const counterControl=panel&&panel.querySelector('.anwar-tasbih-counter');
   const counterTap=$('tasbihCounterControl');
+  const clockDial=$('tasbihClockDial'),hourHand=$('tasbihHourHand'),minuteHand=$('tasbihMinuteHand'),secondHand=$('tasbihSecondHand'),elapsedNode=$('tasbihElapsedTime');
   const themeToggle=$('tasbihThemeToggle'),themePicker=$('tasbihThemePicker');
   const themeIds=['emerald','dark','pink','night','heritage','glass'];
   const themeButtons=themeIds.map(name=>({name,button:$('tasbihTheme'+name[0].toUpperCase()+name.slice(1))}));
@@ -23,7 +24,7 @@
   const voicePanel=$('tasbihVoicePanel'),voiceButton=$('tasbihVoice');
   const voiceState=$('tasbihVoiceState'),voiceStatus=$('tasbihVoiceStatus');
   const voiceButtonLabel=$('tasbihVoiceButtonLabel');
-  const required={panel,select,countNode,phraseNode,beadTrack,counterControl,counterTap,tap,minus,reset,cards,dhikrToggle,dhikrList,customInput,customAdd,customStatus,removeButton,restoreButton,voicePanel,voiceButton,voiceState,voiceStatus,voiceButtonLabel,themeToggle,themePicker,...Object.fromEntries(themeButtons.map(item=>['theme'+item.name,item.button]))};
+  const required={panel,select,countNode,phraseNode,beadTrack,counterControl,counterTap,tap,minus,reset,cards,dhikrToggle,dhikrList,customInput,customAdd,customStatus,removeButton,restoreButton,voicePanel,voiceButton,voiceState,voiceStatus,voiceButtonLabel,themeToggle,themePicker,clockDial,hourHand,minuteHand,secondHand,elapsedNode,...Object.fromEntries(themeButtons.map(item=>['theme'+item.name,item.button]))};
   const missing=Object.keys(required).filter(key=>!required[key]);
   if(missing.length){
    console.error('تعذر تهيئة السبحة؛ عناصر الواجهة الناقصة:',missing);
@@ -44,6 +45,9 @@
    ?[...new Set(items.filter(item=>typeof item==='string').map(item=>item.trim().slice(0,maxLength)).filter(Boolean))].slice(0,limit)
    :[];
   let count=Number.isSafeInteger(initial.count)?Math.max(0,Math.min(MAX_COUNT,initial.count)):0;
+  const MAX_ELAPSED_MS=10*365*24*60*60*1000;
+  let elapsedMs=Number.isFinite(initial.elapsedMs)?Math.max(0,Math.min(MAX_ELAPSED_MS,initial.elapsedMs)):0;
+  let sessionStartedAt=null,lastPersistedElapsed=elapsedMs;
   const allowedThemes=new Set(themeIds);
   let theme=initial.designVersion===DESIGN_VERSION&&allowedThemes.has(initial.theme)?initial.theme:'emerald';
   let customDhikrs=cleanDhikrList(initial.customDhikrs,30,200);
@@ -110,11 +114,40 @@
     return true;
    });
   }
+  function currentElapsedMs(now){
+   const stamp=Number.isFinite(now)?now:Date.now();
+   return Math.max(0,Math.min(MAX_ELAPSED_MS,elapsedMs+(sessionStartedAt===null?0:Math.max(0,stamp-sessionStartedAt))));
+  }
+  function arabicDigits(value){return String(value).replace(/[0-9]/g,d=>'٠١٢٣٤٥٦٧٨٩'[Number(d)]);}
+  function formatDuration(milliseconds){
+   const totalSeconds=Math.floor(Math.max(0,milliseconds)/1000);
+   const hours=Math.floor(totalSeconds/3600),minutes=Math.floor((totalSeconds%3600)/60),seconds=totalSeconds%60;
+   return arabicDigits([hours,minutes,seconds].map(part=>String(part).padStart(2,'0')).join(':'));
+  }
+  function updateClockUi(now){
+   const stamp=Number.isFinite(now)?now:Date.now();
+   const date=new Date(stamp);
+   const seconds=date.getSeconds()+date.getMilliseconds()/1000;
+   const minutes=date.getMinutes()+seconds/60;
+   const hours=(date.getHours()%12)+minutes/60;
+   hourHand.style.setProperty('--clock-angle',(hours*30)+'deg');
+   minuteHand.style.setProperty('--clock-angle',(minutes*6)+'deg');
+   secondHand.style.setProperty('--clock-angle',(seconds*6)+'deg');
+   elapsedNode.textContent=formatDuration(currentElapsedMs(stamp));
+   clockDial.setAttribute('aria-label','الساعة الآن '+arabicDigits(String(date.getHours()).padStart(2,'0'))+':'+arabicDigits(String(date.getMinutes()).padStart(2,'0')));
+  }
+  function startSessionClock(){if(sessionStartedAt===null)sessionStartedAt=Date.now()}
+  function pauseSessionClock(){
+   if(sessionStartedAt===null)return;
+   elapsedMs=currentElapsedMs();sessionStartedAt=null;lastPersistedElapsed=elapsedMs;
+   updateClockUi();persist();
+  }
+  function resetSessionClock(){elapsedMs=0;sessionStartedAt=null;lastPersistedElapsed=0;updateClockUi()}
   function persist(){
    if(!preferences||typeof preferences.set!=='function')return;
    writingPreferences=true;
    try{
-    preferences.set('tasbih',{count:count,dhikr:select.value,customDhikrs:customDhikrs,removedOfficialDhikrs:removedOfficialDhikrs,theme:theme,designVersion:DESIGN_VERSION});
+    preferences.set('tasbih',{count:count,dhikr:select.value,customDhikrs:customDhikrs,removedOfficialDhikrs:removedOfficialDhikrs,theme:theme,elapsedMs:currentElapsedMs(),designVersion:DESIGN_VERSION});
    }catch(error){
     console.warn('تعذر حفظ إعدادات السبحة المشفرة',error);
     customStatus.textContent='تعذر حفظ التغيير في الخزنة المشفرة. تحقق من فتح المفكرة ثم أعد المحاولة.';
@@ -218,6 +251,7 @@
    panel.dataset.tasbihTheme=theme;
    themeButtons.forEach(item=>item.button.setAttribute('aria-pressed',item.name===theme?'true':'false'));
    countNode.textContent=count.toLocaleString('ar');
+   updateClockUi();
    renderBeads();
    const selectedOption=Array.from(select.options).find(option=>option.value===select.value);
    phraseNode.textContent=selectedOption?optionText(selectedOption):'لم يتم اختيار ذكر بعد';
@@ -257,13 +291,15 @@
    voiceTargetPhrase=optionText(option);
    voiceMatchCount=0;
    voiceResultSegments=[];lastRecognitionEvent=null;
-   if(resetCount)count=0;
+   if(resetCount){count=0;resetSessionClock()}
    setDhikrListOpen(false);
 
    saveAndUpdate();
   }
   function add(amount){
-   count=Math.max(0,Math.min(MAX_COUNT,count+amount));
+   const nextCount=Math.max(0,Math.min(MAX_COUNT,count+amount));
+   if(nextCount>count)startSessionClock();
+   count=nextCount;
    saveAndUpdate();
    const counter=panel.querySelector('.anwar-tasbih-counter');
    if(counter&&typeof counter.animate==='function'){
@@ -383,6 +419,7 @@
    themeToggle.setAttribute('aria-expanded','false');
    setDhikrListOpen(false);
    if(voiceActive)stopVoice('توقف الاستماع عند إغلاق السبحة.');
+   pauseSessionClock();
    panel.hidden=true;
    if(restoreFocus!==false){
     const backButton=$('anwarTasbihBack');
@@ -430,7 +467,7 @@
   });
   tap.addEventListener('click',()=>add(1));
   minus.addEventListener('click',()=>add(-1));
-  reset.addEventListener('click',()=>{count=0;saveAndUpdate()});
+  reset.addEventListener('click',()=>{count=0;resetSessionClock();saveAndUpdate()});
   customAdd.addEventListener('click',event=>{event.stopPropagation();addCustomDhikr()});
   customInput.addEventListener('click',event=>event.stopPropagation());
   customInput.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();event.stopPropagation();addCustomDhikr()}});
@@ -439,6 +476,7 @@
    voiceTargetPhrase=optionText(Array.from(select.options).find(option=>option.value===select.value))||'';
    voiceMatchCount=0;
    count=0;
+   resetSessionClock();
    saveAndUpdate();
 
    setDhikrListOpen(false);
@@ -659,11 +697,30 @@
     console.warn('تعذر تهيئة خدمة التعرف الصوتي للسبحة',error);
    }
   }
+  updateClockUi();
+  window.setInterval(()=>{
+   const now=Date.now();
+   if(document.visibilityState==='hidden'){
+    pauseSessionClock();updateClockUi(now);return;
+   }
+   updateClockUi(now);
+   if(sessionStartedAt!==null){
+    const liveElapsed=currentElapsedMs(now);
+    if(liveElapsed-lastPersistedElapsed>=5000){
+     elapsedMs=liveElapsed;sessionStartedAt=now;lastPersistedElapsed=elapsedMs;persist();
+    }
+   }
+  },1000);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')pauseSessionClock()});
+  window.addEventListener('pagehide',pauseSessionClock);
+
   if(preferences&&typeof preferences.subscribe==='function'){
    preferences.subscribe(saved=>{
     if(writingPreferences)return;
     const value=saved&&saved.tasbih?saved.tasbih:{};
     count=Number.isSafeInteger(value.count)?Math.max(0,value.count):0;
+    elapsedMs=Number.isFinite(value.elapsedMs)?Math.max(0,Math.min(MAX_ELAPSED_MS,value.elapsedMs)):0;
+    sessionStartedAt=null;lastPersistedElapsed=elapsedMs;
     customDhikrs=cleanDhikrList(value.customDhikrs,30,200);
     removedOfficialDhikrs=cleanDhikrList(value.removedOfficialDhikrs,60,4000);
     theme=allowedThemes.has(value.theme)?value.theme:'emerald';
