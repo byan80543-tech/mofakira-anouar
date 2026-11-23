@@ -136,7 +136,7 @@ assert(!h.api.snapshot().storageRecoveryBlocked&&h.api.snapshot().S.notes.length
 
 h=makeHarness({'anwar_v1':state({id:'legacy-text-fallback',html:42,text:'محتوى نصي قديم'})});
 h.api.load();
-assert(!h.api.snapshot().storageRecoveryBlocked&&h.api.snapshot().S.notes[0]?.html==='محتوى نصي قديم','legacy non-string html falls back to a valid text body');
+assert(!h.api.snapshot().storageRecoveryBlocked&&h.api.snapshot().S.notes[0]?.html==='<div>محتوى نصي قديم</div>','legacy non-string html falls back to a valid text body');
 
 const oversizedLegacy=state({id:'oversized-legacy',html:'x'.repeat(450001)});
 h=makeHarness({'anwar_v1':oversizedLegacy});
