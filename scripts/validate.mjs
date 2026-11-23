@@ -96,7 +96,7 @@ ok(html.includes('id="tasbihMinus" class="tasbih-minus-control"') && html.includ
 ok((html.match(/id="tasbihRemoveDhikr"/g)||[]).length===1, 'the tasbih delete action has one unique control in the dhikr manager');
 ok(!html.includes('id="adhkarTab"') && !html.includes('id="adhkarTasbihToggle"'), 'obsolete ownership-tab and intermediate tasbih launcher are removed');
 ok(html.includes('id="tasbihClockDial"') && html.includes('id="tasbihHourHand"') && html.includes('id="tasbihMinuteHand"') && html.includes('id="tasbihSecondHand"') && html.includes('id="tasbihElapsedTime"') && html.includes('id="anwar-tasbih-real-clock-v1"'), 'the tasbih interface has an analog clock and visible elapsed-time readout');
-ok((html.match(/class="tasbih-clock-number tasbih-clock-n-\d+"/g)||[]).length===12 && html.includes('id="anwar-tasbih-classic-analog-v1"'), 'the classic clock face has twelve Arabic numerals and its dedicated visual layer');
+ok(html.includes('id="tasbihClockNumbers"') && html.includes('id="anwar-tasbih-number-wrapper-clock-v1"') && tasbihController.includes('function renderClockNumbers()') && tasbihController.includes('for(let number=1;number<=12;number++)'), 'the clock face generates twelve upright Arabic numerals through counter-rotated wrappers');
 const clockDialStart=html.indexOf('<div class="tasbih-clock-dial"');
 const clockDialEnd=html.indexOf('\n      </div>\n      <div class="tasbih-elapsed-readout"',clockDialStart);
 ok(clockDialStart>=0 && clockDialEnd>clockDialStart && html.slice(clockDialStart,clockDialEnd).includes('id="tasbihCounterControl"'), 'the live tasbih count is centered inside the analog clock dial');
