@@ -24,6 +24,7 @@ assert.match(manifest, /android:name="\.LegacyWebActivity"[\s\S]*?android:export
 assert.match(nativeHome, /class MainActivity : Activity\(\)/);
 assert.match(nativeHome, /NativeNotebookActivity::class\.java/, 'the launcher restores the native Android notebook');
 assert.match(notebook, /الخدمات القرآنية والدينية/);
+assert.match(notebook, /NativePrayerActivity::class\\.java/, 'the native notebook exposes the native prayer screen directly');
 assert.match(notebook, /ReligiousGateActivity::class\.java/);
 assert.match(religiousGate, /NativePrayerActivity::class\.java/);
 assert.match(religiousGate, /startActivity\(Intent\(this, LegacyWebActivity::class.java\)\)/,
