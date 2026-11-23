@@ -212,6 +212,9 @@ assert.equal(app.sandbox.__ANWAR_TASBIH_CONTROLLER_READY__,true,'the controller 
 assert.equal(app.sandbox.AnwarTasbihController.open(),true,'the public tasbih controller opens the panel');
 assert.equal(app.nodes.tasbihPanel.hidden,false,'the tasbih panel becomes visible when opened');
 assert.equal(app.nodes.tasbihBeads.children.length,33,'the royal ring contains 33 beads');
+assert.ok(html.includes('class="anwar-tasbih-stage anwar-tasbih-sixth-stage"')&&html.includes('class="tasbih-reset-housing"'),'the sixth-reference counter uses its integrated lower reset housing');
+assert.ok(html.includes('class="tasbih-inner-dhikr-frame"')&&html.includes('id="tasbihCustomDhikrInput"'),'manual dhikr entry is framed inside the counter face');
+assert.ok(controller.includes('const progress=index/32;')&&controller.includes('(240-(progress*120))*Math.PI/180'),'the 33 beads form one draped side strand, not a full ring');
 assert.equal(app.nodes.tasbihBeads.children.filter(bead=>bead.classList.contains('is-counted')).length,0,'the bead ring begins uncounted');
 assert.equal(app.nodes.ownerDialog.open,false,'opening the tasbih no longer opens the ownership dialog');
 assert.equal(app.sandbox.AnwarTasbihController.close(),true,'the public tasbih controller closes the panel');
@@ -262,6 +265,11 @@ app.nodes.tasbihCustomDhikrInput.value='  ذكر   تجريبي  ';
 app.nodes.tasbihAddCustomDhikr.click();
 assert.equal(app.nodes.tasbihDhikr.value,'ذكر تجريبي','adding a custom dhikr selects the normalized text');
 assert.deepEqual(app.state.tasbih.customDhikrs,['ذكر تجريبي'],'the custom dhikr is persisted');
+assert.equal(app.nodes.tasbihCustomDhikrInput.value,'ذكر تجريبي','the selected manual dhikr is visible in the framed field');
+const keepCount=buildApp({initialCount:8,initialDhikr:'سبحان الله'});
+keepCount.nodes.tasbihCustomDhikrInput.value='سبحان الله';
+keepCount.nodes.tasbihAddCustomDhikr.click();
+assert.equal(count(keepCount),8,'confirming the already selected dhikr does not reset its counter');
 assert.ok(app.nodes.tasbihDhikr.options.some(option=>option.value==='ذكر تجريبي'),'the custom dhikr appears in the selector');
 app.nodes.tasbihCustomDhikrInput.value='ذكر تجريبي';
 app.nodes.tasbihAddCustomDhikr.click();
@@ -269,6 +277,13 @@ assert.equal(app.state.tasbih.customDhikrs.length,1,'adding a duplicate does not
 app.nodes.tasbihRemoveDhikr.click();
 assert.equal(app.state.tasbih.customDhikrs.length,0,'the selected custom dhikr can be deleted');
 assert.ok(!app.nodes.tasbihDhikr.options.some(option=>option.value==='ذكر تجريبي'),'deleting a custom dhikr removes its option');
+const manualApp=buildApp();
+manualApp.nodes.tasbihCustomDhikrInput.value='ذكر يدوي جديد';
+manualApp.nodes.tasbihAddCustomDhikr.click();
+assert.equal(manualApp.nodes.tasbihDhikr.value,'ذكر يدوي جديد','the integrated face field can add a new manual dhikr');
+assert.equal(manualApp.nodes.tasbihCustomDhikrInput.value,'ذكر يدوي جديد','the saved manual phrase remains visible inside the face');
+assert.deepEqual(manualApp.state.tasbih.customDhikrs,['ذكر يدوي جديد'],'the manual entry is preserved independently');
+
 
 // Official dhikrs can be hidden for this device and restored without modifying the source list.
 app.nodes.tasbihDhikr.value='سبحان الله';
