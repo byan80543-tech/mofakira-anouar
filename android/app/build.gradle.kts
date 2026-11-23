@@ -26,7 +26,7 @@ android {
     buildTypes {
         getByName("debug") {
             // Previews are kept apart from the production app and earlier previews.
-            applicationIdSuffix = ".preview.v17"
+            applicationIdSuffix = ".preview.v18"
             versionNameSuffix = "-preview"
         }
         getByName("release") {
