@@ -398,7 +398,7 @@ function finishVaultOpen(){
  const lockButton=$('vaultLockBtn');
  lockButton.hidden=false;
  const encrypted=!!(vaultKey&&vaultTemplate);
- lockButton.dataset.encrypted=encrypted?'true':'false';
+ lockButton.setAttribute('data-encrypted',encrypted?'true':'false');
  lockButton.title=encrypted
   ?'التشفير الدائم مفعّل؛ تُحفظ أعمالك مشفرة أثناء بقاء المفكرة مفتوحة. اضغط للقفل اليدوي.'
   :'التشفير غير مفعّل؛ اضغط هنا لتشفير أعمالك. ستبقى المفكرة مفتوحة بعد الإعداد.';
