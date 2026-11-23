@@ -26,6 +26,7 @@ import android.widget.Spinner
 import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import com.anwar.mofakira.alarm.PrayerAlarmScheduler
 import com.anwar.mofakira.alarm.PrayerCalendarRepository
 import com.anwar.mofakira.alarm.PrayerRefreshWorker
@@ -263,6 +264,20 @@ class NativePrayerActivity : Activity() {
 
         val refresh = makeButton("حفظ وتحديث المواقيت", gold, navy) { saveAndRefresh() }
         root.addView(refresh, marginTop(dp(13)))
+        val testAudio = makeButton("تجربة صوت الأذان الآن", green, Color.WHITE) {
+            if (saveSettings() == null) return@makeButton
+            val testIntent = Intent(this, AdhanPlaybackService::class.java)
+                .setAction(AdhanPlaybackService.ACTION_PLAY)
+                .putExtra(AdhanPlaybackService.EXTRA_PRAYER_NAME, "اختبار الصوت")
+                .putExtra(AdhanPlaybackService.EXTRA_TEST_MODE, true)
+            try {
+                ContextCompat.startForegroundService(this, testIntent)
+                statusText.text = "أُرسل طلب اختبار الصوت إلى خدمة أندرويد. استمع الآن إلى الأذان."
+            } catch (error: Exception) {
+                statusText.text = "تعذّر بدء اختبار الأذان: ${error.localizedMessage ?: "خطأ في خدمة التشغيل"}"
+            }
+        }
+        root.addView(testAudio, marginTop(dp(9)))
         val permission = makeButton("إعداد أذونات الأذان الخلفي", navy, Color.WHITE) {
             if (!adhanSwitch.isChecked) {
                 // The switch listener saves the setting and starts the permission flow.
