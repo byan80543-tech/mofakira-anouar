@@ -75,7 +75,7 @@ function buildApp(options={}){
   'tasbihReset','tasbihDhikrCards','tasbihCustomDhikrInput','tasbihAddCustomDhikr','tasbihCustomDhikrStatus',
   'tasbihRemoveDhikr','tasbihRestoreOfficial','tasbihVoicePanel','tasbihVoice','tasbihVoiceState',
   'tasbihVoiceStatus','tasbihVoiceButtonLabel','tasbihBeads','morningTab','eveningTab',
-  'tasbihCounterControl','tasbihThemeToggle','tasbihThemePicker','tasbihThemeEmerald','tasbihThemeDark','tasbihThemePink','tasbihThemeNight','tasbihThemeHeritage','tasbihThemeGlass'
+  'tasbihCounterControl','tasbihClockDial','tasbihHourHand','tasbihMinuteHand','tasbihSecondHand','tasbihElapsedTime','tasbihThemeToggle','tasbihThemePicker','tasbihThemeEmerald','tasbihThemeDark','tasbihThemePink','tasbihThemeNight','tasbihThemeHeritage','tasbihThemeGlass'
  ];
  for(const id of ids)nodes[id]=id==='tasbihDhikr'?new FakeSelect(id):new FakeElement(id,id==='ownerDialog'?'DIALOG':'DIV');
  const themeNames=['emerald','dark','pink','night','heritage','glass'];
@@ -95,7 +95,7 @@ function buildApp(options={}){
   nodes.tasbihDhikr.appendChild(group);
  }
  const listeners=new Set();
- let state={tasbih:{count:options.initialCount??0,dhikr:options.initialDhikr??nodes.tasbihDhikr.value,customDhikrs:[],removedOfficialDhikrs:options.initialRemoved??[],theme:options.initialTheme??'emerald',designVersion:options.initialVersion??'royal-reference-1'}};
+ let state={tasbih:{count:options.initialCount??0,dhikr:options.initialDhikr??nodes.tasbihDhikr.value,customDhikrs:[],removedOfficialDhikrs:options.initialRemoved??[],theme:options.initialTheme??'emerald',elapsedMs:options.initialElapsedMs??0,designVersion:options.initialVersion??'royal-reference-1'}};
  const preferences={
   get(){return clone(state)},
   set(section,value){state={...state,[section]:clone(value)};for(const listener of listeners)listener(clone(state));return clone(state)},
@@ -108,8 +108,11 @@ function buildApp(options={}){
   addEventListener(){}
  };
  const recognitions=[];
- const timers=new Map();
+ const timers=new Map(),intervals=new Map();
  let timerSequence=0;
+ let fakeNow=options.now??Date.UTC(2026,10,23,10,0,0);
+ class MockDate extends Date{constructor(...args){super(...(args.length?args:[fakeNow]))}static now(){return fakeNow}}
+ function advanceTime(milliseconds){let remaining=Math.max(0,milliseconds);while(remaining>0){const step=Math.min(1000,remaining);fakeNow+=step;remaining-=step;for(const timer of intervals.values())timer.callback()}}
  function flushTimers(){
   while(timers.size){
    const [id,timer]=timers.entries().next().value;
@@ -123,20 +126,34 @@ function buildApp(options={}){
   stop(){this.stopped=(this.stopped||0)+1}
  }
  const sandbox={
-  document,window:null,globalThis:null,AnwarPrivatePreferences:preferences,
+  document,window:null,globalThis:null,Date:MockDate,AnwarPrivatePreferences:preferences,
   requestAnimationFrame(callback){callback()},
   confirm(){return true},
   console:{warn(){},error(){}},
   setTimeout(callback,delay){const id=++timerSequence;timers.set(id,{callback,delay});return id},
   clearTimeout(id){timers.delete(id)},
+  setInterval(callback,delay){const id=++timerSequence;intervals.set(id,{callback,delay});return id},
+  clearInterval(id){intervals.delete(id)},
+  addEventListener(){},
   SpeechRecognition:options.noRecognition?undefined:MockSpeechRecognition
  };
  sandbox.window=sandbox;sandbox.globalThis=sandbox;
  vm.runInNewContext(officialAdhkar,sandbox,{timeout:3000});
  vm.runInNewContext(controller,sandbox,{timeout:3000});
- return {nodes,preferences,get state(){return clone(state)},recognitions,sandbox,flushTimers,get pendingTimers(){return [...timers.values()]}};
+ return {nodes,preferences,get state(){return clone(state)},recognitions,sandbox,flushTimers,advanceTime,get pendingTimers(){return [...timers.values()]}};
 }
 function count(app){return app.state.tasbih.count}
+
+const timedClock=buildApp({now:Date.UTC(2026,10,23,10,0,0)});
+assert.equal(timedClock.nodes.tasbihElapsedTime.textContent,'٠٠:٠٠:٠٠','the session clock starts at zero');
+const initialMinuteAngle=timedClock.nodes.tasbihMinuteHand.style['--clock-angle'];
+timedClock.nodes.tasbihCounterControl.click();
+timedClock.advanceTime(61000);
+assert.equal(timedClock.nodes.tasbihElapsedTime.textContent,'٠٠:٠١:٠١','the real elapsed timer advances once per second');
+assert.ok(timedClock.state.tasbih.elapsedMs>=60000,'elapsed session time is persisted with encrypted preferences');
+assert.notEqual(timedClock.nodes.tasbihMinuteHand.style['--clock-angle'],initialMinuteAngle,'the analog minute hand follows local time');
+timedClock.nodes.tasbihReset.click();
+assert.equal(timedClock.nodes.tasbihElapsedTime.textContent,'٠٠:٠٠:٠٠','reset clears the counter and session duration');
 
 const counterInput=buildApp();
 counterInput.nodes.tasbihCounterControl.click();
@@ -213,8 +230,14 @@ assert.equal(app.sandbox.AnwarTasbihController.open(),true,'the public tasbih co
 assert.equal(app.nodes.tasbihPanel.hidden,false,'the tasbih panel becomes visible when opened');
 assert.equal(app.nodes.tasbihBeads.children.length,33,'the royal ring contains 33 beads');
 assert.ok(html.includes('class="anwar-tasbih-stage anwar-tasbih-sixth-stage"')&&html.includes('class="tasbih-reset-housing"'),'the sixth-reference counter uses its integrated lower reset housing');
-assert.ok(html.includes('class="tasbih-inner-dhikr-frame"')&&html.includes('id="tasbihCustomDhikrInput"'),'manual dhikr entry is framed inside the counter face');
+assert.ok(html.includes('class="tasbih-inner-dhikr-frame"')&&html.includes('id="tasbihCustomDhikrInput"'),'manual dhikr entry is framed in the dhikr chooser');
+const chooserStart=html.indexOf('id="tasbihDhikrListPanel"');
+const manualFieldAt=html.indexOf('class="tasbih-inner-dhikr-frame"',chooserStart);
+const counterFaceAt=html.indexOf('class="anwar-tasbih-counter anwar-tasbih-sixth-face"');
+assert.ok(manualFieldAt>chooserStart&&manualFieldAt<counterFaceAt,'manual dhikr input sits inside the opened selection list, not the clock face');
 assert.ok(controller.includes('const progress=index/32;')&&controller.includes('(240-(progress*120))*Math.PI/180'),'the 33 beads form one draped side strand, not a full ring');
+assert.ok(html.includes('id="tasbihClockDial"')&&html.includes('id="tasbihHourHand"')&&html.includes('id="tasbihMinuteHand"')&&html.includes('id="tasbihSecondHand"'),'the clock includes hour, minute and second hands');
+assert.ok(html.includes('id="tasbihElapsedTime"')&&controller.includes('elapsedMs:currentElapsedMs()'),'session duration is visible and saved with encrypted private preferences');
 assert.equal(app.nodes.tasbihBeads.children.filter(bead=>bead.classList.contains('is-counted')).length,0,'the bead ring begins uncounted');
 assert.equal(app.nodes.ownerDialog.open,false,'opening the tasbih no longer opens the ownership dialog');
 assert.equal(app.sandbox.AnwarTasbihController.close(),true,'the public tasbih controller closes the panel');
