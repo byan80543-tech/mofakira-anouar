@@ -228,7 +228,7 @@ function showVaultGate(mode,message){
  title.textContent=mode==='unlock'?'افتح خزنة مفكرة أنوار':'أنشئ خزنة مفكرة أنوار';
  description.textContent=message||(mode==='unlock'
   ?'أدخل عبارة المرور لفك تشفير أعمالك المحفوظة على هذا الجهاز.'
-  :'اختر عبارة مرور قوية. سنشفّر أعمالك الحالية قبل إزالة نسختها المحلية غير المشفرة.');
+  :'أنشئ عبارة مرور قوية لتفعيل التشفير الدائم. بعد الإعداد ستبقى المفكرة مفتوحة، وستُشفّر كل عملية حفظ على هذا الجهاز؛ القفل اليدوي اختياري.');
  confirmRow.hidden=mode!=='setup';
  confirmInput.hidden=mode!=='setup';
  confirmInput.disabled=mode!=='setup';
@@ -397,8 +397,12 @@ function finishVaultOpen(){
  $('vaultGate').hidden=true;
  const lockButton=$('vaultLockBtn');
  lockButton.hidden=false;
- lockButton.title=vaultKey?'قفل المفكرة الآن؛ ستحتاج إلى كلمة المرور أو قفل الهاتف لفتحها مجددًا.':'تفعيل التشفير والقفل الاختياري للمفكرة؛ تبقى المفكرة الآن في وضع الاستخدام الحر.';
- lockButton.setAttribute('aria-label',vaultKey?'قفل المفكرة المشفّرة':'تفعيل قفل المفكرة وتشفيرها');
+ const encrypted=!!(vaultKey&&vaultTemplate);
+ lockButton.dataset.encrypted=encrypted?'true':'false';
+ lockButton.title=encrypted
+  ?'التشفير الدائم مفعّل؛ تُحفظ أعمالك مشفرة أثناء بقاء المفكرة مفتوحة. اضغط للقفل اليدوي.'
+  :'التشفير غير مفعّل؛ اضغط هنا لتشفير أعمالك. ستبقى المفكرة مفتوحة بعد الإعداد.';
+ lockButton.setAttribute('aria-label',encrypted?'قفل المفكرة المشفّرة الآن':'تفعيل تشفير المفكرة');
  theme();
  chips();
  if(!matchMedia('(max-width:800px)').matches&&S.notes.length){
@@ -689,7 +693,7 @@ async function lockVault(){
    await vaultSaveQueue;
    if(vaultLastWriteError)throw new Error('لم يكتمل آخر حفظ. أبقينا المفكرة مفتوحة لحماية تعديلاتك.');
    clearVaultIdleTimer();vaultUnlocked=false;vaultReady=false;
-   showVaultGate('setup','فعّل القفل الاختياري بإنشاء عبارة مرور قوية. حفظنا تعديلاتك أولًا، وستُشفّر أعمالك وتُتحقق النسخة قبل إزالة أي نسخة نصية قديمة.');
+   showVaultGate('setup','أنشئ عبارة مرور لتفعيل التشفير الدائم. حفظنا تعديلاتك أولًا، وستُشفّر الأعمال وتُتحقق النسخة قبل إزالة أي نسخة نصية قديمة. بعد ذلك تبقى المفكرة مفتوحة، ولا تُقفل إلا عند ضغط زر القفل يدويًا.');
   }catch(error){
    toast(error&&error.message?error.message:'تعذّر حفظ المفكرة قبل إعداد القفل. بقيت مفتوحة دون تغيير.',6000);
   }
