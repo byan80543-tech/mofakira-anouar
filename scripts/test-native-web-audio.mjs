@@ -19,7 +19,7 @@ const roseOpen = read('android/app/src/main/assets/audio/royal-rose-open.svg');
 
 assert.match(gradle, /versionCode = 18/);
 assert.match(gradle, /versionName = "0.9.9"/);
-assert.match(gradle, /applicationIdSuffix = "\.preview.v17"/);
+assert.match(gradle, /applicationIdSuffix = "\.preview.v18"/);
 assert.match(manifest, /android:name="\.NativeAudioWebActivity"[\s\S]*?android:exported="false"/);
 assert.match(gate, /NativeAudioWebActivity::class\.java/);
 assert.match(gate, /NativeAudioActivity\.MODE_QURAN/);
