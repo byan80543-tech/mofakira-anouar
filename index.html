@@ -3128,7 +3128,7 @@ dialog[open]>.float-head{display:none!important}
 #rd #tasbihPanel .tasbih-manual-status{
  position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);
 }
-#rd #tasbihPanel .anwar-tasbih-sixth-face strong{
+#rd #tasbihPanel .anwar-tasbih-sixth-face .tasbih-count-tap strong{
  position:relative;z-index:2;display:block;margin:0;
  color:var(--tasbih-accent,#174c3b)!important;
  font:700 clamp(48px,13vw,70px)/1 Amiri,serif!important;
@@ -3211,13 +3211,21 @@ dialog[open]>.float-head{display:none!important}
 @media(max-width:390px){
  #rd #tasbihPanel .anwar-tasbih-sixth-stage{width:min(100%,390px)!important}
  #rd #tasbihPanel .anwar-tasbih-sixth-face{width:61%!important;left:64%;top:42%}
- #rd #tasbihPanel .anwar-tasbih-sixth-face strong{font-size:clamp(44px,13vw,61px)!important}
+ #rd #tasbihPanel .anwar-tasbih-sixth-face .tasbih-count-tap strong{font-size:clamp(44px,13vw,61px)!important}
  #rd #tasbihPanel .tasbih-reset-housing{left:55%;width:44%;top:66%}
  #rd #tasbihPanel .tasbih-reset-housing #tasbihReset{font-size:10px!important}
  #rd #tasbihPanel .tasbih-minus-control{width:27px;height:27px}
  #rd #tasbihPanel .anwar-tasbih-tassel{left:38%;top:80%}
 }
 @media(prefers-reduced-motion:reduce){#rd #tasbihPanel .anwar-tasbih-bead{transition:none!important}}
+
+#rd #tasbihPanel .tasbih-count-tap{
+ position:relative;z-index:2;display:grid;place-items:center;
+ width:100%;min-height:0;padding:0;border:0;border-radius:50%;
+ background:transparent;color:inherit;cursor:pointer;box-shadow:none;
+ -webkit-tap-highlight-color:transparent;
+}
+#rd #tasbihPanel .tasbih-count-tap:focus-visible{outline:2px solid #c9a45e;outline-offset:2px}
 </style>
 </head>
 <body>
@@ -3529,20 +3537,19 @@ dialog[open]>.float-head{display:none!important}
     <div class="anwar-tasbih-stage anwar-tasbih-sixth-stage" aria-label="عداد السبحة">
      <div class="anwar-tasbih-beads" id="tasbihBeads" aria-hidden="true"></div>
      <div class="anwar-tasbih-tassel" aria-hidden="true"></div>
-     <div class="anwar-tasbih-counter anwar-tasbih-sixth-face" id="tasbihCounterControl" role="button" tabindex="0" aria-label="زيادة التسبيح" aria-live="polite">
+     <div class="anwar-tasbih-counter anwar-tasbih-sixth-face" aria-label="عداد السبحة">
       <div class="tasbih-inner-dhikr-frame">
        <input id="tasbihCustomDhikrInput" type="text" maxlength="200" autocomplete="off" aria-label="اكتب الذكر يدوياً" placeholder="اكتب الذكر هنا">
        <button type="button" id="tasbihAddCustomDhikr" aria-label="اعتماد الذكر المكتوب">حفظ</button>
       </div>
       <small id="tasbihCustomDhikrStatus" class="tasbih-manual-status" role="status" aria-live="polite"></small>
       <div id="tasbihPhrase" class="anwar-tasbih-phrase tasbih-visually-hidden" aria-hidden="true">أستغفر الله العظيم وأتوب إليه</div>
-      <strong id="tasbihCount">0</strong>
+      <button type="button" id="tasbihCounterControl" class="tasbih-count-tap" aria-label="زيادة العداد"><strong id="tasbihCount">0</strong></button>
      </div>
      <div class="tasbih-reset-housing" aria-label="التحكم بالعداد">
       <button type="button" id="tasbihMinus" class="tasbih-minus-control" aria-label="إنقاص العدد" title="إنقاص العدد"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14"/></svg></button>
       <button type="button" id="tasbihReset" class="anwar-tasbih-reset" aria-label="تصفير العداد" title="تصفير العداد"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4.5 10a7.5 7.5 0 0 1 13-3L20 12M4 17v-5h5m-5 0a7.5 7.5 0 0 0 13 3l-2.5-2.5"/></svg><span>تصفير العداد</span></button>
      </div>
-     <button type="button" id="tasbihRemoveDhikr" class="tasbih-remove-fallback" aria-label="إزالة الذكر المختار" hidden>إزالة الذكر</button>
      <button type="button" id="tasbihTap" class="anwar-tasbih-step" aria-label="إضافة تسبيحة" title="إضافة تسبيحة" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg></button>
     </div>
     <section class="anwar-tasbih-voice" id="tasbihVoicePanel" data-state="idle" aria-label="العد الصوتي للذكر">
