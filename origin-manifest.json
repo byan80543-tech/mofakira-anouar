@@ -3,9 +3,10 @@
   "marker": "ANOUAR-MOFKIRA-ORIGIN-2026-01",
   "project": "مفكرة أنوار",
   "declaredCreator": "Anouar Oumlili (أنوار أومليلي)",
+  "publicLocation": "الحسيمة، المغرب",
   "officialDeployment": "https://byan80543-tech.github.io/mofakira-anouar/",
   "sourceRepository": "https://github.com/byan80543-tech/mofakira-anouar",
   "purpose": "Attribution and source identification for project files and deployments.",
   "verificationStatus": "Attribution marker only; not yet a cryptographic signature.",
-  "privacy": "No visitor data collection, telemetry, remote reporting, or local-storage access."
+  "privacy": "No visitor data collection, telemetry, remote reporting, or local-storage access. Public location is city and country only."
 }
