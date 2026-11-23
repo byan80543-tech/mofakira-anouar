@@ -16,7 +16,7 @@
   });
 
   const host = String(window.location.hostname || '').toLowerCase();
-  const path = String(window.location.pathname || '/').replace(/\\/+$/, '') || '/';
+  const path = String(window.location.pathname || '/').replace(/\/+$/, '') || '/';
   const isOfficial = host === 'byan80543-tech.github.io' && path === '/mofakira-anouar';
   const isLocalDevelopment =
     window.location.protocol === 'file:' ||
