@@ -37,7 +37,8 @@ assert.match(activity, /isMainFrame/);
 assert.match(activity, /WebViewAssetLoader\.Builder\(\)/, 'the full PWA is bundled and served as local HTTPS assets');
 assert.ok(activity.includes('SITE_URL = "$SITE_ORIGIN/assets/www/index.html"'), 'legacy activity opens the packaged canonical PWA entry point');
 assert.doesNotMatch(activity, /feat-native-background-adhan\.mofakira-anouar\.pages\.dev/, 'legacy activity must not depend on a temporary preview deployment');
-assert.match(scheduler, /setExactAndAllowWhileIdle/);
+assert.match(scheduler, /setAlarmClock/);
+assert.match(scheduler, /AlarmClockInfo/);
 assert.match(scheduler, /setAndAllowWhileIdle/);
 assert.match(scheduler, /Build\.VERSION\.SDK_INT < Build\.VERSION_CODES\.S \|\| alarmManager\.canScheduleExactAlarms\(\)/,
   'Android 6–11 keep exact alarms; only Android 12+ without special access uses the inexact fallback');
