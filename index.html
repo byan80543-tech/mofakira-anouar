@@ -3033,6 +3033,192 @@ dialog[open]>.float-head{display:none!important}
  #rd #tasbihPanel .anwar-tasbih-bead{transition:none!important}
 }
 </style>
+<style id="anwar-tasbih-sixth-reference-v1">
+/* هيئة النموذج السادس: قرص دائري، خرز منسدل على الجانب، وقاعدة تصفير مدمجة */
+#rd #tasbihPanel{
+ width:min(100%,560px)!important;max-width:560px!important;
+ margin:0 auto 12px!important;padding:10px 12px 12px!important;
+ border:1px solid var(--tasbih-border,#c9ad78)!important;border-radius:26px!important;
+ background:linear-gradient(150deg,var(--tasbih-bg,#fffaf0),var(--tasbih-surface,#f5efdf))!important;
+ box-shadow:0 8px 22px rgba(26,59,47,.10)!important;
+}
+#rd #tasbihPanel .anwar-tasbih-content{display:grid;justify-items:center;gap:5px;padding:5px 2px 2px!important}
+#rd #tasbihPanel .anwar-tasbih-phrase-wrap{display:grid;justify-items:center;gap:0;width:100%}
+#rd #tasbihPanel .anwar-tasbih-phrase{display:none!important}
+#rd #tasbihPanel .anwar-tasbih-ornament{display:none!important}
+#rd #tasbihPanel .tasbih-adhkar-picker{width:min(100%,360px);margin:0 auto}
+#rd #tasbihPanel .tasbih-adhkar-toggle{
+ min-height:38px;padding:5px 13px;border:1px solid var(--tasbih-border,#c9ad78)!important;
+ border-radius:999px;background:var(--tasbih-surface,#fffaf0)!important;
+ color:var(--tasbih-text,#214b3c)!important;font:700 12px Cairo,Tahoma,sans-serif;box-shadow:none!important;
+}
+#rd #tasbihPanel .tasbih-book-icon{display:none!important}
+#rd #tasbihPanel .tasbih-adhkar-toggle>span:nth-of-type(1){flex:1;text-align:center}
+#rd #tasbihPanel .tasbih-adhkar-chevron{width:24px;height:24px;font-size:17px}
+#rd #tasbihPanel .tasbih-adhkar-list{
+ max-height:min(42vh,370px);overflow:auto;margin-top:6px;padding:8px;
+ border:1px solid var(--tasbih-border,#d2bd91);border-radius:14px;
+ background:var(--tasbih-surface,#fffdf7);overscroll-behavior:contain;
+}
+#rd #tasbihPanel .tasbih-dhikr-card{min-height:40px}
+#rd #tasbihPanel .tasbih-dhikr-card-text{display:none!important}
+#rd #tasbihPanel .tasbih-management-remove{
+ min-height:34px;padding:5px 12px;border:1px solid var(--tasbih-border,#c9ad78);
+ border-radius:999px;background:transparent;color:var(--tasbih-text,#214b3c);
+ font:600 11px Cairo,Tahoma,sans-serif;
+}
+#rd #tasbihPanel .anwar-tasbih-sixth-stage{
+ position:relative;isolation:isolate;display:block;
+ width:min(100%,430px)!important;max-width:430px!important;
+ aspect-ratio:1 / 1.04!important;margin:4px auto 2px!important;
+ overflow:visible!important;
+}
+#rd #tasbihPanel .anwar-tasbih-beads{
+ position:absolute;inset:0;z-index:3;pointer-events:none;
+}
+#rd #tasbihPanel .anwar-tasbih-bead{
+ position:absolute;top:0;left:0;width:clamp(9px,2.8vw,13px)!important;
+ height:clamp(9px,2.8vw,13px)!important;margin:0!important;
+ border:1px solid #b68b3d!important;border-radius:50%!important;
+ background:radial-gradient(circle at 28% 23%,#fff0bd 0 8%,#d5ae54 27%,#8b6425 76%,#5d4119 100%)!important;
+ box-shadow:inset 0 1px 2px #fff8d4,0 2px 4px rgba(57,41,16,.26)!important;
+ transform:translate(-50%,-50%)!important;
+ transition:filter .16s ease,box-shadow .16s ease;
+}
+#rd #tasbihPanel .anwar-tasbih-bead.is-counted{
+ filter:brightness(1.12)!important;
+ box-shadow:0 0 0 2px rgba(202,164,83,.45),0 2px 5px rgba(57,41,16,.3),inset 0 1px 2px #fff8d4!important;
+}
+#rd #tasbihPanel .anwar-tasbih-bead.is-current{scale:1.2}
+#rd #tasbihPanel .anwar-tasbih-sixth-face{
+ position:absolute;top:42%;left:64%;z-index:4;transform:translate(-50%,-50%);
+ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;
+ box-sizing:border-box;width:59%!important;max-width:260px!important;
+ height:auto!important;aspect-ratio:1 / 1!important;min-height:0!important;
+ padding:clamp(13px,4vw,20px)!important;
+ border:3px solid #c6a357!important;border-radius:50%!important;
+ outline:1px solid #194d3b;outline-offset:-8px;
+ background:radial-gradient(circle at 36% 27%,#fffaf0 0%,var(--tasbih-surface,#f7f0df) 67%,#eadfc5 100%)!important;
+ box-shadow:0 6px 18px rgba(53,53,35,.17),inset 0 0 0 4px rgba(255,255,255,.65)!important;
+ color:var(--tasbih-text,#164b39)!important;cursor:pointer;touch-action:manipulation;
+}
+#rd #tasbihPanel .anwar-tasbih-sixth-face::before{
+ content:"";position:absolute;inset:8px;border:1px solid rgba(174,139,65,.55);
+ border-radius:50%;pointer-events:none;
+}
+#rd #tasbihPanel .tasbih-inner-dhikr-frame{
+ position:relative;z-index:2;display:flex;align-items:center;gap:3px;
+ box-sizing:border-box;width:87%;min-height:34px;padding:3px;
+ border:1px solid #c5a35e;border-radius:7px;
+ background:rgba(255,253,245,.92);box-shadow:inset 0 1px 3px rgba(90,70,34,.08);
+}
+#rd #tasbihPanel #tasbihCustomDhikrInput{
+ display:block;flex:1;min-width:0;width:100%;height:27px;padding:2px 5px;
+ border:0!important;outline:none!important;border-radius:4px!important;
+ background:transparent!important;color:var(--tasbih-text,#164b39)!important;
+ font:700 clamp(10px,2.8vw,13px) Cairo,Tahoma,sans-serif!important;
+ text-align:center;box-shadow:none!important;
+}
+#rd #tasbihPanel #tasbihCustomDhikrInput::placeholder{color:#8a856e;opacity:1}
+#rd #tasbihPanel #tasbihAddCustomDhikr{
+ flex:none;min-height:26px;padding:2px 7px;border:1px solid #c5a35e;
+ border-radius:5px;background:#175540;color:#fff8df;
+ font:700 10px Cairo,Tahoma,sans-serif;
+}
+#rd #tasbihPanel .tasbih-manual-status{
+ position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);
+}
+#rd #tasbihPanel .anwar-tasbih-sixth-face strong{
+ position:relative;z-index:2;display:block;margin:0;
+ color:var(--tasbih-accent,#174c3b)!important;
+ font:700 clamp(48px,13vw,70px)/1 Amiri,serif!important;
+ font-variant-numeric:tabular-nums;text-shadow:0 1px 1px rgba(255,255,255,.75);
+}
+#rd #tasbihPanel .tasbih-reset-housing{
+ position:absolute;top:66%;left:57%;z-index:2;
+ width:42%;height:22%;display:flex;align-items:center;justify-content:flex-end;
+ padding:0 5% 0 0;box-sizing:border-box;
+ border:1px solid #c6a256;border-radius:28% 50% 48% 28% / 32% 45% 55% 35%;
+ background:linear-gradient(135deg,#176044 0%,#0b4938 65%,#07382d 100%);
+ box-shadow:0 4px 10px rgba(17,61,45,.2),inset 0 1px 0 rgba(255,255,255,.2);
+ transform:rotate(-5deg);
+}
+#rd #tasbihPanel .tasbih-reset-housing #tasbihReset{
+ display:flex;align-items:center;justify-content:center;gap:5px;
+ width:76%;min-width:0;height:58%;min-height:34px;padding:4px 8px;
+ border:1px solid #c9a45e!important;border-radius:999px!important;
+ background:linear-gradient(145deg,#fffaf0,#eee0c2)!important;
+ color:#154b39!important;font:700 11px Cairo,Tahoma,sans-serif!important;
+ box-shadow:0 2px 5px rgba(4,37,26,.23)!important;
+ transform:rotate(5deg);
+}
+#rd #tasbihPanel .tasbih-reset-housing #tasbihReset svg{
+ display:block;width:16px;height:16px;fill:none;stroke:currentColor;
+ stroke-width:2;stroke-linecap:round;stroke-linejoin:round;
+}
+#rd #tasbihPanel .tasbih-reset-housing #tasbihReset span{display:inline!important;font-size:10px}
+#rd #tasbihPanel .tasbih-minus-control{
+ position:absolute;left:-7%;top:36%;z-index:2;
+ display:grid;place-items:center;width:30px;height:30px;min-height:30px;padding:0;
+ border:1px solid #c6a256;border-radius:50%;
+ background:linear-gradient(145deg,#fffaf0,#eee0c2);color:#174c3a;
+ box-shadow:0 2px 5px rgba(4,37,26,.18);transform:rotate(5deg);
+}
+#rd #tasbihPanel .tasbih-minus-control svg{
+ width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.3;
+ stroke-linecap:round;stroke-linejoin:round;
+}
+#rd #tasbihPanel .anwar-tasbih-tassel{
+ position:absolute;left:39%;top:80%;z-index:2;
+ width:26px;height:62px;transform:rotate(-19deg);
+ pointer-events:none;
+}
+#rd #tasbihPanel .anwar-tasbih-tassel::before{
+ content:"";position:absolute;top:0;left:10px;width:7px;height:13px;
+ border-radius:5px;background:linear-gradient(90deg,#8a5c1e,#e5c477,#704a19);
+ box-shadow:0 1px 2px rgba(55,38,12,.3);
+}
+#rd #tasbihPanel .anwar-tasbih-tassel::after{
+ content:"";position:absolute;top:10px;left:2px;width:24px;height:49px;
+ border-radius:3px 3px 50% 50%;
+ background:repeating-linear-gradient(100deg,#78501b 0 1px,#d9b45d 1px 2px,#9a6e2b 2px 3px);
+ clip-path:polygon(12% 0,88% 0,100% 72%,52% 100%,0 72%);
+ filter:drop-shadow(0 2px 2px rgba(44,31,10,.22));
+}
+#rd #tasbihPanel .tasbih-remove-fallback{display:none!important}
+#rd #tasbihPanel .anwar-tasbih-voice{
+ display:flex!important;align-items:center;justify-content:space-between;gap:8px;
+ width:min(100%,350px)!important;margin:4px auto 0!important;padding:6px 9px!important;
+ border:1px solid var(--tasbih-border,#d4c49f)!important;border-radius:999px!important;
+ background:var(--tasbih-surface,#fffdf7)!important;box-shadow:none!important;
+}
+#rd #tasbihPanel .anwar-tasbih-voice-shield,
+#rd #tasbihPanel .anwar-tasbih-voice-hint{display:none!important}
+#rd #tasbihPanel .anwar-tasbih-voice-head{display:flex!important;align-items:center;gap:6px;flex:1}
+#rd #tasbihPanel .anwar-tasbih-voice-copy{display:flex!important;align-items:center;gap:6px}
+#rd #tasbihPanel .anwar-tasbih-voice-label strong{font-size:10px}
+#rd #tasbihPanel .anwar-tasbih-voice-label small{font-size:9px}
+#rd #tasbihPanel .anwar-tasbih-voice button{
+ min-height:33px!important;padding:4px 10px!important;border:1px solid #bda06a!important;
+ border-radius:999px!important;background:#155640!important;color:#fff6df!important;
+ font:700 10px Cairo,Tahoma,sans-serif!important;box-shadow:none!important;
+}
+#rd #tasbihPanel .anwar-tasbih-voice button svg{width:17px!important;height:17px!important}
+#rd #tasbihPanel .anwar-tasbih-footer{display:none!important}
+#rd #tasbihPanel .anwar-tasbih-sixth-face:focus-visible,
+#rd #tasbihPanel .tasbih-reset-housing button:focus-visible,
+#rd #tasbihPanel .tasbih-minus-control:focus-visible{outline:2px solid #c9a45e;outline-offset:3px}
+@media(max-width:390px){
+ #rd #tasbihPanel .anwar-tasbih-sixth-stage{width:min(100%,390px)!important}
+ #rd #tasbihPanel .anwar-tasbih-sixth-face{width:61%!important;left:64%;top:42%}
+ #rd #tasbihPanel .anwar-tasbih-sixth-face strong{font-size:clamp(44px,13vw,61px)!important}
+ #rd #tasbihPanel .tasbih-reset-housing{left:55%;width:44%;top:66%}
+ #rd #tasbihPanel .tasbih-reset-housing #tasbihReset{font-size:10px!important}
+ #rd #tasbihPanel .tasbih-minus-control{width:27px;height:27px}
+ #rd #tasbihPanel .anwar-tasbih-tassel{left:38%;top:80%}
+}
+@media(prefers-reduced-motion:reduce){#rd #tasbihPanel .anwar-tasbih-bead{transition:none!important}}
+</style>
 </head>
 <body>
 <div class="app" id="app">
@@ -3327,13 +3513,10 @@ dialog[open]>.float-head{display:none!important}
        </button>
       <div id="tasbihDhikrListPanel" class="tasbih-adhkar-list" role="group" aria-labelledby="tasbihDhikrToggle" hidden>
        <div id="tasbihDhikrCards" class="tasbih-dhikr-cards" role="group" aria-labelledby="tasbihDhikrToggle"></div>
-       <div class="anwar-custom-dhikr">
-        <label for="tasbihCustomDhikrInput">إضافة ذكر خاص</label>
-        <div class="anwar-custom-dhikr-row"><input id="tasbihCustomDhikrInput" type="text" maxlength="200" autocomplete="off" placeholder="اكتب الذكر هنا"><button type="button" id="tasbihAddCustomDhikr">إضافة</button></div>
-        <small id="tasbihCustomDhikrStatus" role="status" aria-live="polite"></small>
-        <small class="anwar-custom-dhikr-note">تُحفظ أذكارك على هذا الجهاز.</small>
+       <div class="tasbih-dhikr-management">
+        <button type="button" id="tasbihRemoveDhikr" class="tasbih-management-remove" aria-label="إزالة الذكر المختار">إزالة الذكر المختار</button>
+        <button type="button" id="tasbihRestoreOfficial" hidden>استعادة القائمة</button>
        </div>
-       <div class="tasbih-dhikr-management"><button type="button" id="tasbihRestoreOfficial" hidden>استعادة القائمة</button></div>
        <small class="tasbih-dhikr-note">الإزالة تخص قائمتك على هذا الجهاز فقط، ويمكنك استعادة الأذكار الرسمية متى شئت.</small>
       </div>
      </div>
@@ -3343,14 +3526,23 @@ dialog[open]>.float-head{display:none!important}
       <optgroup label="أذكار وأدعية جامعة"><option>اللهم صل وسلم على نبينا محمد</option><option>اللهم أعني على ذكرك وشكرك وحسن عبادتك</option><option>لا إله إلا أنت سبحانك إني كنت من الظالمين</option><option>حسبي الله لا إله إلا هو عليه توكلت وهو رب العرش العظيم</option><option>رضيت بالله ربا وبالإسلام دينا وبمحمد نبيا</option><option>يا حي يا قيوم برحمتك أستغيث</option><option>ربنا آتنا في الدنيا حسنة وفي الآخرة حسنة وقنا عذاب النار</option><option>اللهم اكفني بحلالك عن حرامك وأغنني بفضلك عمن سواك</option></optgroup>
      </select>
     </div>
-    <div class="anwar-tasbih-stage" aria-label="عداد السبحة">
+    <div class="anwar-tasbih-stage anwar-tasbih-sixth-stage" aria-label="عداد السبحة">
      <div class="anwar-tasbih-beads" id="tasbihBeads" aria-hidden="true"></div>
-     <div class="anwar-tasbih-counter" id="tasbihCounterControl" role="button" tabindex="0" aria-label="زيادة التسبيح" aria-live="polite"><strong id="tasbihCount">0</strong></div>
-    </div>
-    <div class="anwar-tasbih-actions" role="group" aria-label="أزرار العداد">
-     <button type="button" id="tasbihRemoveDhikr" class="anwar-tasbih-delete" aria-label="إزالة الذكر المختار" title="إزالة الذكر المختار"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M9 7V4h6v3m-9 0 1 14h10l1-14M10 11v6m4-6v6"/></svg></button>
-     <button type="button" id="tasbihReset" class="anwar-tasbih-reset" aria-label="تصفير العداد" title="تصفير العداد"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4.5 10a7.5 7.5 0 0 1 13-3L20 12M4 17v-5h5m-5 0a7.5 7.5 0 0 0 13 3l-2.5-2.5"/></svg><span>تصفير العداد</span></button>
-     <button type="button" id="tasbihMinus" class="anwar-tasbih-step" aria-label="إنقاص العدد" title="إنقاص العدد"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14"/></svg></button>
+     <div class="anwar-tasbih-tassel" aria-hidden="true"></div>
+     <div class="anwar-tasbih-counter anwar-tasbih-sixth-face" id="tasbihCounterControl" role="button" tabindex="0" aria-label="زيادة التسبيح" aria-live="polite">
+      <div class="tasbih-inner-dhikr-frame">
+       <input id="tasbihCustomDhikrInput" type="text" maxlength="200" autocomplete="off" aria-label="اكتب الذكر يدوياً" placeholder="اكتب الذكر هنا">
+       <button type="button" id="tasbihAddCustomDhikr" aria-label="اعتماد الذكر المكتوب">حفظ</button>
+      </div>
+      <small id="tasbihCustomDhikrStatus" class="tasbih-manual-status" role="status" aria-live="polite"></small>
+      <div id="tasbihPhrase" class="anwar-tasbih-phrase tasbih-visually-hidden" aria-hidden="true">أستغفر الله العظيم وأتوب إليه</div>
+      <strong id="tasbihCount">0</strong>
+     </div>
+     <div class="tasbih-reset-housing" aria-label="التحكم بالعداد">
+      <button type="button" id="tasbihMinus" class="tasbih-minus-control" aria-label="إنقاص العدد" title="إنقاص العدد"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14"/></svg></button>
+      <button type="button" id="tasbihReset" class="anwar-tasbih-reset" aria-label="تصفير العداد" title="تصفير العداد"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4.5 10a7.5 7.5 0 0 1 13-3L20 12M4 17v-5h5m-5 0a7.5 7.5 0 0 0 13 3l-2.5-2.5"/></svg><span>تصفير العداد</span></button>
+     </div>
+     <button type="button" id="tasbihRemoveDhikr" class="tasbih-remove-fallback" aria-label="إزالة الذكر المختار" hidden>إزالة الذكر</button>
      <button type="button" id="tasbihTap" class="anwar-tasbih-step" aria-label="إضافة تسبيحة" title="إضافة تسبيحة" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg></button>
     </div>
     <section class="anwar-tasbih-voice" id="tasbihVoicePanel" data-state="idle" aria-label="العد الصوتي للذكر">
@@ -3549,7 +3741,7 @@ dialog[open]>.float-head{display:none!important}
 <script src="./adhkar-page-theme.js?v=20261121-2" defer></script>
 <script src="./ibtihalat-radio.js?v=20261121-1" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
-<script src="./tasbih-controller.js?v=20261123-71" defer></script>
+<script src="./tasbih-controller.js?v=20261123-72" defer></script>
 <script src="./prayer-times.js?v=20261123-1" defer></script>
 
 
