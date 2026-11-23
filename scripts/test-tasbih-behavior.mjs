@@ -154,6 +154,15 @@ assert.ok(timedClock.state.tasbih.elapsedMs>=60000,'elapsed session time is pers
 assert.notEqual(timedClock.nodes.tasbihMinuteHand.style['--clock-angle'],initialMinuteAngle,'the analog minute hand follows local time');
 timedClock.nodes.tasbihReset.click();
 assert.equal(timedClock.nodes.tasbihElapsedTime.textContent,'٠٠:٠٠:٠٠','reset clears the counter and session duration');
+const restoredClock=buildApp({initialCount:6,initialDhikr:'سبحان الله',initialElapsedMs:90000});
+assert.equal(restoredClock.nodes.tasbihElapsedTime.textContent,'٠٠:٠١:٣٠','the previous encrypted session duration is restored on reopening');
+restoredClock.nodes.tasbihCounterControl.click();
+restoredClock.advanceTime(3000);
+assert.equal(restoredClock.nodes.tasbihElapsedTime.textContent,'٠٠:٠١:٣٣','a resumed tasbih session continues from its saved duration');
+restoredClock.sandbox.AnwarTasbihController.close();
+const pausedElapsed=restoredClock.nodes.tasbihElapsedTime.textContent;
+restoredClock.advanceTime(5000);
+assert.equal(restoredClock.nodes.tasbihElapsedTime.textContent,pausedElapsed,'leaving the tasbih page pauses its elapsed-time clock');
 
 const counterInput=buildApp();
 counterInput.nodes.tasbihCounterControl.click();
