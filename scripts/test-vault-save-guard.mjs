@@ -3,10 +3,14 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
 const html=fs.readFileSync(new URL('../app-core.js',import.meta.url),'utf8');
+const guardStart=html.indexOf('function noteContentTooLarge(note){');
+const guardEnd=html.indexOf('function readStoredState(raw){',guardStart);
+assert.ok(guardStart>=0&&guardEnd>guardStart,'shared note-size guard is present');
+const guardSource=html.slice(guardStart,guardEnd);
 const start=html.indexOf('async function persistVaultSnapshot(plaintext){');
 const end=html.indexOf('function finishVaultOpen(){',start);
 assert.ok(start>=0&&end>start,'encrypted persistence function is present');
-const source=html.slice(start,end);
+const source=guardSource+'\\n'+html.slice(start,end);
 
 function harness(){
  const values=new Map();
@@ -37,6 +41,11 @@ await valid.run(normal);
 assert.ok(valid.values.has('anwar_vault_v1'),'valid snapshot writes the encrypted primary');
 assert.ok(valid.values.has('anwar_vault_backup_v1'),'valid snapshot writes the encrypted backup');
 assert.equal(valid.encryptCalls,2,'valid snapshot encrypts primary and backup');
+
+const legacyWithoutBody=harness();
+await legacyWithoutBody.run(JSON.stringify({notes:[{id:'legacy-empty-body',title:'عمل قديم'}]}));
+assert.ok(legacyWithoutBody.values.has('anwar_vault_v1'),'legacy note without html/text remains saveable after normalization');
+assert.equal(legacyWithoutBody.encryptCalls,2,'legacy empty-body note can be safely encrypted with primary and backup');
 
 const tooMany=harness();
 await assert.rejects(
