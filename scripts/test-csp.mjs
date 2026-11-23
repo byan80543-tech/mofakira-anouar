@@ -10,7 +10,7 @@ const deployedHeaders=fs.readFileSync(new URL('../_headers',import.meta.url),'ut
 const cspContent=htmlAudit.csp_meta;
 assert.ok(cspContent,'an enforced document CSP meta policy is present');
 const directives=new Map(cspContent.split(';').map(part=>{
-  const tokens=part.trim().split(/\s+/);
+  const tokens=part.trim().split(/\\s+/);
   return [tokens.shift(),tokens];
 }));
 const requireDirective=(name,...required)=>{
@@ -41,7 +41,7 @@ const styleSources=requireDirective('style-src',"'self'","'unsafe-inline'",'http
 assert.ok(styleSources.includes("'unsafe-inline'"),'inline styles remain supported intentionally');
 requireDirective('img-src',"'self'",'data:','blob:','https://upload.wikimedia.org');
 requireDirective('font-src',"'self'",'data:','https://fonts.gstatic.com');
-requireDirective('connect-src',"'self'",'https://www.mp3quran.net','https://api.allorigins.win','https://corsproxy.io');
+const pageConnectSources=requireDirective('connect-src',"'self'",'https://www.mp3quran.net','https://api.aladhan.com','https://api.allorigins.win','https://corsproxy.io');
 requireDirective('media-src',"'self'",'https:','blob:');
 requireDirective('frame-src',"'self'",'blob:');
 requireDirective('worker-src',"'self'",'blob:');
@@ -56,7 +56,18 @@ const firstResource=Math.min(...['<link ','<script','<style'].map(token=>{
 assert.ok(cspIndex>=0&&cspIndex<firstResource,'CSP appears before the first resource-bearing element');
 assert.equal(htmlAudit.referrer_meta,'strict-origin-when-cross-origin','a conservative referrer policy is declared');
 assert.ok(!cspContent.includes('frame-ancestors')&&!cspContent.includes('report-uri')&&!cspContent.includes('report-to'),'header-only CSP directives are not presented as active meta controls');
-const deployedCsp=deployedHeaders.match(/Content-Security-Policy:\s*([^\n]+)/);
+const deployedCsp=deployedHeaders.match(/Content-Security-Policy:\\s*([^\\n]+)/);
 assert.ok(deployedCsp,'Cloudflare _headers includes a CSP response header');
+const deployedDirectives=new Map(deployedCsp[1].split(';').map(part=>{
+ const tokens=part.trim().split(/\\s+/);
+ return [tokens.shift(),tokens];
+}));
+const deployedConnectSources=deployedDirectives.get('connect-src');
+assert.ok(deployedConnectSources,'Cloudflare response CSP includes connect-src');
+assert.deepEqual(
+ [...deployedConnectSources].sort(),
+ [...pageConnectSources].sort(),
+ 'Cloudflare response connect-src must match the page policy so the HTTP header does not silently block required APIs'
+);
 for(const item of hashSources)assert.ok(deployedCsp[1].includes(item),'Cloudflare response CSP includes '+item);
-console.log('CSP checks passed: no inline scripts, no unsafe-inline or unsafe-eval in script-src, and HTML/header policies remain synchronized.');
+console.log('CSP checks passed: required network origins match across page and Cloudflare response policies; inline scripts and eval remain blocked.');
