@@ -10,12 +10,13 @@
     marker: 'ANOUAR-MOFKIRA-ORIGIN-2026-01',
     project: 'مفكرة أنوار',
     creator: 'Anouar Oumlili (أنوار أومليلي)',
+    publicLocation: 'الحسيمة، المغرب',
     officialUrl: 'https://byan80543-tech.github.io/mofakira-anouar/',
     sourceRepository: 'https://github.com/byan80543-tech/mofakira-anouar'
   });
 
   const host = String(window.location.hostname || '').toLowerCase();
-  const path = String(window.location.pathname || '/').replace(/\/+$/, '') || '/';
+  const path = String(window.location.pathname || '/').replace(/\\/+$/, '') || '/';
   const isOfficial = host === 'byan80543-tech.github.io' && path === '/mofakira-anouar';
   const isLocalDevelopment =
     window.location.protocol === 'file:' ||
@@ -61,7 +62,7 @@
 
     const attribution = document.createElement('p');
     attribution.className = 'anouar-origin-attribution';
-    attribution.textContent = 'صاحب المشروع والمطوّر: Anouar Oumlili (أنوار أومليلي)';
+    attribution.textContent = 'صاحب المشروع والمطوّر: Anouar Oumlili (أنوار أومليلي) — الحسيمة، المغرب';
 
     const source = document.createElement('a');
     source.href = identity.sourceRepository;
