@@ -11,6 +11,7 @@
   const countNode=$('tasbihCount'),phraseNode=$('tasbihPhrase'),select=$('tasbihDhikr');
   const beadTrack=$('tasbihBeads');
   const counterControl=panel&&panel.querySelector('.anwar-tasbih-counter');
+  const counterTap=$('tasbihCounterControl');
   const themeToggle=$('tasbihThemeToggle'),themePicker=$('tasbihThemePicker');
   const themeIds=['emerald','dark','pink','night','heritage','glass'];
   const themeButtons=themeIds.map(name=>({name,button:$('tasbihTheme'+name[0].toUpperCase()+name.slice(1))}));
@@ -22,7 +23,7 @@
   const voicePanel=$('tasbihVoicePanel'),voiceButton=$('tasbihVoice');
   const voiceState=$('tasbihVoiceState'),voiceStatus=$('tasbihVoiceStatus');
   const voiceButtonLabel=$('tasbihVoiceButtonLabel');
-  const required={panel,select,countNode,phraseNode,beadTrack,counterControl,tap,minus,reset,cards,dhikrToggle,dhikrList,customInput,customAdd,customStatus,removeButton,restoreButton,voicePanel,voiceButton,voiceState,voiceStatus,voiceButtonLabel,themeToggle,themePicker,...Object.fromEntries(themeButtons.map(item=>['theme'+item.name,item.button]))};
+  const required={panel,select,countNode,phraseNode,beadTrack,counterControl,counterTap,tap,minus,reset,cards,dhikrToggle,dhikrList,customInput,customAdd,customStatus,removeButton,restoreButton,voicePanel,voiceButton,voiceState,voiceStatus,voiceButtonLabel,themeToggle,themePicker,...Object.fromEntries(themeButtons.map(item=>['theme'+item.name,item.button]))};
   const missing=Object.keys(required).filter(key=>!required[key]);
   if(missing.length){
    console.error('تعذر تهيئة السبحة؛ عناصر الواجهة الناقصة:',missing);
@@ -374,7 +375,7 @@
    requestAnimationFrame(()=>{
     try{panel.scrollIntoView({behavior:'smooth',block:'nearest'})}catch(error){}
    });
-   counterControl.focus();
+   counterTap.focus();
    return true;
   }
   function closePanel(restoreFocus){
@@ -419,11 +420,9 @@
   dhikrToggle.addEventListener('click',()=>setDhikrListOpen(dhikrList.hidden));
   setDhikrListOpen(false);
   // The oval number itself is an accessible tap target as well as the dedicated button.
-  counterControl.setAttribute('role','button');
-  counterControl.setAttribute('tabindex','0');
-  counterControl.setAttribute('aria-label','عداد التسبيح');
-  counterControl.addEventListener('click',()=>add(1));
-  counterControl.addEventListener('keydown',event=>{
+  counterTap.setAttribute('aria-label','زيادة التسبيح');
+  counterTap.addEventListener('click',()=>add(1));
+  counterTap.addEventListener('keydown',event=>{
    if(event.key==='Enter'||event.key===' '){
     event.preventDefault();
     add(1);
