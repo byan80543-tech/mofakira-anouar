@@ -96,6 +96,10 @@ ok(html.includes('id="tasbihMinus" class="tasbih-minus-control"') && html.includ
 ok((html.match(/id="tasbihRemoveDhikr"/g)||[]).length===1, 'the tasbih delete action has one unique control in the dhikr manager');
 ok(!html.includes('id="adhkarTab"') && !html.includes('id="adhkarTasbihToggle"'), 'obsolete ownership-tab and intermediate tasbih launcher are removed');
 ok(html.includes('id="tasbihClockDial"') && html.includes('id="tasbihHourHand"') && html.includes('id="tasbihMinuteHand"') && html.includes('id="tasbihSecondHand"') && html.includes('id="tasbihElapsedTime"') && html.includes('id="anwar-tasbih-real-clock-v1"'), 'the tasbih interface has an analog clock and visible elapsed-time readout');
+ok((html.match(/class="tasbih-clock-number tasbih-clock-n-\d+"/g)||[]).length===12 && html.includes('id="anwar-tasbih-classic-analog-v1"'), 'the classic clock face has twelve Arabic numerals and its dedicated visual layer');
+const clockDialStart=html.indexOf('<div class="tasbih-clock-dial"');
+const clockDialEnd=html.indexOf('\n      </div>\n      <div class="tasbih-elapsed-readout"',clockDialStart);
+ok(clockDialStart>=0 && clockDialEnd>clockDialStart && html.slice(clockDialStart,clockDialEnd).includes('id="tasbihCounterControl"'), 'the live tasbih count is centered inside the analog clock dial');
 ok(tasbihController.includes('function updateClockUi(now)') && tasbihController.includes('window.setInterval(') && tasbihController.includes('elapsedMs:currentElapsedMs()'), 'clock hands follow local time and elapsed session duration is saved through encrypted preferences');
 const tasbihScript=htmlAudit.script_sources.find(src=>src.startsWith('./tasbih-controller.js?v='));
 ok(!!tasbihScript && serviceWorker.includes("'./tasbih-controller.js'") && /const CACHE_NAME='anwar-shell-[0-9]{4}-[0-9]{2}-[0-9]{2}-v[0-9]+';/.test(serviceWorker), 'standalone tasbih controller is versioned and precached for offline use');
