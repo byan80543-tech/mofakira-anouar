@@ -85,6 +85,10 @@ assert.match(nativePrayer, /الدولة/);
 assert.match(nativePrayer, /المدينة/);
 assert.match(nativePrayer, /مستوى الصوت/);
 assert.match(nativePrayer, /تشغيل الأذان تلقائيًا عند دخول وقت الصلاة/);
+assert.match(nativePrayer, /تجربة صوت الأذان الآن/);
+assert.match(nativePrayer, /AdhanPlaybackService\.EXTRA_TEST_MODE/);
+assert.match(service, /EXTRA_TEST_MODE/);
+assert.match(service, /Log\.e\(TAG, "Adhan media playback failed/);
 assert.match(nativePrayer, /PrayerCalendarRepository\.refreshAndSchedule\(this\)/,
   'the native prayer screen refreshes and stores its own calendar');
 assert.match(nativePrayer, /Settings\.ACTION_REQUEST_SCHEDULE_EXACT_ALARM/,
