@@ -154,10 +154,10 @@ assert.doesNotMatch(activity, /innerHTML|loadDataWithBaseURL/,
 assert.match(legacy, /WebView/);
 assert.match(gradle, /versionCode = 18/);
 assert.ok(gradle.includes('versionName = "0.9.9"'));
-assert.match(gradle, /applicationIdSuffix = "\.preview.v17"/,
+assert.match(gradle, /applicationIdSuffix = "\.preview.v18"/,
   'the versioned debug APK installs alongside stable and earlier preview apps without replacing their local vaults');
 assert.match(gradle, /versionNameSuffix = "-preview"/);
-assert.match(debugStrings, /<string name="app_name">مفكرة أنوار<\/string>/);
+assert.match(debugStrings, /<string name="app_name">مفكرة أنوار - معاينة 18<\/string>/);
 assert.match(releaseStrings, /<string name="app_name">مفكرة أنوار<\/string>/);
 assert.doesNotMatch(debugStrings, /التجريبية/);
 assert.match(workflow, /node scripts\/test-native-notebook\.mjs/);
