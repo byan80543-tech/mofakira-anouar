@@ -20,6 +20,17 @@ function lastModifiedDate(relativePath) {
   return date;
 }
 
+
+function lastModifiedTimestamp(relativePath) {
+  const timestamp = execFileSync(
+    'git',
+    ['log', '-1', '--format=%ct', '--', relativePath],
+    { cwd: root, encoding: 'utf8' }
+  ).trim();
+  assert.match(timestamp, /^\d+$/, \`Git history is required to timestamp \${relativePath}\`);
+  return Number(timestamp);
+}
+
 function dateFromVersion(value) {
   const match = /^(\d{4})(\d{2})(\d{2})/.exec(value);
   assert.ok(match, `Version key must begin with YYYYMMDD: ${value}`);
@@ -77,12 +88,17 @@ const shellBlock = /const SHELL_ASSETS\s*=\s*\[([\s\S]*?)\];/.exec(worker);
 assert.ok(shellBlock, 'Service worker shell asset list must be present');
 
 const staleShellAssets = [];
+const workerTimestamp = lastModifiedTimestamp('service-worker.js');
 const assetPattern = /['"](\.\/[^'"]+)['"]/g;
 for (const match of shellBlock[1].matchAll(assetPattern)) {
   const relativePath = path.normalize(match[1].replace(/^\.\//, ''));
   const modifiedDate = lastModifiedDate(relativePath);
+  const modifiedTimestamp = lastModifiedTimestamp(relativePath);
   if (cacheDate < modifiedDate) {
-    staleShellAssets.push(`${relativePath} (changed ${modifiedDate}; shell ${cacheDate})`);
+    staleShellAssets.push(\`\${relativePath} (changed \${modifiedDate}; shell \${cacheDate})\`);
+  }
+  if (workerTimestamp < modifiedTimestamp) {
+    staleShellAssets.push(\`\${relativePath} (updated after service-worker.js; rebuild the app-shell cache)\`);
   }
 }
 
