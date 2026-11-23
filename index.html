@@ -3081,17 +3081,16 @@ dialog[open]>.float-head{display:none!important}
  font:600 10px Cairo,Tahoma,sans-serif;white-space:normal;
 }
 #rd #tasbihPanel .anwar-tasbih-sixth-face{
- display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
- gap:3px;padding:clamp(12px,3.6vw,18px)!important;cursor:default;
+ display:block;padding:0!important;cursor:default;
 }
 #rd #tasbihPanel .tasbih-selected-phrase{
- position:relative;z-index:5;display:block;width:100%;min-height:23px;
+ position:absolute;z-index:5;top:11%;left:9%;width:82%;min-height:21px;
  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;
- color:var(--tasbih-text,#164b39);font:700 clamp(11px,3vw,15px)/1.5 Cairo,Tahoma,sans-serif;
+ color:var(--tasbih-text,#164b39);font:700 clamp(10px,2.8vw,14px)/1.5 Cairo,Tahoma,sans-serif;
 }
 #rd #tasbihPanel .tasbih-clock-dial{
- position:relative;isolation:isolate;flex:none;
- width:clamp(104px,43vw,132px);max-width:72%;aspect-ratio:1;
+ position:absolute;top:18%;left:50%;transform:translateX(-50%);
+ isolation:isolate;width:66%;max-width:none;aspect-ratio:1;
  border:1px solid rgba(187,149,73,.72);border-radius:50%;
  background:radial-gradient(circle at 50% 50%,rgba(255,255,250,.98) 0 57%,rgba(246,238,216,.96) 72%,rgba(221,201,156,.58) 100%);
  box-shadow:inset 0 0 0 3px rgba(255,255,255,.85),inset 0 0 0 5px rgba(178,145,75,.24),0 2px 5px rgba(68,53,27,.1);
@@ -3125,7 +3124,7 @@ dialog[open]>.float-head{display:none!important}
  transform:translate(-50%,-50%);box-shadow:0 1px 2px rgba(41,31,14,.25);
 }
 #rd #tasbihPanel .tasbih-elapsed-readout{
- display:flex;align-items:center;justify-content:center;gap:6px;
+ position:absolute;left:0;right:0;bottom:6%;display:flex;align-items:center;justify-content:center;gap:6px;
  min-height:15px;color:#62705a;font:600 clamp(9px,2.5vw,11px) Cairo,Tahoma,sans-serif;
 }
 #rd #tasbihPanel .tasbih-elapsed-readout strong{
@@ -3133,8 +3132,11 @@ dialog[open]>.float-head{display:none!important}
  font:700 clamp(11px,3vw,14px) "IBM Plex Sans Arabic",sans-serif;
  font-variant-numeric:tabular-nums;letter-spacing:.3px;
 }
-#rd #tasbihPanel .anwar-tasbih-sixth-face .tasbih-count-tap{flex:none;width:100%;min-height:0;margin:0;padding:0}
-#rd #tasbihPanel .anwar-tasbih-sixth-face .tasbih-count-tap strong{font-size:clamp(38px,10vw,52px)!important;line-height:1!important}
+#rd #tasbihPanel .anwar-tasbih-sixth-face .tasbih-count-tap{
+ position:absolute;top:67%;left:50%;z-index:5;transform:translateX(-50%);
+ display:grid;place-items:center;width:86%;min-height:0;margin:0;padding:0;
+}
+#rd #tasbihPanel .anwar-tasbih-sixth-face .tasbih-count-tap strong{font-size:clamp(34px,9.5vw,48px)!important;line-height:1!important}
 #rd #tasbihPanel .tasbih-reset-housing{top:67%;left:58%;width:38%;height:17%;border-radius:999px;transform:rotate(-4deg)}
 #rd #tasbihPanel .tasbih-reset-housing #tasbihReset{width:86%;height:70%;min-height:28px;gap:4px;padding:2px 7px;font-size:9px!important;transform:rotate(4deg)}
 #rd #tasbihPanel .tasbih-reset-housing #tasbihReset span{font-size:9px}
