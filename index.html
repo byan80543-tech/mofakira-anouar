@@ -5,7 +5,7 @@
 <meta name="google-site-verification" content="HbzspyjaTnE2NqMGXkROH28NC0EpouKzGyZZBzopH_k" />
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.aladhan.com https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="preload" href="./app-core.js?v=20261122-68" as="script">
+<link rel="preload" href="./app-core.js?v=20261123-69" as="script">
 <script src="api-gateway-config.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>مفكرة أنوار</title>
@@ -2868,7 +2868,7 @@ dialog[open]>.float-head{display:none!important}
 <button type="button" id="exitFocus" class="focus-exit" aria-label="الخروج من وضع التركيز" title="الخروج من وضع التركيز">×</button>
 <div class="tb">
  <button class="back" id="bk" aria-label="رجوع" title="إغلاق النافذة أو الرجوع إلى قائمة الأعمال">×</button>
- <button id="vaultLockBtn" type="button" aria-label="قفل المفكرة المشفرة" title="قفل المفكرة الآن؛ ستحتاج إلى قفل الهاتف أو كلمة المرور الأساسية لفتحها مجددًا"><svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="10" width="15" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg></button>
+ <button id="vaultLockBtn" type="button" data-encrypted="false" aria-label="تفعيل تشفير المفكرة" title="اضغط هنا لتشفير أعمالك؛ ستبقى المفكرة مفتوحة بعد الإعداد"><svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="10" width="15" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg><svg class="vault-encryption-indicator" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path class="vault-indicator-shield" d="M12 2.5 20 5.7v5.2c0 4.7-3.1 8.4-8 10.6-4.9-2.2-8-5.9-8-10.6V5.7Z"/><path class="vault-indicator-check" d="m8.1 11.9 2.4 2.4 5.4-5.5"/></svg></button>
  <span class="brand"><svg class="brand-mark" viewBox="0 0 512 512" aria-hidden="true"><path d="M70 420 Q235 320 424 60 Q405 260 70 420Z" fill="#e7c16d" stroke="#fff0bd" stroke-width="9"/><path d="M72 420 Q248 250 424 60 M155 340 L145 255 M220 276 L220 185 M292 202 L310 130 M360 132 L390 92" fill="none" stroke="#76501e" stroke-width="10" stroke-linecap="round"/></svg><span class="logo">مفكرة أنوار</span></span>
  <input id="t" placeholder="عنوان العمل">
  <button type="button" id="archiveBtn" class="archive-launch" aria-label="أرشيف أنوار" title="أرشيف أنوار" aria-haspopup="dialog" aria-controls="archiveDialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4.5h18v4H3zM5 8.5v11h14v-11M9 12h6M9 15h6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -3351,9 +3351,9 @@ dialog[open]>.float-head{display:none!important}
    </div>
   </form>
   <button id="vaultDisableEncryptionBtn" type="button" hidden>إيقاف التشفير والاستخدام دون قفل</button>
-  <button id="vaultCancelSetupBtn" type="button" hidden>متابعة الاستخدام دون قفل</button>
+  <button id="vaultCancelSetupBtn" type="button" hidden>متابعة دون تفعيل التشفير</button>
   <p id="vaultError" role="alert" aria-live="polite"></p>
-  <small class="vault-footnote">التشفير يتم على جهازك. لا تُرسل كلمة المرور إلى خادم. احتفظ بعبارة المرور ونسخة احتياطية مشفرة للاسترداد.</small>
+  <small class="vault-footnote">التشفير يتم على جهازك ولا تُرسل كلمة المرور إلى خادم. بعد الإعداد تبقى المفكرة مفتوحة، وتُحفظ أعمالك مشفرة في كل مرة. القفل اليدوي اختياري؛ احتفظ بعبارة المرور ونسخة احتياطية مشفرة للاسترداد.</small>
  </section>
 </div>
 <dialog id="vaultDeviceSetupDialog" aria-labelledby="vaultDeviceSetupTitle">
@@ -3374,7 +3374,7 @@ dialog[open]>.float-head{display:none!important}
 <script src="./vault-device-unlock.js?v=20261118-1"></script>
 <script src="./poetry-dictation.js?v=20261119-1" defer></script>
 <script src="./protective-adhkar.js?v=20261121-1" defer></script>
-<script src="./app-core.js?v=20261122-68" defer></script>
+<script src="./app-core.js?v=20261123-69" defer></script>
 <script src="./adhkar-page-theme.js?v=20261121-2" defer></script>
 <script src="./ibtihalat-radio.js?v=20261121-1" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
@@ -3602,6 +3602,22 @@ dialog[open]>.float-head{display:none!important}
 #dg .vault-backup-password{display:block;margin:10px 0 5px}
 #dg #backupPassword{min-height:39px;direction:ltr;text-align:left}
 #vaultLockBtn{min-width:30px}
+.tb #vaultLockBtn{position:relative!important}
+.tb #vaultLockBtn .vault-encryption-indicator{
+ position:absolute!important;inset-inline-end:2px;inset-block-end:2px;z-index:2;
+ display:block!important;inline-size:13px!important;block-size:13px!important;
+ max-inline-size:13px!important;max-block-size:13px!important;
+ padding:1px;box-sizing:border-box;border:1px solid #fff0c8;border-radius:50%;
+ background:#f1dfb3;opacity:0;visibility:hidden;transform:scale(.72);
+ pointer-events:none;transition:opacity .18s ease,transform .18s ease,visibility .18s ease;
+ fill:none!important;stroke-width:2.1!important;stroke-linecap:round!important;stroke-linejoin:round!important
+}
+.tb #vaultLockBtn .vault-indicator-shield{fill:#f1dfb3!important;stroke:#f1dfb3!important}
+.tb #vaultLockBtn .vault-indicator-check{fill:none!important;stroke:#1a6848!important}
+.tb #vaultLockBtn[data-encrypted="true"] .vault-encryption-indicator{
+ opacity:1;visibility:visible;transform:scale(1)
+}
+@media(prefers-reduced-motion:reduce){.tb #vaultLockBtn .vault-encryption-indicator{transition:none}}
 @media(max-width:520px){#vaultGate{padding:13px}#vaultGate .vault-card{padding:22px 18px;border-radius:15px}}
 </style>
 
