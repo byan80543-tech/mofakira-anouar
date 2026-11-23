@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://byan80543-tech.github.io/mofakira-anouar/sitemap.xml
