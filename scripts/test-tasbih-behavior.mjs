@@ -266,10 +266,6 @@ app.nodes.tasbihAddCustomDhikr.click();
 assert.equal(app.nodes.tasbihDhikr.value,'ذكر تجريبي','adding a custom dhikr selects the normalized text');
 assert.deepEqual(app.state.tasbih.customDhikrs,['ذكر تجريبي'],'the custom dhikr is persisted');
 assert.equal(app.nodes.tasbihCustomDhikrInput.value,'ذكر تجريبي','the selected manual dhikr is visible in the framed field');
-app.nodes.tasbihCustomDhikrInput.value='ذكر يدوي جديد';
-app.nodes.tasbihAddCustomDhikr.click();
-assert.equal(app.nodes.tasbihDhikr.value,'ذكر يدوي جديد','the integrated face field can add a new manual dhikr');
-assert.equal(app.nodes.tasbihCustomDhikrInput.value,'ذكر يدوي جديد','the saved manual phrase remains visible inside the face');
 const keepCount=buildApp({initialCount:8,initialDhikr:'سبحان الله'});
 keepCount.nodes.tasbihCustomDhikrInput.value='سبحان الله';
 keepCount.nodes.tasbihAddCustomDhikr.click();
@@ -281,6 +277,13 @@ assert.equal(app.state.tasbih.customDhikrs.length,1,'adding a duplicate does not
 app.nodes.tasbihRemoveDhikr.click();
 assert.equal(app.state.tasbih.customDhikrs.length,0,'the selected custom dhikr can be deleted');
 assert.ok(!app.nodes.tasbihDhikr.options.some(option=>option.value==='ذكر تجريبي'),'deleting a custom dhikr removes its option');
+const manualApp=buildApp();
+manualApp.nodes.tasbihCustomDhikrInput.value='ذكر يدوي جديد';
+manualApp.nodes.tasbihAddCustomDhikr.click();
+assert.equal(manualApp.nodes.tasbihDhikr.value,'ذكر يدوي جديد','the integrated face field can add a new manual dhikr');
+assert.equal(manualApp.nodes.tasbihCustomDhikrInput.value,'ذكر يدوي جديد','the saved manual phrase remains visible inside the face');
+assert.deepEqual(manualApp.state.tasbih.customDhikrs,['ذكر يدوي جديد'],'the manual entry is preserved independently');
+
 
 // Official dhikrs can be hidden for this device and restored without modifying the source list.
 app.nodes.tasbihDhikr.value='سبحان الله';
