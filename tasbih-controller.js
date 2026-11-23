@@ -85,7 +85,7 @@
   function normalizeDhikrKey(value){
    return String(value||'').normalize('NFD')
     .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\uFE00-\uFE0F]/g,'')
-    .replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/ـ/g,'')
+    .replace(/ٱ/g,'ا').replace(/ـ/g,'')
     .replace(/[^\u0600-\u06FFa-z0-9\s]/gi,' ')
     .replace(/\s+/g,' ').trim();
   }
