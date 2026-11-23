@@ -3076,8 +3076,9 @@ dialog[open]>.float-head{display:none!important}
  font:700 10px Cairo,Tahoma,sans-serif;
 }
 #rd #tasbihPanel .tasbih-adhkar-list .tasbih-manual-status{
- display:block;min-height:0;margin:-3px 4px 5px;color:#53735b;
- font:600 10px Cairo,Tahoma,sans-serif;
+ position:static;display:block;width:auto;height:auto;overflow:visible;clip:auto;
+ min-height:0;margin:-3px 4px 5px;color:#53735b;
+ font:600 10px Cairo,Tahoma,sans-serif;white-space:normal;
 }
 #rd #tasbihPanel .anwar-tasbih-sixth-face{
  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
@@ -3113,6 +3114,7 @@ dialog[open]>.float-head{display:none!important}
 #rd #tasbihPanel .tasbih-clock-hand{
  position:absolute;left:50%;bottom:50%;display:block;border-radius:99px;
  transform-origin:50% 100%;transform:translateX(-50%) rotate(var(--clock-angle,0deg));
+ transition:transform .95s linear;will-change:transform;
 }
 #rd #tasbihPanel .tasbih-hour-hand{width:4px;height:24%;background:linear-gradient(90deg,#0d4937,#367856,#0d4937)}
 #rd #tasbihPanel .tasbih-minute-hand{width:3px;height:34%;background:linear-gradient(90deg,#17533d,#3f815e,#17533d)}
