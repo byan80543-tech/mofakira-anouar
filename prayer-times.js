@@ -226,10 +226,38 @@
  showNextPrayerPlaceholder('بانتظار تحميل المواقيت');
  const timesGrid=el('div','anwar-prayer-times');
  const dateLine=el('div','anwar-prayer-date','جارٍ تحميل مواقيت المدينة…');
- const privacyLine=el('small','anwar-prayer-note','نحدد الدولة تلقائيًا من المنطقة الزمنية وإعدادات لغة الجهاز دون طلب GPS أو الموقع الدقيق. تُرسل المدينة والدولة إلى خدمة المواقيت لحساب الصلاة، ويمكنك تغييرهما متى شئت.');
+ const privacyLine=el('small','anwar-prayer-note','لا يطلب قسم الأذان إذن GPS أو الإحداثيات. في الوضع التلقائي يستنتج الدولة من المنطقة الزمنية ولغة الجهاز، ثم يختار مدينة افتراضية قد لا تطابق مدينة المستخدم الفعلية؛ ويمكن تصحيحها من الإعدادات.');
  const infoDetails=el('details','anwar-prayer-info');
- const infoSummary=el('summary','','معلومات المواقيت وخصوصية الموقع');
- infoDetails.append(infoSummary,privacyLine);
+ const infoSummary=el('summary');
+ const privacyIcon=el('span','anwar-prayer-privacy-icon');
+ privacyIcon.setAttribute('aria-hidden','true');
+ privacyIcon.innerHTML='<svg viewBox="0 0 24 24" focusable="false"><path d="M12 2.5 20 5.7v5.1c0 4.7-3.1 8.4-8 10.6-4.9-2.2-8-5.9-8-10.6V5.7Z"></path><rect x="8" y="10.5" width="8" height="6.3" rx="1.3"></rect><path d="M9.8 10.5V8.7a2.2 2.2 0 0 1 4.4 0v1.8"></path></svg>';
+ infoSummary.append(privacyIcon,el('span','','درع الخصوصية والشفافية'));
+ const privacyList=el('div','anwar-prayer-privacy-list');
+ function addPrivacyFact(title,description,label,kind){
+  const row=el('div','anwar-prayer-privacy-row');
+  const copy=el('div','anwar-prayer-privacy-copy');
+  copy.append(el('strong','',title),el('small','',description));
+  const state=el('span','anwar-prayer-privacy-state '+kind,label);
+  row.append(copy,state);
+  privacyList.append(row);
+  return {row:row,description:copy.lastChild};
+ }
+ addPrivacyFact('الموقع الدقيق','لا يستدعي هذا القسم واجهة تحديد الموقع في المتصفح ولا يطلب إذن GPS.','لا يُستخدم','local');
+ addPrivacyFact('مواقيت الصلاة','يرسل اسم المدينة والدولة وتاريخ المواقيت إلى api.aladhan.com؛ ويمكن لمزود الخدمة رؤية عنوان IP الذي يصل منه الطلب.','خدمة خارجية','external');
+ const audioPrivacyFact=addPrivacyFact('صوت الأذان','','مضيف صوتي خارجي','external');
+ function updatePrivacyAudioDisclosure(){
+  const voice=VOICES.find(item=>item.key===settings.voice)||VOICES[0];
+  let host='مضيف التسجيل الخارجي';
+  try{host=new URL(voice.url).hostname}catch(_e){}
+  audioPrivacyFact.description.textContent='يُجلب التسجيل المختار مباشرة من '+host+' عبر HTTPS؛ ويمكن لهذا المضيف رؤية عنوان IP الخاص بالاتصال.';
+ }
+ updatePrivacyAudioDisclosure();
+ addPrivacyFact('إعدادات الأذان','تُحفظ الدولة والمدينة والصوت ومستوى الصوت وحالة التشغيل والمنطقة الزمنية في localStorage على هذا الجهاز دون تشفير إضافي.','محلي غير مشفّر','plain');
+ addPrivacyFact('الحساب الشخصي','لا يتطلب قسم الأذان حسابًا أو بريدًا إلكترونيًا، ولا ينشئ ملفًا شخصيًا للمستخدم.','دون حساب','local');
+ addPrivacyFact('حماية الاتصال','HTTPS يشفر البيانات أثناء النقل إلى الخدمة، لكنه لا يخفي عنوان IP عن المضيف ولا يعني أن ملف الصوت مخزن بتشفير مستقل.','تشفير النقل','secure');
+ const privacyFootnote=el('small','anwar-prayer-privacy-footnote','هذه اللوحة تصف قسم الأذان في نسخته الحالية فقط؛ وليست شهادة تدقيق أمني مستقل أو ادعاءً بأن جميع اتصالات الموقع محلية.');
+ infoDetails.append(infoSummary,privacyLine,privacyList,privacyFootnote);
  const details=el('details','anwar-prayer-settings');
  const summary=el('summary','','إعدادات المواقيت والأذان');
  const fields=el('div','anwar-prayer-fields');
@@ -638,6 +666,7 @@
   settings.voice=next.key;audio.pause();
   audio.src=next.url;
   audio.load();persist();syncNativeBackground();
+  updatePrivacyAudioDisclosure();
   setStatus('تم اختيار '+next.label+'.');
  });
  testButton.addEventListener('click',()=>playAdhan('اختبار',true));
