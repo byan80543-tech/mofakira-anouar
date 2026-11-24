@@ -7,6 +7,11 @@ const controller=fs.readFileSync(new URL('../tasbih-controller.js',import.meta.u
 const appCore=fs.readFileSync(new URL('../app-core.js',import.meta.url),'utf8');
 const officialAdhkar=fs.readFileSync(new URL('../official-adhkar.js',import.meta.url),'utf8');
 
+const resetSpacingStyle=html.match(/<style id="anwar-tasbih-second-tick-and-reset-v1">([\\s\\S]*?)<\\/style>/);
+assert.ok(resetSpacingStyle,'the final tasbih spacing rules exist in the real HTML');
+assert.match(resetSpacingStyle[1],/position:absolute!important;top:84%!important;left:50%!important;/,'the reset capsule sits below the counter on standard layouts');
+assert.match(resetSpacingStyle[1],/@media\\(max-width:390px\\)[\\s\\S]*?top:84%!important;width:min\\(56%,214px\\)!important/,'the reset capsule keeps the same clearance on narrow phones');
+
 class FakeElement {
  constructor(id='',tagName='DIV'){
   this.id=id;this.tagName=tagName.toUpperCase();this.children=[];this.parentElement=null;
@@ -186,10 +191,13 @@ const minuteOneFrame=sweepClock.nodes.tasbihMinuteHand.attributes.transform;
 const hourOneFrame=sweepClock.nodes.tasbihHourHand.attributes.transform;
 sweepClock.advanceFrames(1);
 const sweepTwoFrames=sweepClock.nodes.tasbihSecondHand.attributes.transform;
-assert.notEqual(sweepOneFrame,sweepInitial,'the second hand moves on the first animation frame');
-assert.notEqual(sweepTwoFrames,sweepOneFrame,'the second hand advances smoothly between consecutive animation frames');
-assert.notEqual(minuteOneFrame,minuteInitial,'the minute hand also advances between animation frames');
-assert.notEqual(hourOneFrame,hourInitial,'the hour hand also advances between animation frames');
+assert.equal(sweepOneFrame,sweepInitial,'the second hand remains fixed within the same second');
+assert.equal(sweepTwoFrames,sweepOneFrame,'the second hand does not sweep between animation frames');
+assert.notEqual(minuteOneFrame,minuteInitial,'the minute hand continues its precise sub-second movement');
+assert.notEqual(hourOneFrame,hourInitial,'the hour hand continues its precise sub-second movement');
+sweepClock.advanceTime(968);
+const secondBoundaryHand=sweepClock.nodes.tasbihSecondHand.attributes.transform;
+assert.equal(secondBoundaryHand,'rotate(6 50 50)','the second hand jumps exactly six degrees at the next full second');
 sweepClock.setVisibility('hidden');
 assert.equal(sweepClock.pendingFrames,0,'hiding the browser tab cancels the animation frame loop');
 sweepClock.advanceTime(1000);
