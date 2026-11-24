@@ -263,6 +263,8 @@ const clockDialEnd=html.indexOf('\n      </div>\n      <div class="tasbih-elapse
 assert.ok(clockDialStart>=0&&clockDialEnd>clockDialStart&&html.slice(clockDialStart,clockDialEnd).includes('id="tasbihCounterControl"'),'the tasbih count button is positioned in the center of the analog clock dial');
 assert.ok(html.includes('id="tasbihElapsedTime"')&&controller.includes('elapsedMs:currentElapsedMs()'),'session duration remains tracked and saved with encrypted private preferences');
 assert.ok(html.includes('id="anwar-tasbih-clean-analog-face-v1"')&&/\.tasbih-elapsed-readout\s*\{\s*display:none!important;\s*\}/.test(html),'the old digital elapsed-time display is hidden so it cannot cover the successful analog clock');
+assert.ok(html.includes('id="anwar-tasbih-visible-clock-hands-v2"')&&/\.tasbih-hour-hand\s*\{[^}]*height:25%/s.test(html)&&/\.tasbih-minute-hand\s*\{[^}]*height:36%/s.test(html),'visible hour and minute hands are explicitly sized and layered above the dial markings');
+assert.ok(/\.tasbih-count-tap\s*\{[^}]*top:50%[^}]*z-index:8/s.test(html),'the central count medallion overlays the hand pivot without hiding the clock hands');
 assert.ok(/\.tasbih-selected-phrase\s*\{[\s\S]*?clip:rect\(0,0,0,0\)!important;/.test(html),'the floating selected-dhikr line is visually hidden while its controller node remains available');
 assert.equal(app.nodes.tasbihBeads.children.filter(bead=>bead.classList.contains('is-counted')).length,0,'the bead ring begins uncounted');
 assert.equal(app.nodes.ownerDialog.open,false,'opening the tasbih no longer opens the ownership dialog');
