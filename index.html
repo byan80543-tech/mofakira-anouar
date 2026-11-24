@@ -3161,6 +3161,49 @@ dialog[open]>.float-head{display:none!important}
  white-space:nowrap!important;border:0!important;
 }
 </style>
+<style id="anwar-tasbih-visible-clock-hands-v2">
+/* عقارب حقيقية واضحة، والعداد المركزي يغطي محور دورانها كما في الساعة الكلاسيكية */
+#rd #tasbihPanel .tasbih-clock-hands{
+ position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+ display:block!important;z-index:4!important;pointer-events:none!important;overflow:visible!important;
+}
+#rd #tasbihPanel .tasbih-clock-hand{
+ position:absolute!important;left:50%!important;bottom:50%!important;
+ display:block!important;visibility:visible!important;opacity:1!important;
+ border-radius:999px!important;transform-origin:50% 100%!important;
+ pointer-events:none!important;will-change:transform;
+}
+#rd #tasbihPanel .tasbih-hour-hand{
+ width:5px!important;height:25%!important;
+ background:linear-gradient(90deg,#0b3f2d 0%,#28704d 48%,#0b3f2d 100%)!important;
+ box-shadow:0 1px 3px rgba(20,45,30,.35)!important;
+}
+#rd #tasbihPanel .tasbih-minute-hand{
+ width:3.5px!important;height:36%!important;
+ background:linear-gradient(90deg,#124b35 0%,#3b805b 50%,#124b35 100%)!important;
+ box-shadow:0 1px 3px rgba(20,45,30,.3)!important;
+}
+#rd #tasbihPanel .tasbih-second-hand{
+ width:1.5px!important;height:41%!important;
+ background:#b18435!important;box-shadow:0 0 2px rgba(177,132,53,.45)!important;
+}
+#rd #tasbihPanel .tasbih-clock-pivot{display:none!important}
+#rd #tasbihPanel .anwar-tasbih-sixth-face .tasbih-count-tap{
+ position:absolute!important;top:50%!important;left:50%!important;
+ z-index:8!important;width:27%!important;height:27%!important;min-height:0!important;
+ padding:0!important;margin:0!important;transform:translate(-50%,-50%)!important;
+ display:grid!important;place-items:center!important;border:2px solid #b58c43!important;
+ border-radius:50%!important;
+ background:radial-gradient(circle at 35% 28%,#fffdf4 0%,#f8efd9 68%,#ead9b6 100%)!important;
+ box-shadow:0 2px 7px rgba(79,58,24,.24),inset 0 0 0 2px rgba(255,255,255,.9)!important;
+ color:#15513a!important;
+}
+#rd #tasbihPanel .anwar-tasbih-sixth-face .tasbih-count-tap strong{
+ position:relative!important;z-index:1!important;
+ font-size:clamp(28px,8vw,40px)!important;line-height:1!important;
+ color:#15513a!important;text-shadow:0 1px 0 #fff!important;
+}
+</style>
 </head>
 <body>
 <div class="app" id="app">
