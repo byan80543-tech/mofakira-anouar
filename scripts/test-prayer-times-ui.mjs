@@ -77,10 +77,12 @@ assert.match(prayer,/voiceSelect\.setAttribute\('aria-label','صوت الأذا�
 assert.doesNotMatch(prayer,/const apiLink=|const audioLink=|const voiceCredit=/,'source links and recording credits are removed from the settings panel');
 assert.doesNotMatch(prayer,/اختيرت الدولة\. حدّد مدينتك|تحقق من المدينة ثم حدّث/,'duplicate location instructions are removed');
 assert.match(prayer,/\.anwar-prayer-status:empty\{display:none!important\}/,'empty status line does not create a blank gap');
-assert.match(prayer,/backgroundPermissionButton\.setAttribute\('aria-label','طلب إذن الأذان خارج التطبيق'\)/,'background adhan permission control has an accessible Arabic label');
+assert.match(prayer,/backgroundPermissionButton\.setAttribute\('aria-label','تفعيل الأذان خارج التطبيق'\)/,'background adhan permission control has an accessible Arabic label');
 assert.match(prayer,/backgroundPermissionButton\.addEventListener\('click'/,'background adhan permission control is actionable');
 assert.match(prayer,/syncNativeBackground\(true\)/,'permission button explicitly retries the native permission flow');
-assert.match(prayer,/لا يمكن لنسخة Chrome أو PWA طلب إذن/,'browser-only installations are told the actual Android permission limitation');
+assert.match(prayer,/لتفعيل الأذان بعد الإغلاق، افتح مفكرة أنوار في تطبيق Android/,'the background permission notice is concise and names the Android app');
+assert.match(prayer,/للاستمرار بعد إغلاق المفكرة، استخدم تطبيق Android/,'the visible permission hint is reduced to one short sentence');
+assert.doesNotMatch(prayer,/نسخة Chrome وحدها لا تضمن استمرار الأذان بعد إغلاق المفكرة/,'the repeated browser limitation explanation is removed');
 assert.match(prayer,/persist\(\);updateHeader\(\)[\s\S]*?refreshTimes\(false\)/,'country selection refreshes the default city automatically');
 assert.match(prayer,/\.anwar-prayer-next\{display:grid;grid-template-columns:1fr auto/,'original prominent next-prayer countdown design is preserved');
 assert.doesNotMatch(prayer,/el\('strong','','مواقيت الصلاة'\)/,'redundant prayer card title is removed');
