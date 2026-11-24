@@ -3643,10 +3643,12 @@ dialog[open]>.float-head{display:none!important}
           <path d="M50 14 C49.65 23 49.7 39 49.82 46" fill="none" stroke="#b9d0bb" stroke-width=".24" stroke-linecap="round" opacity=".76"/>
          </g>
          <g id="tasbihSecondHand" class="tasbih-svg-hand" transform="rotate(0 50 50)">
-          <path d="M50 4.5 L50 56" fill="none" stroke="url(#tasbihSecondHandGradient)" stroke-width=".82" stroke-linecap="round"/>
-          <path d="M50 3.5 L48.1 10 L51.9 10Z" fill="#bf9141" stroke="#79551e" stroke-width=".24" stroke-linejoin="round"/>
-          <path d="M50 53.5 L50 56" fill="none" stroke="#9d702c" stroke-width=".75" stroke-linecap="round"/>
-          <circle cx="50" cy="56.5" r=".82" fill="#b18435" stroke="#79551e" stroke-width=".2"/>
+          <!-- سنّ طويل متصل بمحور الساعة، لا سهم منفصل -->
+          <path d="M50 5.5 L50.82 48.9 L50 50 L49.18 48.9 Z"
+           fill="url(#tasbihSecondHandGradient)" stroke="#8a6324" stroke-width=".34" stroke-linejoin="round"/>
+          <!-- ذيل موازن متصل بالسن خلف المحور -->
+          <path d="M50 50 L50 57.5" fill="none" stroke="#a9792c" stroke-width="1.15" stroke-linecap="round"/>
+          <circle cx="50" cy="58" r="1.45" fill="#bd913e" stroke="#79551e" stroke-width=".3"/>
          </g>
          <circle cx="50" cy="50" r="2.35" fill="url(#tasbihHandCenterGradient)" stroke="#174a35" stroke-width=".62"/>
          <circle cx="49.35" cy="49.25" r=".62" fill="#fff5d4" opacity=".9"/>
@@ -3864,7 +3866,7 @@ dialog[open]>.float-head{display:none!important}
 <script src="./adhkar-page-theme.js?v=20261121-2" defer></script>
 <script src="./ibtihalat-radio.js?v=20261121-1" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
-<script src="./tasbih-controller.js?v=20261124-81" defer></script>
+<script src="./tasbih-controller.js?v=20261124-82" defer></script>
 <script src="./prayer-times.js?v=20261123-1" defer></script>
 
 
@@ -4893,5 +4895,76 @@ dialog[open]>.float-head{display:none!important}
  #rd #tasbihPanel .tasbih-clock-hands-svg .tasbih-svg-hand{transition:none!important}
 }
 </style>
+
+<style id="anwar-tasbih-second-tick-and-reset-v1">
+/* عقرب الثواني: ريشة واحدة متصلة بالمحور، مع ذيل موازن */
+#rd #tasbihPanel #tasbihSecondHand{
+ display:inline!important;visibility:visible!important;opacity:1!important;
+ transform-box:view-box!important;
+}
+#rd #tasbihPanel #tasbihSecondHand path{
+ vector-effect:non-scaling-stroke;
+}
+#rd #tasbihPanel .tasbih-clock-hands{z-index:6!important}
+#rd #tasbihPanel .tasbih-clock-hands-svg{overflow:visible!important}
+#rd #tasbihPanel .tasbih-clock-hands-svg>circle{pointer-events:none!important}
+/* إعادة بناء كبسولة التحكم: ناقص وأيقونة التصفير في صف واحد ثابت */
+#rd #tasbihPanel .tasbih-reset-housing{
+ position:absolute!important;top:77%!important;left:50%!important;
+ width:min(53%,218px)!important;height:50px!important;min-height:50px!important;
+ box-sizing:border-box!important;padding:4px 8px!important;
+ display:flex!important;flex-direction:row!important;direction:ltr!important;
+ align-items:center!important;justify-content:space-between!important;
+ gap:7px!important;transform:translateX(-50%)!important;
+ border:1.5px solid #b99755!important;border-radius:999px!important;
+ background:linear-gradient(145deg,#fffaf0 0%,#f1e5ca 100%)!important;
+ box-shadow:0 3px 8px rgba(62,48,24,.15),inset 0 1px 2px #fff!important;
+}
+#rd #tasbihPanel .tasbih-reset-housing .tasbih-minus-control{
+ position:relative!important;inset:auto!important;left:auto!important;top:auto!important;
+ flex:0 0 34px!important;display:grid!important;place-items:center!important;
+ width:34px!important;height:34px!important;min-height:34px!important;
+ margin:0!important;padding:0!important;transform:none!important;
+ border:0!important;border-right:1px solid rgba(174,141,76,.42)!important;
+ border-radius:0!important;background:transparent!important;color:#174b38!important;
+ box-shadow:none!important;
+}
+#rd #tasbihPanel .tasbih-reset-housing .tasbih-minus-control svg{
+ display:block!important;width:17px!important;height:17px!important;
+ fill:none!important;stroke:currentColor!important;stroke-width:2.5!important;
+ stroke-linecap:round!important;stroke-linejoin:round!important;
+}
+#rd #tasbihPanel .tasbih-reset-housing #tasbihReset{
+ flex:1 1 auto!important;min-width:0!important;width:auto!important;
+ height:100%!important;min-height:0!important;margin:0!important;padding:0 7px!important;
+ display:flex!important;flex-direction:row!important;direction:rtl!important;
+ align-items:center!important;justify-content:center!important;gap:7px!important;
+ border:0!important;border-radius:999px!important;background:transparent!important;
+ color:#174b38!important;font:700 11px Cairo,Tahoma,sans-serif!important;
+ box-shadow:none!important;transform:none!important;
+}
+#rd #tasbihPanel .tasbih-reset-housing #tasbihReset svg{
+ display:block!important;flex:none!important;width:16px!important;height:16px!important;
+ margin:0!important;fill:none!important;stroke:currentColor!important;stroke-width:2!important;
+ stroke-linecap:round!important;stroke-linejoin:round!important;
+}
+#rd #tasbihPanel .tasbih-reset-housing #tasbihReset span{
+ display:inline!important;flex:none!important;margin:0!important;
+ font-size:11px!important;line-height:1.3!important;white-space:nowrap!important;
+}
+@media(max-width:390px){
+ #rd #tasbihPanel .tasbih-reset-housing{
+  top:77%!important;width:min(56%,214px)!important;height:48px!important;min-height:48px!important;
+  padding:4px 7px!important;gap:5px!important;
+ }
+ #rd #tasbihPanel .tasbih-reset-housing .tasbih-minus-control{
+  flex-basis:32px!important;width:32px!important;height:32px!important;min-height:32px!important;
+ }
+ #rd #tasbihPanel .tasbih-reset-housing #tasbihReset{gap:5px!important;padding:0 4px!important}
+ #rd #tasbihPanel .tasbih-reset-housing #tasbihReset svg{width:15px!important;height:15px!important}
+ #rd #tasbihPanel .tasbih-reset-housing #tasbihReset span{font-size:10px!important}
+}
+</style>
+
 </body>
 </html>
