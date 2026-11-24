@@ -254,7 +254,7 @@
  updatePrivacyAudioDisclosure();
  addPrivacyFact('الإعدادات','تُحفظ على جهازك في localStorage، من دون تشفير إضافي.','محفوظة محليًا','plain');
  addPrivacyFact('الحساب','لا يلزم حساب أو بريد إلكتروني.','دون حساب','local');
- addPrivacyFact('الاتصال','يشفّر HTTPS البيانات أثناء النقل، لكنه لا يخفي عنوان IP ولا يشفّر الملف المخزّن.','تشفير أثناء النقل','secure');
+ addPrivacyFact('الاتصال','HTTPS يشفّر الاتصال أثناء النقل فقط.','تشفير أثناء النقل','secure');
  const privacyFootnote=el('small','anwar-prayer-privacy-footnote','بيان موجز عن النسخة الحالية، وليس تدقيقًا أمنيًا مستقلًا.');
  infoDetails.append(infoSummary,privacyList,privacyFootnote);
  const details=el('details','anwar-prayer-settings');
@@ -268,7 +268,7 @@
  VOICES.forEach(voice=>{const option=el('option','',voice.label);option.value=voice.key;voiceSelect.append(option)});
  voiceSelect.value=settings.voice;
  fields.append(countrySelect,cityInput,voiceSelect);
- const refreshButton=el('button','primary','تحديث المواقيت');
+ const refreshButton=el('button','primary','تحديث');
  refreshButton.type='button';refreshButton.setAttribute('aria-label','تحديث مواقيت الصلاة');
  const testButton=el('button','','تجربة الأذان');
  testButton.type='button';
