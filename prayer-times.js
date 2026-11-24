@@ -219,20 +219,20 @@
  const nextWhen=el('small','anwar-prayer-next-when','');
  nextCopy.append(nextLabel,nextName,nextWhen);
  const countdownCopy=el('div','anwar-prayer-countdown');
- const countdownLabel=el('small','','الوقت المتبقي لدخول الصلاة');
+ const countdownLabel=el('small','','المتبقي للصلاة');
  const countdown=el('span','','');
  countdownCopy.append(countdownLabel,countdown);
  nextBox.append(nextCopy,countdownCopy);
- showNextPrayerPlaceholder('بانتظار تحميل المواقيت');
+ showNextPrayerPlaceholder('بانتظار المواقيت');
  const timesGrid=el('div','anwar-prayer-times');
- const dateLine=el('div','anwar-prayer-date','جارٍ تحميل مواقيت الصلاة…');
- const privacyLine=el('small','anwar-prayer-note','لا يطلب قسم الأذان إذن الوصول إلى موقعك الدقيق (GPS). في الوضع التلقائي، يستنتج الدولة من المنطقة الزمنية ولغة الجهاز، ثم يختار مدينة افتراضية؛ لذلك تحقّق من المدينة المعروضة وصحّحها من الإعدادات قبل الاعتماد على المواقيت.');
+ const dateLine=el('div','anwar-prayer-date','جارٍ تحميل المواقيت…');
+ const privacyLine=el('small','anwar-prayer-note','لا نطلب موقعك الدقيق؛ تحقّق من المدينة المحددة.');
  const infoDetails=el('details','anwar-prayer-info');
  const infoSummary=el('summary');
  const privacyIcon=el('span','anwar-prayer-privacy-icon');
  privacyIcon.setAttribute('aria-hidden','true');
  privacyIcon.innerHTML='<svg viewBox="0 0 24 24" focusable="false"><path d="M12 2.5 20 5.7v5.1c0 4.7-3.1 8.4-8 10.6-4.9-2.2-8-5.9-8-10.6V5.7Z"></path><rect x="8" y="10.5" width="8" height="6.3" rx="1.3"></rect><path d="M9.8 10.5V8.7a2.2 2.2 0 0 1 4.4 0v1.8"></path></svg>';
- infoSummary.append(privacyIcon,el('span','','درع الخصوصية والشفافية'));
+ infoSummary.append(privacyIcon,el('span','','الخصوصية'));
  const privacyList=el('div','anwar-prayer-privacy-list');
  function addPrivacyFact(title,description,label,kind){
   const row=el('div','anwar-prayer-privacy-row');
@@ -243,23 +243,23 @@
   privacyList.append(row);
   return {row:row,description:copy.lastChild};
  }
- addPrivacyFact('الموقع الدقيق','لا يستخدم هذا القسم واجهة تحديد الموقع في المتصفح، ولا يطلب إذن الوصول إلى موقعك الدقيق (GPS).','لا يُستخدم','local');
- addPrivacyFact('مواقيت الصلاة','يرسل القسم اسم المدينة والدولة وتاريخ المواقيت إلى api.aladhan.com. ويمكن لمزوّد الخدمة الاطلاع على عنوان IP الذي يصل منه الطلب.','خدمة خارجية','external');
+ addPrivacyFact('الموقع الدقيق','لا نستخدم GPS ولا نطلب إذن الموقع.','لا يُستخدم','local');
+ addPrivacyFact('مواقيت الصلاة','نرسل المدينة والدولة والتاريخ إلى api.aladhan.com؛ ويمكن للمزوّد رؤية عنوان IP.','خدمة خارجية','external');
  const audioPrivacyFact=addPrivacyFact('صوت الأذان','','استضافة صوتية خارجية','external');
  function updatePrivacyAudioDisclosure(){
   const voice=VOICES.find(item=>item.key===settings.voice)||VOICES[0];
   let host='مضيف التسجيل الخارجي';
   try{host=new URL(voice.url).hostname}catch(_e){}
-  audioPrivacyFact.description.textContent='يُحمّل التسجيل الذي تختاره مباشرةً من '+host+' عبر HTTPS. ويمكن لمضيف التسجيل الاطلاع على عنوان IP الخاص بالاتصال.';
+  audioPrivacyFact.description.textContent='يُحمّل التسجيل من '+host+' عبر HTTPS؛ ويمكن للمضيف رؤية عنوان IP.';
  }
  updatePrivacyAudioDisclosure();
- addPrivacyFact('إعدادات الأذان','يحفظ القسم الدولة والمدينة والتسجيل ومستوى الصوت وحالة التشغيل والمنطقة الزمنية في التخزين المحلي (localStorage) على جهازك، من دون تشفير إضافي.','محفوظة محليًا','plain');
- addPrivacyFact('الحساب الشخصي','لا يتطلب استخدام قسم الأذان إنشاء حساب أو إدخال بريد إلكتروني، ولا ينشئ ملفًا شخصيًا للمستخدم.','دون حساب','local');
- addPrivacyFact('حماية الاتصال','يشفّر HTTPS البيانات أثناء انتقالها إلى الخدمة، لكنه لا يخفي عنوان IP عن المضيف، ولا يعني أن ملف الصوت نفسه مخزّن بتشفير مستقل.','تشفير أثناء النقل','secure');
- const privacyFootnote=el('small','anwar-prayer-privacy-footnote','توضح هذه اللوحة طريقة عمل قسم الأذان في نسخته الحالية فقط. وهي ليست تدقيقًا أمنيًا مستقلًا، ولا تعني أن جميع اتصالات مفكرة أنوار تتم محليًا.');
+ addPrivacyFact('الإعدادات','تُحفظ على جهازك في localStorage، من دون تشفير إضافي.','محفوظة محليًا','plain');
+ addPrivacyFact('الحساب','لا يلزم حساب أو بريد إلكتروني.','دون حساب','local');
+ addPrivacyFact('الاتصال','يشفّر HTTPS البيانات أثناء النقل، لكنه لا يخفي عنوان IP ولا يشفّر الملف المخزّن.','تشفير أثناء النقل','secure');
+ const privacyFootnote=el('small','anwar-prayer-privacy-footnote','بيان موجز عن النسخة الحالية، وليس تدقيقًا أمنيًا مستقلًا.');
  infoDetails.append(infoSummary,privacyLine,privacyList,privacyFootnote);
  const details=el('details','anwar-prayer-settings');
- const summary=el('summary','','إعدادات المواقيت والأذان');
+ const summary=el('summary','','الإعدادات');
  const fields=el('div','anwar-prayer-fields');
  const countrySelect=el('select');countrySelect.id='anwarPrayerCountry';countrySelect.setAttribute('aria-label','الدولة');
  COUNTRY_OPTIONS.forEach(item=>{const option=el('option','',item.label);option.value=item.api;countrySelect.append(option)});
@@ -269,30 +269,30 @@
  VOICES.forEach(voice=>{const option=el('option','',voice.label);option.value=voice.key;voiceSelect.append(option)});
  voiceSelect.value=settings.voice;
  fields.append(countrySelect,cityInput,voiceSelect);
- const refreshButton=el('button','primary','تحديث');
+ const refreshButton=el('button','primary','تحديث المواقيت');
  refreshButton.type='button';refreshButton.setAttribute('aria-label','تحديث مواقيت الصلاة');
  const testButton=el('button','','تجربة الأذان');
  testButton.type='button';
  const actions=el('div','anwar-prayer-actions');actions.append(refreshButton,testButton);
  const toggleLabel=el('label','anwar-prayer-toggle');
  const enabledInput=el('input');enabledInput.type='checkbox';enabledInput.checked=settings.enabled;
- const enabledText=el('span','','تشغيل الأذان تلقائيًا عند دخول وقت الصلاة');
+ const enabledText=el('span','','تشغيل الأذان تلقائيًا');
  toggleLabel.append(enabledInput,enabledText);
  const backgroundPermissionWrap=el('div','anwar-prayer-permission-wrap');
  const backgroundPermissionButton=el('button','anwar-prayer-background-access');
  backgroundPermissionButton.type='button';
- backgroundPermissionButton.setAttribute('aria-label','طلب إذن الأذان خارج التطبيق');
- backgroundPermissionButton.title='طلب إذن تشغيل الأذان بعد مغادرة المفكرة';
+ backgroundPermissionButton.setAttribute('aria-label','تفعيل الأذان خارج التطبيق');
+ backgroundPermissionButton.title='تفعيل الأذان بعد إغلاق المفكرة';
   backgroundPermissionButton.setAttribute('data-anwar-prayer-permission','true');
  const backgroundPermissionIcon=el('span','anwar-prayer-access-icon');
  backgroundPermissionIcon.setAttribute('aria-hidden','true');
  backgroundPermissionIcon.innerHTML='<svg viewBox="0 0 24 24"><circle cx="12" cy="14" r="7.5"></circle><path d="M12 10v4l2.5 1.5M5 3 2.5 5.5M19 3l2.5 2.5M8 21l-1 1.5M16 21l1 1.5"></path></svg>';
- const backgroundPermissionText=el('span','','طلب إذن الأذان خارج التطبيق');
+ const backgroundPermissionText=el('span','','تفعيل الأذان خارج التطبيق');
  backgroundPermissionButton.append(backgroundPermissionIcon,backgroundPermissionText);
- const backgroundPermissionHint=el('small','anwar-prayer-permission-hint','يُطلب الإذن من داخل تطبيق أنوار المرافق على Android؛ نسخة Chrome وحدها لا تضمن استمرار الأذان بعد إغلاق المفكرة.');
+ const backgroundPermissionHint=el('small','anwar-prayer-permission-hint','للاستمرار بعد إغلاق المفكرة، استخدم تطبيق Android.');
  backgroundPermissionWrap.append(backgroundPermissionButton,backgroundPermissionHint);
  const volumeWrap=el('label','anwar-prayer-volume');
- const volumeLabel=el('span','','مستوى صوت الأذان');
+ const volumeLabel=el('span','','مستوى الصوت');
  const volumeInput=el('input');volumeInput.type='range';volumeInput.min='0';volumeInput.max='1';volumeInput.step='0.05';volumeInput.value=String(settings.volume);
  volumeWrap.append(volumeLabel,volumeInput);
  const status=el('div','anwar-prayer-status','');
@@ -418,15 +418,15 @@
    if(controller)request.signal=controller.signal;
    response=await fetch(url.href,request);
   }catch(error){
-   if(error&&error.name==='AbortError')throw new Error('انتهت مهلة الاتصال بخدمة المواقيت. تحقق من الإنترنت ثم اضغط تحديث.');
-   throw new Error('تعذّر الاتصال بخدمة المواقيت. تحقق من الإنترنت ثم أعد المحاولة.');
+   if(error&&error.name==='AbortError')throw new Error('انتهت مهلة الاتصال. تحقّق من الإنترنت وأعد المحاولة.');
+   throw new Error('تعذّر الاتصال بخدمة المواقيت. تحقّق من الإنترنت.');
   }finally{
    window.clearTimeout(timeoutId);
   }
   if(!response.ok)throw new Error('تعذّر جلب المواقيت (HTTP '+response.status+').');
   const json=await response.json();
   if(token!==loadToken)return null;
-  if(!json||json.code!==200||!json.data||!json.data.timings)throw new Error('لم يتعرف مصدر المواقيت على هذه المدينة. تحقق من كتابة المدينة والدولة.');
+  if(!json||json.code!==200||!json.data||!json.data.timings)throw new Error('لا تتوفر مواقيت لهذه المدينة. تحقّق من المدينة والدولة.');
   return json.data;
  }
  function updateHeader(){
@@ -495,7 +495,7 @@
   nextBox.hidden=false;
   nextLabel.textContent='الصلاة القادمة';
   nextName.textContent='—';
-  nextWhen.textContent=message||'بانتظار تحميل المواقيت';
+  nextWhen.textContent=message||'بانتظار المواقيت';
   countdown.textContent='--:--:--';
  }
  function alreadyPlayed(key){
@@ -506,22 +506,22 @@
  }
  async function playAdhan(prayer,isTest){
   if(!isTest&&!settings.enabled)return false;
-  if(!audio.paused&&!audio.ended){if(isTest)setStatus('الأذان يعمل الآن بالفعل.');return false;}
+  if(!audio.paused&&!audio.ended){if(isTest)setStatus('الأذان يعمل بالفعل.');return false;}
   audio.volume=settings.volume;
   try{audio.currentTime=0}catch(_e){}
   try{
    const attempt=audio.play();
    if(attempt&&typeof attempt.then==='function')await attempt;
-   setStatus(isTest?'بدأ اختبار الأذان.':'حان وقت صلاة '+prayer+'؛ بدأ الأذان وخُفّض صوت الإذاعة مؤقتًا.');
+   setStatus(isTest?'بدأ اختبار الأذان.':'بدأ أذان صلاة '+prayer+'.');
    return true;
   }catch(error){
    const blocked=error&&error.name==='NotAllowedError';
-   setStatus(blocked?'منع المتصفح التشغيل التلقائي. اضغط «تجربة الأذان» واسمح بتشغيل الصوت.':'تعذّر تحميل الأذان؛ تحقق من اتصال الإنترنت ثم أعد التجربة.');
+   setStatus(blocked?'اسمح بتشغيل الصوت من زر «تجربة الأذان».':'تعذّر تحميل الأذان. تحقّق من الاتصال.');
    return false;
   }
  }
- audio.addEventListener('ended',()=>setStatus('انتهى الأذان؛ عاد صوت إذاعة القرآن إلى مستواه السابق.'));
- audio.addEventListener('error',()=>setStatus('تعذّر تحميل تسجيل الأذان من المصدر الصوتي.'));
+ audio.addEventListener('ended',()=>setStatus('انتهى الأذان؛ عاد صوت الإذاعة.'));
+ audio.addEventListener('error',()=>setStatus('تعذّر تحميل صوت الأذان.'));
  function tick(){
   const now=Date.now(),events=eventList();
   if(settings.enabled){
@@ -546,7 +546,7 @@
    nextWhen.textContent=(next.date===todayDate?'اليوم':'غدًا')+' · '+timeLabel(next.at);
    timesGrid.querySelectorAll('.anwar-prayer-time').forEach(item=>item.classList.toggle('is-next',item.dataset.prayer===next.key&&next.date===(todayData&&todayData.date&&todayData.date.gregorian&&todayData.date.gregorian.date)));
   }else{
-   showNextPrayerPlaceholder(todayData&&tomorrowData?'لا يوجد موعد متاح الآن':'بانتظار تحميل المواقيت');
+   showNextPrayerPlaceholder(todayData&&tomorrowData?'لا يوجد موعد متاح الآن':'بانتظار المواقيت');
   }
   if(todayData&&timeZone){
    const todayHere=dateString(new Date(now),timeZone);
@@ -558,12 +558,12 @@
   loading=true;
   if(!silent){
    setStatus('جارٍ تحديث مواقيت الصلاة…');
-   dateLine.textContent='جارٍ تحميل مواقيت الصلاة…';dateLine.dataset.state='loading';
+   dateLine.textContent='جارٍ تحميل المواقيت…';dateLine.dataset.state='loading';
    showNextPrayerPlaceholder('جارٍ تحديث مواقيت الصلاة');
   }
   refreshButton.disabled=true;
   try{
-   if(!settings.city.trim()||!settings.country.trim())throw new Error('أدخل اسم الدولة والمدينة أولًا.');
+   if(!settings.city.trim()||!settings.country.trim())throw new Error('أدخل الدولة والمدينة.');
    const initialZone=validTimeZone(settings.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC');
    let requestedDate=dateString(new Date(),initialZone);
    let data=await fetchDay(requestedDate,token);
@@ -585,9 +585,9 @@
    persist();renderTimes();lastDateCheck=todayText;
    const nativeBridgeReady=syncNativeBackground();
    if(!silent){
-    if(settings.enabled&&nativeBridgeReady)setStatus('وصلت إعدادات الأذان إلى التطبيق المرافق. سيشرح لك Android الأذونات اللازمة ويطلبها لتشغيل الأذان خارج المفكرة.');
-    else if(settings.enabled)setStatus('التشغيل خارج المفكرة يتطلب تطبيق أنوار المرافق على Android؛ تفعيل الأذان في Chrome وحده لا يضمن استمرار الصوت بعد إغلاق الصفحة.');
-    else setStatus('تم تحديث مواقيت الصلاة. يمكنك تجربة الأذان ثم تفعيل التنبيه.');
+    if(settings.enabled&&nativeBridgeReady)setStatus('تم تحديث المواقيت ومزامنة الأذان.');
+    else if(settings.enabled)setStatus('تم تحديث المواقيت. استخدم تطبيق Android للتشغيل بعد الإغلاق.');
+    else setStatus('تم تحديث المواقيت.');
    }
    tick();
   }catch(error){
@@ -595,7 +595,7 @@
     if(!todayData){
      dateLine.textContent=fallbackDateLabel()||'التاريخ المحلي';
      dateLine.dataset.state='fallback';
-     showNextPrayerPlaceholder('تعذّر التحميل؛ تحقق من المدينة والاتصال ثم اضغط تحديث');
+     showNextPrayerPlaceholder('تعذّر التحميل؛ تحقّق من المدينة والاتصال.');
     }
     setStatus(error&&error.message?error.message:'تعذّر تحديث المواقيت.');
    }
@@ -609,8 +609,8 @@
   settings.city=cityInput.value.trim();settings.school='0';
   persist();todayData=null;tomorrowData=null;lastDateCheck='';
   timesGrid.replaceChildren(...PRAYERS.map(prayer=>{const item=el('div','anwar-prayer-time');item.append(el('b','',prayer.name),el('strong','','—'));return item;}));
-  showNextPrayerPlaceholder('بانتظار تحميل المواقيت');
-  dateLine.textContent='جارٍ تحميل مواقيت الصلاة…';dateLine.dataset.state='loading';
+  showNextPrayerPlaceholder('بانتظار المواقيت');
+  dateLine.textContent='جارٍ تحميل المواقيت…';dateLine.dataset.state='loading';
   lastTick=Date.now();refreshTimes(false);
  });
  countrySelect.addEventListener('change',()=>{
@@ -625,7 +625,7 @@
   settings.timezone='';
   persist();updateHeader();
   todayData=null;tomorrowData=null;lastDateCheck='';
-  showNextPrayerPlaceholder('بانتظار تحميل المواقيت');
+  showNextPrayerPlaceholder('بانتظار المواقيت');
   timesGrid.replaceChildren(...PRAYERS.map(prayer=>{const item=el('div','anwar-prayer-time');item.append(el('b','',prayer.name),el('strong','','—'));return item;}));
   dateLine.textContent='جارٍ تحميل المواقيت…';dateLine.dataset.state='loading';
   lastTick=Date.now();refreshTimes(false);
@@ -633,27 +633,27 @@
  backgroundPermissionButton.addEventListener('click',()=>{
   const bridge=window.AnwarAdhanBridge;
   if(!bridge||typeof bridge.postMessage!=='function'){
-   setStatus('لا يمكن لنسخة Chrome أو PWA طلب إذن «المنبهات والتذكيرات» الخاص بنظام Android. افتح مفكرة أنوار من تطبيق Android المرافق ثم اضغط هذا الزر؛ عندها سيظهر طلب الإذن الحقيقي.');
+   setStatus('لتفعيل الأذان بعد الإغلاق، افتح مفكرة أنوار في تطبيق Android.');
    return;
   }
   settings.enabled=true;
   enabledInput.checked=true;
   persist();
   if(syncNativeBackground(true)){
-   setStatus('أُرسل طلب الإذن إلى تطبيق أنوار المرافق. اتبع نافذة Android للسماح بالإشعارات والمنبهات والتذكيرات؛ وإذا كانت الأذونات ممنوحة بالفعل فسيُحدّث التطبيق جدول الأذان.');
+   setStatus('أُرسل طلب الإذن إلى Android.');
   }else{
-   setStatus('تعذّر إرسال طلب الإذن إلى تطبيق Android. أغلق لوحة الأذان وافتحها مجددًا داخل تطبيق أنوار المرافق.');
+   setStatus('تعذّر إرسال الطلب. أعد فتح المفكرة في تطبيق Android.');
   }
  });
  enabledInput.addEventListener('change',()=>{
   settings.enabled=enabledInput.checked;persist();
   const nativeBridgeReady=syncNativeBackground();
   if(settings.enabled){
-   if(nativeBridgeReady)setStatus('تم إرسال إعدادات الأذان إلى تطبيق أنوار المرافق. سيشرح لك التطبيق الأذونات ويطلبها قبل تشغيله خارج المفكرة.');
-   else setStatus('فُعّل الأذان داخل الصفحة المفتوحة فقط. للتشغيل بعد إغلاقها، افتح مفكرة أنوار من تطبيق Android المرافق وفعّل الأذان هناك؛ سيطلب النظام الأذونات اللازمة.');
+   if(nativeBridgeReady)setStatus('تمت مزامنة إعدادات الأذان مع التطبيق.');
+   else setStatus('يعمل الأذان ما دامت الصفحة مفتوحة.');
   }else{
    if(!audio.paused)audio.pause();
-   setStatus('تم إيقاف الأذان التلقائي وإرسال أمر الإيقاف إلى التطبيق المرافق.');
+   setStatus('تم إيقاف الأذان التلقائي.');
   }
  });
  volumeInput.addEventListener('input',()=>{
