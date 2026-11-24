@@ -7,10 +7,10 @@ const controller=fs.readFileSync(new URL('../tasbih-controller.js',import.meta.u
 const appCore=fs.readFileSync(new URL('../app-core.js',import.meta.url),'utf8');
 const officialAdhkar=fs.readFileSync(new URL('../official-adhkar.js',import.meta.url),'utf8');
 
-const resetSpacingStyle=html.match(/<style id="anwar-tasbih-second-tick-and-reset-v1">([\\s\\S]*?)<\\/style>/);
+const resetSpacingStyle=html.match(/<style id="anwar-tasbih-second-tick-and-reset-v1">([\s\S]*?)<\/style>/);
 assert.ok(resetSpacingStyle,'the final tasbih spacing rules exist in the real HTML');
 assert.match(resetSpacingStyle[1],/position:absolute!important;top:84%!important;left:50%!important;/,'the reset capsule sits below the counter on standard layouts');
-assert.match(resetSpacingStyle[1],/@media\\(max-width:390px\\)[\\s\\S]*?top:84%!important;width:min\\(56%,214px\\)!important/,'the reset capsule keeps the same clearance on narrow phones');
+assert.match(resetSpacingStyle[1],/@media\(max-width:390px\)[\s\S]*?top:84%!important;width:min\(56%,214px\)!important/,'the reset capsule keeps the same clearance on narrow phones');
 
 class FakeElement {
  constructor(id='',tagName='DIV'){
