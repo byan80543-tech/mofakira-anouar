@@ -4967,17 +4967,22 @@ dialog[open]>.float-head{display:none!important}
 </style>
 
 
-<style id="anwar-tasbih-reset-interaction-v1">
-/* Keep the reset controls above the full-face layer so taps reach the buttons. */
+
+
+<style id="anwar-tasbih-reset-interaction-v2">
+/* Separate the reset capsule from the count button and keep both controls touchable. */
 #rd #tasbihPanel .tasbih-reset-housing{
- z-index:9!important;pointer-events:auto!important;
+ top:87%!important;z-index:20!important;pointer-events:auto!important;
 }
 #rd #tasbihPanel .tasbih-reset-housing #tasbihReset,
 #rd #tasbihPanel .tasbih-reset-housing .tasbih-minus-control{
- position:relative!important;z-index:10!important;
- pointer-events:auto!important;cursor:pointer!important;
+ position:relative!important;z-index:21!important;
+ pointer-events:auto!important;touch-action:manipulation!important;
+ cursor:pointer!important;-webkit-tap-highlight-color:transparent!important;
+}
+@media(max-width:390px){
+ #rd #tasbihPanel .tasbih-reset-housing{top:87%!important}
 }
 </style>
-
 </body>
 </html>
