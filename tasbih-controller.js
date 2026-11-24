@@ -473,7 +473,7 @@
    customStatus.textContent='تمت الإضافة.';
   }
   function openPanel(){
-   if(!panel.hidden)return true;
+   if(!panel.hidden){startClockAnimation();return true}
    panel.hidden=false;
    startClockAnimation();
    requestAnimationFrame(()=>{
@@ -786,6 +786,7 @@
    pauseSessionClock();
   });
   window.addEventListener('pageshow',()=>{if(!panel.hidden)startClockAnimation()});
+  window.addEventListener('focus',()=>{if(!panel.hidden)startClockAnimation()});
 
   if(preferences&&typeof preferences.subscribe==='function'){
    preferences.subscribe(saved=>{
@@ -815,6 +816,7 @@
    open(){
     if(!window.__ANWAR_TASBIH_CONTROLLER_READY__)return false;
     if(panel.hidden)openPanel();
+    else startClockAnimation();
     return !panel.hidden;
    },
    close(){closePanel(false);return panel.hidden}
