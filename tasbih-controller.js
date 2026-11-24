@@ -149,6 +149,14 @@
     clockTicks.appendChild(tick);
    }
   }
+  let clockAnimationFrameId=null;
+  const requestClockFrame=callback=>typeof window.requestAnimationFrame==='function'
+   ?window.requestAnimationFrame(callback)
+   :window.setTimeout(()=>callback(Date.now()),16);
+  const cancelClockFrame=id=>{
+   if(typeof window.cancelAnimationFrame==='function')window.cancelAnimationFrame(id);
+   else window.clearTimeout(id);
+  };
   function updateClockUi(now){
    const stamp=Number.isFinite(now)?now:Date.now();
    const date=new Date(stamp);
@@ -163,6 +171,32 @@
    secondHand.style.transform='translateX(-50%) rotate('+secondDeg+'deg)';
    elapsedNode.textContent=formatDuration(currentElapsedMs(stamp));
    clockDial.setAttribute('aria-label','الساعة الآن '+arabicDigits(String(date.getHours()).padStart(2,'0'))+':'+arabicDigits(String(date.getMinutes()).padStart(2,'0')));
+  }
+  function stopClockAnimation(){
+   if(clockAnimationFrameId===null)return;
+   cancelClockFrame(clockAnimationFrameId);
+   clockAnimationFrameId=null;
+  }
+  function animateClockFrame(){
+   clockAnimationFrameId=null;
+   if(panel.hidden||document.visibilityState==='hidden'){
+    if(document.visibilityState==='hidden')pauseSessionClock();
+    return;
+   }
+   const now=Date.now();
+   updateClockUi(now);
+   if(sessionStartedAt!==null){
+    const liveElapsed=currentElapsedMs(now);
+    if(liveElapsed-lastPersistedElapsed>=5000){
+     elapsedMs=liveElapsed;sessionStartedAt=now;lastPersistedElapsed=elapsedMs;persist();
+    }
+   }
+   clockAnimationFrameId=requestClockFrame(animateClockFrame);
+  }
+  function startClockAnimation(){
+   if(clockAnimationFrameId!==null||panel.hidden||document.visibilityState==='hidden')return;
+   updateClockUi();
+   clockAnimationFrameId=requestClockFrame(animateClockFrame);
   }
   function startSessionClock(){if(sessionStartedAt===null)sessionStartedAt=Date.now()}
   function pauseSessionClock(){
@@ -436,6 +470,7 @@
   function openPanel(){
    if(!panel.hidden)return true;
    panel.hidden=false;
+   startClockAnimation();
    requestAnimationFrame(()=>{
     try{panel.scrollIntoView({behavior:'smooth',block:'nearest'})}catch(error){}
    });
@@ -447,6 +482,7 @@
    themeToggle.setAttribute('aria-expanded','false');
    setDhikrListOpen(false);
    if(voiceActive)stopVoice('توقف الاستماع عند إغلاق السبحة.');
+   stopClockAnimation();
    pauseSessionClock();
    panel.hidden=true;
    if(restoreFocus!==false){
@@ -728,21 +764,17 @@
    }
   }
   updateClockUi();
-  window.setInterval(()=>{
-   const now=Date.now();
+  document.addEventListener('visibilitychange',()=>{
    if(document.visibilityState==='hidden'){
-    pauseSessionClock();updateClockUi(now);return;
-   }
-   updateClockUi(now);
-   if(sessionStartedAt!==null){
-    const liveElapsed=currentElapsedMs(now);
-    if(liveElapsed-lastPersistedElapsed>=5000){
-     elapsedMs=liveElapsed;sessionStartedAt=now;lastPersistedElapsed=elapsedMs;persist();
-    }
-   }
-  },250);
-  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')pauseSessionClock()});
-  window.addEventListener('pagehide',pauseSessionClock);
+    stopClockAnimation();
+    pauseSessionClock();
+   }else if(!panel.hidden)startClockAnimation();
+  });
+  window.addEventListener('pagehide',()=>{
+   stopClockAnimation();
+   pauseSessionClock();
+  });
+  window.addEventListener('pageshow',()=>{if(!panel.hidden)startClockAnimation()});
 
   if(preferences&&typeof preferences.subscribe==='function'){
    preferences.subscribe(saved=>{
