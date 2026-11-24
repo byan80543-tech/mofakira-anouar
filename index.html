@@ -3550,8 +3550,7 @@ dialog[open]>.float-head{display:none!important}
      <div class="anwar-tasbih-ornament" aria-hidden="true"><span></span><img src="assets/tulip-cutout.svg" alt=""><span></span></div>
      <div class="tasbih-adhkar-picker">
       <button type="button" id="tasbihDhikrToggle" class="tasbih-adhkar-toggle" aria-controls="tasbihDhikrListPanel" aria-expanded="false">
-        <svg class="tasbih-book-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 5.5c3.2-.8 5.9-.4 8.5 1.4v13c-2.6-1.8-5.3-2.2-8.5-1.4zM20.5 5.5c-3.2-.8-5.9-.4-8.5 1.4v13c2.6-1.8 5.3-2.2 8.5-1.4z"/><path d="M12 7v13"/></svg>
-        <span>أذكارك</span><span class="tasbih-adhkar-chevron" aria-hidden="true">⌄</span>
+        <span>أذكارك</span>
        </button>
       <div id="tasbihDhikrListPanel" class="tasbih-adhkar-list" role="group" aria-labelledby="tasbihDhikrToggle" hidden>
        <div class="tasbih-inner-dhikr-frame" aria-label="إضافة ذكر يدوي">
@@ -5035,5 +5034,25 @@ dialog[open]>.float-head{display:none!important}
 }
 </style>
 
+
+
+<style id="anwar-tasbih-adhkar-center-click-v1">
+/* زر أذكارك: الكلمة في المركز الهندسي، والزر كله يفتح قائمة الأذكار */
+#rd #tasbihPanel #tasbihDhikrToggle{
+ display:flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+ gap:0!important;
+}
+#rd #tasbihPanel #tasbihDhikrToggle > span:nth-of-type(1){
+ flex:0 1 auto!important;
+ align-self:center!important;
+ margin:0 auto!important;
+ text-align:center!important;
+}
+#rd #tasbihPanel #tasbihDhikrToggle .tasbih-adhkar-chevron{
+ display:none!important;
+}
+</style>
 </body>
 </html>
