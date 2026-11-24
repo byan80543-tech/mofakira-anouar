@@ -219,14 +219,14 @@
  const nextWhen=el('small','anwar-prayer-next-when','');
  nextCopy.append(nextLabel,nextName,nextWhen);
  const countdownCopy=el('div','anwar-prayer-countdown');
- const countdownLabel=el('small','','الوقت المتبقي حتى دخول الصلاة');
+ const countdownLabel=el('small','','الوقت المتبقي لدخول الصلاة');
  const countdown=el('span','','');
  countdownCopy.append(countdownLabel,countdown);
  nextBox.append(nextCopy,countdownCopy);
  showNextPrayerPlaceholder('بانتظار تحميل المواقيت');
  const timesGrid=el('div','anwar-prayer-times');
- const dateLine=el('div','anwar-prayer-date','جارٍ تحميل مواقيت المدينة…');
- const privacyLine=el('small','anwar-prayer-note','لا يطلب قسم الأذان إذن GPS أو الإحداثيات. في الوضع التلقائي يستنتج الدولة من المنطقة الزمنية ولغة الجهاز، ثم يختار مدينة افتراضية قد لا تطابق مدينة المستخدم الفعلية؛ ويمكن تصحيحها من الإعدادات.');
+ const dateLine=el('div','anwar-prayer-date','جارٍ تحميل مواقيت الصلاة…');
+ const privacyLine=el('small','anwar-prayer-note','لا يطلب قسم الأذان إذن الوصول إلى موقعك الدقيق (GPS). في الوضع التلقائي، يستنتج الدولة من المنطقة الزمنية ولغة الجهاز، ثم يختار مدينة افتراضية؛ لذلك تحقّق من المدينة المعروضة وصحّحها من الإعدادات قبل الاعتماد على المواقيت.');
  const infoDetails=el('details','anwar-prayer-info');
  const infoSummary=el('summary');
  const privacyIcon=el('span','anwar-prayer-privacy-icon');
@@ -243,20 +243,20 @@
   privacyList.append(row);
   return {row:row,description:copy.lastChild};
  }
- addPrivacyFact('الموقع الدقيق','لا يستدعي هذا القسم واجهة تحديد الموقع في المتصفح ولا يطلب إذن GPS.','لا يُستخدم','local');
- addPrivacyFact('مواقيت الصلاة','يرسل اسم المدينة والدولة وتاريخ المواقيت إلى api.aladhan.com؛ ويمكن لمزود الخدمة رؤية عنوان IP الذي يصل منه الطلب.','خدمة خارجية','external');
- const audioPrivacyFact=addPrivacyFact('صوت الأذان','','مضيف صوتي خارجي','external');
+ addPrivacyFact('الموقع الدقيق','لا يستخدم هذا القسم واجهة تحديد الموقع في المتصفح، ولا يطلب إذن الوصول إلى موقعك الدقيق (GPS).','لا يُستخدم','local');
+ addPrivacyFact('مواقيت الصلاة','يرسل القسم اسم المدينة والدولة وتاريخ المواقيت إلى api.aladhan.com. ويمكن لمزوّد الخدمة الاطلاع على عنوان IP الذي يصل منه الطلب.','خدمة خارجية','external');
+ const audioPrivacyFact=addPrivacyFact('صوت الأذان','','استضافة صوتية خارجية','external');
  function updatePrivacyAudioDisclosure(){
   const voice=VOICES.find(item=>item.key===settings.voice)||VOICES[0];
   let host='مضيف التسجيل الخارجي';
   try{host=new URL(voice.url).hostname}catch(_e){}
-  audioPrivacyFact.description.textContent='يُجلب التسجيل المختار مباشرة من '+host+' عبر HTTPS؛ ويمكن لهذا المضيف رؤية عنوان IP الخاص بالاتصال.';
+  audioPrivacyFact.description.textContent='يُحمّل التسجيل الذي تختاره مباشرةً من '+host+' عبر HTTPS. ويمكن لمضيف التسجيل الاطلاع على عنوان IP الخاص بالاتصال.';
  }
  updatePrivacyAudioDisclosure();
- addPrivacyFact('إعدادات الأذان','تُحفظ الدولة والمدينة والصوت ومستوى الصوت وحالة التشغيل والمنطقة الزمنية في localStorage على هذا الجهاز دون تشفير إضافي.','محلي غير مشفّر','plain');
- addPrivacyFact('الحساب الشخصي','لا يتطلب قسم الأذان حسابًا أو بريدًا إلكترونيًا، ولا ينشئ ملفًا شخصيًا للمستخدم.','دون حساب','local');
- addPrivacyFact('حماية الاتصال','HTTPS يشفر البيانات أثناء النقل إلى الخدمة، لكنه لا يخفي عنوان IP عن المضيف ولا يعني أن ملف الصوت مخزن بتشفير مستقل.','تشفير النقل','secure');
- const privacyFootnote=el('small','anwar-prayer-privacy-footnote','هذه اللوحة تصف قسم الأذان في نسخته الحالية فقط؛ وليست شهادة تدقيق أمني مستقل أو ادعاءً بأن جميع اتصالات الموقع محلية.');
+ addPrivacyFact('إعدادات الأذان','يحفظ القسم الدولة والمدينة والتسجيل ومستوى الصوت وحالة التشغيل والمنطقة الزمنية في التخزين المحلي (localStorage) على جهازك، من دون تشفير إضافي.','محفوظة محليًا','plain');
+ addPrivacyFact('الحساب الشخصي','لا يتطلب استخدام قسم الأذان إنشاء حساب أو إدخال بريد إلكتروني، ولا ينشئ ملفًا شخصيًا للمستخدم.','دون حساب','local');
+ addPrivacyFact('حماية الاتصال','يشفّر HTTPS البيانات أثناء انتقالها إلى الخدمة، لكنه لا يخفي عنوان IP عن المضيف، ولا يعني أن ملف الصوت نفسه مخزّن بتشفير مستقل.','تشفير أثناء النقل','secure');
+ const privacyFootnote=el('small','anwar-prayer-privacy-footnote','توضح هذه اللوحة طريقة عمل قسم الأذان في نسخته الحالية فقط. وهي ليست تدقيقًا أمنيًا مستقلًا، ولا تعني أن جميع اتصالات مفكرة أنوار تتم محليًا.');
  infoDetails.append(infoSummary,privacyLine,privacyList,privacyFootnote);
  const details=el('details','anwar-prayer-settings');
  const summary=el('summary','','إعدادات المواقيت والأذان');
