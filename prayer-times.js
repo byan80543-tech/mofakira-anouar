@@ -226,7 +226,6 @@
  showNextPrayerPlaceholder('بانتظار المواقيت');
  const timesGrid=el('div','anwar-prayer-times');
  const dateLine=el('div','anwar-prayer-date','جارٍ تحميل المواقيت…');
- const privacyLine=el('small','anwar-prayer-note','لا نطلب موقعك الدقيق؛ تحقّق من المدينة المحددة.');
  const infoDetails=el('details','anwar-prayer-info');
  const infoSummary=el('summary');
  const privacyIcon=el('span','anwar-prayer-privacy-icon');
@@ -257,7 +256,7 @@
  addPrivacyFact('الحساب','لا يلزم حساب أو بريد إلكتروني.','دون حساب','local');
  addPrivacyFact('الاتصال','يشفّر HTTPS البيانات أثناء النقل، لكنه لا يخفي عنوان IP ولا يشفّر الملف المخزّن.','تشفير أثناء النقل','secure');
  const privacyFootnote=el('small','anwar-prayer-privacy-footnote','بيان موجز عن النسخة الحالية، وليس تدقيقًا أمنيًا مستقلًا.');
- infoDetails.append(infoSummary,privacyLine,privacyList,privacyFootnote);
+ infoDetails.append(infoSummary,privacyList,privacyFootnote);
  const details=el('details','anwar-prayer-settings');
  const summary=el('summary','','الإعدادات');
  const fields=el('div','anwar-prayer-fields');
@@ -281,16 +280,15 @@
  const backgroundPermissionWrap=el('div','anwar-prayer-permission-wrap');
  const backgroundPermissionButton=el('button','anwar-prayer-background-access');
  backgroundPermissionButton.type='button';
- backgroundPermissionButton.setAttribute('aria-label','تفعيل الأذان خارج التطبيق');
- backgroundPermissionButton.title='تفعيل الأذان بعد إغلاق المفكرة';
+ backgroundPermissionButton.setAttribute('aria-label','تفعيل الأذان بالخلفية');
+ backgroundPermissionButton.title='تشغيل الأذان بعد إغلاق المفكرة';
   backgroundPermissionButton.setAttribute('data-anwar-prayer-permission','true');
  const backgroundPermissionIcon=el('span','anwar-prayer-access-icon');
  backgroundPermissionIcon.setAttribute('aria-hidden','true');
  backgroundPermissionIcon.innerHTML='<svg viewBox="0 0 24 24"><circle cx="12" cy="14" r="7.5"></circle><path d="M12 10v4l2.5 1.5M5 3 2.5 5.5M19 3l2.5 2.5M8 21l-1 1.5M16 21l1 1.5"></path></svg>';
- const backgroundPermissionText=el('span','','تفعيل الأذان خارج التطبيق');
+ const backgroundPermissionText=el('span','','تفعيل الأذان بالخلفية');
  backgroundPermissionButton.append(backgroundPermissionIcon,backgroundPermissionText);
- const backgroundPermissionHint=el('small','anwar-prayer-permission-hint','للاستمرار بعد إغلاق المفكرة، استخدم تطبيق Android.');
- backgroundPermissionWrap.append(backgroundPermissionButton,backgroundPermissionHint);
+ backgroundPermissionWrap.append(backgroundPermissionButton);
  const volumeWrap=el('label','anwar-prayer-volume');
  const volumeLabel=el('span','','مستوى الصوت');
  const volumeInput=el('input');volumeInput.type='range';volumeInput.min='0';volumeInput.max='1';volumeInput.step='0.05';volumeInput.value=String(settings.volume);
@@ -557,9 +555,8 @@
   const token=++loadToken;
   loading=true;
   if(!silent){
-   setStatus('جارٍ تحديث مواقيت الصلاة…');
    dateLine.textContent='جارٍ تحميل المواقيت…';dateLine.dataset.state='loading';
-   showNextPrayerPlaceholder('جارٍ تحديث مواقيت الصلاة');
+   showNextPrayerPlaceholder('جارٍ التحديث…');
   }
   refreshButton.disabled=true;
   try{
@@ -586,7 +583,7 @@
    const nativeBridgeReady=syncNativeBackground();
    if(!silent){
     if(settings.enabled&&nativeBridgeReady)setStatus('تم تحديث المواقيت ومزامنة الأذان.');
-    else if(settings.enabled)setStatus('تم تحديث المواقيت. استخدم تطبيق Android للتشغيل بعد الإغلاق.');
+    else if(settings.enabled)setStatus('تم تحديث المواقيت.');
     else setStatus('تم تحديث المواقيت.');
    }
    tick();
@@ -595,7 +592,7 @@
     if(!todayData){
      dateLine.textContent=fallbackDateLabel()||'التاريخ المحلي';
      dateLine.dataset.state='fallback';
-     showNextPrayerPlaceholder('تعذّر التحميل؛ تحقّق من المدينة والاتصال.');
+     showNextPrayerPlaceholder('—');
     }
     setStatus(error&&error.message?error.message:'تعذّر تحديث المواقيت.');
    }
@@ -633,7 +630,7 @@
  backgroundPermissionButton.addEventListener('click',()=>{
   const bridge=window.AnwarAdhanBridge;
   if(!bridge||typeof bridge.postMessage!=='function'){
-   setStatus('لتفعيل الأذان بعد الإغلاق، افتح مفكرة أنوار في تطبيق Android.');
+   setStatus('افتح مفكرة أنوار في تطبيق Android لتفعيل الأذان بالخلفية.');
    return;
   }
   settings.enabled=true;
@@ -650,7 +647,7 @@
   const nativeBridgeReady=syncNativeBackground();
   if(settings.enabled){
    if(nativeBridgeReady)setStatus('تمت مزامنة إعدادات الأذان مع التطبيق.');
-   else setStatus('يعمل الأذان ما دامت الصفحة مفتوحة.');
+   else setStatus('الأذان يعمل في الصفحة المفتوحة فقط.');
   }else{
    if(!audio.paused)audio.pause();
    setStatus('تم إيقاف الأذان التلقائي.');
