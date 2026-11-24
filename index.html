@@ -5002,5 +5002,38 @@ dialog[open]>.float-head{display:none!important}
 }
 </style>
 
+<style id="anwar-tasbih-adhkar-word-only-v1">
+/* زخرفة كلمة «أذكارك» وحدها: عنوان صغير محاط بخطين من إطار الزخرفة */
+#rd #tasbihPanel #tasbihDhikrToggle > span:nth-of-type(1){
+ display:flex!important;flex:1 1 auto!important;align-items:center!important;
+ justify-content:center!important;gap:10px!important;
+ color:var(--tasbih-text,#214b3c)!important;
+ font-family:Cairo,Tahoma,sans-serif!important;
+ font-size:14px!important;font-style:normal!important;font-weight:600!important;line-height:1.3!important;
+ letter-spacing:0!important;text-align:center!important;
+ text-shadow:0 1px 0 rgba(255,255,255,.62)!important;
+}
+#rd #tasbihPanel #tasbihDhikrToggle > span:nth-of-type(1)::before,
+#rd #tasbihPanel #tasbihDhikrToggle > span:nth-of-type(1)::after{
+ content:"";display:block;flex:0 1 22px;min-width:8px;max-width:22px;
+ height:1px;border-radius:2px;opacity:.76;
+}
+#rd #tasbihPanel #tasbihDhikrToggle > span:nth-of-type(1)::before{
+ background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--tasbih-accent,#b8944b) 78%,transparent));
+}
+#rd #tasbihPanel #tasbihDhikrToggle > span:nth-of-type(1)::after{
+ background:linear-gradient(90deg,color-mix(in srgb,var(--tasbih-accent,#b8944b) 78%,transparent),transparent);
+}
+@media(max-width:390px){
+ #rd #tasbihPanel #tasbihDhikrToggle > span:nth-of-type(1){
+  gap:7px!important;font-size:13px!important;font-style:normal!important;
+ }
+ #rd #tasbihPanel #tasbihDhikrToggle > span:nth-of-type(1)::before,
+ #rd #tasbihPanel #tasbihDhikrToggle > span:nth-of-type(1)::after{
+  flex-basis:15px;max-width:15px;
+ }
+}
+</style>
+
 </body>
 </html>
