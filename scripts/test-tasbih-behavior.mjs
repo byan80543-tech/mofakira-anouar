@@ -101,18 +101,23 @@ function buildApp(options={}){
   set(section,value){state={...state,[section]:clone(value)};for(const listener of listeners)listener(clone(state));return clone(state)},
   subscribe(listener){listeners.add(listener);listener(clone(state));return ()=>listeners.delete(listener)}
  };
+ const documentListeners=new Map(),windowListeners=new Map();
  const document={
-  readyState:'complete',
+  readyState:'complete',visibilityState:'visible',
   getElementById(id){return nodes[id]||null},
   createElement(tag){return new FakeElement('',tag)},
-  addEventListener(){}
+  addEventListener(type,handler){const list=documentListeners.get(type)||[];list.push(handler);documentListeners.set(type,list)}
  };
  const recognitions=[];
- const timers=new Map(),intervals=new Map();
+ const timers=new Map(),intervals=new Map(),frames=new Map();
  let timerSequence=0;
  let fakeNow=options.now??Date.UTC(2026,10,23,10,0,0);
  class MockDate extends Date{constructor(...args){super(...(args.length?args:[fakeNow]))}static now(){return fakeNow}}
- function advanceTime(milliseconds){let remaining=Math.max(0,milliseconds);while(remaining>0){const step=Math.min(1000,remaining);fakeNow+=step;remaining-=step;for(const timer of intervals.values())timer.callback()}}
+ function runFrames(){const batch=[...frames.entries()];frames.clear();for(const [,callback] of batch)callback(fakeNow)}
+ function advanceFrames(count){for(let i=0;i<count;i++){fakeNow+=16;runFrames()}}
+ function advanceTime(milliseconds){let remaining=Math.max(0,milliseconds);while(remaining>0){const step=Math.min(16,remaining);fakeNow+=step;remaining-=step;runFrames();for(const timer of intervals.values())timer.callback()}}
+ function setVisibility(state){document.visibilityState=state;for(const handler of documentListeners.get('visibilitychange')||[])handler()}
+ function fireWindowEvent(type){for(const handler of windowListeners.get(type)||[])handler()}
  function flushTimers(){
   while(timers.size){
    const [id,timer]=timers.entries().next().value;
@@ -127,25 +132,29 @@ function buildApp(options={}){
  }
  const sandbox={
   document,window:null,globalThis:null,Date:MockDate,AnwarPrivatePreferences:preferences,
-  requestAnimationFrame(callback){callback()},
+  requestAnimationFrame(callback){const id=++timerSequence;frames.set(id,callback);return id},
+  cancelAnimationFrame(id){frames.delete(id)},
   confirm(){return true},
   console:{warn(){},error(){}},
   setTimeout(callback,delay){const id=++timerSequence;timers.set(id,{callback,delay});return id},
   clearTimeout(id){timers.delete(id)},
   setInterval(callback,delay){const id=++timerSequence;intervals.set(id,{callback,delay});return id},
   clearInterval(id){intervals.delete(id)},
-  addEventListener(){},
+  addEventListener(type,handler){const list=windowListeners.get(type)||[];list.push(handler);windowListeners.set(type,list)},
   SpeechRecognition:options.noRecognition?undefined:MockSpeechRecognition
  };
  sandbox.window=sandbox;sandbox.globalThis=sandbox;
  vm.runInNewContext(officialAdhkar,sandbox,{timeout:3000});
  vm.runInNewContext(controller,sandbox,{timeout:3000});
- return {nodes,preferences,get state(){return clone(state)},recognitions,sandbox,flushTimers,advanceTime,get pendingTimers(){return [...timers.values()]}};
+ return {nodes,preferences,get state(){return clone(state)},recognitions,sandbox,flushTimers,advanceTime,advanceFrames,setVisibility,fireWindowEvent,get pendingFrames(){return frames.size},get pendingTimers(){return [...timers.values()]}};
 }
 function count(app){return app.state.tasbih.count}
 
 const timedClock=buildApp({now:Date.UTC(2026,10,23,10,0,0)});
 assert.equal(timedClock.nodes.tasbihElapsedTime.textContent,'٠٠:٠٠:٠٠','the session clock starts at zero');
+assert.equal(timedClock.pendingFrames,0,'the animation loop does not run while the tasbih panel is closed');
+timedClock.sandbox.AnwarTasbihController.open();
+assert.ok(timedClock.pendingFrames>0,'opening the tasbih starts the live animation-frame loop');
 const initialMinuteAngle=timedClock.nodes.tasbihMinuteHand.style.transform;
 timedClock.nodes.tasbihCounterControl.click();
 timedClock.advanceTime(61000);
@@ -156,13 +165,41 @@ timedClock.nodes.tasbihReset.click();
 assert.equal(timedClock.nodes.tasbihElapsedTime.textContent,'٠٠:٠٠:٠٠','reset clears the counter and session duration');
 const restoredClock=buildApp({initialCount:6,initialDhikr:'سبحان الله',initialElapsedMs:90000});
 assert.equal(restoredClock.nodes.tasbihElapsedTime.textContent,'٠٠:٠١:٣٠','the previous encrypted session duration is restored on reopening');
+restoredClock.sandbox.AnwarTasbihController.open();
 restoredClock.nodes.tasbihCounterControl.click();
 restoredClock.advanceTime(3000);
 assert.equal(restoredClock.nodes.tasbihElapsedTime.textContent,'٠٠:٠١:٣٣','a resumed tasbih session continues from its saved duration');
 restoredClock.sandbox.AnwarTasbihController.close();
 const pausedElapsed=restoredClock.nodes.tasbihElapsedTime.textContent;
+assert.equal(restoredClock.pendingFrames,0,'closing the tasbih cancels its pending animation frame');
 restoredClock.advanceTime(5000);
 assert.equal(restoredClock.nodes.tasbihElapsedTime.textContent,pausedElapsed,'leaving the tasbih page pauses its elapsed-time clock');
+
+const sweepClock=buildApp({now:Date.UTC(2026,10,23,10,0,0)});
+sweepClock.sandbox.AnwarTasbihController.open();
+const sweepInitial=sweepClock.nodes.tasbihSecondHand.style.transform;
+const minuteInitial=sweepClock.nodes.tasbihMinuteHand.style.transform;
+const hourInitial=sweepClock.nodes.tasbihHourHand.style.transform;
+sweepClock.advanceFrames(1);
+const sweepOneFrame=sweepClock.nodes.tasbihSecondHand.style.transform;
+const minuteOneFrame=sweepClock.nodes.tasbihMinuteHand.style.transform;
+const hourOneFrame=sweepClock.nodes.tasbihHourHand.style.transform;
+sweepClock.advanceFrames(1);
+const sweepTwoFrames=sweepClock.nodes.tasbihSecondHand.style.transform;
+assert.notEqual(sweepOneFrame,sweepInitial,'the second hand moves on the first animation frame');
+assert.notEqual(sweepTwoFrames,sweepOneFrame,'the second hand advances smoothly between consecutive animation frames');
+assert.notEqual(minuteOneFrame,minuteInitial,'the minute hand also advances between animation frames');
+assert.notEqual(hourOneFrame,hourInitial,'the hour hand also advances between animation frames');
+sweepClock.setVisibility('hidden');
+assert.equal(sweepClock.pendingFrames,0,'hiding the browser tab cancels the animation frame loop');
+sweepClock.advanceTime(1000);
+const hiddenHandAngle=sweepClock.nodes.tasbihSecondHand.style.transform;
+sweepClock.setVisibility('visible');
+assert.ok(sweepClock.pendingFrames>0,'returning to a visible tab resumes the clock animation');
+sweepClock.advanceFrames(1);
+assert.notEqual(sweepClock.nodes.tasbihSecondHand.style.transform,hiddenHandAngle,'the clock catches up to device time when the tab becomes visible');
+sweepClock.fireWindowEvent('pagehide');
+assert.equal(sweepClock.pendingFrames,0,'pagehide cancels the running animation frame');
 
 const counterInput=buildApp();
 counterInput.nodes.tasbihCounterControl.click();
