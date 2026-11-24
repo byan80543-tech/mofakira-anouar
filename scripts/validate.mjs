@@ -109,7 +109,7 @@ ok(tasbihController.includes("hourHand.style.transform='translateX(-50%) rotate(
 const clockDialStart=html.indexOf('<div class="tasbih-clock-dial"');
 const clockDialEnd=html.indexOf('\n      </div>\n      <div class="tasbih-elapsed-readout"',clockDialStart);
 ok(clockDialStart>=0 && clockDialEnd>clockDialStart && html.slice(clockDialStart,clockDialEnd).includes('id="tasbihCounterControl"'), 'the live tasbih count is centered inside the analog clock dial');
-ok(tasbihController.includes('function updateClockUi(now)') && tasbihController.includes('window.setInterval(') && tasbihController.includes('elapsedMs:currentElapsedMs()'), 'clock hands follow local time and elapsed session duration is saved through encrypted preferences');
+ok(tasbihController.includes('function updateClockUi(now)') && tasbihController.includes('function animateClockFrame()') && tasbihController.includes('requestClockFrame(animateClockFrame)') && tasbihController.includes('elapsedMs:currentElapsedMs()'), 'clock hands follow local time and elapsed session duration is saved through encrypted preferences');
 const tasbihScript=htmlAudit.script_sources.find(src=>src.startsWith('./tasbih-controller.js?v='));
 ok(!!tasbihScript && serviceWorker.includes("'./tasbih-controller.js'") && /const CACHE_NAME='anwar-shell-[0-9]{4}-[0-9]{2}-[0-9]{2}-v[0-9]+';/.test(serviceWorker), 'standalone tasbih controller is versioned and precached for offline use');
 ok(htmlAudit.script_sources.some(src=>src.startsWith('./poetry-dictation.js')) && serviceWorker.includes("'./poetry-dictation.js'") && appCore.includes('window.AnwarPoetryDictation'), 'poetry dictation controller is versioned and precached for offline use');
