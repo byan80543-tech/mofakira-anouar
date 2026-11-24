@@ -5064,5 +5064,32 @@ dialog[open]>.float-head{display:none!important}
  display:none!important;
 }
 </style>
+
+<style id="anwar-vault-title-frame-v1">
+/* تحسين عنوان خزنة أنوار فقط: خط Cairo وإطار أزرق وذهبي */
+#vaultGate #vaultTitle{
+  display:table;
+  width:fit-content;
+  max-width:100%;
+  margin:0 auto 12px;
+  padding:7px 18px 9px;
+  border:1px solid transparent;
+  border-radius:12px;
+  background:
+    linear-gradient(#fff,#fff) padding-box,
+    linear-gradient(115deg,#2f6599 0%,#d9bd7b 52%,#2f6599 100%) border-box;
+  color:#192b43;
+  font-family:Cairo,Tahoma,sans-serif;
+  font-size:21px;
+  font-weight:800;
+  line-height:1.5;
+  letter-spacing:0;
+  box-shadow:0 3px 10px rgba(36,84,141,.08),inset 0 1px 0 rgba(255,255,255,.9);
+}
+@media(max-width:380px){
+  #vaultGate #vaultTitle{font-size:19px;padding:6px 14px 7px}
+}
+</style>
+
 </body>
 </html>
