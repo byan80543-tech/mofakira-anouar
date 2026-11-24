@@ -4966,5 +4966,18 @@ dialog[open]>.float-head{display:none!important}
 }
 </style>
 
+
+<style id="anwar-tasbih-reset-interaction-v1">
+/* Keep the reset controls above the full-face layer so taps reach the buttons. */
+#rd #tasbihPanel .tasbih-reset-housing{
+ z-index:9!important;pointer-events:auto!important;
+}
+#rd #tasbihPanel .tasbih-reset-housing #tasbihReset,
+#rd #tasbihPanel .tasbih-reset-housing .tasbih-minus-control{
+ position:relative!important;z-index:10!important;
+ pointer-events:auto!important;cursor:pointer!important;
+}
+</style>
+
 </body>
 </html>
