@@ -160,11 +160,13 @@
   function updateClockUi(now){
    const stamp=Number.isFinite(now)?now:Date.now();
    const date=new Date(stamp);
-   const seconds=date.getSeconds()+date.getMilliseconds()/1000;
-   const minutes=date.getMinutes()+seconds/60;
+   const seconds=date.getSeconds();
+   const fractionalSeconds=seconds+date.getMilliseconds()/1000;
+   const minutes=date.getMinutes()+fractionalSeconds/60;
    const hours=(date.getHours()%12)+minutes/60;
    const hourDeg=hours*30;
    const minuteDeg=minutes*6;
+   // عقرب الثواني يقفز ست درجات مرة واحدة مع كل ثانية كاملة.
    const secondDeg=seconds*6;
    hourHand.setAttribute('transform','rotate('+hourDeg+' 50 50)');
    minuteHand.setAttribute('transform','rotate('+minuteDeg+' 50 50)');
