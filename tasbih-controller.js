@@ -496,7 +496,7 @@
    const bead=document.createElement('span');
    bead.className='anwar-tasbih-bead';
    bead.style.setProperty('--bead-index',String(index));
-   const beadRadius=41;
+   const beadRadius=27.5;
    const angle=(index/33)*Math.PI*2-Math.PI/2;
    bead.dataset.ringIndex=String(index);
    bead.style.left=(64+beadRadius*Math.cos(angle)).toFixed(3)+'%';
