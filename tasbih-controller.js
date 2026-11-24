@@ -473,7 +473,7 @@
    customStatus.textContent='تمت الإضافة.';
   }
   function openPanel(){
-   if(!panel.hidden)return true;
+   if(!panel.hidden){startClockAnimation();return true}
    panel.hidden=false;
    startClockAnimation();
    requestAnimationFrame(()=>{
@@ -522,7 +522,8 @@
 
   // The service dashboard opens this standalone panel directly; its counter and preferences remain independent.
 
-  themeToggle.addEventListener('click',()=>{
+  themeToggle.addEventListener('click',event=>{
+   event.preventDefault();event.stopPropagation();
    themePicker.hidden=!themePicker.hidden;
    themeToggle.setAttribute('aria-expanded',themePicker.hidden?'false':'true');
   });
@@ -535,16 +536,16 @@
   setDhikrListOpen(false);
   // The oval number itself is an accessible tap target as well as the dedicated button.
   counterTap.setAttribute('aria-label','زيادة التسبيح');
-  counterTap.addEventListener('click',()=>add(1));
+  counterTap.addEventListener('click',event=>{event.stopPropagation();add(1)});
   counterTap.addEventListener('keydown',event=>{
    if(event.key==='Enter'||event.key===' '){
     event.preventDefault();
     add(1);
    }
   });
-  tap.addEventListener('click',()=>add(1));
-  minus.addEventListener('click',()=>add(-1));
-  reset.addEventListener('click',()=>{count=0;resetSessionClock();saveAndUpdate()});
+  tap.addEventListener('click',event=>{event.stopPropagation();add(1)});
+  minus.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();add(-1)});
+  reset.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();count=0;resetSessionClock();saveAndUpdate()});
   customAdd.addEventListener('click',event=>{event.stopPropagation();addCustomDhikr()});
   customInput.addEventListener('click',event=>event.stopPropagation());
   customInput.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();event.stopPropagation();addCustomDhikr()}});
@@ -786,6 +787,7 @@
    pauseSessionClock();
   });
   window.addEventListener('pageshow',()=>{if(!panel.hidden)startClockAnimation()});
+  window.addEventListener('focus',()=>{if(!panel.hidden)startClockAnimation()});
 
   if(preferences&&typeof preferences.subscribe==='function'){
    preferences.subscribe(saved=>{
@@ -815,6 +817,7 @@
    open(){
     if(!window.__ANWAR_TASBIH_CONTROLLER_READY__)return false;
     if(panel.hidden)openPanel();
+    else startClockAnimation();
     return !panel.hidden;
    },
    close(){closePanel(false);return panel.hidden}
