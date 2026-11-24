@@ -3223,6 +3223,45 @@ dialog[open]>.float-head{display:none!important}
 }
 #rd #tasbihPanel .tasbih-clock-dial .tasbih-count-tap{z-index:8!important}
 </style>
+<style id="anwar-tasbih-pearl-bezel-v1">
+/* حلقة سبحة كاملة من 33 حبة عقيق ذهبي مصقول حول ميناء الساعة */
+#rd #tasbihPanel .anwar-tasbih-beads{
+ position:absolute!important;inset:0!important;z-index:3!important;
+ display:block!important;pointer-events:none!important;overflow:visible!important;
+}
+#rd #tasbihPanel .anwar-tasbih-beads::before{
+ content:"";position:absolute;top:42%;left:64%;width:82%;height:82%;
+ transform:translate(-50%,-50%);border:1px solid rgba(172,129,48,.46);
+ border-radius:50%;box-shadow:0 0 6px rgba(190,151,74,.15);
+ pointer-events:none;
+}
+#rd #tasbihPanel .anwar-tasbih-bead{
+ position:absolute!important;margin:0!important;
+ width:clamp(10px,3.15vw,14px)!important;height:clamp(10px,3.15vw,14px)!important;
+ border:1px solid #a9792b!important;border-radius:50%!important;
+ background:radial-gradient(circle at 27% 21%,#fffef3 0 7%,#fff0bd 15%,#e9c777 34%,#c18f40 68%,#78501e 100%)!important;
+ box-shadow:inset 1px 1.2px 2px rgba(255,255,235,.98),inset -1px -1.5px 2.5px rgba(103,65,18,.34),0 1.5px 4px rgba(65,44,14,.34)!important;
+ transform:translate(-50%,-50%)!important;
+}
+#rd #tasbihPanel .anwar-tasbih-bead.is-counted{
+ filter:brightness(1.13) saturate(1.12)!important;
+ box-shadow:0 0 0 2px rgba(221,187,112,.55),0 0 7px rgba(200,159,76,.42),inset 1px 1.2px 2px rgba(255,255,235,.98)!important;
+}
+#rd #tasbihPanel .anwar-tasbih-bead.is-current{scale:1.2}
+/* تصغير قرص العدد مع الحفاظ على مركزه الدقيق وإفساح مجال أكبر للعقارب */
+#rd #tasbihPanel .tasbih-clock-dial .tasbih-count-tap{
+ width:21%!important;height:21%!important;min-width:0!important;min-height:0!important;
+ border-width:1.5px!important;
+}
+#rd #tasbihPanel .tasbih-clock-dial .tasbih-count-tap strong{
+ font-size:clamp(24px,6.8vw,33px)!important;line-height:1!important;
+}
+/* توحيد نصف قطر الأرقام وإبعادها قليلاً عن تدريجات الدقائق */
+#rd #tasbihPanel .tasbih-number-text{
+ top:5.2%!important;min-width:20px!important;
+ font-size:clamp(12px,3.35vw,15px)!important;line-height:1!important;
+}
+</style>
 </head>
 <body>
 <div class="app" id="app">
@@ -3604,8 +3643,9 @@ dialog[open]>.float-head{display:none!important}
           <path d="M50 12 C49.65 22 49.7 38 49.82 46" fill="none" stroke="#b9d0bb" stroke-width=".24" stroke-linecap="round" opacity=".7"/>
          </g>
          <g id="tasbihSecondHand" class="tasbih-svg-hand" transform="rotate(0 50 50)">
-          <path d="M50 4.5 L50 60" fill="none" stroke="url(#tasbihSecondHandGradient)" stroke-width=".72" stroke-linecap="round"/>
-          <circle cx="50" cy="59" r="1.25" fill="#b18435" stroke="#79551e" stroke-width=".25"/>
+          <path d="M50 5 L50 58" fill="none" stroke="url(#tasbihSecondHandGradient)" stroke-width="1.05" stroke-linecap="round"/>
+          <path d="M50 3 L47.7 10 L52.3 10Z" fill="#bf9141" stroke="#79551e" stroke-width=".28" stroke-linejoin="round"/>
+          <circle cx="50" cy="58" r="1.25" fill="#b18435" stroke="#79551e" stroke-width=".25"/>
          </g>
          <circle cx="50" cy="50" r="2.35" fill="url(#tasbihHandCenterGradient)" stroke="#174a35" stroke-width=".62"/>
          <circle cx="49.35" cy="49.25" r=".62" fill="#fff5d4" opacity=".9"/>
@@ -3822,7 +3862,7 @@ dialog[open]>.float-head{display:none!important}
 <script src="./adhkar-page-theme.js?v=20261121-2" defer></script>
 <script src="./ibtihalat-radio.js?v=20261121-1" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
-<script src="./tasbih-controller.js?v=20261124-78" defer></script>
+<script src="./tasbih-controller.js?v=20261124-79" defer></script>
 <script src="./prayer-times.js?v=20261123-1" defer></script>
 
 
