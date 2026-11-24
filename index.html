@@ -5002,5 +5002,44 @@ dialog[open]>.float-head{display:none!important}
 }
 </style>
 
+<style id="anwar-tasbih-integrated-adhkar-tab-v1">
+/* شارة أذكارك: جزء من إطار السبحة لا كتابة عائمة فوقه */
+#rd #tasbihPanel .tasbih-adhkar-picker{
+ box-sizing:border-box;display:grid;justify-items:center;gap:7px;
+ width:min(100%,360px);margin:18px auto 0;padding:0 9px 9px;
+ border:1px solid color-mix(in srgb,var(--tasbih-border,#c9ad78) 94%,#fff);
+ border-radius:16px;
+ background:linear-gradient(145deg,
+  color-mix(in srgb,var(--tasbih-surface,#fffaf0) 96%,transparent),
+  color-mix(in srgb,var(--tasbih-bg,#f5efdf) 88%,transparent));
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.72),0 2px 7px rgba(45,65,52,.045);
+}
+#rd #tasbihPanel .tasbih-adhkar-toggle{
+ box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:8px;
+ width:fit-content;min-width:126px;max-width:100%;min-height:32px;
+ margin:-16px auto 0;padding:3px 12px 4px;
+ border:1px solid var(--tasbih-border,#c9ad78)!important;border-radius:11px;
+ background:linear-gradient(180deg,var(--tasbih-surface,#fffaf0),var(--tasbih-bg,#f5efdf))!important;
+ color:var(--tasbih-text,#214b3c)!important;
+ font:600 15px/1.2 Amiri,serif!important;letter-spacing:.08px;
+ box-shadow:0 2px 5px rgba(42,61,49,.09),inset 0 1px 0 rgba(255,255,255,.8)!important;
+}
+#rd #tasbihPanel .tasbih-adhkar-toggle>span:nth-of-type(1){flex:none;text-align:center}
+#rd #tasbihPanel .tasbih-adhkar-chevron{width:21px;height:21px;font-size:16px}
+#rd #tasbihPanel .tasbih-adhkar-list{box-sizing:border-box;width:100%;margin-top:1px}
+#rd #tasbihPanel .tasbih-adhkar-toggle:focus-visible{
+ outline:2px solid var(--tasbih-accent,#b8944b);outline-offset:3px
+}
+#rd #tasbihPanel .tasbih-adhkar-toggle[aria-expanded="true"]{
+ border-color:var(--tasbih-accent,#b8944b)!important;
+ box-shadow:0 0 0 2px color-mix(in srgb,var(--tasbih-accent,#b8944b) 16%,transparent),inset 0 1px 0 rgba(255,255,255,.8)!important;
+}
+@media(max-width:390px){
+ #rd #tasbihPanel .tasbih-adhkar-picker{width:min(100%,320px);padding-inline:7px;padding-bottom:8px}
+ #rd #tasbihPanel .tasbih-adhkar-toggle{min-height:30px;min-width:118px;font-size:14px!important;padding:3px 10px}
+ #rd #tasbihPanel .tasbih-adhkar-chevron{width:19px;height:19px;font-size:15px}
+}
+</style>
+
 </body>
 </html>
