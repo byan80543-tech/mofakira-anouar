@@ -3575,8 +3575,8 @@ dialog[open]>.float-head{display:none!important}
     </div>
     <div class="anwar-tasbih-stage anwar-tasbih-sixth-stage" aria-label="عداد السبحة">
      <div class="anwar-tasbih-beads" id="tasbihBeads" aria-hidden="true"></div>
-     <div class="anwar-tasbih-tassel" aria-hidden="true"></div>
-     <div class="anwar-tasbih-counter anwar-tasbih-sixth-face" aria-label="قرص الساعة والعداد">
+     <div class="anwar-tasbih-tassel" aria-hidden="true"><span class="tasbih-tassel-thread"></span></div>
+     <div class="anwar-tasbih-sixth-face" aria-label="قرص الساعة والعداد">
       <div id="tasbihPhrase" class="tasbih-selected-phrase" aria-live="polite">أستغفر الله العظيم وأتوب إليه</div>
       <div class="tasbih-clock-dial" id="tasbihClockDial" role="group" aria-label="ساعة تناظرية وعداد التسبيح">
        <div class="tasbih-clock-marks" id="tasbihClockTicks" aria-hidden="true"></div>
@@ -3651,7 +3651,7 @@ dialog[open]>.float-head{display:none!important}
          <circle cx="49.35" cy="49.25" r=".62" fill="#fff5d4" opacity=".9"/>
         </svg>
        </div>
-       <button type="button" id="tasbihCounterControl" class="tasbih-count-tap" aria-label="زيادة عداد التسبيح">
+       <button type="button" id="tasbihCounterControl" class="tasbih-count-tap anwar-tasbih-counter" aria-label="زيادة عداد التسبيح">
         <strong id="tasbihCount">0</strong>
        </button>
       </div>
@@ -3862,7 +3862,7 @@ dialog[open]>.float-head{display:none!important}
 <script src="./adhkar-page-theme.js?v=20261121-2" defer></script>
 <script src="./ibtihalat-radio.js?v=20261121-1" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
-<script src="./tasbih-controller.js?v=20261124-79" defer></script>
+<script src="./tasbih-controller.js?v=20261124-80" defer></script>
 <script src="./prayer-times.js?v=20261123-1" defer></script>
 
 
@@ -4577,5 +4577,181 @@ dialog[open]>.float-head{display:none!important}
  #rd #tasbihPanel .tasbih-clock-hand{transition:none!important}
 }
 </style>
+
+<style id="anwar-tasbih-balanced-layout-v1">
+/* تخطيط السبحة المتوازن: ساعة في الوسط، عداد مستقل أسفلها، و33 خرزة على الحافة */
+#rd #tasbihPanel .anwar-tasbih-sixth-stage{
+ position:relative!important;isolation:isolate!important;display:block!important;
+ width:min(100%,430px)!important;max-width:430px!important;
+ aspect-ratio:1 / 1.22!important;min-height:0!important;
+ margin:8px auto 12px!important;overflow:visible!important;
+}
+#rd #tasbihPanel .anwar-tasbih-beads{
+ position:absolute!important;inset:0!important;z-index:3!important;
+ display:block!important;overflow:visible!important;pointer-events:none!important;
+}
+#rd #tasbihPanel .anwar-tasbih-beads::before{
+ content:"";position:absolute!important;left:50%!important;top:30.6%!important;
+ width:63%!important;height:auto!important;aspect-ratio:1/1!important;
+ transform:translate(-50%,-50%)!important;
+ border:1px solid rgba(172,129,48,.48)!important;border-radius:50%!important;
+ box-shadow:0 0 7px rgba(190,151,74,.16)!important;pointer-events:none!important;
+}
+#rd #tasbihPanel .anwar-tasbih-bead{
+ position:absolute!important;margin:0!important;
+ width:clamp(8px,2.2vw,10px)!important;height:clamp(8px,2.2vw,10px)!important;
+ border:1px solid #a9792b!important;border-radius:50%!important;
+ background:radial-gradient(circle at 27% 21%,#fffef3 0 7%,#fff0bd 15%,#e9c777 34%,#c18f40 68%,#78501e 100%)!important;
+ box-shadow:inset 1px 1.2px 2px rgba(255,255,235,.98),inset -1px -1.5px 2.5px rgba(103,65,18,.34),0 1.5px 4px rgba(65,44,14,.34)!important;
+ transform:translate(-50%,-50%)!important;
+}
+#rd #tasbihPanel .anwar-tasbih-bead.is-counted{
+ filter:brightness(1.13) saturate(1.12)!important;
+ box-shadow:0 0 0 2px rgba(221,187,112,.55),0 0 7px rgba(200,159,76,.42),inset 1px 1.2px 2px rgba(255,255,235,.98)!important;
+}
+#rd #tasbihPanel .anwar-tasbih-bead.is-current{scale:1.2}
+#rd #tasbihPanel .anwar-tasbih-sixth-face{
+ position:absolute!important;inset:0!important;top:0!important;left:0!important;
+ width:100%!important;height:100%!important;max-width:none!important;
+ transform:none!important;display:block!important;overflow:visible!important;
+ box-sizing:border-box!important;padding:0!important;margin:0!important;
+ border:0!important;outline:0!important;border-radius:0!important;
+ background:transparent!important;box-shadow:none!important;
+ color:var(--tasbih-text,#164b39)!important;z-index:4!important;cursor:default!important;
+}
+#rd #tasbihPanel .anwar-tasbih-sixth-face::before{display:none!important;content:none!important}
+#rd #tasbihPanel .tasbih-clock-dial{
+ position:absolute!important;top:6%!important;left:50%!important;
+ width:60%!important;max-width:none!important;height:auto!important;aspect-ratio:1/1!important;
+ transform:translateX(-50%)!important;overflow:visible!important;z-index:4!important;
+ border:2px solid #b99245!important;border-radius:50%!important;
+ background:radial-gradient(circle at 50% 42%,#fffef9 0 58%,#f8f0df 73%,#e8d9b7 100%)!important;
+ box-shadow:inset 0 0 0 3px #fffdf4,inset 0 0 0 6px rgba(185,146,69,.30),inset 0 0 15px rgba(119,91,39,.10),0 4px 10px rgba(64,48,23,.18)!important;
+}
+#rd #tasbihPanel .tasbih-clock-dial::before{
+ content:"";position:absolute;inset:8px;z-index:0;
+ border:1px solid rgba(179,143,68,.58);border-radius:50%;pointer-events:none;
+}
+#rd #tasbihPanel .tasbih-clock-marks,
+#rd #tasbihPanel .tasbih-clock-numbers,
+#rd #tasbihPanel .tasbih-clock-hands{
+ position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+ border-radius:50%!important;pointer-events:none!important;
+}
+#rd #tasbihPanel .tasbih-clock-marks{z-index:1!important}
+#rd #tasbihPanel .tasbih-clock-numbers{z-index:2!important}
+#rd #tasbihPanel .tasbih-clock-hands{z-index:5!important;overflow:visible!important}
+#rd #tasbihPanel .tasbih-clock-hands-svg{
+ position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+ display:block!important;overflow:visible!important;pointer-events:none!important;
+}
+#rd #tasbihPanel .tasbih-clock-hands-svg .tasbih-svg-hand{
+ display:inline!important;visibility:visible!important;opacity:1!important;
+}
+#rd #tasbihPanel #tasbihHourHand,
+#rd #tasbihPanel #tasbihMinuteHand,
+#rd #tasbihPanel #tasbihSecondHand{visibility:visible!important;opacity:1!important}
+#rd #tasbihPanel .tasbih-number-text{
+ top:14px!important;font:700 clamp(13px,3.6vw,17px)/1 Georgia,"Times New Roman",serif!important;
+ color:#173f30!important;
+}
+#rd #tasbihPanel .tasbih-clock-dial .tasbih-count-tap{
+ position:absolute!important;top:calc(100% + 12px)!important;left:50%!important;
+ z-index:12!important;transform:translateX(-50%)!important;
+ display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;
+ gap:8px!important;width:min(142px,45%)!important;min-width:112px!important;
+ height:50px!important;min-height:50px!important;margin:0!important;padding:3px 11px!important;
+ border:1.5px solid #b38a3b!important;border-radius:13px!important;
+ background:linear-gradient(145deg,#fffdf4,#f0e3c4)!important;
+ box-shadow:0 3px 9px rgba(82,61,24,.20),inset 0 1px 3px #fff!important;
+ color:#15513a!important;cursor:pointer!important;touch-action:manipulation!important;
+}
+#rd #tasbihPanel .tasbih-clock-dial .tasbih-count-tap strong{
+ position:static!important;display:block!important;z-index:1!important;
+ margin:0!important;padding:0!important;color:#15513a!important;
+ font:800 clamp(27px,7.6vw,34px)/1 Georgia,"Times New Roman",serif!important;
+ font-variant-numeric:tabular-nums!important;text-shadow:0 1px 0 #fff!important;
+}
+#rd #tasbihPanel .tasbih-clock-dial .tasbih-count-tap::after{
+ content:"تسبيحة";display:block!important;align-self:center!important;
+ color:#80622d!important;font:700 11px/1.4 Cairo,Tahoma,sans-serif!important;
+}
+#rd #tasbihPanel .tasbih-clock-dial .tasbih-count-tap:focus-visible{
+ outline:3px solid #c49b4a!important;outline-offset:3px!important;
+}
+#rd #tasbihPanel .tasbih-reset-housing{
+ position:absolute!important;top:72%!important;left:50%!important;
+ width:min(46%,196px)!important;height:10%!important;min-height:48px!important;
+ transform:translateX(-50%)!important;display:flex!important;
+ align-items:center!important;justify-content:center!important;
+ padding:0!important;box-sizing:border-box!important;
+ border:1px solid #c6a256!important;border-radius:999px!important;
+ background:linear-gradient(135deg,#176044 0%,#0b4938 65%,#07382d 100%)!important;
+ box-shadow:0 4px 10px rgba(17,61,45,.20),inset 0 1px 0 rgba(255,255,255,.2)!important;
+}
+#rd #tasbihPanel .tasbih-reset-housing #tasbihReset{
+ display:flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;
+ width:78%!important;height:72%!important;min-height:34px!important;
+ margin:0!important;padding:3px 9px!important;transform:none!important;
+ border:1px solid #c9a45e!important;border-radius:999px!important;
+ background:linear-gradient(145deg,#fffaf0,#eee0c2)!important;
+ color:#154b39!important;font:700 11px Cairo,Tahoma,sans-serif!important;
+ box-shadow:0 2px 5px rgba(4,37,26,.23)!important;
+}
+#rd #tasbihPanel .tasbih-reset-housing #tasbihReset svg{
+ display:block!important;width:15px!important;height:15px!important;fill:none!important;
+ stroke:currentColor!important;stroke-width:2!important;stroke-linecap:round!important;stroke-linejoin:round!important;
+}
+#rd #tasbihPanel .tasbih-reset-housing #tasbihReset span{display:inline!important;font-size:10px!important}
+#rd #tasbihPanel .tasbih-reset-housing .tasbih-minus-control{
+ position:absolute!important;left:-15px!important;top:50%!important;z-index:3!important;
+ display:grid!important;place-items:center!important;width:35px!important;height:35px!important;
+ min-height:35px!important;padding:0!important;transform:translateY(-50%)!important;
+ border:1px solid #c6a256!important;border-radius:50%!important;
+ background:linear-gradient(145deg,#fffaf0,#eee0c2)!important;color:#174c3a!important;
+ box-shadow:0 2px 5px rgba(4,37,26,.18)!important;
+}
+#rd #tasbihPanel .tasbih-reset-housing .tasbih-minus-control svg{
+ width:16px!important;height:16px!important;fill:none!important;stroke:currentColor!important;
+ stroke-width:2.3!important;stroke-linecap:round!important;stroke-linejoin:round!important;
+}
+#rd #tasbihPanel .anwar-tasbih-tassel{
+ position:absolute!important;left:23%!important;top:47%!important;z-index:5!important;
+ width:26px!important;height:62px!important;transform:rotate(-27deg)!important;
+ pointer-events:none!important;
+}
+#rd #tasbihPanel .anwar-tasbih-tassel .tasbih-tassel-thread{
+ position:absolute!important;top:-15px!important;left:11px!important;
+ width:2px!important;height:18px!important;border-radius:2px!important;
+ background:linear-gradient(90deg,#8b6228,#f0d58c,#9a702f)!important;
+ transform:rotate(9deg)!important;box-shadow:0 0 2px rgba(67,45,14,.35)!important;
+}
+#rd #tasbihPanel .anwar-tasbih-tassel::before{
+ content:"";position:absolute;top:0;left:10px;width:7px;height:13px;
+ border-radius:5px;background:linear-gradient(90deg,#8a5c1e,#e5c477,#704a19);
+ box-shadow:0 1px 2px rgba(55,38,12,.3);
+}
+#rd #tasbihPanel .anwar-tasbih-tassel::after{
+ content:"";position:absolute;top:10px;left:2px;width:24px;height:49px;
+ border-radius:3px 3px 50% 50%;
+ background:repeating-linear-gradient(100deg,#78501b 0 1px,#d9b45d 1px 2px,#9a6e2b 2px 3px);
+ clip-path:polygon(12% 0,88% 0,100% 72%,52% 100%,0 72%);
+ filter:drop-shadow(0 2px 2px rgba(44,31,10,.22));
+}
+@media(max-width:390px){
+ #rd #tasbihPanel .anwar-tasbih-sixth-stage{width:min(100%,390px)!important}
+ #rd #tasbihPanel .tasbih-clock-dial{width:60%!important;top:6%!important}
+ #rd #tasbihPanel .tasbih-number-text{top:12px!important;font-size:clamp(12px,3.5vw,15px)!important}
+ #rd #tasbihPanel .tasbih-reset-housing{width:min(50%,190px)!important;top:72%!important;height:10%!important}
+ #rd #tasbihPanel .tasbih-reset-housing #tasbihReset{min-height:32px!important;font-size:10px!important}
+ #rd #tasbihPanel .tasbih-clock-dial .tasbih-count-tap{min-width:108px!important;height:48px!important;min-height:48px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ #rd #tasbihPanel .tasbih-clock-hand,
+ #rd #tasbihPanel .tasbih-count-tap,
+ #rd #tasbihPanel .anwar-tasbih-bead{transition:none!important}
+}
+</style>
+
 </body>
 </html>
