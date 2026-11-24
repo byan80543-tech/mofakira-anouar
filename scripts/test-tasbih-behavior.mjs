@@ -289,7 +289,7 @@ const chooserStart=html.indexOf('id="tasbihDhikrListPanel"');
 const manualFieldAt=html.indexOf('class="tasbih-inner-dhikr-frame"',chooserStart);
 const counterFaceAt=html.indexOf('class="anwar-tasbih-counter anwar-tasbih-sixth-face"');
 assert.ok(manualFieldAt>chooserStart&&manualFieldAt<counterFaceAt,'manual dhikr input sits inside the opened selection list, not the clock face');
-assert.ok(controller.includes('const beadRadius=41;')&&controller.includes('(index/33)*Math.PI*2-Math.PI/2'),'the 33 beads are evenly distributed around a complete circular pearl ring');
+assert.ok(controller.includes('const beadRadius=27.5;')&&controller.includes('(index/33)*Math.PI*2-Math.PI/2'),'the 33 beads are evenly distributed around a complete circular pearl ring');
 const ringCoordinates=app.nodes.tasbihBeads.children.map(bead=>({x:Number.parseFloat(bead.style.left),y:Number.parseFloat(bead.style.top)}));
 assert.ok(ringCoordinates.every(point=>Number.isFinite(point.x)&&Number.isFinite(point.y)),'all 33 pearl beads receive valid circular coordinates');
 const ringRadii=ringCoordinates.map(point=>Math.hypot(point.x-64,point.y-42));
