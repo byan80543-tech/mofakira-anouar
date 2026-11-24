@@ -69,3 +69,35 @@
  #rd #anwarPrayerCard .anwar-prayer-time b{font-size:9px!important}
  #rd #anwarPrayerCard .anwar-prayer-time strong{font-size:11px!important}
 }
+
+
+/* Anwar Adhan privacy transparency panel */
+#rd #anwarPrayerCard .anwar-prayer-info summary .anwar-prayer-privacy-icon{
+ display:inline-grid;place-items:center;vertical-align:middle;width:25px;height:25px;margin-inline-end:7px;
+ border:1px solid #c9a96a;border-radius:8px;background:#fffaf0;color:#284f7b;
+}
+#rd #anwarPrayerCard .anwar-prayer-privacy-icon svg{
+ width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;
+}
+#rd #anwarPrayerCard .anwar-prayer-privacy-list{
+ display:grid;gap:7px;margin:9px 0 6px;direction:rtl;
+}
+#rd #anwarPrayerCard .anwar-prayer-privacy-row{
+ display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:8px;
+ padding:8px 9px;border:1px solid #e1e3e7;border-radius:9px;background:#fff;
+}
+#rd #anwarPrayerCard .anwar-prayer-privacy-copy{display:grid;gap:3px;min-width:0}
+#rd #anwarPrayerCard .anwar-prayer-privacy-copy strong{color:#34465a;font-size:11px;font-weight:750;line-height:1.6}
+#rd #anwarPrayerCard .anwar-prayer-privacy-copy small{color:#6b737d;font-size:10px;line-height:1.8;overflow-wrap:anywhere}
+#rd #anwarPrayerCard .anwar-prayer-privacy-state{
+ align-self:start;white-space:nowrap;padding:3px 6px;border:1px solid #e0e3e7;border-radius:7px;
+ background:#f7f8f9;color:#5d6570;font-size:9px;line-height:1.5;font-weight:700;
+}
+#rd #anwarPrayerCard .anwar-prayer-privacy-state.external{border-color:#e1d2ad;background:#fbf7ed;color:#755d31}
+#rd #anwarPrayerCard .anwar-prayer-privacy-state.plain{border-color:#e1c9bd;background:#fbf5f1;color:#775747}
+#rd #anwarPrayerCard .anwar-prayer-privacy-state.secure{border-color:#cbd8e3;background:#f2f6f9;color:#345774}
+#rd #anwarPrayerCard .anwar-prayer-privacy-footnote{display:block;margin-top:7px;color:#777d86;font-size:9px;line-height:1.8}
+@media(max-width:360px){
+ #rd #anwarPrayerCard .anwar-prayer-privacy-row{grid-template-columns:1fr}
+ #rd #anwarPrayerCard .anwar-prayer-privacy-state{justify-self:start}
+}
