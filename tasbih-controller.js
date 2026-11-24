@@ -126,17 +126,27 @@
   }
   function renderClockNumbers(){
    clockNumbers.replaceChildren();
-   for(let number=1;number<=12;number++){
-    const angle=number*30;
+   for(let i=1;i<=12;i++){
+    const angle=i*30;
     const wrapper=document.createElement('div');
     wrapper.className='tasbih-number-wrapper';
     wrapper.style.transform='rotate('+angle+'deg)';
-    const numeral=document.createElement('span');
-    numeral.className='tasbih-number-text';
-    numeral.textContent=arabicDigits(String(number));
-    numeral.style.transform='translateX(-50%) rotate(-'+angle+'deg)';
-    wrapper.appendChild(numeral);
+    const numText=document.createElement('div');
+    numText.className='tasbih-number-text';
+    numText.textContent=String(i);
+    numText.style.transform='translateX(-50%) rotate(-'+angle+'deg)';
+    wrapper.appendChild(numText);
     clockNumbers.appendChild(wrapper);
+   }
+  }
+  function renderClockTicks(){
+   clockTicks.replaceChildren();
+   clockTicks.classList.add('has-generated-ticks');
+   for(let i=0;i<60;i++){
+    const tick=document.createElement('div');
+    tick.className='tasbih-clock-tick'+(i%5===0?' major':'');
+    tick.style.transform='rotate('+i*6+'deg)';
+    clockTicks.appendChild(tick);
    }
   }
   function updateClockUi(now){
@@ -145,9 +155,12 @@
    const seconds=date.getSeconds()+date.getMilliseconds()/1000;
    const minutes=date.getMinutes()+seconds/60;
    const hours=(date.getHours()%12)+minutes/60;
-   hourHand.style.setProperty('--clock-angle',(hours*30)+'deg');
-   minuteHand.style.setProperty('--clock-angle',(minutes*6)+'deg');
-   secondHand.style.setProperty('--clock-angle',(seconds*6)+'deg');
+   const hourDeg=hours*30;
+   const minuteDeg=minutes*6;
+   const secondDeg=seconds*6;
+   hourHand.style.transform='translateX(-50%) rotate('+hourDeg+'deg)';
+   minuteHand.style.transform='translateX(-50%) rotate('+minuteDeg+'deg)';
+   secondHand.style.transform='translateX(-50%) rotate('+secondDeg+'deg)';
    elapsedNode.textContent=formatDuration(currentElapsedMs(stamp));
    clockDial.setAttribute('aria-label','الساعة الآن '+arabicDigits(String(date.getHours()).padStart(2,'0'))+':'+arabicDigits(String(date.getMinutes()).padStart(2,'0')));
   }
@@ -459,6 +472,7 @@
   if(savedOption)select.value=savedOption.value;
   else if(!visibleOptions().some(option=>option.value===select.value))select.value=firstVisible()?firstVisible().value:'';
   renderClockNumbers();
+  renderClockTicks();
   update();
   // Migrate old preferences to the approved emerald style once; future color choices remain saved.
   if(initial.designVersion!==DESIGN_VERSION)persist();
@@ -726,7 +740,7 @@
      elapsedMs=liveElapsed;sessionStartedAt=now;lastPersistedElapsed=elapsedMs;persist();
     }
    }
-  },1000);
+  },250);
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')pauseSessionClock()});
   window.addEventListener('pagehide',pauseSessionClock);
 

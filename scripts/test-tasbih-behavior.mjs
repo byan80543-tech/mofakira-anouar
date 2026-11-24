@@ -146,12 +146,12 @@ function count(app){return app.state.tasbih.count}
 
 const timedClock=buildApp({now:Date.UTC(2026,10,23,10,0,0)});
 assert.equal(timedClock.nodes.tasbihElapsedTime.textContent,'٠٠:٠٠:٠٠','the session clock starts at zero');
-const initialMinuteAngle=timedClock.nodes.tasbihMinuteHand.style['--clock-angle'];
+const initialMinuteAngle=timedClock.nodes.tasbihMinuteHand.style.transform;
 timedClock.nodes.tasbihCounterControl.click();
 timedClock.advanceTime(61000);
 assert.equal(timedClock.nodes.tasbihElapsedTime.textContent,'٠٠:٠١:٠١','the real elapsed timer advances once per second');
 assert.ok(timedClock.state.tasbih.elapsedMs>=60000,'elapsed session time is persisted with encrypted preferences');
-assert.notEqual(timedClock.nodes.tasbihMinuteHand.style['--clock-angle'],initialMinuteAngle,'the analog minute hand follows local time');
+assert.notEqual(timedClock.nodes.tasbihMinuteHand.style.transform,initialMinuteAngle,'the analog minute hand follows local time using direct CSS transforms');
 timedClock.nodes.tasbihReset.click();
 assert.equal(timedClock.nodes.tasbihElapsedTime.textContent,'٠٠:٠٠:٠٠','reset clears the counter and session duration');
 const restoredClock=buildApp({initialCount:6,initialDhikr:'سبحان الله',initialElapsedMs:90000});
@@ -235,7 +235,12 @@ assert.ok(restoredRemoved.nodes.tasbihDhikrCards.children.flatMap(group=>group.c
 
 const app=buildApp();
 assert.equal(app.nodes.tasbihClockNumbers.children.length,12,'the rendered clock has twelve generated numeral wrappers');
-assert.deepEqual(app.nodes.tasbihClockNumbers.children.map(wrapper=>wrapper.children[0].textContent),['١','٢','٣','٤','٥','٦','٧','٨','٩','١٠','١١','١٢'],'all twelve clock numerals render in Arabic and in order');
+assert.deepEqual(app.nodes.tasbihClockNumbers.children.map(wrapper=>wrapper.children[0].textContent),['1','2','3','4','5','6','7','8','9','10','11','12'],'all twelve original-style clock numerals render in order');
+assert.equal(app.nodes.tasbihClockTicks.children.length,60,'the clock face generates all sixty tick marks');
+assert.ok(app.nodes.tasbihClockTicks.classList.contains('has-generated-ticks'),'generated tick marks replace the CSS fallback rather than doubling it');
+assert.match(app.nodes.tasbihHourHand.style.transform,/rotate\(/,'the hour hand receives an actual CSS rotation at initialization');
+assert.match(app.nodes.tasbihMinuteHand.style.transform,/rotate\(/,'the minute hand receives an actual CSS rotation at initialization');
+assert.equal(app.nodes.tasbihClockTicks.children.filter(tick=>tick.classList.contains('major')).length,12,'twelve clock ticks are emphasized as hour marks');
 assert.equal(app.sandbox.__ANWAR_TASBIH_CONTROLLER_READY__,true,'the controller initializes when the required UI is present');
 assert.equal(app.sandbox.AnwarTasbihController.open(),true,'the public tasbih controller opens the panel');
 assert.equal(app.nodes.tasbihPanel.hidden,false,'the tasbih panel becomes visible when opened');
@@ -249,7 +254,10 @@ assert.ok(manualFieldAt>chooserStart&&manualFieldAt<counterFaceAt,'manual dhikr 
 assert.ok(controller.includes('const progress=index/32;')&&controller.includes('(240-(progress*120))*Math.PI/180'),'the 33 beads form one draped side strand, not a full ring');
 assert.ok(html.includes('id="tasbihClockDial"')&&html.includes('id="tasbihHourHand"')&&html.includes('id="tasbihMinuteHand"')&&html.includes('id="tasbihSecondHand"'),'the clock includes hour, minute and second hands');
 assert.ok(html.includes('id="tasbihClockNumbers"')&&controller.includes('function renderClockNumbers()'),'the classic clock builds its numeral layout with the controller');
-assert.ok(controller.includes("for(let number=1;number<=12;number++)")&&controller.includes("rotate(-'+angle+'deg)"),'the numeral wrappers counter-rotate so all twelve Arabic numbers remain upright');
+assert.equal((html.match(/class="tasbih-number-wrapper" style="transform:rotate\(/g)||[]).length,12,'the HTML includes a visible twelve-number fallback before JavaScript starts');
+assert.ok(controller.includes("for(let i=1;i<=12;i++)")&&controller.includes("rotate(-'+angle+'deg)"),'the numeral wrappers use the provided number-wrapper algorithm and counter-rotate the original Latin numerals');
+assert.ok(controller.includes('function renderClockTicks()')&&controller.includes('i<60')&&controller.includes("i%5===0?' major':''"),'the clock generates all sixty minute ticks with twelve major hour marks');
+assert.ok(controller.includes("hourHand.style.transform='translateX(-50%) rotate('+hourDeg+'deg)'")&&controller.includes("minuteHand.style.transform='translateX(-50%) rotate('+minuteDeg+'deg)'"),'the real clock hands are rotated directly using the original transform method');
 const clockDialStart=html.indexOf('<div class="tasbih-clock-dial"');
 const clockDialEnd=html.indexOf('\n      </div>\n      <div class="tasbih-elapsed-readout"',clockDialStart);
 assert.ok(clockDialStart>=0&&clockDialEnd>clockDialStart&&html.slice(clockDialStart,clockDialEnd).includes('id="tasbihCounterControl"'),'the tasbih count button is positioned in the center of the analog clock dial');
