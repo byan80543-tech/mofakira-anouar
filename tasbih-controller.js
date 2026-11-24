@@ -496,10 +496,11 @@
    const bead=document.createElement('span');
    bead.className='anwar-tasbih-bead';
    bead.style.setProperty('--bead-index',String(index));
-   const progress=index/32;
-   const angle=(240-(progress*120))*Math.PI/180;
-   bead.style.left=(64+44*Math.cos(angle)).toFixed(3)+'%';
-   bead.style.top=(42+45*Math.sin(angle)).toFixed(3)+'%';
+   const beadRadius=27.5;
+   const angle=(index/33)*Math.PI*2-Math.PI/2;
+   bead.dataset.ringIndex=String(index);
+   bead.style.left=(64+beadRadius*Math.cos(angle)).toFixed(3)+'%';
+   bead.style.top=(42+beadRadius*Math.sin(angle)).toFixed(3)+'%';
    beadTrack.appendChild(bead);
   }
   renderOfficialOptions();

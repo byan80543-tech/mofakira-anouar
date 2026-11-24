@@ -69,7 +69,11 @@ ok(tasbihController.includes("voiceButton.addEventListener('click'") && tasbihCo
 ok(html.includes('id="anwar-tasbih-touch-polish-v1"') && html.includes('-webkit-tap-highlight-color:transparent'), 'tasbih touch feedback suppresses the blue tap highlight while retaining keyboard focus');
 ok(html.includes('id="tasbihBeads"') && html.includes('id="tasbihMinus"') && html.includes('id="tasbihTap"') && html.includes('id="tasbihReset"') && html.includes('id="anwar-tasbih-royal-layout-v1"'), 'the royal bead ring and compact decrement, increment and reset controls remain present');
 ok(tasbihController.includes('function normalizeDhikrKey(value)') && tasbihController.includes('officialKeys.has(normalizeDhikrKey(optionText(option)))') && !tasbihController.includes('tasbih-dhikr-card-text'), 'tasbih entries are normalized and legacy copies/full-text repeats are not shown twice');
-ok(tasbihController.includes('const progress=index/32;') && tasbihController.includes('(240-(progress*120))*Math.PI/180') && tasbihController.includes("panel.classList.toggle('tasbih-choosing-dhikr',expanded)"), 'tasbih beads are arranged as a one-sided draped strand following the sixth reference');
+ok(tasbihController.includes('const beadRadius=27.5;') && tasbihController.includes('(index/33)*Math.PI*2-Math.PI/2') && tasbihController.includes("panel.classList.toggle('tasbih-choosing-dhikr',expanded)"), 'all 33 tasbih beads form an even full circular ring around the clock');
+ok(html.includes('id="anwar-tasbih-pearl-bezel-v1"') && html.includes('anwar-tasbih-beads::before') && html.includes('width:55%;height:55%'), 'the bead ring includes its polished gold bezel and pearl-like finish');
+ok(/\.tasbih-count-tap\s*\{[^}]*width:21%!important;height:21%!important/s.test(html), 'the central count disc is deliberately smaller and stays centred');
+ok(/\.tasbih-number-text\s*\{[^}]*top:5\.2%!important/s.test(html), 'the twelve clock numerals share one consistent radial position');
+ok(/<path d="M50 5 L50 58"[^>]*stroke-width="1\.05"/.test(html), 'the golden second hand has sufficient visible width and a defined sweep path');
 const ownerDialogStart=html.indexOf('<dialog id="ownerDialog">');
 const ownerDialogEnd=html.indexOf('</dialog>',ownerDialogStart);
 const ownerDialogHtml=html.slice(ownerDialogStart,ownerDialogEnd);
