@@ -228,13 +228,19 @@ function showVaultGate(mode,message){
  const passwordInput=$('vaultPassword'),submit=$('vaultSubmit');
  const passwordFields=$('vaultPasswordFields'),deviceUnlock=$('vaultDeviceUnlock');
  const fallbackToggle=$('vaultPasswordFallbackToggle'),deviceManage=$('vaultDeviceManage');
- const disableEncryption=$('vaultDisableEncryptionBtn'),cancelSetup=$('vaultCancelSetupBtn');
+ const disableEncryption=$('vaultDisableEncryptionBtn'),cancelSetup=$('vaultCancelSetupBtn'),shieldButton=$('vaultShieldActivate');
  if(!gate)return;
  gate.hidden=false;
  title.textContent=mode==='unlock'?'افتح خزنة مفكرة أنوار':'أنشئ خزنة مفكرة أنوار';
  description.textContent=message||(mode==='unlock'
-  ?'أدخل عبارة المرور لفك تشفير أعمالك المحفوظة على هذا الجهاز.'
-  :'أنشئ عبارة مرور قوية لتفعيل التشفير الدائم. بعد الإعداد ستبقى المفكرة مفتوحة، وستُشفّر كل عملية حفظ على هذا الجهاز؛ القفل اليدوي اختياري.');
+  ?'أدخل عبارة المرور ثم اضغط الدرع لفتح أعمالك المشفّرة على هذا الجهاز.'
+  :'أنشئ عبارة مرور قوية ثم اضغط الدرع لتشفير أعمالك وإعداداتك المحفوظة. بعد التفعيل ستبقى المفكرة مفتوحة، والقفل اليدوي اختياري.');
+ if(shieldButton){
+  shieldButton.setAttribute('aria-label',mode==='unlock'?'فتح خزنة مفكرة أنوار':'تشفير جميع أعمال مفكرة أنوار');
+  shieldButton.title=mode==='unlock'
+   ?'اضغط الدرع لفتح الخزنة؛ ويستخدم قفل الهاتف إذا كان إعداد الفتح السريع ظاهرًا.'
+   :'أدخل عبارة المرور وأعد تأكيدها، ثم اضغط الدرع لتشفير جميع الأعمال والإعدادات المحفوظة.';
+ }
  confirmRow.hidden=mode!=='setup';
  confirmInput.hidden=mode!=='setup';
  confirmInput.disabled=mode!=='setup';
@@ -2621,6 +2627,15 @@ document.addEventListener('click',e=>{
  else if(id==='dl'&&cur){if(confirm('حذف هذا العمل نهائيًا؟')){S.notes=S.notes.filter(n=>n!==cur);save();openNote(null)}}
  else if(id==='bkp'){openEncryptedBackupDialog()}
  else if(id==='downloadBackup')downloadEncryptedBackup();
+ else if(id==='vaultShieldActivate'){
+  if(vaultGateMode==='unlock'&&$('vaultPasswordFields').hidden&&globalThis.AnwarDeviceUnlock&&AnwarDeviceUnlock.isConfigured()){
+   unlockVaultWithDevice();
+  }else{
+   const form=$('vaultForm');
+   if(form&&typeof form.requestSubmit==='function')form.requestSubmit();
+   else submitVaultForm(null);
+  }
+ }
  else if(id==='vaultLockBtn'){lockVault()}
  else if(id==='exportRecovery')exportStorageRecovery();
  else if(id==='retryStorageAccess')retryStorageAccess();
