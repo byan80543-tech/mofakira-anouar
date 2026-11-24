@@ -14,8 +14,7 @@
   const counterTap=$('tasbihCounterControl');
   const clockDial=$('tasbihClockDial'),clockTicks=$('tasbihClockTicks'),clockNumbers=$('tasbihClockNumbers'),hourHand=$('tasbihHourHand'),minuteHand=$('tasbihMinuteHand'),secondHand=$('tasbihSecondHand'),elapsedNode=$('tasbihElapsedTime');
   const themeToggle=$('tasbihThemeToggle'),themePicker=$('tasbihThemePicker');
-  const themeIds=["pearl","pink","glass","mint","sky","turquoise","lavender","coral","heritage","emerald","ocean","cocoa","dark","night","sapphire","violet","burgundy","graphite"];
-  const themeButtons=themeIds.map(name=>({name,button:$('tasbihTheme'+name[0].toUpperCase()+name.slice(1))}));
+  const colorInput=$('tasbihCustomColor'),colorValue=$('tasbihCustomColorValue'),colorSwatch=$('tasbihCustomColorSwatch');
   const tap=$('tasbihTap'),minus=$('tasbihMinus'),reset=$('tasbihReset');
   const cards=$('tasbihDhikrCards'),customInput=$('tasbihCustomDhikrInput');
   const dhikrToggle=$('tasbihDhikrToggle'),dhikrList=$('tasbihDhikrListPanel');
@@ -24,7 +23,7 @@
   const voicePanel=$('tasbihVoicePanel'),voiceButton=$('tasbihVoice');
   const voiceState=$('tasbihVoiceState'),voiceStatus=$('tasbihVoiceStatus');
   const voiceButtonLabel=$('tasbihVoiceButtonLabel');
-  const required={panel,select,countNode,phraseNode,beadTrack,counterControl,counterTap,tap,minus,reset,cards,dhikrToggle,dhikrList,customInput,customAdd,customStatus,removeButton,restoreButton,voicePanel,voiceButton,voiceState,voiceStatus,voiceButtonLabel,themeToggle,themePicker,clockDial,clockTicks,clockNumbers,hourHand,minuteHand,secondHand,elapsedNode,...Object.fromEntries(themeButtons.map(item=>['theme'+item.name,item.button]))};
+  const required={panel,select,countNode,phraseNode,beadTrack,counterControl,counterTap,tap,minus,reset,cards,dhikrToggle,dhikrList,customInput,customAdd,customStatus,removeButton,restoreButton,voicePanel,voiceButton,voiceState,voiceStatus,voiceButtonLabel,themeToggle,themePicker,colorInput,colorValue,colorSwatch,clockDial,clockTicks,clockNumbers,hourHand,minuteHand,secondHand,elapsedNode};
   const missing=Object.keys(required).filter(key=>!required[key]);
   if(missing.length){
    console.error('تعذر تهيئة السبحة؛ عناصر الواجهة الناقصة:',missing);
@@ -33,7 +32,7 @@
   const preferences=globalThis.AnwarPrivatePreferences;
   // لا نفترض أن الخزنة تحتوي tasbih؛ قد تكون أول زيارة أو بيانات قديمة.
   const DESIGN_VERSION='royal-reference-1';
-  const defaultTasbih={count:0,dhikr:select.value,customDhikrs:[],removedOfficialDhikrs:[],theme:'emerald',designVersion:DESIGN_VERSION};
+  const defaultTasbih={count:0,dhikr:select.value,customDhikrs:[],removedOfficialDhikrs:[],theme:'emerald',customColor:'#17634d',designVersion:DESIGN_VERSION};
   let initial=defaultTasbih;
   try{
    const stored=preferences&&typeof preferences.get==='function'?preferences.get():null;
@@ -48,8 +47,19 @@
   const MAX_ELAPSED_MS=10*365*24*60*60*1000;
   let elapsedMs=Number.isFinite(initial.elapsedMs)?Math.max(0,Math.min(MAX_ELAPSED_MS,initial.elapsedMs)):0;
   let sessionStartedAt=null,lastPersistedElapsed=elapsedMs;
-  const allowedThemes=new Set(themeIds);
-  let theme=initial.designVersion===DESIGN_VERSION&&allowedThemes.has(initial.theme)?initial.theme:'emerald';
+  const legacyThemeColors={emerald:'#17634d',dark:'#c49a50',pink:'#b74268',night:'#c49a50',heritage:'#286246',glass:'#477b85'};
+  let theme='emerald';
+  function validColor(value){
+   return typeof value==='string'&&/^#[0-9a-f]{6}$/i.test(value)?value.toLowerCase():null;
+  }
+  let customColor=validColor(initial.customColor)||legacyThemeColors[initial.theme]||'#17634d';
+  function applyCustomColor(value){
+   customColor=validColor(value)||'#17634d';
+   panel.style.setProperty('--tasbih-custom-color',customColor);
+   if(colorInput.value.toLowerCase()!==customColor)colorInput.value=customColor;
+   colorValue.textContent=customColor.toUpperCase();
+   colorSwatch.style.backgroundColor=customColor;
+  }
   let customDhikrs=cleanDhikrList(initial.customDhikrs,30,200);
   let removedOfficialDhikrs=cleanDhikrList(initial.removedOfficialDhikrs,60,4000);
   let recognition=null,voiceActive=false,voiceRequested=false,writingPreferences=false,voiceTargetPhrase='';
@@ -211,7 +221,7 @@
    if(!preferences||typeof preferences.set!=='function')return;
    writingPreferences=true;
    try{
-    preferences.set('tasbih',{count:count,dhikr:select.value,customDhikrs:customDhikrs,removedOfficialDhikrs:removedOfficialDhikrs,theme:theme,elapsedMs:currentElapsedMs(),designVersion:DESIGN_VERSION});
+    preferences.set('tasbih',{count:count,dhikr:select.value,customDhikrs:customDhikrs,removedOfficialDhikrs:removedOfficialDhikrs,theme:theme,customColor:customColor,elapsedMs:currentElapsedMs(),designVersion:DESIGN_VERSION});
    }catch(error){
     console.warn('تعذر حفظ إعدادات السبحة المشفرة',error);
     customStatus.textContent='تعذر حفظ التغيير في الخزنة المشفرة. تحقق من فتح المفكرة ثم أعد المحاولة.';
@@ -313,7 +323,7 @@
   }
   function update(){
    panel.dataset.tasbihTheme=theme;
-   themeButtons.forEach(item=>item.button.setAttribute('aria-pressed',item.name===theme?'true':'false'));
+   applyCustomColor(customColor);
    countNode.textContent=count.toLocaleString('ar');
    updateClockUi();
    renderBeads();
@@ -333,13 +343,6 @@
   function saveAndUpdate(){
    update();
    persist();
-  }
-  function chooseTheme(nextTheme){
-   if(!allowedThemes.has(nextTheme))return;
-   theme=nextTheme;
-   themePicker.hidden=true;
-   themeToggle.setAttribute('aria-expanded','false');
-   saveAndUpdate();
   }
   function setDhikrListOpen(open){
    const expanded=Boolean(open);
@@ -523,7 +526,11 @@
    themePicker.hidden=!themePicker.hidden;
    themeToggle.setAttribute('aria-expanded',themePicker.hidden?'false':'true');
   });
-  themeButtons.forEach(item=>item.button.addEventListener('click',()=>chooseTheme(item.name)));
+  colorInput.addEventListener('input',()=>applyCustomColor(colorInput.value));
+  colorInput.addEventListener('change',()=>{
+   applyCustomColor(colorInput.value);
+   persist();
+  });
   dhikrToggle.addEventListener('click',()=>setDhikrListOpen(dhikrList.hidden));
   setDhikrListOpen(false);
   // The oval number itself is an accessible tap target as well as the dedicated button.
@@ -789,7 +796,8 @@
     sessionStartedAt=null;lastPersistedElapsed=elapsedMs;
     customDhikrs=cleanDhikrList(value.customDhikrs,30,200);
     removedOfficialDhikrs=cleanDhikrList(value.removedOfficialDhikrs,60,4000);
-    theme=allowedThemes.has(value.theme)?value.theme:'emerald';
+    theme='emerald';
+    customColor=validColor(value.customColor)||legacyThemeColors[value.theme]||'#17634d';
     renderCustomOptions();
     const option=Array.from(select.options).find(item=>item.value===value.dhikr&&(isCustomOption(item)||!isRemovedOfficial(item)));
     if(option)select.value=option.value;
