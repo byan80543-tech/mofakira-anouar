@@ -3534,27 +3534,16 @@ dialog[open]>.float-head{display:none!important}
     <strong id="tasbihTitle">السبحة</strong>
     <span class="anwar-tasbih-mosque" aria-hidden="true">📿</span>
    </header>
-   <div id="tasbihThemePicker" class="anwar-tasbih-theme-picker" hidden role="group" aria-label="ألوان السبحة">
-    <div class="anwar-tasbih-theme-caption"><strong>ألوان السبحة</strong><small>درجات متنوعة من الفاتح إلى الداكن</small></div>
-    <div class="anwar-tasbih-theme-grid">
-     <button type="button" id="tasbihThemePearl" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="pearl" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="pearl"><span>33</span></span><span>اللؤلؤي</span></button>
-     <button type="button" id="tasbihThemePink" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="pink" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="pink"><span>33</span></span><span>الوردي</span></button>
-     <button type="button" id="tasbihThemeGlass" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="glass" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="glass"><span>33</span></span><span>الزجاجي</span></button>
-     <button type="button" id="tasbihThemeMint" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="mint" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="mint"><span>33</span></span><span>النعناعي</span></button>
-     <button type="button" id="tasbihThemeSky" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="sky" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="sky"><span>33</span></span><span>السماوي</span></button>
-     <button type="button" id="tasbihThemeTurquoise" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="turquoise" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="turquoise"><span>33</span></span><span>الفيروزي</span></button>
-     <button type="button" id="tasbihThemeLavender" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="lavender" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="lavender"><span>33</span></span><span>اللافندر</span></button>
-     <button type="button" id="tasbihThemeCoral" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="coral" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="coral"><span>33</span></span><span>المرجاني</span></button>
-     <button type="button" id="tasbihThemeHeritage" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="heritage" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="heritage"><span>33</span></span><span>التراثي</span></button>
-     <button type="button" id="tasbihThemeEmerald" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="emerald" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="emerald"><span>33</span></span><span>الأخضر الزمردي</span></button>
-     <button type="button" id="tasbihThemeOcean" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="ocean" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="ocean"><span>33</span></span><span>الأزرق البحري</span></button>
-     <button type="button" id="tasbihThemeCocoa" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="cocoa" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="cocoa"><span>33</span></span><span>البني الدافئ</span></button>
-     <button type="button" id="tasbihThemeDark" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="dark" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="dark"><span>33</span></span><span>الأخضر الداكن</span></button>
-     <button type="button" id="tasbihThemeNight" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="night" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="night"><span>33</span></span><span>الأزرق الليلي</span></button>
-     <button type="button" id="tasbihThemeSapphire" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="sapphire" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="sapphire"><span>33</span></span><span>الياقوتي</span></button>
-     <button type="button" id="tasbihThemeViolet" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="violet" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="violet"><span>33</span></span><span>البنفسجي</span></button>
-     <button type="button" id="tasbihThemeBurgundy" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="burgundy" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="burgundy"><span>33</span></span><span>العنابي</span></button>
-     <button type="button" id="tasbihThemeGraphite" class="anwar-tasbih-theme-choice" data-tasbih-theme-option="graphite" aria-pressed="false"><span class="anwar-tasbih-theme-preview" data-preview-theme="graphite"><span>33</span></span><span>الرمادي الداكن</span></button>
+   <div id="tasbihThemePicker" class="anwar-tasbih-theme-picker" hidden role="group" aria-label="اختيار لون السبحة">
+    <div class="anwar-tasbih-theme-caption"><strong>لون السبحة</strong><small>المس الطيف واختر الدرجة يدويًا</small></div>
+    <label class="anwar-tasbih-spectrum-frame" for="tasbihCustomColor">
+     <input type="color" id="tasbihCustomColor" value="#17634d" aria-label="اختيار لون السبحة">
+     <span class="anwar-tasbih-spectrum-hint" aria-hidden="true">اختر من جميع الألوان</span>
+    </label>
+    <div class="anwar-tasbih-color-readout">
+     <span id="tasbihCustomColorSwatch" class="anwar-tasbih-current-swatch" aria-hidden="true"></span>
+     <span class="anwar-tasbih-color-readout-label">الدرجة المختارة</span>
+     <output id="tasbihCustomColorValue">#17634D</output>
     </div>
    </div>
    <div class="anwar-tasbih-content">
@@ -3877,7 +3866,7 @@ dialog[open]>.float-head{display:none!important}
 <script src="./adhkar-page-theme.js?v=20261121-2" defer></script>
 <script src="./ibtihalat-radio.js?v=20261121-1" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
-<script src="./tasbih-controller.js?v=20261124-83" defer></script>
+<script src="./tasbih-controller.js?v=20261124-84" defer></script>
 <script src="./prayer-times.js?v=20261124-2" defer></script>
 
 
@@ -5067,188 +5056,94 @@ dialog[open]>.float-head{display:none!important}
 }
 </style>
 
-<style id="anwar-tasbih-complete-color-palettes-v2">
-/* طبقة ألوان مستقلة: تغيّر الخرز والقرص والعقارب والأزرار دون تغيير هندسة السبحة */
-#tasbihPanel[data-tasbih-theme="pearl"],
-.anwar-tasbih-theme-preview[data-preview-theme="pearl"]{--tasbih-bg:#f0f2f2;--tasbih-surface:#fffefd;--tasbih-text:#39464d;--tasbih-muted:#74838a;--tasbih-accent:#718894;--tasbih-accent-soft:#d9e4e8;--tasbih-border:#a9bbc2;--tasbih-tap-start:#e3ecef;--tasbih-tap-end:#8ba2ac}
-#tasbihPanel[data-tasbih-theme="pink"],
-.anwar-tasbih-theme-preview[data-preview-theme="pink"]{--tasbih-bg:#fbe8ee;--tasbih-surface:#fff8fa;--tasbih-text:#713244;--tasbih-muted:#946b77;--tasbih-accent:#b74268;--tasbih-accent-soft:#f2c3d0;--tasbih-border:#e3a5b8;--tasbih-tap-start:#f4c4d2;--tasbih-tap-end:#bd5578}
-#tasbihPanel[data-tasbih-theme="glass"],
-.anwar-tasbih-theme-preview[data-preview-theme="glass"]{--tasbih-bg:#dce5e8;--tasbih-surface:#f8fbfb;--tasbih-text:#263e49;--tasbih-muted:#657b82;--tasbih-accent:#477b85;--tasbih-accent-soft:#b9d3d5;--tasbih-border:#9bbbc0;--tasbih-tap-start:#d5e8e7;--tasbih-tap-end:#7fa6ad}
-#tasbihPanel[data-tasbih-theme="mint"],
-.anwar-tasbih-theme-preview[data-preview-theme="mint"]{--tasbih-bg:#e5f2e8;--tasbih-surface:#f9fff9;--tasbih-text:#24513b;--tasbih-muted:#6c8978;--tasbih-accent:#36805e;--tasbih-accent-soft:#bfe3cd;--tasbih-border:#8cbea0;--tasbih-tap-start:#d9f3e1;--tasbih-tap-end:#67ad83}
-#tasbihPanel[data-tasbih-theme="sky"],
-.anwar-tasbih-theme-preview[data-preview-theme="sky"]{--tasbih-bg:#e4f2fb;--tasbih-surface:#f8fcff;--tasbih-text:#244a64;--tasbih-muted:#6e8797;--tasbih-accent:#377ca8;--tasbih-accent-soft:#b8dbef;--tasbih-border:#90bad2;--tasbih-tap-start:#d9effb;--tasbih-tap-end:#69a8ce}
-#tasbihPanel[data-tasbih-theme="turquoise"],
-.anwar-tasbih-theme-preview[data-preview-theme="turquoise"]{--tasbih-bg:#dff4f1;--tasbih-surface:#f7fffe;--tasbih-text:#15534e;--tasbih-muted:#5e8985;--tasbih-accent:#1b8a83;--tasbih-accent-soft:#afe0dc;--tasbih-border:#78c4be;--tasbih-tap-start:#cff2ed;--tasbih-tap-end:#42a69d}
-#tasbihPanel[data-tasbih-theme="lavender"],
-.anwar-tasbih-theme-preview[data-preview-theme="lavender"]{--tasbih-bg:#eeeafa;--tasbih-surface:#fcfaff;--tasbih-text:#4c426e;--tasbih-muted:#81789e;--tasbih-accent:#8670b4;--tasbih-accent-soft:#d5c9ee;--tasbih-border:#b8a8dc;--tasbih-tap-start:#e8e0fa;--tasbih-tap-end:#9c87ca}
-#tasbihPanel[data-tasbih-theme="coral"],
-.anwar-tasbih-theme-preview[data-preview-theme="coral"]{--tasbih-bg:#f8e8df;--tasbih-surface:#fff8f3;--tasbih-text:#6e382d;--tasbih-muted:#9b7568;--tasbih-accent:#b85f45;--tasbih-accent-soft:#eec2ad;--tasbih-border:#d8a18b;--tasbih-tap-start:#f5d6c7;--tasbih-tap-end:#c2765c}
-#tasbihPanel[data-tasbih-theme="heritage"],
-.anwar-tasbih-theme-preview[data-preview-theme="heritage"]{--tasbih-bg:#f5e8c9;--tasbih-surface:#fff8e8;--tasbih-text:#244333;--tasbih-muted:#83704e;--tasbih-accent:#286246;--tasbih-accent-soft:#d4ad61;--tasbih-border:#c49a50;--tasbih-tap-start:#e9d19a;--tasbih-tap-end:#b58b45}
-#tasbihPanel[data-tasbih-theme="emerald"],
-.anwar-tasbih-theme-preview[data-preview-theme="emerald"]{--tasbih-bg:#f4ead6;--tasbih-surface:#fffaf0;--tasbih-text:#123d32;--tasbih-muted:#74684f;--tasbih-accent:#17634d;--tasbih-accent-soft:#d8bd7c;--tasbih-border:#c8a45e;--tasbih-tap-start:#e5cd92;--tasbih-tap-end:#9f7a37}
-#tasbihPanel[data-tasbih-theme="ocean"],
-.anwar-tasbih-theme-preview[data-preview-theme="ocean"]{--tasbih-bg:#dbe9f3;--tasbih-surface:#f5faff;--tasbih-text:#1c405b;--tasbih-muted:#698294;--tasbih-accent:#2b6b94;--tasbih-accent-soft:#b5d2e6;--tasbih-border:#7fa9c5;--tasbih-tap-start:#d0e6f5;--tasbih-tap-end:#4e87ab}
-#tasbihPanel[data-tasbih-theme="cocoa"],
-.anwar-tasbih-theme-preview[data-preview-theme="cocoa"]{--tasbih-bg:#f0e5d7;--tasbih-surface:#fffaf2;--tasbih-text:#533c2d;--tasbih-muted:#8b7564;--tasbih-accent:#986543;--tasbih-accent-soft:#dfc0a0;--tasbih-border:#b88d68;--tasbih-tap-start:#ecd4bb;--tasbih-tap-end:#a97550}
-#tasbihPanel[data-tasbih-theme="dark"],
-.anwar-tasbih-theme-preview[data-preview-theme="dark"]{--tasbih-bg:#09251f;--tasbih-surface:#123b33;--tasbih-text:#fff5df;--tasbih-muted:#c3b99f;--tasbih-accent:#e7c77f;--tasbih-accent-soft:#967843;--tasbih-border:#b88e45;--tasbih-tap-start:#e8cb8b;--tasbih-tap-end:#9b7130}
-#tasbihPanel[data-tasbih-theme="night"],
-.anwar-tasbih-theme-preview[data-preview-theme="night"]{--tasbih-bg:#101e3b;--tasbih-surface:#17294b;--tasbih-text:#f5f0df;--tasbih-muted:#bdc9dc;--tasbih-accent:#f2ce78;--tasbih-accent-soft:#8296bf;--tasbih-border:#c9a45d;--tasbih-tap-start:#f4d58b;--tasbih-tap-end:#b48236}
-#tasbihPanel[data-tasbih-theme="sapphire"],
-.anwar-tasbih-theme-preview[data-preview-theme="sapphire"]{--tasbih-bg:#111d3b;--tasbih-surface:#1c2d57;--tasbih-text:#f0f4ff;--tasbih-muted:#b8c7e5;--tasbih-accent:#8fb5ff;--tasbih-accent-soft:#627fae;--tasbih-border:#7295ce;--tasbih-tap-start:#b9d2ff;--tasbih-tap-end:#557bb8}
-#tasbihPanel[data-tasbih-theme="violet"],
-.anwar-tasbih-theme-preview[data-preview-theme="violet"]{--tasbih-bg:#211a35;--tasbih-surface:#30254d;--tasbih-text:#f7efff;--tasbih-muted:#c7b6de;--tasbih-accent:#c3a2f0;--tasbih-accent-soft:#8063ad;--tasbih-border:#9779c4;--tasbih-tap-start:#d8c4ff;--tasbih-tap-end:#8060b3}
-#tasbihPanel[data-tasbih-theme="burgundy"],
-.anwar-tasbih-theme-preview[data-preview-theme="burgundy"]{--tasbih-bg:#311823;--tasbih-surface:#482335;--tasbih-text:#fff0f3;--tasbih-muted:#d6b5c0;--tasbih-accent:#f19ab0;--tasbih-accent-soft:#a65370;--tasbih-border:#c07891;--tasbih-tap-start:#ffc3d0;--tasbih-tap-end:#a94c6b}
-#tasbihPanel[data-tasbih-theme="graphite"],
-.anwar-tasbih-theme-preview[data-preview-theme="graphite"]{--tasbih-bg:#20252b;--tasbih-surface:#303840;--tasbih-text:#f1f4f6;--tasbih-muted:#bbc4cb;--tasbih-accent:#c5d0d7;--tasbih-accent-soft:#72818c;--tasbih-border:#8d9ba4;--tasbih-tap-start:#e1e7eb;--tasbih-tap-end:#697984}
-#tasbihPanel{
- --tasbih-bead-light:color-mix(in srgb,var(--tasbih-surface) 58%,white);
- --tasbih-bead-mid:color-mix(in srgb,var(--tasbih-accent) 62%,var(--tasbih-border));
- --tasbih-bead-deep:color-mix(in srgb,var(--tasbih-accent) 78%,#10151c);
- --tasbih-clock-bg:color-mix(in srgb,var(--tasbih-surface) 88%,var(--tasbih-bg));
- --tasbih-clock-edge:var(--tasbih-border);
- --tasbih-clock-mark:color-mix(in srgb,var(--tasbih-accent) 58%,var(--tasbih-text));
- --tasbih-clock-number:var(--tasbih-text);
- --tasbih-hand-dark:color-mix(in srgb,var(--tasbih-accent) 76%,#14211b);
- --tasbih-hand-mid:var(--tasbih-accent);
- --tasbih-hand-light:color-mix(in srgb,var(--tasbih-accent) 35%,white);
- --tasbih-second-hand:var(--tasbih-accent-soft);
- --tasbih-pivot-light:color-mix(in srgb,var(--tasbih-surface) 35%,white);
- --tasbih-pivot-mid:var(--tasbih-accent-soft);
- --tasbih-pivot-dark:var(--tasbih-accent);
- --tasbih-tassel-light:color-mix(in srgb,var(--tasbih-accent-soft) 42%,white);
- --tasbih-tassel-mid:var(--tasbih-accent-soft);
- --tasbih-tassel-dark:var(--tasbih-accent);
- --tasbih-control-bg:color-mix(in srgb,var(--tasbih-accent) 46%,var(--tasbih-surface));
- --tasbih-control-bg-strong:color-mix(in srgb,var(--tasbih-accent) 70%,var(--tasbih-surface));
-}
-#tasbihPanel[data-tasbih-theme]{
+<style id="anwar-tasbih-manual-spectrum-color-v3">
+/* منتقي طيف واحد: يغيّر درجات السبحة مع إبقاء هندستها وأيقوناتها الأصلية */
+#tasbihPanel{--tasbih-custom-color:#17634d}
+#tasbihPanel[data-tasbih-theme="emerald"]{
+ --tasbih-bg:color-mix(in srgb,var(--tasbih-custom-color) 10%,#fff);
+ --tasbih-surface:color-mix(in srgb,var(--tasbih-custom-color) 3%,#fff);
+ --tasbih-text:#21382d;--tasbih-muted:#69766e;
+ --tasbih-accent:var(--tasbih-custom-color);
+ --tasbih-accent-soft:color-mix(in srgb,var(--tasbih-custom-color) 28%,#fff);
+ --tasbih-border:color-mix(in srgb,var(--tasbih-custom-color) 55%,#fff);
+ --tasbih-tap-start:color-mix(in srgb,var(--tasbih-custom-color) 24%,#fff);
+ --tasbih-tap-end:color-mix(in srgb,var(--tasbih-custom-color) 76%,#111);
  background:linear-gradient(145deg,var(--tasbih-surface),var(--tasbih-bg))!important;
  border-color:var(--tasbih-border)!important;color:var(--tasbih-text)!important;
 }
 #rd #tasbihPanel .anwar-tasbih-inline-head{
- background:linear-gradient(110deg,color-mix(in srgb,var(--tasbih-accent) 72%,var(--tasbih-bg)),color-mix(in srgb,var(--tasbih-accent) 48%,var(--tasbih-surface)))!important;
- border-bottom-color:var(--tasbih-border)!important;color:var(--tasbih-text)!important;
+ background:linear-gradient(110deg,color-mix(in srgb,var(--tasbih-custom-color) 75%,#fff),color-mix(in srgb,var(--tasbih-custom-color) 42%,#fff))!important;
+ border-bottom-color:var(--tasbih-border)!important;
 }
-#rd #tasbihPanel #tasbihTitle{color:var(--tasbih-text)!important;text-shadow:0 1px 0 color-mix(in srgb,var(--tasbih-surface) 38%,transparent)!important}
-#rd #tasbihPanel #tasbihThemeToggle{
- border-color:var(--tasbih-border)!important;background:color-mix(in srgb,var(--tasbih-surface) 24%,transparent)!important;
- color:var(--tasbih-text)!important;
-}
+#rd #tasbihPanel #tasbihTitle{color:var(--tasbih-text)!important}
+#rd #tasbihPanel #tasbihThemeToggle{border-color:var(--tasbih-border)!important}
 #rd #tasbihPanel #tasbihThemeToggle svg{stroke:currentColor!important}
 .anwar-tasbih-theme-picker{
- max-height:min(58vh,460px);overflow-y:auto;overscroll-behavior:contain;
- border-color:var(--tasbih-border)!important;background:var(--tasbih-surface)!important;
+ display:grid;gap:9px;padding:10px;border:1px solid var(--tasbih-border);
+ border-radius:12px;background:var(--tasbih-surface);box-shadow:0 5px 16px #0000000c;
 }
-.anwar-tasbih-theme-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:6px!important}
-.anwar-tasbih-theme-choice{min-height:73px!important;padding:5px 3px!important;font-size:8px!important}
-.anwar-tasbih-theme-preview{
- width:35px!important;height:35px!important;
- border-color:var(--tasbih-border)!important;
- background:linear-gradient(145deg,var(--tasbih-surface),var(--tasbih-bg))!important;
- color:var(--tasbih-accent)!important;
+.anwar-tasbih-theme-picker[hidden]{display:none!important}
+.anwar-tasbih-theme-caption{display:grid;gap:2px;text-align:center}
+.anwar-tasbih-theme-caption strong{color:var(--tasbih-text);font:700 12px Cairo,Tahoma,sans-serif}
+.anwar-tasbih-theme-caption small{color:var(--tasbih-muted);font:10px Cairo,Tahoma,sans-serif}
+.anwar-tasbih-spectrum-frame{
+ position:relative;display:block;width:100%;height:54px;overflow:hidden;
+ border:1px solid color-mix(in srgb,var(--tasbih-border) 68%,#555);
+ border-radius:11px;
+ background:linear-gradient(90deg,#ff0000 0%,#ff8c00 14%,#fff000 27%,#36c65a 42%,#00c9c9 56%,#2475ff 70%,#9a36d5 84%,#ed2582 94%,#ff0000 100%);
+ box-shadow:inset 0 1px 2px #ffffff8a,0 2px 5px #00000014;
+ cursor:pointer;touch-action:manipulation;
 }
-.anwar-tasbih-theme-preview::before{inset:3px!important;border-color:var(--tasbih-accent-soft)!important}
-.anwar-tasbih-theme-preview>span{font-size:12px!important}
-@media(max-width:340px){.anwar-tasbih-theme-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+.anwar-tasbih-spectrum-frame::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#ffffff20,transparent 48%,#00000012)}
+.anwar-tasbih-spectrum-hint{
+ position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;
+ color:#fff;font:700 12px Cairo,Tahoma,sans-serif;text-shadow:0 1px 3px #000,0 0 6px #0008;
+}
+#tasbihCustomColor{
+ position:absolute;inset:0;z-index:2;width:100%;height:100%;
+ margin:0;padding:0;border:0;opacity:0;cursor:pointer;
+}
+#tasbihCustomColor:focus-visible{outline:3px solid var(--tasbih-accent);outline-offset:-4px}
+.anwar-tasbih-color-readout{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--tasbih-text);font:600 10px Cairo,Tahoma,sans-serif}
+.anwar-tasbih-current-swatch{display:inline-block;flex:none;width:18px;height:18px;border:1px solid #0003;border-radius:50%;background:var(--tasbih-custom-color);box-shadow:inset 0 1px 2px #ffffff80,0 1px 3px #0002}
+.anwar-tasbih-color-readout-label{color:var(--tasbih-muted)}
+#tasbihCustomColorValue{direction:ltr;unicode-bidi:isolate;color:var(--tasbih-text);font:700 11px "IBM Plex Sans Arabic",Arial,sans-serif}
 #rd #tasbihPanel .anwar-tasbih-beads::before{
- border-color:color-mix(in srgb,var(--tasbih-border) 70%,transparent)!important;
- box-shadow:0 0 8px color-mix(in srgb,var(--tasbih-accent-soft) 28%,transparent)!important;
+ border-color:color-mix(in srgb,var(--tasbih-border) 72%,transparent)!important;
+ box-shadow:0 0 8px color-mix(in srgb,var(--tasbih-accent-soft) 30%,transparent)!important;
 }
 #rd #tasbihPanel .anwar-tasbih-bead{
- border-color:color-mix(in srgb,var(--tasbih-border) 84%,var(--tasbih-text))!important;
- background:radial-gradient(circle at 27% 21%,var(--tasbih-bead-light) 0 7%,color-mix(in srgb,var(--tasbih-surface) 25%,var(--tasbih-accent-soft)) 17%,var(--tasbih-bead-mid) 48%,var(--tasbih-bead-deep) 100%)!important;
- box-shadow:inset 1px 1.2px 2px color-mix(in srgb,var(--tasbih-surface) 90%,white),inset -1px -1.5px 2.5px color-mix(in srgb,var(--tasbih-text) 30%,transparent),0 1.5px 4px color-mix(in srgb,var(--tasbih-text) 32%,transparent)!important;
+ border-color:color-mix(in srgb,var(--tasbih-border) 80%,var(--tasbih-text))!important;
+ background:radial-gradient(circle at 27% 21%,color-mix(in srgb,var(--tasbih-surface) 70%,white) 0 7%,color-mix(in srgb,var(--tasbih-surface) 25%,var(--tasbih-accent-soft)) 17%,color-mix(in srgb,var(--tasbih-custom-color) 68%,var(--tasbih-border)) 52%,color-mix(in srgb,var(--tasbih-custom-color) 82%,#10151c) 100%)!important;
+ box-shadow:inset 1px 1.2px 2px #ffffffdf,inset -1px -1.5px 2.5px color-mix(in srgb,var(--tasbih-text) 28%,transparent),0 1.5px 4px color-mix(in srgb,var(--tasbih-text) 30%,transparent)!important;
 }
 #rd #tasbihPanel .anwar-tasbih-bead.is-counted{
- box-shadow:0 0 0 2px color-mix(in srgb,var(--tasbih-accent-soft) 60%,transparent),0 0 7px color-mix(in srgb,var(--tasbih-accent) 42%,transparent),inset 1px 1.2px 2px color-mix(in srgb,var(--tasbih-surface) 90%,white)!important;
+ box-shadow:0 0 0 2px color-mix(in srgb,var(--tasbih-accent-soft) 64%,transparent),0 0 7px color-mix(in srgb,var(--tasbih-custom-color) 42%,transparent),inset 1px 1.2px 2px #ffffffdf!important;
 }
 #rd #tasbihPanel .tasbih-clock-dial{
- border-color:var(--tasbih-clock-edge)!important;
- background:
-  radial-gradient(circle at 35% 24%,color-mix(in srgb,var(--tasbih-surface) 86%,white) 0 15%,transparent 47%),
-  radial-gradient(circle at 50% 50%,var(--tasbih-clock-bg) 0 58%,color-mix(in srgb,var(--tasbih-bg) 55%,var(--tasbih-border)) 100%)!important;
- box-shadow:inset 0 10px 22px color-mix(in srgb,var(--tasbih-text) 10%,transparent),
-  inset 0 -6px 16px color-mix(in srgb,var(--tasbih-text) 8%,transparent),
-  inset 0 0 0 3px color-mix(in srgb,var(--tasbih-surface) 92%,white),
-  inset 0 0 0 6px color-mix(in srgb,var(--tasbih-border) 30%,transparent),
-  0 5px 13px color-mix(in srgb,var(--tasbih-text) 22%,transparent)!important;
+ border-color:var(--tasbih-border)!important;
+ background:radial-gradient(circle at 35% 24%,color-mix(in srgb,var(--tasbih-surface) 86%,white) 0 15%,transparent 47%),radial-gradient(circle at 50% 50%,var(--tasbih-surface) 0 58%,color-mix(in srgb,var(--tasbih-bg) 60%,var(--tasbih-border)) 100%)!important;
+ box-shadow:inset 0 10px 22px color-mix(in srgb,var(--tasbih-text) 9%,transparent),inset 0 -6px 16px color-mix(in srgb,var(--tasbih-text) 7%,transparent),inset 0 0 0 3px color-mix(in srgb,var(--tasbih-surface) 94%,white),inset 0 0 0 6px color-mix(in srgb,var(--tasbih-border) 30%,transparent),0 5px 13px color-mix(in srgb,var(--tasbih-text) 20%,transparent)!important;
 }
 #rd #tasbihPanel .tasbih-clock-dial::before{border-color:color-mix(in srgb,var(--tasbih-border) 66%,transparent)!important}
-#rd #tasbihPanel .tasbih-clock-marks{
- background:repeating-conic-gradient(from -1.5deg,color-mix(in srgb,var(--tasbih-clock-mark) 78%,transparent) 0deg 1deg,transparent 1deg 6deg)!important;
-}
-#rd #tasbihPanel .tasbih-clock-number,
-#rd #tasbihPanel .tasbih-number-text{color:var(--tasbih-clock-number)!important}
-#rd #tasbihPanel .tasbih-elapsed-readout,
-#rd #tasbihPanel .tasbih-elapsed-readout strong{color:var(--tasbih-muted)!important}
-#rd #tasbihPanel #tasbihHourHandGradient stop:nth-child(1),
-#rd #tasbihPanel #tasbihHourHandGradient stop:nth-child(3),
-#rd #tasbihPanel #tasbihMinuteHandGradient stop:nth-child(1),
-#rd #tasbihPanel #tasbihMinuteHandGradient stop:nth-child(3){stop-color:var(--tasbih-hand-dark)!important}
-#rd #tasbihPanel #tasbihHourHandGradient stop:nth-child(2),
-#rd #tasbihPanel #tasbihMinuteHandGradient stop:nth-child(2){stop-color:var(--tasbih-hand-light)!important}
-#rd #tasbihPanel #tasbihSecondHandGradient stop:nth-child(1){stop-color:var(--tasbih-second-hand)!important}
-#rd #tasbihPanel #tasbihSecondHandGradient stop:nth-child(2){stop-color:var(--tasbih-hand-dark)!important}
-#rd #tasbihPanel #tasbihHandCenterGradient stop:nth-child(1){stop-color:var(--tasbih-pivot-light)!important}
-#rd #tasbihPanel #tasbihHandCenterGradient stop:nth-child(2){stop-color:var(--tasbih-pivot-mid)!important}
-#rd #tasbihPanel #tasbihHandCenterGradient stop:nth-child(3){stop-color:var(--tasbih-pivot-dark)!important}
-#rd #tasbihPanel #tasbihHourHand path:first-child,
-#rd #tasbihPanel #tasbihMinuteHand path:first-child{stroke:var(--tasbih-hand-dark)!important}
-#rd #tasbihPanel #tasbihSecondHand path{stroke:var(--tasbih-hand-dark)!important}
-#rd #tasbihPanel .tasbih-clock-dial .tasbih-count-tap{
- border-color:var(--tasbih-border)!important;
- background:linear-gradient(145deg,var(--tasbih-surface),color-mix(in srgb,var(--tasbih-bg) 78%,var(--tasbih-border)))!important;
- color:var(--tasbih-text)!important;
- box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--tasbih-border) 28%,transparent),0 3px 8px color-mix(in srgb,var(--tasbih-text) 20%,transparent)!important;
-}
-#rd #tasbihPanel .tasbih-clock-dial .tasbih-count-tap::before,
-#rd #tasbihPanel .tasbih-clock-dial .tasbih-count-tap::after{
- background:var(--tasbih-surface)!important;border-color:var(--tasbih-border)!important;
-}
-#rd #tasbihPanel .tasbih-clock-dial .tasbih-count-tap strong{color:var(--tasbih-accent)!important;text-shadow:0 1px 0 color-mix(in srgb,var(--tasbih-surface) 70%,white)!important}
-#rd #tasbihPanel .tasbih-clock-dial .tasbih-count-tap::after{color:var(--tasbih-muted)!important}
-#rd #tasbihPanel .tasbih-reset-housing{
- border-color:var(--tasbih-border)!important;
- background:linear-gradient(145deg,var(--tasbih-control-bg-strong),color-mix(in srgb,var(--tasbih-accent) 48%,var(--tasbih-text)))!important;
- box-shadow:0 3px 8px color-mix(in srgb,var(--tasbih-text) 20%,transparent),inset 0 1px 2px color-mix(in srgb,var(--tasbih-surface) 50%,transparent)!important;
-}
-#rd #tasbihPanel .tasbih-reset-housing #tasbihReset{
- border-color:var(--tasbih-border)!important;
- background:linear-gradient(145deg,var(--tasbih-surface),var(--tasbih-bg))!important;
- color:var(--tasbih-text)!important;
- box-shadow:0 2px 5px color-mix(in srgb,var(--tasbih-text) 18%,transparent)!important;
-}
-#rd #tasbihPanel .tasbih-reset-housing .tasbih-minus-control{
- border-color:var(--tasbih-border)!important;background:var(--tasbih-surface)!important;color:var(--tasbih-text)!important;
-}
-#rd #tasbihPanel .anwar-tasbih-tassel .tasbih-tassel-thread{
- border-color:var(--tasbih-accent-soft)!important;
- background:linear-gradient(90deg,var(--tasbih-tassel-dark),var(--tasbih-tassel-light),var(--tasbih-tassel-dark))!important;
-}
-#rd #tasbihPanel .anwar-tasbih-tassel::before{
- background:linear-gradient(90deg,var(--tasbih-tassel-dark),var(--tasbih-tassel-light),var(--tasbih-tassel-mid))!important;
-}
-#rd #tasbihPanel .anwar-tasbih-tassel::after{
- background:repeating-linear-gradient(100deg,var(--tasbih-tassel-dark) 0 1px,var(--tasbih-tassel-light) 1px 2px,var(--tasbih-tassel-mid) 2px 3px)!important;
-}
-#rd #tasbihPanel .tasbih-inner-dhikr-frame,
-#rd #tasbihPanel .tasbih-adhkar-toggle,
-#rd #tasbihPanel .tasbih-adhkar-list,
-#rd #tasbihPanel .tasbih-dhikr-card{
- border-color:var(--tasbih-border)!important;background:var(--tasbih-surface)!important;color:var(--tasbih-text)!important;
-}
+#rd #tasbihPanel .tasbih-clock-marks{background:repeating-conic-gradient(from -1.5deg,color-mix(in srgb,var(--tasbih-custom-color) 78%,transparent) 0deg 1deg,transparent 1deg 6deg)!important}
+#rd #tasbihPanel .tasbih-clock-number,#rd #tasbihPanel .tasbih-number-text{color:var(--tasbih-text)!important}
+#rd #tasbihPanel #tasbihHourHandGradient stop:nth-child(1),#rd #tasbihPanel #tasbihHourHandGradient stop:nth-child(3),#rd #tasbihPanel #tasbihMinuteHandGradient stop:nth-child(1),#rd #tasbihPanel #tasbihMinuteHandGradient stop:nth-child(3){stop-color:color-mix(in srgb,var(--tasbih-custom-color) 85%,#10151c)!important}
+#rd #tasbihPanel #tasbihHourHandGradient stop:nth-child(2),#rd #tasbihPanel #tasbihMinuteHandGradient stop:nth-child(2){stop-color:color-mix(in srgb,var(--tasbih-custom-color) 38%,white)!important}
+#rd #tasbihPanel #tasbihSecondHandGradient stop:nth-child(1){stop-color:var(--tasbih-accent-soft)!important}
+#rd #tasbihPanel #tasbihSecondHandGradient stop:nth-child(2){stop-color:color-mix(in srgb,var(--tasbih-custom-color) 85%,#10151c)!important}
+#rd #tasbihPanel #tasbihHandCenterGradient stop:nth-child(1){stop-color:color-mix(in srgb,var(--tasbih-surface) 35%,white)!important}
+#rd #tasbihPanel #tasbihHandCenterGradient stop:nth-child(2){stop-color:var(--tasbih-accent-soft)!important}
+#rd #tasbihPanel #tasbihHandCenterGradient stop:nth-child(3){stop-color:var(--tasbih-custom-color)!important}
+#rd #tasbihPanel #tasbihHourHand path:first-child,#rd #tasbihPanel #tasbihMinuteHand path:first-child,#rd #tasbihPanel #tasbihSecondHand path{stroke:color-mix(in srgb,var(--tasbih-custom-color) 84%,#14211b)!important}
+#rd #tasbihPanel .anwar-tasbih-tassel .tasbih-tassel-thread{border-color:var(--tasbih-accent-soft)!important;background:linear-gradient(90deg,color-mix(in srgb,var(--tasbih-custom-color) 82%,#111),color-mix(in srgb,var(--tasbih-custom-color) 38%,white),color-mix(in srgb,var(--tasbih-custom-color) 82%,#111))!important}
+#rd #tasbihPanel .anwar-tasbih-tassel::before{background:linear-gradient(90deg,color-mix(in srgb,var(--tasbih-custom-color) 82%,#111),color-mix(in srgb,var(--tasbih-custom-color) 38%,white),var(--tasbih-custom-color))!important}
+#rd #tasbihPanel .anwar-tasbih-tassel::after{background:repeating-linear-gradient(100deg,color-mix(in srgb,var(--tasbih-custom-color) 82%,#111) 0 1px,color-mix(in srgb,var(--tasbih-custom-color) 38%,white) 1px 2px,var(--tasbih-custom-color) 2px 3px)!important}
+#rd #tasbihPanel .tasbih-inner-dhikr-frame,#rd #tasbihPanel .tasbih-adhkar-toggle,#rd #tasbihPanel .tasbih-adhkar-list,#rd #tasbihPanel .tasbih-dhikr-card{border-color:var(--tasbih-border)!important;background:var(--tasbih-surface)!important;color:var(--tasbih-text)!important}
 #rd #tasbihPanel #tasbihCustomDhikrInput{color:var(--tasbih-text)!important}
-#rd #tasbihPanel #tasbihAddCustomDhikr,
-#rd #tasbihPanel .anwar-tasbih-voice button{
- border-color:var(--tasbih-border)!important;background:var(--tasbih-control-bg-strong)!important;color:var(--tasbih-text)!important;
-}
+#rd #tasbihPanel #tasbihAddCustomDhikr,#rd #tasbihPanel .anwar-tasbih-voice button{border-color:var(--tasbih-border)!important;background:var(--tasbih-custom-color)!important;color:#fff!important}
 #rd #tasbihPanel .anwar-tasbih-voice{border-color:var(--tasbih-border)!important;background:var(--tasbih-surface)!important}
-#rd #tasbihPanel .tasbih-dhikr-category{border-color:var(--tasbih-border)!important;color:var(--tasbih-accent)!important}
+#rd #tasbihPanel .tasbih-dhikr-category{border-color:var(--tasbih-border)!important;color:var(--tasbih-custom-color)!important}
 @media(prefers-reduced-motion:reduce){#rd #tasbihPanel .anwar-tasbih-bead{transition:none!important}}
 </style>
 </body>
