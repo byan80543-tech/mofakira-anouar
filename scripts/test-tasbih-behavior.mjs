@@ -155,12 +155,12 @@ assert.equal(timedClock.nodes.tasbihElapsedTime.textContent,'٠٠:٠٠:٠٠','th
 assert.equal(timedClock.pendingFrames,0,'the animation loop does not run while the tasbih panel is closed');
 timedClock.sandbox.AnwarTasbihController.open();
 assert.ok(timedClock.pendingFrames>0,'opening the tasbih starts the live animation-frame loop');
-const initialMinuteAngle=timedClock.nodes.tasbihMinuteHand.style.transform;
+const initialMinuteAngle=timedClock.nodes.tasbihMinuteHand.attributes.transform;
 timedClock.nodes.tasbihCounterControl.click();
 timedClock.advanceTime(61000);
 assert.equal(timedClock.nodes.tasbihElapsedTime.textContent,'٠٠:٠١:٠١','the real elapsed timer advances once per second');
 assert.ok(timedClock.state.tasbih.elapsedMs>=60000,'elapsed session time is persisted with encrypted preferences');
-assert.notEqual(timedClock.nodes.tasbihMinuteHand.style.transform,initialMinuteAngle,'the analog minute hand follows local time using direct CSS transforms');
+assert.notEqual(timedClock.nodes.tasbihMinuteHand.attributes.transform,initialMinuteAngle,'the analog minute hand follows local time using direct CSS transforms');
 timedClock.nodes.tasbihReset.click();
 assert.equal(timedClock.nodes.tasbihElapsedTime.textContent,'٠٠:٠٠:٠٠','reset clears the counter and session duration');
 const restoredClock=buildApp({initialCount:6,initialDhikr:'سبحان الله',initialElapsedMs:90000});
@@ -177,15 +177,15 @@ assert.equal(restoredClock.nodes.tasbihElapsedTime.textContent,pausedElapsed,'le
 
 const sweepClock=buildApp({now:Date.UTC(2026,10,23,10,0,0)});
 sweepClock.sandbox.AnwarTasbihController.open();
-const sweepInitial=sweepClock.nodes.tasbihSecondHand.style.transform;
-const minuteInitial=sweepClock.nodes.tasbihMinuteHand.style.transform;
-const hourInitial=sweepClock.nodes.tasbihHourHand.style.transform;
+const sweepInitial=sweepClock.nodes.tasbihSecondHand.attributes.transform;
+const minuteInitial=sweepClock.nodes.tasbihMinuteHand.attributes.transform;
+const hourInitial=sweepClock.nodes.tasbihHourHand.attributes.transform;
 sweepClock.advanceFrames(1);
-const sweepOneFrame=sweepClock.nodes.tasbihSecondHand.style.transform;
-const minuteOneFrame=sweepClock.nodes.tasbihMinuteHand.style.transform;
-const hourOneFrame=sweepClock.nodes.tasbihHourHand.style.transform;
+const sweepOneFrame=sweepClock.nodes.tasbihSecondHand.attributes.transform;
+const minuteOneFrame=sweepClock.nodes.tasbihMinuteHand.attributes.transform;
+const hourOneFrame=sweepClock.nodes.tasbihHourHand.attributes.transform;
 sweepClock.advanceFrames(1);
-const sweepTwoFrames=sweepClock.nodes.tasbihSecondHand.style.transform;
+const sweepTwoFrames=sweepClock.nodes.tasbihSecondHand.attributes.transform;
 assert.notEqual(sweepOneFrame,sweepInitial,'the second hand moves on the first animation frame');
 assert.notEqual(sweepTwoFrames,sweepOneFrame,'the second hand advances smoothly between consecutive animation frames');
 assert.notEqual(minuteOneFrame,minuteInitial,'the minute hand also advances between animation frames');
@@ -193,11 +193,11 @@ assert.notEqual(hourOneFrame,hourInitial,'the hour hand also advances between an
 sweepClock.setVisibility('hidden');
 assert.equal(sweepClock.pendingFrames,0,'hiding the browser tab cancels the animation frame loop');
 sweepClock.advanceTime(1000);
-const hiddenHandAngle=sweepClock.nodes.tasbihSecondHand.style.transform;
+const hiddenHandAngle=sweepClock.nodes.tasbihSecondHand.attributes.transform;
 sweepClock.setVisibility('visible');
 assert.ok(sweepClock.pendingFrames>0,'returning to a visible tab resumes the clock animation');
 sweepClock.advanceFrames(1);
-assert.notEqual(sweepClock.nodes.tasbihSecondHand.style.transform,hiddenHandAngle,'the clock catches up to device time when the tab becomes visible');
+assert.notEqual(sweepClock.nodes.tasbihSecondHand.attributes.transform,hiddenHandAngle,'the clock catches up to device time when the tab becomes visible');
 sweepClock.fireWindowEvent('pagehide');
 assert.equal(sweepClock.pendingFrames,0,'pagehide cancels the running animation frame');
 
@@ -275,8 +275,9 @@ assert.equal(app.nodes.tasbihClockNumbers.children.length,12,'the rendered clock
 assert.deepEqual(app.nodes.tasbihClockNumbers.children.map(wrapper=>wrapper.children[0].textContent),['1','2','3','4','5','6','7','8','9','10','11','12'],'all twelve original-style clock numerals render in order');
 assert.equal(app.nodes.tasbihClockTicks.children.length,60,'the clock face generates all sixty tick marks');
 assert.ok(app.nodes.tasbihClockTicks.classList.contains('has-generated-ticks'),'generated tick marks replace the CSS fallback rather than doubling it');
-assert.match(app.nodes.tasbihHourHand.style.transform,/rotate\(/,'the hour hand receives an actual CSS rotation at initialization');
-assert.match(app.nodes.tasbihMinuteHand.style.transform,/rotate\(/,'the minute hand receives an actual CSS rotation at initialization');
+assert.match(app.nodes.tasbihHourHand.attributes.transform,/rotate\(/,'the SVG hour-hand group rotates around the dial centre at initialization');
+assert.match(app.nodes.tasbihMinuteHand.attributes.transform,/rotate\(/,'the SVG minute-hand group rotates around the dial centre at initialization');
+assert.match(app.nodes.tasbihSecondHand.attributes.transform,/rotate\(/,'the SVG second-hand group rotates around the dial centre at initialization');
 assert.equal(app.nodes.tasbihClockTicks.children.filter(tick=>tick.classList.contains('major')).length,12,'twelve clock ticks are emphasized as hour marks');
 assert.equal(app.sandbox.__ANWAR_TASBIH_CONTROLLER_READY__,true,'the controller initializes when the required UI is present');
 assert.equal(app.sandbox.AnwarTasbihController.open(),true,'the public tasbih controller opens the panel');
@@ -294,7 +295,9 @@ assert.ok(html.includes('id="tasbihClockNumbers"')&&controller.includes('functio
 assert.equal((html.match(/class="tasbih-number-wrapper" style="transform:rotate\(/g)||[]).length,12,'the HTML includes a visible twelve-number fallback before JavaScript starts');
 assert.ok(controller.includes("for(let i=1;i<=12;i++)")&&controller.includes("rotate(-'+angle+'deg)"),'the numeral wrappers use the provided number-wrapper algorithm and counter-rotate the original Latin numerals');
 assert.ok(controller.includes('function renderClockTicks()')&&controller.includes('i<60')&&controller.includes("i%5===0?' major':''"),'the clock generates all sixty minute ticks with twelve major hour marks');
-assert.ok(controller.includes("hourHand.style.transform='translateX(-50%) rotate('+hourDeg+'deg)'")&&controller.includes("minuteHand.style.transform='translateX(-50%) rotate('+minuteDeg+'deg)'"),'the real clock hands are rotated directly using the original transform method');
+assert.ok(controller.includes("hourHand.setAttribute('transform','rotate('+hourDeg+' 50 50)')")&&controller.includes("minuteHand.setAttribute('transform','rotate('+minuteDeg+' 50 50)')")&&controller.includes("secondHand.setAttribute('transform','rotate('+secondDeg+' 50 50)')"),'all three SVG clock hands rotate around the exact 50/50 dial centre');
+assert.ok(html.includes('class="tasbih-clock-hands-svg"')&&html.includes('viewBox="0 0 100 100"')&&html.includes('id="tasbihHandCenterGradient"'),'the clock hands are drawn as explicit SVG geometry instead of empty inline spans');
+assert.ok(html.includes('id="anwar-tasbih-svg-hands-v1"')&&html.includes('z-index:6!important')&&html.includes('z-index:8!important'),'the SVG hand layer stays above dial markings and below the count medallion');
 const clockDialStart=html.indexOf('<div class="tasbih-clock-dial"');
 const clockDialEnd=html.indexOf('\n      </div>\n      <div class="tasbih-elapsed-readout"',clockDialStart);
 assert.ok(clockDialStart>=0&&clockDialEnd>clockDialStart&&html.slice(clockDialStart,clockDialEnd).includes('id="tasbihCounterControl"'),'the tasbih count button is positioned in the center of the analog clock dial');

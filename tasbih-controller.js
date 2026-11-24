@@ -166,9 +166,9 @@
    const hourDeg=hours*30;
    const minuteDeg=minutes*6;
    const secondDeg=seconds*6;
-   hourHand.style.transform='translateX(-50%) rotate('+hourDeg+'deg)';
-   minuteHand.style.transform='translateX(-50%) rotate('+minuteDeg+'deg)';
-   secondHand.style.transform='translateX(-50%) rotate('+secondDeg+'deg)';
+   hourHand.setAttribute('transform','rotate('+hourDeg+' 50 50)');
+   minuteHand.setAttribute('transform','rotate('+minuteDeg+' 50 50)');
+   secondHand.setAttribute('transform','rotate('+secondDeg+' 50 50)');
    elapsedNode.textContent=formatDuration(currentElapsedMs(stamp));
    clockDial.setAttribute('aria-label','الساعة الآن '+arabicDigits(String(date.getHours()).padStart(2,'0'))+':'+arabicDigits(String(date.getMinutes()).padStart(2,'0')));
   }

@@ -3208,6 +3208,21 @@ dialog[open]>.float-head{display:none!important}
 /* حركة انسيابية مباشرة من requestAnimationFrame دون انتقال CSS متأخر */
 #rd #tasbihPanel .tasbih-clock-hand{transition:none!important}
 </style>
+<style id="anwar-tasbih-svg-hands-v1">
+/* طبقة SVG فعلية للعقارب: فوق الأرقام وتحت قرص عداد التسبيح */
+#rd #tasbihPanel .tasbih-clock-hands{
+ position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+ display:block!important;z-index:6!important;overflow:visible!important;pointer-events:none!important;
+}
+#rd #tasbihPanel .tasbih-clock-hands-svg{
+ position:absolute!important;inset:0!important;display:block!important;
+ width:100%!important;height:100%!important;overflow:visible!important;pointer-events:none!important;
+}
+#rd #tasbihPanel .tasbih-clock-hands-svg .tasbih-svg-hand{
+ display:inline!important;visibility:visible!important;opacity:1!important;
+}
+#rd #tasbihPanel .tasbih-clock-dial .tasbih-count-tap{z-index:8!important}
+</style>
 </head>
 <body>
 <div class="app" id="app">
@@ -3565,10 +3580,36 @@ dialog[open]>.float-head{display:none!important}
        </div>
        </div>
        <div class="tasbih-clock-hands" aria-hidden="true">
-        <span class="tasbih-clock-hand tasbih-hour-hand" id="tasbihHourHand"></span>
-        <span class="tasbih-clock-hand tasbih-minute-hand" id="tasbihMinuteHand"></span>
-        <span class="tasbih-clock-hand tasbih-second-hand" id="tasbihSecondHand"></span>
-        <span class="tasbih-clock-pivot"></span>
+        <svg class="tasbih-clock-hands-svg" viewBox="0 0 100 100" preserveAspectRatio="none" focusable="false">
+         <defs>
+          <linearGradient id="tasbihHourHandGradient" x1="0" y1="0" x2="1" y2="0">
+           <stop offset="0" stop-color="#0b3828"/><stop offset=".48" stop-color="#2d7651"/><stop offset="1" stop-color="#0b3828"/>
+          </linearGradient>
+          <linearGradient id="tasbihMinuteHandGradient" x1="0" y1="0" x2="1" y2="0">
+           <stop offset="0" stop-color="#10432f"/><stop offset=".5" stop-color="#438866"/><stop offset="1" stop-color="#10432f"/>
+          </linearGradient>
+          <linearGradient id="tasbihSecondHandGradient" x1="0" y1="0" x2="0" y2="1">
+           <stop offset="0" stop-color="#d4ad60"/><stop offset="1" stop-color="#8a6324"/>
+          </linearGradient>
+          <radialGradient id="tasbihHandCenterGradient" cx=".32" cy=".25" r=".8">
+           <stop offset="0" stop-color="#fff4cf"/><stop offset=".62" stop-color="#c99c4c"/><stop offset="1" stop-color="#73531f"/>
+          </radialGradient>
+         </defs>
+         <g id="tasbihHourHand" class="tasbih-svg-hand" transform="rotate(0 50 50)">
+          <path d="M50 22 C48.8 28.5 48.35 41.3 48.9 48.8 L50 50 L51.1 48.8 C51.65 41.3 51.2 28.5 50 22Z" fill="url(#tasbihHourHandGradient)" stroke="#0a3626" stroke-width=".32" stroke-linejoin="round"/>
+          <path d="M50 25 C49.5 32 49.55 41 49.65 46" fill="none" stroke="#a9c7ad" stroke-width=".28" stroke-linecap="round" opacity=".72"/>
+         </g>
+         <g id="tasbihMinuteHand" class="tasbih-svg-hand" transform="rotate(0 50 50)">
+          <path d="M50 7.5 C48.95 16.5 48.65 37 49.1 48.9 L50 50 L50.9 48.9 C51.35 37 51.05 16.5 50 7.5Z" fill="url(#tasbihMinuteHandGradient)" stroke="#0c3d2b" stroke-width=".28" stroke-linejoin="round"/>
+          <path d="M50 12 C49.65 22 49.7 38 49.82 46" fill="none" stroke="#b9d0bb" stroke-width=".24" stroke-linecap="round" opacity=".7"/>
+         </g>
+         <g id="tasbihSecondHand" class="tasbih-svg-hand" transform="rotate(0 50 50)">
+          <path d="M50 4.5 L50 60" fill="none" stroke="url(#tasbihSecondHandGradient)" stroke-width=".72" stroke-linecap="round"/>
+          <circle cx="50" cy="59" r="1.25" fill="#b18435" stroke="#79551e" stroke-width=".25"/>
+         </g>
+         <circle cx="50" cy="50" r="2.35" fill="url(#tasbihHandCenterGradient)" stroke="#174a35" stroke-width=".62"/>
+         <circle cx="49.35" cy="49.25" r=".62" fill="#fff5d4" opacity=".9"/>
+        </svg>
        </div>
        <button type="button" id="tasbihCounterControl" class="tasbih-count-tap" aria-label="زيادة عداد التسبيح">
         <strong id="tasbihCount">0</strong>
@@ -3781,7 +3822,7 @@ dialog[open]>.float-head{display:none!important}
 <script src="./adhkar-page-theme.js?v=20261121-2" defer></script>
 <script src="./ibtihalat-radio.js?v=20261121-1" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
-<script src="./tasbih-controller.js?v=20261124-77" defer></script>
+<script src="./tasbih-controller.js?v=20261124-78" defer></script>
 <script src="./prayer-times.js?v=20261123-1" defer></script>
 
 
