@@ -14,7 +14,7 @@
   const counterTap=$('tasbihCounterControl');
   const clockDial=$('tasbihClockDial'),clockTicks=$('tasbihClockTicks'),clockNumbers=$('tasbihClockNumbers'),hourHand=$('tasbihHourHand'),minuteHand=$('tasbihMinuteHand'),secondHand=$('tasbihSecondHand'),elapsedNode=$('tasbihElapsedTime');
   const themeToggle=$('tasbihThemeToggle'),themePicker=$('tasbihThemePicker');
-  const themeIds=['emerald','dark','pink','night','heritage','glass'];
+  const themeIds=["pearl","pink","glass","mint","sky","turquoise","lavender","coral","heritage","emerald","ocean","cocoa","dark","night","sapphire","violet","burgundy","graphite"];
   const themeButtons=themeIds.map(name=>({name,button:$('tasbihTheme'+name[0].toUpperCase()+name.slice(1))}));
   const tap=$('tasbihTap'),minus=$('tasbihMinus'),reset=$('tasbihReset');
   const cards=$('tasbihDhikrCards'),customInput=$('tasbihCustomDhikrInput');
