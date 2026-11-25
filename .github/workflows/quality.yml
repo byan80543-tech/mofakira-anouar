@@ -53,6 +53,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Test DOM value targets and Arabic vault lock errors
+        run: node scripts/test-dom-value-targets.mjs
       - name: Test one-tap encrypted rescue backup and verified restore
         run: node scripts/test-rescue-backup.mjs
       - name: Test radio continuity across in-app audio and foreground interruptions
