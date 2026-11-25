@@ -189,7 +189,6 @@
   '.anwar-prayer-background-access:focus-visible{outline:2px solid var(--ac);outline-offset:2px}',
   '.anwar-prayer-access-icon{display:inline-grid;place-items:center;flex:none;width:25px;height:25px;border:1px solid #c9a96a;border-radius:7px;background:#fffdf6;color:#173d5c}',
   '.anwar-prayer-access-icon svg{display:block;width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}',
-  '.anwar-prayer-permission-hint{padding-inline:4px;font-size:10px;line-height:1.7;color:var(--mu)}',
   '.anwar-prayer-volume{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center;margin-top:8px;font-size:11px;color:var(--mu)}',
   '.anwar-prayer-volume input{width:100%;accent-color:var(--ac)}',
   '.anwar-prayer-status{font-size:11px;line-height:1.7;color:var(--ac);min-height:18px}',
