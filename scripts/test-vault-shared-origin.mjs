@@ -4,6 +4,7 @@ import vm from 'node:vm';
 import { webcrypto } from 'node:crypto';
 
 const source=fs.readFileSync(new URL('../vault-device-unlock.js',import.meta.url),'utf8');
+const appCore=fs.readFileSync(new URL('../app-core.js',import.meta.url),'utf8');
 const PASSWORD='Never persisted in clear text - test only';
 
 function makeEnvironment(hostname,seedWrapper=false){
@@ -48,6 +49,8 @@ assert.equal(blocked.getCalls,0,'unlock never requests a PRF assertion on a shar
 const sibling=makeEnvironment('another-owner.github.io',true);
 assert.equal(sibling.api.isSharedGitHubPagesOrigin(),true,'the policy covers other GitHub Pages owner hosts too');
 assert.equal(sibling.values.has('anwar_vault_device_unlock_v1'),false,'legacy wrapper is removed on every github.io host');
+
+assert.ok(appCore.includes("deviceManage.textContent=deviceConfigured?'إدارة فتح الهاتف':sharedDeviceOrigin?'سبب تعطيل البصمة':'إعداد فتح الهاتف';"),'the shared-origin gate clearly explains why fingerprint unlock is disabled');
 
 const isolated=makeEnvironment('mofakira-anouar.pages.dev',false);
 assert.equal(isolated.api.isSharedGitHubPagesOrigin(),false,'a dedicated origin is not classified as GitHub Pages');
