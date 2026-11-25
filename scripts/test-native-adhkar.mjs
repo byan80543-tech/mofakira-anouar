@@ -20,9 +20,11 @@ assert.doesNotMatch(activity, /WebView|WEB_MESSAGE_LISTENER|http:\/\/|https:\/\/
   'the native personal notes screen has no web or remote service dependency');
 assert.match(activity, /PREFS_NAME = "anwar_personal_adhkar"/);
 assert.match(activity, /KEY_ENTRIES = "entries_v1"/);
-assert.match(activity, /SharedPreferences/);
+assert.match(activity, /AnwarEncryptedStore\.readOrMigrate/);
+assert.match(activity, /AnwarEncryptedStore\.write/);
 assert.match(activity, /JSONArray\(raw\)/);
-assert.match(activity, /putString\(KEY_ENTRIES, array\.toString\(\)\)/);
+assert.doesNotMatch(activity, /SharedPreferences|putString\(KEY_ENTRIES/,
+  'personal adhkar are migrated to and written only through the encrypted store');
 assert.match(activity, /MAX_TEXT_LENGTH = 3000/);
 assert.match(activity, /MAX_ENTRIES = 100/);
 assert.match(activity, /InputFilter\.LengthFilter\(MAX_TEXT_LENGTH\)/);
