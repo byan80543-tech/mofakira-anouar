@@ -3,7 +3,6 @@ package com.anwar.mofakira
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
-import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -43,9 +42,6 @@ class NativeAdhkarActivity : Activity() {
     private val muted = Color.rgb(101, 112, 120)
     private val border = Color.rgb(229, 222, 208)
 
-    private val preferences: SharedPreferences by lazy {
-        getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-    }
     private val entries = mutableListOf<Entry>()
     private var storageAvailable = true
     private var storageFailureMessage = ""
