@@ -225,7 +225,7 @@
  nextBox.append(nextCopy,countdownCopy);
  showNextPrayerPlaceholder('بانتظار المواقيت');
  const timesGrid=el('div','anwar-prayer-times');
- const dateLine=el('div','anwar-prayer-date','جارٍ تحميل المواقيت…');
+ const dateLine=el('div','anwar-prayer-date','جارٍ تحميل مواقيت الصلاة…');
  const infoDetails=el('details','anwar-prayer-info');
  const infoSummary=el('summary');
  const privacyIcon=el('span','anwar-prayer-privacy-icon');
