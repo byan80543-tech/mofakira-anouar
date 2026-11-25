@@ -15,7 +15,7 @@ globalThis.localStorage={
  setItem(key,value){storage.set(key,String(value))},
  removeItem(key){storage.delete(key)}
 };
-globalThis.location={hostname:'notes.example.test'};
+globalThis.location={hostname:'mofakira-anouar.pages.dev',protocol:'https:',origin:'https://mofakira-anouar.pages.dev'};
 globalThis.isSecureContext=true;
 globalThis.PublicKeyCredential=function(){};
 
@@ -31,7 +31,7 @@ Object.defineProperty(globalThis,'navigator',{
   credentials:{
    async create(options){
     createCalls++;
-    assert.equal(options.publicKey.rp.id,'notes.example.test');
+    assert.equal(options.publicKey.rp.id,'mofakira-anouar.pages.dev');
     assert.equal(options.publicKey.authenticatorSelection.authenticatorAttachment,'platform');
     assert.equal(options.publicKey.authenticatorSelection.residentKey,'preferred','resident credentials are preferred, not required, for wider device compatibility');
     assert.equal(options.publicKey.authenticatorSelection.userVerification,'required');
@@ -46,7 +46,7 @@ Object.defineProperty(globalThis,'navigator',{
    },
    async get(options){
     getCalls++;
-    assert.equal(options.publicKey.rpId,'notes.example.test');
+    assert.equal(options.publicKey.rpId,'mofakira-anouar.pages.dev');
     assert.equal(options.publicKey.userVerification,'required');
     assert.equal(options.publicKey.allowCredentials[0].type,'public-key');
     assert.ok(options.publicKey.extensions.prf.eval.first,'unlock requests the saved PRF salt');
