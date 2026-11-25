@@ -26,7 +26,7 @@
  }
  let state=normalize({});
  const listeners=new Set();
- let persistHandler=null;
+ let persistHandler=null,flushHandler=null;
  const copy=()=>normalize(state);
  function notify(){
   const snapshot=copy();
@@ -53,7 +53,12 @@
   return ()=>listeners.delete(listener);
  }
  function setPersistHandler(handler){persistHandler=typeof handler==='function'?handler:null}
- root.AnwarPrivatePreferences=Object.freeze({normalize,load,get:copy,set,subscribe,setPersistHandler});
+ function setFlushHandler(handler){flushHandler=typeof handler==='function'?handler:null}
+ async function flush(){
+  if(!flushHandler)return false;
+  return await flushHandler();
+ }
+ root.AnwarPrivatePreferences=Object.freeze({normalize,load,get:copy,set,subscribe,setPersistHandler,setFlushHandler,flush});
 })(globalThis);
 requestAnimationFrame(()=>setTimeout(()=>{
 
@@ -1111,6 +1116,13 @@ function flushPrivatePreferenceSave(){
   if(vaultUnlocked)save();
  }
 }
+globalThis.AnwarPrivatePreferences.setFlushHandler(async()=>{
+ if(!vaultUnlocked)return false;
+ flushPrivatePreferenceSave();
+ await vaultSaveQueue;
+ if(vaultLastWriteError)throw new Error('تعذّر التحقق من حفظ إعدادات المفكرة.');
+ return true;
+});
 const iso=d=>d.toISOString().slice(0,10);
 function streak(){const d=new Set(S.days);let n=0,c=new Date();if(!d.has(iso(c)))c.setDate(c.getDate()-1);while(d.has(iso(c))){n++;c.setDate(c.getDate()-1)}return n}
 const fmt=ts=>new Date(ts).toLocaleDateString('ar',{day:'numeric',month:'long',year:'numeric'});
