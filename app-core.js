@@ -67,6 +67,9 @@ let adhkarFontTarget=null;
 let vaultKey=null,vaultTemplate=null,vaultUnlocked=false,vaultGateMode='setup',vaultReady=false,vaultDisableAfterUnlock=false,vaultHasEncryptedData=false,vaultLockInProgress=false;
 let vaultSaveQueue=Promise.resolve(),vaultLastWriteError=null,vaultBackupWarningShown=false,vaultLegacyCleanupWarningShown=false;
 let rescuePendingEnvelope=null;
+const RESCUE_REMINDER_ENABLED_KEY='anwar_rescue_reminder_enabled_v1';
+const RESCUE_REMINDER_DUE_KEY='anwar_rescue_reminder_due_v1';
+const RESCUE_REMINDER_INTERVAL_MS=30*24*60*60*1000;
 const VAULT_IDLE_LOCK_MS=5*60*1000; // قفل تلقائي بعد خمس دقائق من عدم النشاط الموثوق، إضافة إلى قفل الخلفية.
 let vaultIdleTimer=null,vaultLastActivityAt=0;
 const hasOwn=(object,key)=>Object.prototype.hasOwnProperty.call(object,key);
@@ -432,6 +435,7 @@ function finishVaultOpen(){
   openNote(S.notes.slice().sort((a,b)=>b.ts-a.ts)[0]);
  }else openNote(null);
  renderList();
+ checkRescueReminder();
 }
 async function bootVault(){
  let mode=null,savedVault=null,savedBackup=null;
@@ -765,6 +769,52 @@ async function lockVault(reason='manual'){
   vaultLockInProgress=false;
  }
 }
+function isRescueReminderEnabled(){
+ try{return localStorage.getItem(RESCUE_REMINDER_ENABLED_KEY)==='1'}
+ catch(error){return false}
+}
+function syncRescueReminderButton(){
+ const button=$('rescueReminderBtn');
+ if(!button)return;
+ const enabled=isRescueReminderEnabled();
+ button.textContent=enabled?'🔔 شهري مفعّل':'🔔 تذكير شهري';
+ button.setAttribute('aria-pressed',String(enabled));
+ button.title=enabled?'إيقاف التذكير الشهري بنسخة الإنقاذ':'تفعيل تذكير هادئ بعد 30 يومًا؛ يظهر عند فتح المفكرة فقط';
+}
+function toggleRescueReminder(){
+ const enabled=isRescueReminderEnabled();
+ try{
+  if(enabled){
+   localStorage.removeItem(RESCUE_REMINDER_ENABLED_KEY);
+   localStorage.removeItem(RESCUE_REMINDER_DUE_KEY);
+   toast('تم إيقاف تذكير نسخة الإنقاذ.',3500);
+  }else{
+   localStorage.setItem(RESCUE_REMINDER_ENABLED_KEY,'1');
+   localStorage.setItem(RESCUE_REMINDER_DUE_KEY,String(Date.now()+RESCUE_REMINDER_INTERVAL_MS));
+   toast('تم تفعيل التذكير الشهري. سيظهر عند فتح المفكرة بعد 30 يومًا، دون إشعارات أو نسخ تلقائية.',5500);
+  }
+  syncRescueReminderButton();
+ }catch(error){
+  toast('تعذّر حفظ إعداد التذكير على هذا الجهاز.',4500);
+ }
+}
+function checkRescueReminder(){
+ if(!vaultUnlocked||!isRescueReminderEnabled())return;
+ let due=0;
+ try{due=Number(localStorage.getItem(RESCUE_REMINDER_DUE_KEY)||0)}
+ catch(error){return}
+ if(!Number.isFinite(due)||due<1){
+  try{localStorage.setItem(RESCUE_REMINDER_DUE_KEY,String(Date.now()+RESCUE_REMINDER_INTERVAL_MS))}
+  catch(error){}
+  return;
+ }
+ if(Date.now()<due)return;
+ try{localStorage.setItem(RESCUE_REMINDER_DUE_KEY,String(Date.now()+RESCUE_REMINDER_INTERVAL_MS))}
+ catch(error){return}
+ setTimeout(()=>{
+  if(vaultUnlocked&&isRescueReminderEnabled())toast('حان موعد تذكير نسخة الإنقاذ. نزّل نسخة جديدة واحفظها خارج الهاتف.',6500);
+ },1200);
+}
 async function downloadRescueBackup(){
  flushPrivatePreferenceSave();
  if(!vaultUnlocked||!vaultKey||!vaultTemplate){toast('افتح الخزنة أولًا لإنشاء نسخة الإنقاذ.',4500);return}
@@ -788,6 +838,7 @@ async function downloadRescueBackup(){
   anchor.rel='noopener';
   document.body.append(anchor);anchor.click();anchor.remove();
   setTimeout(()=>URL.revokeObjectURL(url),60000);
+  if(isRescueReminderEnabled())try{localStorage.setItem(RESCUE_REMINDER_DUE_KEY,String(Date.now()+RESCUE_REMINDER_INTERVAL_MS))}catch(error){}
   toast('تم تجهيز نسخة الإنقاذ المشفرة. احفظ الملف خارج الهاتف واحتفظ بعبارة مرور الخزنة منفصلة.',6500);
  }catch(error){
   console.warn('تعذّر إنشاء نسخة الإنقاذ المشفرة',error);
@@ -2701,6 +2752,7 @@ document.addEventListener('click',e=>{
  else if(id==='dl'&&cur){if(confirm('حذف هذا العمل نهائيًا؟')){S.notes=S.notes.filter(n=>n!==cur);save();openNote(null)}}
  else if(id==='bkp'){downloadRescueBackup()}
  else if(id==='restoreRescueBtn'){openRescueRestorePicker()}
+ else if(id==='rescueReminderBtn'){toggleRescueReminder()}
  else if(id==='vaultShieldActivate'){
   if(vaultGateMode==='unlock'&&$('vaultPasswordFields').hidden&&globalThis.AnwarDeviceUnlock&&AnwarDeviceUnlock.isConfigured()){
    unlockVaultWithDevice();
@@ -4146,6 +4198,7 @@ $('vaultDeviceSetupForm').addEventListener('submit',submitVaultDeviceSetup);
 $('vaultDeviceDisableBtn').addEventListener('click',disableVaultDeviceUnlock);
 $('vaultDeviceSetupClose').addEventListener('click',()=>$('vaultDeviceSetupDialog').close());
 $('backupPassword').value='';
+syncRescueReminderButton();
 $('rescueFilePicker').addEventListener('change',handleRescueFileSelected);
 $('dg').addEventListener('close',()=>{rescuePendingEnvelope=null;$('backupPassword').value='';$('rescueFileName').textContent='لم يتم اختيار ملف بعد.'});
 bootVault();
