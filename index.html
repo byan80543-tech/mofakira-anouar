@@ -5,7 +5,7 @@
 <meta name="google-site-verification" content="HbzspyjaTnE2NqMGXkROH28NC0EpouKzGyZZBzopH_k" />
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.aladhan.com https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="preload" href="./app-core.js?v=20261125-71" as="script">
+<link rel="preload" href="./app-core.js?v=20261125-73" as="script">
 <script src="api-gateway-config.js"></script>
 <script src="./origin-shield.js?v=20261123-2" defer></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -3421,7 +3421,7 @@ dialog[open]>.float-head{display:none!important}
    <button class="b" id="ip" title="عرض فكرة تساعد على الكتابة" aria-label="عرض فكرة للكتابة">💡 إلهام</button>
    <button class="b" id="pn" title="تثبيت العمل أو إلغاء تثبيته" aria-label="تثبيت العمل أو إلغاء تثبيته">☆ تثبيت</button>
    <button class="b" id="cy" title="نسخ نص العمل" aria-label="نسخ نص العمل إلى الحافظة">📋 نسخ</button>
-   <button class="b bkp-tool" id="bkp" type="button" title="إنشاء نسخة احتياطية مشفرة أو استعادتها" aria-label="فتح النسخة الاحتياطية المشفرة" aria-haspopup="dialog" aria-controls="dg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h12l3.5 3.5v13.5H3.5V3.5H5Z"/><path d="M7 3.5v6h9v-6M8 20.5v-7h8v7"/></svg><span>نسخة مشفرة</span></button>
+   <button class="b bkp-tool" id="bkp" type="button" title="تنزيل نسخة إنقاذ مشفرة بضغطة واحدة" aria-label="إنشاء وتنزيل نسخة إنقاذ مشفرة"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h12l3.5 3.5v13.5H3.5V3.5H5Z"/><path d="M7 3.5v6h9v-6M8 20.5v-7h8v7"/><path d="M12 11v5m-2-2 2 2 2-2"/></svg><span>نسخة إنقاذ</span></button><button class="b" id="restoreRescueBtn" type="button" title="استعادة الأعمال من ملف إنقاذ مشفر" aria-label="استعادة نسخة إنقاذ">📂 استعادة</button><button class="b" id="rescueReminderBtn" type="button" aria-pressed="false" title="تفعيل تذكير هادئ بعد 30 يومًا">🔔 تذكير شهري</button>
    <button class="b" id="hist" title="فتح سجل الإصدارات السابقة" aria-label="سجل إصدارات العمل">🕘 الإصدارات</button>
    <button class="b dn" id="dl" title="حذف العمل" aria-label="حذف العمل الحالي">🗑️ حذف العمل</button>
   </div><small>أدوات أنوار</small></div></div>
@@ -3758,13 +3758,16 @@ dialog[open]>.float-head{display:none!important}
   <div id="lessonSeriesList" class="lesson-series-list" role="listbox" aria-label="السلاسل العلمية"></div>
  </section>
 </div>
-<dialog id="dg">
- <p><b>نسخة احتياطية مشفرة</b><br><small>المحتوى أدناه مشفر. احتفظ بالملف وكلمة مرور الخزنة في مكانين آمنين.</small></p>
- <textarea id="bt" aria-label="بيانات النسخة الاحتياطية المشفرة" spellcheck="false"></textarea>
- <label class="vault-backup-password" for="backupPassword">كلمة مرور هذه النسخة عند الاستعادة</label>
- <input id="backupPassword" type="password" autocomplete="current-password" placeholder="أدخل كلمة مرور النسخة المشفرة">
- <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><button class="b" id="cp">📋 نسخ مشفر</button><button class="b" id="downloadBackup">⬇ تنزيل مشفر</button><button class="b" id="rs">♻️ استعادة</button><button class="b" id="cl">إغلاق</button></div>
+<dialog id="dg" aria-labelledby="rescueRestoreTitle">
+ <h2 id="rescueRestoreTitle" style="margin:0 0 8px">استعادة نسخة الإنقاذ</h2>
+ <p><small>الملف مشفر بالكامل. اختر ملف النسخة من جهازك، ثم أدخل عبارة مرور الخزنة التي أُنشئت بها النسخة.</small></p>
+ <p id="rescueFileName" style="padding:9px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);overflow-wrap:anywhere">لم يتم اختيار ملف بعد.</p>
+ <label class="vault-backup-password" for="backupPassword">عبارة مرور الخزنة الأصلية</label>
+ <input id="backupPassword" type="password" autocomplete="current-password" placeholder="أدخل عبارة مرور الخزنة">
+ <p style="font-size:11px;color:var(--mu)">لا تُرسل النسخة أو عبارة المرور إلى أي خادم. لن تتغير أعمالك الحالية إذا فشل فك التشفير أو التحقق.</p>
+ <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><button class="b" id="rs" type="button">♻️ استعادة الأعمال</button><button class="b" id="cl" type="button">إغلاق</button></div>
 </dialog>
+<input id="rescueFilePicker" type="file" accept=".json,application/json" hidden>
 <dialog id="historyDialog"><h3 style="margin-top:0">سجل إصدارات العمل</h3><p style="color:var(--mu);font-size:12px">تُحفظ لقطات سابقة تلقائيًا عند تعديل العمل. نحتفظ بآخر 15 إصدارًا.</p><div id="historyItems"></div><div class="dialog-actions" style="margin-top:12px"><button type="button" id="closeHistory">إغلاق</button></div></dialog>
 
 
@@ -3866,7 +3869,7 @@ dialog[open]>.float-head{display:none!important}
 <script src="./vault-device-unlock.js?v=20261125-2"></script>
 <script src="./poetry-dictation.js?v=20261119-1" defer></script>
 <script src="./protective-adhkar.js?v=20261121-1" defer></script>
-<script src="./app-core.js?v=20261125-71" defer></script>
+<script src="./app-core.js?v=20261125-73" defer></script>
 <script src="./adhkar-page-theme.js?v=20261121-2" defer></script>
 <script src="./ibtihalat-radio.js?v=20261121-1" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>

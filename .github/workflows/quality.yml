@@ -53,6 +53,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Test one-tap encrypted rescue backup and verified restore
+        run: node scripts/test-rescue-backup.mjs
       - name: Test radio continuity across in-app audio and foreground interruptions
         run: node scripts/test-radio-interruptions.mjs
       - name: Test selected devotional recordings in the radio page
