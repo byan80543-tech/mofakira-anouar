@@ -1,7 +1,6 @@
 package com.anwar.mofakira
 
 import android.content.Context
-import org.json.JSONArray
 import org.json.JSONObject
 import java.time.ZoneId
 
@@ -17,7 +16,8 @@ data class PrayerConfig(
 )
 
 object PrayerSettings {
-    private const val PREFS = "anwar_native_adhan"
+    private const val LEGACY_PREFS = "anwar_native_adhan"
+    private const val STORE_NAMESPACE = "prayer.settings.v1"
     private const val KEY_ENABLED = "enabled"
     private const val KEY_CITY = "city"
     private const val KEY_COUNTRY = "country"
@@ -29,19 +29,28 @@ object PrayerSettings {
     private const val KEY_EVENTS = "schedule_events"
     private const val KEY_LAST_FIRED = "last_fired"
 
+    private fun state(context: Context): JSONObject {
+        val raw = AnwarEncryptedStore.readPreferencesJson(context, STORE_NAMESPACE, LEGACY_PREFS)
+        return if (raw.isNullOrBlank()) JSONObject() else JSONObject(raw)
+    }
+
+    private fun saveState(context: Context, value: JSONObject) {
+        AnwarEncryptedStore.write(context, STORE_NAMESPACE, value.toString())
+    }
+
     fun read(context: Context): PrayerConfig {
-        val p = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val rawZone = p.getString(KEY_TIME_ZONE, "Africa/Casablanca") ?: "Africa/Casablanca"
+        val p = state(context)
+        val rawZone = p.optString(KEY_TIME_ZONE, "Africa/Casablanca")
         val zone = runCatching { ZoneId.of(rawZone).id }.getOrElse { "Africa/Casablanca" }
         return PrayerConfig(
-            enabled = p.getBoolean(KEY_ENABLED, false),
-            city = safeText(p.getString(KEY_CITY, "Meknes"), "Meknes"),
-            country = safeText(p.getString(KEY_COUNTRY, "Morocco"), "Morocco"),
-            method = safeText(p.getString(KEY_METHOD, "21"), "21"),
-            school = if (p.getString(KEY_SCHOOL, "0") == "1") "1" else "0",
+            enabled = p.optBoolean(KEY_ENABLED, false),
+            city = safeText(p.optString(KEY_CITY, "Meknes"), "Meknes"),
+            country = safeText(p.optString(KEY_COUNTRY, "Morocco"), "Morocco"),
+            method = safeText(p.optString(KEY_METHOD, "21"), "21"),
+            school = if (p.optString(KEY_SCHOOL, "0") == "1") "1" else "0",
             timeZone = zone,
-            voiceKey = safeText(p.getString(KEY_VOICE, "calm"), "calm"),
-            volume = p.getFloat(KEY_VOLUME, 0.9f).coerceIn(0f, 1f)
+            voiceKey = safeText(p.optString(KEY_VOICE, "calm"), "calm"),
+            volume = p.optDouble(KEY_VOLUME, 0.9).toFloat().coerceIn(0f, 1f)
         )
     }
 
@@ -68,7 +77,16 @@ object PrayerSettings {
             voiceKey = safeText(voiceKey, fallback.voiceKey),
             volume = volume.takeIf { it.isFinite() }?.coerceIn(0f, 1f) ?: fallback.volume
         )
-        save(context, config)
+        val saved = state(context)
+            .put(KEY_ENABLED, config.enabled)
+            .put(KEY_CITY, config.city)
+            .put(KEY_COUNTRY, config.country)
+            .put(KEY_METHOD, config.method)
+            .put(KEY_SCHOOL, config.school)
+            .put(KEY_TIME_ZONE, config.timeZone)
+            .put(KEY_VOICE, config.voiceKey)
+            .put(KEY_VOLUME, config.volume.toDouble())
+        saveState(context, saved)
         return config
     }
 
@@ -88,37 +106,32 @@ object PrayerSettings {
             volume = json.optDouble("volume", fallback.volume.toDouble())
                 .toFloat().takeIf { it.isFinite() }?.coerceIn(0f, 1f) ?: fallback.volume
         )
-        save(context, config)
+        val saved = state(context)
+            .put(KEY_ENABLED, config.enabled)
+            .put(KEY_CITY, config.city)
+            .put(KEY_COUNTRY, config.country)
+            .put(KEY_METHOD, config.method)
+            .put(KEY_SCHOOL, config.school)
+            .put(KEY_TIME_ZONE, config.timeZone)
+            .put(KEY_VOICE, config.voiceKey)
+            .put(KEY_VOLUME, config.volume.toDouble())
+        saveState(context, saved)
         return config
     }
 
-    private fun save(context: Context, config: PrayerConfig) {
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-            .putBoolean(KEY_ENABLED, config.enabled)
-            .putString(KEY_CITY, config.city)
-            .putString(KEY_COUNTRY, config.country)
-            .putString(KEY_METHOD, config.method)
-            .putString(KEY_SCHOOL, config.school)
-            .putString(KEY_TIME_ZONE, config.timeZone)
-            .putString(KEY_VOICE, config.voiceKey)
-            .putFloat(KEY_VOLUME, config.volume)
-            .apply()
-    }
-
     fun eventJson(context: Context): String? =
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_EVENTS, null)
+        state(context).let { if (it.has(KEY_EVENTS) && !it.isNull(KEY_EVENTS)) it.optString(KEY_EVENTS) else null }
 
     fun saveEvents(context: Context, eventsJson: String) {
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-            .putString(KEY_EVENTS, eventsJson).apply()
+        require(eventsJson.length <= 1_000_000) { "Schedule payload is too large" }
+        saveState(context, state(context).put(KEY_EVENTS, eventsJson))
     }
 
     fun lastFired(context: Context): String? =
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_LAST_FIRED, null)
+        state(context).let { if (it.has(KEY_LAST_FIRED) && !it.isNull(KEY_LAST_FIRED)) it.optString(KEY_LAST_FIRED) else null }
 
     fun setLastFired(context: Context, key: String) {
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-            .putString(KEY_LAST_FIRED, key).apply()
+        saveState(context, state(context).put(KEY_LAST_FIRED, key.take(180)))
     }
 
     private fun safeText(value: String?, fallback: String): String {

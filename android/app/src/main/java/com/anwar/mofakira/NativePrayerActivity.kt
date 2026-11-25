@@ -16,6 +16,7 @@ import android.os.Looper
 import android.provider.Settings
 import android.view.Gravity
 import android.view.View
+import android.view.WindowManager
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.EditText
@@ -137,6 +138,7 @@ class NativePrayerActivity : Activity() {
         window.statusBarColor = navy
         window.navigationBarColor = navy
         window.decorView.layoutDirection = View.LAYOUT_DIRECTION_RTL
+        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         setContentView(buildScreen())
         loadSettings()
         renderSchedule()

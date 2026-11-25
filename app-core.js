@@ -66,7 +66,7 @@ const VAULT_STORAGE_KEY='anwar_vault_v1',VAULT_BACKUP_KEY='anwar_vault_backup_v1
 let adhkarFontTarget=null;
 let vaultKey=null,vaultTemplate=null,vaultUnlocked=false,vaultGateMode='setup',vaultReady=false,vaultDisableAfterUnlock=false,vaultHasEncryptedData=false,vaultLockInProgress=false;
 let vaultSaveQueue=Promise.resolve(),vaultLastWriteError=null,vaultBackupWarningShown=false,vaultLegacyCleanupWarningShown=false;
-const VAULT_IDLE_LOCK_MS=0; // تعطيل مؤقت لقفل الخمول الزمني؛ القفل الفوري عند انتقال الصفحة للخلفية مفعل أدناه.
+const VAULT_IDLE_LOCK_MS=5*60*1000; // قفل تلقائي بعد خمس دقائق من عدم النشاط الموثوق، إضافة إلى قفل الخلفية.
 let vaultIdleTimer=null,vaultLastActivityAt=0;
 const hasOwn=(object,key)=>Object.prototype.hasOwnProperty.call(object,key);
 const esc=s=>String(s??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
