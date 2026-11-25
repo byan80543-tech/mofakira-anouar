@@ -132,18 +132,19 @@ object AnwarEncryptedStore {
     ): String? {
         val encrypted = read(context, namespace)
         val legacy = context.getSharedPreferences(legacyPreferences, Context.MODE_PRIVATE)
-        if (encrypted != null) return encrypted
+        if (encrypted != null) {
+            if (legacy.all.isNotEmpty()) {
+                val legacyJson = preferencesToJson(legacy.all)
+                if (legacyJson.toString() == encrypted &&
+                    (!legacy.edit().clear().commit() || legacy.all.isNotEmpty())) {
+                    throw IllegalStateException("بقيت نسخة نصية قديمة من الإعدادات. أعد فتح القسم لإكمال التنظيف.")
+                }
+            }
+            return encrypted
+        }
         if (legacy.all.isEmpty()) return null
 
-        val json = JSONObject()
-        legacy.all.forEach { (key, value) ->
-            when (value) {
-                is String, is Boolean, is Int, is Long, is Float, is Double -> json.put(key, value)
-                is Set<*> -> json.put(key, JSONArray(value.filterIsInstance<String>()))
-                else -> Log.w("AnwarEncryptedStore", "Skipped unsupported legacy preference type for $key")
-            }
-        }
-        val plaintext = json.toString()
+        val plaintext = preferencesToJson(legacy.all).toString()
         write(context, namespace, plaintext)
         if (read(context, namespace) != plaintext) {
             throw IllegalStateException("فشل التحقق من ترحيل إعدادات القسم؛ احتفظنا بالنسخة الأصلية.")
@@ -152,6 +153,18 @@ object AnwarEncryptedStore {
             throw IllegalStateException("شُفّرت الإعدادات، لكن بقيت نسخة نصية قديمة. أعد فتح القسم لإكمال التنظيف.")
         }
         return plaintext
+    }
+
+    private fun preferencesToJson(values: Map<String, *>): JSONObject {
+        val json = JSONObject()
+        values.forEach { (key, value) ->
+            when (value) {
+                is String, is Boolean, is Int, is Long, is Float, is Double -> json.put(key, value)
+                is Set<*> -> json.put(key, JSONArray(value.filterIsInstance<String>()))
+                else -> Log.w("AnwarEncryptedStore", "Skipped unsupported legacy preference type for $key")
+            }
+        }
+        return json
     }
 
     private fun getKey(context: Context): SecretKey {
