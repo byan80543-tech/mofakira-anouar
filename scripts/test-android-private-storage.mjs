@@ -14,10 +14,11 @@ assert.match(secure, /\.setKeySize\(256\)/, 'the Keystore key is 256 bits');
 assert.match(secure, /cipher\.updateAAD\(namespace\.toByteArray/, 'encrypted records are bound to their namespace');
 assert.match(secure, /if \(read\(context, namespace\) != plaintext\)/, 'writes are read back and verified');
 const singleMigration = secure.slice(secure.indexOf('fun readOrMigrate'), secure.indexOf('fun readPreferencesJson'));
-assert.ok(singleMigration.indexOf('write(context, namespace, plaintext)') <
-  singleMigration.indexOf('if (read(context, namespace) != plaintext)') &&
-  singleMigration.indexOf('if (read(context, namespace) != plaintext)') <
-  singleMigration.indexOf('legacy.edit().remove(legacyKey).commit()'),
+const firstMigrationPath = singleMigration.slice(singleMigration.indexOf('val plaintext = legacy.getString'));
+assert.ok(firstMigrationPath.indexOf('write(context, namespace, plaintext)') <
+  firstMigrationPath.indexOf('if (read(context, namespace) != plaintext)') &&
+  firstMigrationPath.indexOf('if (read(context, namespace) != plaintext)') <
+  firstMigrationPath.indexOf('legacy.edit().remove(legacyKey).commit()'),
   'legacy adhkar text is removed only after encrypted replacement verification');
 const multiMigration = secure.slice(secure.indexOf('fun readPreferencesJson'), secure.indexOf('private fun preferencesToJson'));
 assert.ok(multiMigration.indexOf('write(context, namespace, plaintext)') <
