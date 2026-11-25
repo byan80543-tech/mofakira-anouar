@@ -53,6 +53,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Block device-password wrapping on shared GitHub Pages origins
+        run: node scripts/test-vault-shared-origin.mjs
       - name: Test DOM value targets and Arabic vault lock errors
         run: node scripts/test-dom-value-targets.mjs
       - name: Test one-tap encrypted rescue backup and verified restore
@@ -119,8 +121,6 @@ jobs:
         run: node scripts/test-vault-private-preferences.mjs
       - name: Test WebAuthn PRF device unlock and password wrapping
         run: node scripts/test-vault-device-unlock.mjs
-      - name: Block device-password wrapping on shared GitHub Pages origins
-        run: node scripts/test-vault-shared-origin.mjs
       - name: Validate offline app shell and local resources
         run: python3 scripts/validate_app.py
       - name: Test service-worker lifecycle, caching and offline fallback
