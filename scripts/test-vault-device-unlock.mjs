@@ -33,7 +33,9 @@ Object.defineProperty(globalThis,'navigator',{
     createCalls++;
     assert.equal(options.publicKey.rp.id,'notes.example.test');
     assert.equal(options.publicKey.authenticatorSelection.authenticatorAttachment,'platform');
+    assert.equal(options.publicKey.authenticatorSelection.residentKey,'preferred','resident credentials are preferred, not required, for wider device compatibility');
     assert.equal(options.publicKey.authenticatorSelection.userVerification,'required');
+    assert.deepEqual(options.publicKey.pubKeyCredParams.map(item=>item.alg),[-7,-257],'standard ES256 and RS256 credential algorithms are offered');
     assert.deepEqual(Object.keys(options.publicKey.extensions.prf),[],'registration enables PRF without requiring create-time evaluation');
     return {
      rawId:credentialId,
