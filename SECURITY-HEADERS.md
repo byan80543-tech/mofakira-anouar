@@ -2,8 +2,10 @@
 
 ## بيئة النشر
 
-الموقع منشور على Cloudflare Pages في:
-`https://mofakira-anouar.pages.dev/`
+الموقع منشور على Cloudflare Pages في مسار التطبيق:
+`https://mofakira-anouar.pages.dev/mofakira-anouar/`
+
+يحوّل رابط الجذر `https://mofakira-anouar.pages.dev/` الزائر إلى مسار التطبيق. يبقى نطاق المصادقة (WebAuthn RP ID) هو المضيف `mofakira-anouar.pages.dev`، بينما مسار URL لا يشارك التخزين مع مواقع من أصول مختلفة.
 
 تقرأ Cloudflare Pages ملف `_headers` من **جذر مجلد الإخراج المنشور**. لذلك ينسخ سير النشر الملف إلى `dist/_headers`، بينما توضع ملفات التطبيق في `dist/mofakira-anouar/`. لا يكفي وجود الملف داخل مجلد التطبيق الفرعي.
 
