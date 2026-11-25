@@ -32,7 +32,7 @@ assert.match(core,/const plaintext=JSON\.stringify\(S\)/,
 assert.match(core,/clearLegacyPlaintext\(\)/,
   'legacy plaintext cleanup remains in the existing post-verification flow');
 
-assert.match(html,/#vaultLockBtn[^}]*data-locked/,'the toolbar shield exposes its locked state');
+assert.match(html,/<button id="vaultLockBtn"[^>]*data-locked="false"/,'the toolbar shield exposes its locked state');
 assert.doesNotMatch(html,/\.app\.ed \.tb #vaultLockBtn\{display:none!important\}/,
   'the shield remains available while editing a poem');
 assert.match(core,/function syncVaultLockButton\(\)[\s\S]*?data-locked/,
