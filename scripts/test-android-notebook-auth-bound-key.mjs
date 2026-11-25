@@ -58,7 +58,7 @@ assert.match(activity, /authenticationRequiredOnResume = true[\s\S]*?notes\.clea
 assert.match(workflow, /test-android-notebook-auth-bound-key\.mjs/,
   'the regression test is wired into Android validation');
 
-assert.match(activity, /actualPrimary\\.contentEquals\\(expectedPrimary\\) && actualBackup\\.contentEquals\\(expectedBackup\\)/,
+assert.ok(activity.includes('actualPrimary.contentEquals(expectedPrimary) && actualBackup.contentEquals(expectedBackup)'),
   'interrupted migration recovery requires exact plaintext equality with both staged records');
 
 console.log('Native notebook Keystore authentication binding and safe key-migration checks passed.');
