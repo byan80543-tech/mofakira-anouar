@@ -46,4 +46,11 @@ assert.ok(core.includes("else if(id==='bkp'){downloadRescueBackup()}"),'backup a
 assert.ok(core.includes("else if(id==='restoreRescueBtn'){openRescueRestorePicker()}"),'restore action opens the local file picker');
 assert.ok(core.includes("else if(id==='rs'){restoreRescueBackup()}"),'restore confirmation routes to the new verified restore path');
 assert.ok(core.includes("$('rescueFilePicker').addEventListener('change',handleRescueFileSelected)"),'local file selection is wired');
+assert.ok(html.includes('id="rescueReminderBtn"'),'the optional reminder control is present');
+assert.ok(core.includes('const RESCUE_REMINDER_INTERVAL_MS=30*24*60*60*1000;'),'the reminder uses a gentle 30-day interval');
+assert.ok(core.includes('function toggleRescueReminder(){')&&core.includes('function checkRescueReminder(){'),'the reminder can be explicitly enabled or disabled');
+assert.ok(core.includes('checkRescueReminder();'),'reminders are checked when the vault opens');
+assert.ok(core.includes('if(isRescueReminderEnabled())try{localStorage.setItem(RESCUE_REMINDER_DUE_KEY'),'a successful backup resets the reminder deadline');
+assert.ok(!core.includes('new Notification(')&&!core.includes('Notification.requestPermission('),'the reminder does not request notification permission or send push notifications');
+
 console.log('One-tap encrypted rescue backup and verified restore checks passed.');
