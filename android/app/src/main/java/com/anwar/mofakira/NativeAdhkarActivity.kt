@@ -11,6 +11,7 @@ import android.text.InputFilter
 import android.text.InputType
 import android.view.Gravity
 import android.view.View
+import android.view.WindowManager
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -58,6 +59,7 @@ class NativeAdhkarActivity : Activity() {
         window.statusBarColor = navy
         window.navigationBarColor = navy
         window.decorView.layoutDirection = View.LAYOUT_DIRECTION_RTL
+        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         loadEntries()
         setContentView(buildScreen())
         renderEntries()
