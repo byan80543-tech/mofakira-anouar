@@ -2030,14 +2030,25 @@ class NativeNotebookActivity : FragmentActivity() {
             ?: throw IllegalStateException("توجد عملية ترحيل غير مكتملة؛ احتفظنا بنسختها الأصلية ولم نفتح الدفتر.")
 
         val migratedPairIsValid = runCatching {
+            // Compare the new pair to the exact plaintext represented by the staged
+            // ciphertexts; valid authentication tags alone are not enough.
+            val expectedPrimary = decryptLegacyState(stagedPrimary)
+            val expectedBackup = if (stagedBackup == MIGRATION_BACKUP_ABSENT) {
+                expectedPrimary
+            } else {
+                runCatching { decryptState(stagedBackup) }.getOrElse { expectedPrimary }
+            }
             val currentPrimary = preferences.getString(PRIMARY_KEY, null)
                 ?: throw IllegalStateException("السجل الرئيسي غير موجود.")
             val currentBackup = preferences.getString(BACKUP_KEY, null)
                 ?: throw IllegalStateException("النسخة الاحتياطية غير موجودة.")
             require(isAuthBoundStateEnvelope(currentPrimary) && isAuthBoundStateEnvelope(currentBackup))
-            parseNotes(decryptAuthBoundState(currentPrimary))
-            parseNotes(decryptAuthBoundState(currentBackup))
-        }.isSuccess
+            val actualPrimary = decryptAuthBoundState(currentPrimary)
+            val actualBackup = decryptAuthBoundState(currentBackup)
+            parseNotes(actualPrimary)
+            parseNotes(actualBackup)
+            actualPrimary.contentEquals(expectedPrimary) && actualBackup.contentEquals(expectedBackup)
+        }.getOrDefault(false)
 
         if (!migratedPairIsValid) {
             val rollback = preferences.edit().putString(PRIMARY_KEY, stagedPrimary)
