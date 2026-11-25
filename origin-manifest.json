@@ -4,7 +4,7 @@
   "project": "مفكرة أنوار",
   "declaredCreator": "Anouar Oumlili (أنوار أومليلي)",
   "publicLocation": "الحسيمة، المغرب",
-  "officialDeployment": "https://byan80543-tech.github.io/mofakira-anouar/",
+  "officialDeployment": "https://mofakira-anouar.pages.dev/mofakira-anouar/",
   "sourceRepository": "https://github.com/byan80543-tech/mofakira-anouar",
   "documentedConceptOriginDate": "2026-11-17",
   "originalityClaim": "The creator attributes the conception and design of this distinctive integrated notebook architecture to Anouar Oumlili. This records the creator's claim and project provenance; it is not an independent worldwide novelty determination.",
@@ -47,5 +47,6 @@
     "إنشاء رموز QR للصفحات والمواقع والقصائد"
   ],
   "documentedConceptOriginDateBasis": "2026-11-17 is the earliest currently available project-conversation record identified for this integrated concept. It is a documentation reference, not independent proof of the date of invention, public disclosure, or worldwide novelty.",
-  "claimScope": "The creator's claim concerns the original integrated arrangement, presentation, and workflow of the notebook's connected spaces and supporting tools. It does not claim ownership of generic features or third-party content, libraries, recordings, APIs, or services."
+  "claimScope": "The creator's claim concerns the original integrated arrangement, presentation, and workflow of the notebook's connected spaces and supporting tools. It does not claim ownership of generic features or third-party content, libraries, recordings, APIs, or services.",
+  "legacyDeployment": "https://byan80543-tech.github.io/mofakira-anouar/"
 }
