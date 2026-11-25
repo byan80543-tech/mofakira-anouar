@@ -1,6 +1,7 @@
 /* Prayer times and adhan for Anwar notebook.
  * Prayer data: AlAdhan API. Default adhan recording: Wikimedia Commons, CC0 1.0.
  * No GPS permission is requested; the chosen city, country and calculation settings are sent to the timings API.
+ * نسخة Chrome/PWA لا يضمن استمرار الصوت بعد إغلاق الصفحة؛ يعتمد ذلك على دعم Android الأصلي وإعداداته.
  */
 (function(){
  'use strict';
@@ -225,7 +226,7 @@
  nextBox.append(nextCopy,countdownCopy);
  showNextPrayerPlaceholder('بانتظار المواقيت');
  const timesGrid=el('div','anwar-prayer-times');
- const dateLine=el('div','anwar-prayer-date','جارٍ تحميل المواقيت…');
+ const dateLine=el('div','anwar-prayer-date','جارٍ تحميل مواقيت الصلاة…');
  const infoDetails=el('details','anwar-prayer-info');
  const infoSummary=el('summary');
  const privacyIcon=el('span','anwar-prayer-privacy-icon');
@@ -243,7 +244,7 @@
   return {row:row,description:copy.lastChild};
  }
  addPrivacyFact('الموقع الدقيق','لا نستخدم GPS ولا نطلب إذن الموقع.','لا يُستخدم','local');
- addPrivacyFact('مواقيت الصلاة','نرسل المدينة والدولة والتاريخ إلى api.aladhan.com؛ ويمكن للمزوّد رؤية عنوان IP.','خدمة خارجية','external');
+ addPrivacyFact('مواقيت الصلاة','نرسل المدينة والدولة والتاريخ إلى api.aladhan.com؛ ويستطيع المزوّد رؤية عنوان IP.','خدمة خارجية','external');
  const audioPrivacyFact=addPrivacyFact('صوت الأذان','','استضافة صوتية خارجية','external');
  function updatePrivacyAudioDisclosure(){
   const voice=VOICES.find(item=>item.key===settings.voice)||VOICES[0];
@@ -592,7 +593,7 @@
     if(!todayData){
      dateLine.textContent=fallbackDateLabel()||'التاريخ المحلي';
      dateLine.dataset.state='fallback';
-     showNextPrayerPlaceholder('—');
+     showNextPrayerPlaceholder('تعذّر التحميل؛ تحقق من المدينة والاتصال ثم اضغط تحديث');
     }
     setStatus(error&&error.message?error.message:'تعذّر تحديث المواقيت.');
    }

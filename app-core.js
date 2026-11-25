@@ -64,9 +64,9 @@ let S={notes:[],customAdhkar:[],theme:'',palette:'blue',wallColor:'mist',paperCo
 const $=id=>document.getElementById(id),pg=$('pg');
 const VAULT_STORAGE_KEY='anwar_vault_v1',VAULT_BACKUP_KEY='anwar_vault_backup_v1',VAULT_MODE_KEY='anwar_vault_mode_v1';
 let adhkarFontTarget=null;
-let vaultKey=null,vaultTemplate=null,vaultUnlocked=false,vaultGateMode='setup',vaultReady=false,vaultDisableAfterUnlock=false;
+let vaultKey=null,vaultTemplate=null,vaultUnlocked=false,vaultGateMode='setup',vaultReady=false,vaultDisableAfterUnlock=false,vaultHasEncryptedData=false,vaultLockInProgress=false;
 let vaultSaveQueue=Promise.resolve(),vaultLastWriteError=null,vaultBackupWarningShown=false,vaultLegacyCleanupWarningShown=false;
-const VAULT_IDLE_LOCK_MS=0; // القفل التلقائي معطّل؛ القفل يدوي باختيار صاحب المفكرة.
+const VAULT_IDLE_LOCK_MS=0; // تعطيل مؤقت لقفل الخمول الزمني؛ القفل الفوري عند انتقال الصفحة للخلفية مفعل أدناه.
 let vaultIdleTimer=null,vaultLastActivityAt=0;
 const hasOwn=(object,key)=>Object.prototype.hasOwnProperty.call(object,key);
 const esc=s=>String(s??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
@@ -223,7 +223,7 @@ function enforceVaultIdleLock(){
 function showVaultGate(mode,message){
  vaultGateMode=mode;
  if(mode!=='unlock')vaultDisableAfterUnlock=false;
- const gate=$('vaultGate'),title=$('vaultTitle'),description=$('vaultDescription');
+ const gate=$('vaultGate'),title=$('vaultTitle'),description=$('vaultDescription'),closeGate=$('vaultGateClose');
  const confirmRow=$('vaultConfirmRow'),confirmInput=$('vaultPasswordConfirm');
  const passwordInput=$('vaultPassword'),submit=$('vaultSubmit');
  const passwordFields=$('vaultPasswordFields'),deviceUnlock=$('vaultDeviceUnlock');
@@ -231,10 +231,11 @@ function showVaultGate(mode,message){
  const disableEncryption=$('vaultDisableEncryptionBtn'),cancelSetup=$('vaultCancelSetupBtn'),shieldButton=$('vaultShieldActivate');
  if(!gate)return;
  gate.hidden=false;
- title.textContent=mode==='unlock'?'افتح خزنة مفكرة أنوار':'أنشئ خزنة مفكرة أنوار';
+ title.textContent=mode==='unlock'?'تحقق للمتابعة':'تفعيل حماية مفكرة أنوار';
  description.textContent=message||(mode==='unlock'
-  ?'أدخل عبارة المرور ثم اضغط الدرع لفتح أعمالك المشفّرة على هذا الجهاز.'
-  :'أنشئ عبارة مرور قوية ثم اضغط الدرع لتشفير أعمالك وإعداداتك المحفوظة. بعد التفعيل ستبقى المفكرة مفتوحة، والقفل اليدوي اختياري.');
+  ?'استخدم وسيلة التحقق المعتمدة على هذا الجهاز أو عبارة المرور الأساسية للمتابعة.'
+  :'أنشئ عبارة مرور قوية لتفعيل التشفير. ستبقى الواجهة العامة متاحة، وتُخفى المساحات الخاصة عند قفل الدرع.');
+ if(closeGate)closeGate.hidden=mode!=='unlock';
  if(shieldButton){
   shieldButton.setAttribute('aria-label',mode==='unlock'?'فتح خزنة مفكرة أنوار':'تشفير جميع أعمال مفكرة أنوار');
   shieldButton.title=mode==='unlock'
@@ -400,21 +401,30 @@ async function persistVaultSnapshot(plaintext){
  }
  return mainEnvelope;
 }
+function syncVaultLockButton(){
+ const button=$('vaultLockBtn');
+ if(!button)return;
+ const encrypted=!!(vaultHasEncryptedData||(vaultKey&&vaultTemplate));
+ const locked=encrypted&&!vaultUnlocked;
+ button.hidden=false;
+ button.setAttribute('data-encrypted',encrypted?'true':'false');
+ button.setAttribute('data-locked',locked?'true':'false');
+ button.title=locked
+  ?'المساحات الخاصة مقفلة. اضغط الدرع للتحقق والمتابعة.'
+  :encrypted
+   ?'درع أنوار مفعّل. اضغط لإخفاء المساحات الخاصة؛ ويُقفل تلقائيًا عند مغادرة المفكرة.'
+   :'اضغط لإعداد التشفير الشامل لمفكرة أنوار.';
+ button.setAttribute('aria-label',locked?'التحقق لفتح المساحات الخاصة':encrypted?'قفل المساحات الخاصة الآن':'تفعيل تشفير المفكرة');
+}
 function finishVaultOpen(){
+ vaultHasEncryptedData=!!(vaultKey&&vaultTemplate);
  globalThis.AnwarPrivatePreferences.load(S.preferences);
  vaultUnlocked=true;
  vaultReady=true;
  vaultLastWriteError=null;
  recordVaultActivity();
  $('vaultGate').hidden=true;
- const lockButton=$('vaultLockBtn');
- lockButton.hidden=false;
- const encrypted=!!(vaultKey&&vaultTemplate);
- lockButton.setAttribute('data-encrypted',encrypted?'true':'false');
- lockButton.title=encrypted
-  ?'التشفير الدائم مفعّل؛ تُحفظ أعمالك مشفرة أثناء بقاء المفكرة مفتوحة. اضغط للقفل اليدوي.'
-  :'التشفير غير مفعّل؛ اضغط هنا لتشفير أعمالك. ستبقى المفكرة مفتوحة بعد الإعداد.';
- lockButton.setAttribute('aria-label',encrypted?'قفل المفكرة المشفّرة الآن':'تفعيل تشفير المفكرة');
+ syncVaultLockButton();
  theme();
  chips();
  if(!matchMedia('(max-width:800px)').matches&&S.notes.length){
@@ -440,11 +450,14 @@ async function bootVault(){
  }
  if(savedVault!==null||savedBackup!==null){
   S=emptyStorageState();
-  showVaultGate('unlock',savedVault!==null
-   ?'أدخل عبارة المرور لفك تشفير أعمالك. لا تُحفظ كلمة المرور على الجهاز.'
-   :'تعذّر العثور على السجل الأساسي، لكن توجد نسخة احتياطية مشفرة. أدخل عبارة المرور لاستعادتها.');
-  theme();chips();openNote(null);return;
+  vaultKey=null;vaultTemplate=null;vaultUnlocked=false;vaultReady=false;
+  vaultHasEncryptedData=true;vaultGateMode='unlock';
+  globalThis.AnwarPrivatePreferences.load(S.preferences);
+  $('vaultGate').hidden=true;
+  syncVaultLockButton();
+  theme();chips();openNote(null);renderList();return;
  }
+ vaultHasEncryptedData=false;
  if(!prepareLegacyStateForVault()){theme();chips();openNote(null);return}
  try{S.preferences=importLegacyPrivatePreferences(S.preferences)}
  catch(error){
@@ -695,47 +708,60 @@ function disableVaultDeviceUnlock(){
   toast('تم تعطيل الفتح السريع. كلمة المرور الأساسية ما زالت تعمل.',4500);
  }catch(error){$('vaultDeviceSetupStatus').textContent=error.message||'تعذّر تعطيل الفتح السريع.'}
 }
-async function lockVault(){
- if(!vaultUnlocked)return;
- if(!vaultKey||!vaultTemplate){
+async function lockVault(reason='manual'){
+ if(!vaultUnlocked||vaultLockInProgress)return;
+ vaultLockInProgress=true;
+ try{
+  if(!vaultKey||!vaultTemplate){
+   try{
+    flushPrivatePreferenceSave();
+    if(tm){clearTimeout(tm);tm=null}
+    if(typeof flushPendingEdit==='function')flushPendingEdit(false);
+    await vaultSaveQueue;
+    if(vaultLastWriteError)throw new Error('لم يكتمل آخر حفظ. أبقينا المفكرة مفتوحة لحماية تعديلاتك.');
+    clearVaultIdleTimer();vaultUnlocked=false;vaultReady=false;
+    showVaultGate('setup','أنشئ عبارة مرور لتفعيل التشفير الدائم. حفظنا تعديلاتك أولًا، وستُشفّر الأعمال وتُتحقق النسخة قبل إزالة أي نسخة نصية قديمة.');
+   }catch(error){
+    toast(error&&error.message?error.message:'تعذّر حفظ المفكرة قبل إعداد القفل. بقيت مفتوحة دون تغيير.',6000);
+   }
+   return;
+  }
+  clearVaultIdleTimer();
   try{
    flushPrivatePreferenceSave();
    if(tm){clearTimeout(tm);tm=null}
    if(typeof flushPendingEdit==='function')flushPendingEdit(false);
    await vaultSaveQueue;
-   if(vaultLastWriteError)throw new Error('لم يكتمل آخر حفظ. أبقينا المفكرة مفتوحة لحماية تعديلاتك.');
-   clearVaultIdleTimer();vaultUnlocked=false;vaultReady=false;
-   showVaultGate('setup','أنشئ عبارة مرور لتفعيل التشفير الدائم. حفظنا تعديلاتك أولًا، وستُشفّر الأعمال وتُتحقق النسخة قبل إزالة أي نسخة نصية قديمة. بعد ذلك تبقى المفكرة مفتوحة، ولا تُقفل إلا عند ضغط زر القفل يدويًا.');
+   if(vaultLastWriteError)throw new Error('لم يكتمل آخر حفظ مشفر. أبقينا المفكرة مفتوحة لحماية تعديلاتك.');
+   vaultUnlocked=false;
+   vaultKey=null;
+   vaultTemplate=null;
+   vaultHasEncryptedData=true;
+   S=emptyStorageState();
+   globalThis.AnwarPrivatePreferences.load(S.preferences);
+   cur=null;draftNote=null;saved=null;
+   pg.innerHTML='';
+   $('t').value='';
+   $('bt').value='';
+   $('backupPassword').value='';
+   $('historyItems').innerHTML='';
+   $('archiveItems').innerHTML='';
+   if($('historyDialog')?.open)$('historyDialog').close();
+   if($('archiveDialog')?.open)$('archiveDialog').close();
+   if($('dg')?.open)$('dg').close();
+   $('paperStylePanel').hidden=true;
+   $('app').classList.remove('ed','focus');
+   $('vaultGate').hidden=true;
+   openNote(null);
+   vaultReady=false;
+   syncVaultLockButton();
+   if(reason!=='background')toast('تم إغلاق المساحة الخاصة وتأمين محتوياتها.',2500);
   }catch(error){
-   toast(error&&error.message?error.message:'تعذّر حفظ المفكرة قبل إعداد القفل. بقيت مفتوحة دون تغيير.',6000);
+   toast(error.message||'تعذّر قفل المفكرة قبل إتمام الحفظ.',6000);
+   if(vaultUnlocked){vaultLastActivityAt=Date.now();armVaultIdleTimer()}
   }
-  return;
- }
- clearVaultIdleTimer();
- try{
-  flushPrivatePreferenceSave();
-  if(tm){clearTimeout(tm);tm=null}
-  if(typeof flushPendingEdit==='function')flushPendingEdit(false);
-  await vaultSaveQueue;
-  if(vaultLastWriteError)throw new Error('لم يكتمل آخر حفظ مشفر. أبقينا المفكرة مفتوحة لحماية تعديلاتك.');
-  vaultUnlocked=false;
-  vaultKey=null;
-  S=emptyStorageState();
-  globalThis.AnwarPrivatePreferences.load(S.preferences);
-  cur=null;draftNote=null;
-  pg.innerHTML='';
-  $('t').value='';
-  $('bt').value='';
-  $('backupPassword').value='';
-  $('historyItems').innerHTML='';
-  $('archiveItems').innerHTML='';
-  renderList();
-  vaultReady=false;
-  showVaultGate('unlock',globalThis.AnwarDeviceUnlock&&AnwarDeviceUnlock.isConfigured()?'الخزنة مقفلة. اضغط «فتح بقفل الهاتف» للتحقق بقفل جهازك، أو اختر كلمة المرور الأساسية عند الحاجة.':'الخزنة مقفلة. افتحها بكلمة المرور الأساسية، أو أعد إعداد الفتح بقفل الهاتف من خيار «إعداد فتح الهاتف».');
-  toast('قُفلت المفكرة. بقيت البيانات محفوظة بالتشفير.',3500);
- }catch(error){
-  toast(error.message||'تعذّر قفل المفكرة قبل إتمام الحفظ.',6000);
-  if(vaultUnlocked){vaultLastActivityAt=Date.now();armVaultIdleTimer()}
+ }finally{
+  vaultLockInProgress=false;
  }
 }
 async function openEncryptedBackupDialog(){
@@ -1173,6 +1199,11 @@ function openNote(n){
 }
 function newNote(){
  if(storageRecoveryBlocked){toast('أنزل ملف الاسترداد أولاً، ثم استعد نسخة سليمة قبل إنشاء أعمال جديدة.',6000);return}
+ if(!vaultUnlocked){
+  if(vaultHasEncryptedData)showVaultGate('unlock','المساحات الخاصة مقفلة. تحقّق للمتابعة.');
+  else showVaultGate('setup','أنشئ عبارة مرور لتفعيل حماية كتاباتك.');
+  return;
+ }
  if(cur)flushPendingEdit(false);
  if(S.notes.length>=2500){toast('بلغت المفكرة الحد الأقصى وهو 2500 عمل. صدّر نسخة احتياطية قبل إنشاء أعمال إضافية.',6500);return}
  if(draftNote===cur)draftNote=null;
@@ -2636,7 +2667,11 @@ document.addEventListener('click',e=>{
    else submitVaultForm(null);
   }
  }
- else if(id==='vaultLockBtn'){lockVault()}
+ else if(id==='vaultLockBtn'){
+  if(vaultUnlocked)lockVault('manual');
+  else if(vaultHasEncryptedData)showVaultGate('unlock','المساحات الخاصة مقفلة. تحقّق للمتابعة.');
+  else showVaultGate('setup','أنشئ عبارة مرور لتفعيل حماية كتاباتك.');
+ }
  else if(id==='exportRecovery')exportStorageRecovery();
  else if(id==='retryStorageAccess')retryStorageAccess();
  else if(id==='restoreBackup')restoreStorageBackup();
@@ -2917,10 +2952,15 @@ for(const eventName of ['pointerdown','keydown','input','touchstart','wheel']){
  document.addEventListener(eventName,recordVaultActivity,true);
 }
 document.addEventListener('visibilitychange',()=>{
- if(document.visibilityState==='hidden')flushPendingEdit(false);
- else enforceVaultIdleLock();
+ if(document.visibilityState==='hidden'){
+  flushPendingEdit(false);
+  if(vaultUnlocked&&vaultKey&&vaultTemplate)void lockVault('background');
+ }else enforceVaultIdleLock();
 });
-addEventListener('pagehide',()=>flushPendingEdit(false));
+addEventListener('pagehide',()=>{
+ flushPendingEdit(false);
+ if(vaultUnlocked&&vaultKey&&vaultTemplate)void lockVault('background');
+});
 addEventListener('beforeunload',()=>flushPendingEdit(false));
 (function(){
  const SU='الفاتحة,البقرة,آل عمران,النساء,المائدة,الأنعام,الأعراف,الأنفال,التوبة,يونس,هود,يوسف,الرعد,إبراهيم,الحجر,النحل,الإسراء,الكهف,مريم,طه,الأنبياء,الحج,المؤمنون,النور,الفرقان,الشعراء,النمل,القصص,العنكبوت,الروم,لقمان,السجدة,الأحزاب,سبأ,فاطر,يس,الصافات,ص,الزمر,غافر,فصلت,الشورى,الزخرف,الدخان,الجاثية,الأحقاف,محمد,الفتح,الحجرات,ق,الذاريات,الطور,النجم,القمر,الرحمن,الواقعة,الحديد,المجادلة,الحشر,الممتحنة,الصف,الجمعة,المنافقون,التغابن,الطلاق,التحريم,الملك,القلم,الحاقة,المعارج,نوح,الجن,المزمل,المدثر,القيامة,الإنسان,المرسلات,النبأ,النازعات,عبس,التكوير,الانفطار,المطففين,الانشقاق,البروج,الطارق,الأعلى,الغاشية,الفجر,البلد,الشمس,الليل,الضحى,الشرح,التين,العلق,القدر,البينة,الزلزلة,العاديات,القارعة,التكاثر,العصر,الهمزة,الفيل,قريش,الماعون,الكوثر,الكافرون,النصر,المسد,الإخلاص,الفلق,الناس'.split(',');
@@ -4056,6 +4096,10 @@ $('vaultPasswordFallbackToggle').addEventListener('click',()=>{
  $('vaultPassword').focus();
 });
 $('vaultDeviceManage').addEventListener('click',openVaultDeviceSetupDialog);
+$('vaultGateClose').addEventListener('click',()=>{
+ $('vaultPassword').value='';$('vaultPasswordConfirm').value='';
+ $('vaultGate').hidden=true;
+});
 $('vaultDeviceSetupForm').addEventListener('submit',submitVaultDeviceSetup);
 $('vaultDeviceDisableBtn').addEventListener('click',disableVaultDeviceUnlock);
 $('vaultDeviceSetupClose').addEventListener('click',()=>$('vaultDeviceSetupDialog').close());
@@ -4160,7 +4204,7 @@ window.AnouarUpdateBridge = Object.freeze({
     if (storageRecoveryBlocked) {
       throw new Error('استرداد البيانات قيد المعالجة. أكمل الاسترداد قبل تحديث المفكرة.');
     }
-    if (!vaultReady) {
+    if (!vaultReady && !(vaultHasEncryptedData && !vaultUnlocked)) {
       throw new Error('افتح المفكرة وأنهِ إعداد الخزنة قبل التحديث.');
     }
 

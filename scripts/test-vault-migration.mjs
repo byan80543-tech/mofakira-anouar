@@ -14,7 +14,7 @@ const extract=(start,end)=>{
 const preferenceSource=extract('/* Encrypted private settings shared by the notebook modules. */','requestAnimationFrame(()=>setTimeout(()=>{');
 const clearSource=extract('function clearLegacyPlaintext(){','async function persistVaultSnapshot(plaintext){');
 const persistenceSource=extract('function importLegacyPrivatePreferences(base){','function finishVaultOpen(){');
-const submitSource=extract('async function submitVaultForm(event,suppliedPassword){','async function lockVault(){');
+const submitSource=extract('async function submitVaultForm(event,suppliedPassword){', "async function lockVault(reason='manual'){");
 
 function makeHarness({failVerification=false}={}){
   const initialState={

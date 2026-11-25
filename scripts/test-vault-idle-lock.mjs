@@ -4,8 +4,8 @@ import assert from 'node:assert/strict';
 
 const html=fs.readFileSync(new URL('../app-core.js',import.meta.url),'utf8');
 const readme=fs.readFileSync(new URL('../README.md',import.meta.url),'utf8');
-assert.ok(readme.includes('القفل اليدوي هو المعتمد حالياً') && !readme.includes('التلقائي بعد خمس دقائق'),
-  'project documentation must describe the current manual-only vault lock policy');
+assert.ok(readme.includes('يقفل المحتوى المشفر تلقائياً عند انتقال المفكرة إلى الخلفية أو مغادرتها'),
+  'project documentation describes immediate background locking while leaving inactivity-timer locking disabled');
 const start=html.indexOf('const VAULT_IDLE_LOCK_MS=0;');
 const end=html.indexOf('function showVaultGate(mode,message){',start);
 assert.ok(start>=0&&end>start,'vault inactivity lock helpers are present');
@@ -61,4 +61,4 @@ h.sandbox.vaultUnlocked=false;
 h.api.recordVaultActivity();
 assert.equal(h.timerCount,0,'locked vault does not arm an inactivity timer');
 
-console.log('All manual-lock-only free-mode inactivity tests passed.');
+console.log('Inactivity timers stay disabled; background shield locking is tested separately.');

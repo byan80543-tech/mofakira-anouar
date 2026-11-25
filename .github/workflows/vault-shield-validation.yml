@@ -1,0 +1,42 @@
+name: Vault shield validation
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  encrypted-vault:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out pull request source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref || github.sha }}
+          fetch-depth: 0
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Test AES-GCM vault encryption and backup integrity
+        run: node scripts/test-vault-crypto.mjs
+      - name: Test shield control and global lock behavior
+        run: node scripts/test-vault-shield.mjs
+      - name: Test IndexedDB storage and legacy migration
+        run: node scripts/test-vault-storage.mjs
+      - name: Test encrypted save guards
+        run: node scripts/test-vault-save-guard.mjs
+      - name: Test vault migration and rollback
+        run: node scripts/test-vault-migration.mjs
+      - name: Test quiet encrypted startup
+        run: node scripts/test-vault-startup.mjs
+      - name: Test encrypted backup recovery
+        run: node scripts/test-vault-recovery.mjs
+      - name: Test background lock and disabled inactivity timer
+        run: node scripts/test-vault-idle-lock.mjs
+      - name: Test encrypted radio, reader and tasbih preferences
+        run: node scripts/test-vault-private-preferences.mjs
+      - name: Test WebAuthn PRF device unlock
+        run: node scripts/test-vault-device-unlock.mjs

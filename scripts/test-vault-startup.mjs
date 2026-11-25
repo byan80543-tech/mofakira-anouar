@@ -14,8 +14,15 @@ const retrySource=extract('async function retryStorageAccess(){','async function
 
 function makeHarness(initial={},failReads=false){
   const values=new Map(Object.entries(initial));
-  const calls={mode:null,message:null,legacyPrepared:false,recovery:null,opened:undefined,cleared:false,finished:false,toasts:[],reads:[]};
+  const calls={mode:null,message:null,legacyPrepared:false,recovery:null,opened:undefined,cleared:false,finished:false,toasts:[],reads:[],privatePreferencesLoaded:0,syncCount:0,renderCount:0};
+  const elements={
+    vaultGate:{hidden:false},
+    vaultLockBtn:{hidden:true,attributes:new Map(),setAttribute(name,value){this.attributes.set(name,String(value))},title:'',getAttribute(name){return this.attributes.get(name)??null}}
+  };
   const sandbox={
+    $:id=>elements[id]||null,
+    AnwarPrivatePreferences:{load(){calls.privatePreferencesLoaded++}},
+    vaultKey:null,vaultTemplate:null,vaultUnlocked:false,vaultReady:false,vaultHasEncryptedData:false,vaultGateMode:'setup',
     localStorage:{
       getItem(key){
         calls.reads.push(key);
@@ -37,8 +44,9 @@ function makeHarness(initial={},failReads=false){
     vaultUnlocked:false,
     vaultGateMode:null,
     storageRecoveryBlocked:true,
-    emptyStorageState(){return {notes:[]}},
+    emptyStorageState(){return {notes:[],preferences:{}}},
     showVaultGate(mode,message){calls.mode=mode;calls.message=message;sandbox.vaultGateMode=mode},
+    syncVaultLockButton(){calls.syncCount++;elements.vaultLockBtn.hidden=false;elements.vaultLockBtn.setAttribute('data-encrypted',sandbox.vaultHasEncryptedData?'true':'false');elements.vaultLockBtn.setAttribute('data-locked',!sandbox.vaultUnlocked&&sandbox.vaultHasEncryptedData?'true':'false')},
     finishVaultOpen(){calls.finished=true;sandbox.vaultUnlocked=true;sandbox.vaultGateMode=null},
     prepareLegacyStateForVault(){calls.legacyPrepared=true;return true},
     importLegacyPrivatePreferences(value){return value},
@@ -48,7 +56,7 @@ function makeHarness(initial={},failReads=false){
     theme(){},
     chips(){},
     openNote(value){calls.opened=value},
-    renderList(){},
+    renderList(){calls.renderCount++},
     updateStorageRecoveryNotice(){},
     readStoredState(value){return JSON.parse(value)},
     confirm(){return true},
@@ -64,14 +72,21 @@ function makeHarness(initial={},failReads=false){
 
 let h=makeHarness({'anwar_vault_backup_v1':'encrypted-backup'});
 await h.api.bootVault();
-assert.equal(h.calls.mode,'unlock','backup-only storage opens the unlock gate');
-assert.match(h.calls.message,/نسخة احتياطية مشفرة/,'backup-only startup explains that recovery is available');
+assert.equal(h.calls.mode,null,'backup-only startup keeps the unlock prompt hidden until the shield is pressed');
 assert.equal(h.calls.legacyPrepared,false,'backup-only startup does not start a new vault or import legacy data');
+assert.equal(h.sandbox.vaultHasEncryptedData,true,'backup-only startup records that private data is encrypted');
+assert.equal(h.sandbox.$('vaultGate').hidden,true,'backup-only startup keeps the public shell available without showing the gate');
+assert.equal(h.calls.privatePreferencesLoaded,1,'locked startup loads only empty private preferences');
+assert.equal(h.calls.syncCount,1,'locked startup updates the shield to the locked state');
+assert.equal(h.calls.opened,null,'locked startup opens no private note');
 
 h=makeHarness({'anwar_vault_v1':'encrypted-primary'});
 await h.api.bootVault();
-assert.equal(h.calls.mode,'unlock','primary encrypted storage opens the unlock gate');
+assert.equal(h.calls.mode,null,'primary encrypted startup does not automatically display a password gate');
 assert.equal(h.calls.legacyPrepared,false,'existing primary vault does not run first-time setup');
+assert.equal(h.sandbox.vaultHasEncryptedData,true,'primary startup records the encrypted vault state');
+assert.equal(h.calls.privatePreferencesLoaded,1,'primary startup loads blank private preferences');
+assert.equal(h.calls.syncCount,1,'primary startup synchronizes the shield');
 
 h=makeHarness();
 await h.api.bootVault();
