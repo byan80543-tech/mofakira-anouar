@@ -762,7 +762,8 @@ async function lockVault(reason='manual'){
    syncVaultLockButton();
    if(reason!=='background')toast('تم إغلاق المساحة الخاصة وتأمين محتوياتها.',2500);
   }catch(error){
-   toast(error.message||'تعذّر قفل المفكرة قبل إتمام الحفظ.',6000);
+   console.warn('تعذّر قفل مفكرة أنوار',error);
+   toast('تعذّر قفل المفكرة. بقيت بياناتك محفوظة؛ أعد المحاولة.',6000);
    if(vaultUnlocked){vaultLastActivityAt=Date.now();armVaultIdleTimer()}
   }
  }finally{
