@@ -66,6 +66,7 @@ const VAULT_STORAGE_KEY='anwar_vault_v1',VAULT_BACKUP_KEY='anwar_vault_backup_v1
 let adhkarFontTarget=null;
 let vaultKey=null,vaultTemplate=null,vaultUnlocked=false,vaultGateMode='setup',vaultReady=false,vaultDisableAfterUnlock=false,vaultHasEncryptedData=false,vaultLockInProgress=false;
 let vaultSaveQueue=Promise.resolve(),vaultLastWriteError=null,vaultBackupWarningShown=false,vaultLegacyCleanupWarningShown=false;
+let rescuePendingEnvelope=null;
 const VAULT_IDLE_LOCK_MS=5*60*1000; // قفل تلقائي بعد خمس دقائق من عدم النشاط الموثوق، إضافة إلى قفل الخلفية.
 let vaultIdleTimer=null,vaultLastActivityAt=0;
 const hasOwn=(object,key)=>Object.prototype.hasOwnProperty.call(object,key);
@@ -764,75 +765,93 @@ async function lockVault(reason='manual'){
   vaultLockInProgress=false;
  }
 }
-async function openEncryptedBackupDialog(){
+async function downloadRescueBackup(){
  flushPrivatePreferenceSave();
- if(!vaultUnlocked||!vaultKey){toast('افتح الخزنة أولًا لإنشاء نسخة احتياطية.',4000);return}
+ if(!vaultUnlocked||!vaultKey||!vaultTemplate){toast('افتح الخزنة أولًا لإنشاء نسخة الإنقاذ.',4500);return}
+ const button=$('bkp');
+ if(button)button.disabled=true;
  try{
   await vaultSaveQueue;
-  const snapshot=JSON.stringify(S);
-  const envelope=await AnwarVaultCrypto.encryptWithKey(vaultKey,vaultTemplate,snapshot);
-  $('bt').value=JSON.stringify(envelope,null,2);
+  if(!vaultUnlocked||!vaultKey||!vaultTemplate)throw new Error('أُغلقت الخزنة قبل اكتمال النسخ. افتحها ثم أعد المحاولة.');
+  const plaintext=JSON.stringify(S);
+  readStoredState(plaintext);
+  const envelope=await AnwarVaultCrypto.encryptWithKey(vaultKey,vaultTemplate,plaintext);
+  const verified=await AnwarVaultCrypto.decryptWithKey(vaultKey,envelope);
+  if(verified!==plaintext)throw new Error('لم تتطابق مراجعة ملف الإنقاذ. لم ننزّل ملفًا غير متحقق منه.');
+  const blob=new Blob([JSON.stringify(envelope)],{type:'application/json;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const anchor=document.createElement('a');
+  const now=new Date(),pad=value=>String(value).padStart(2,'0');
+  const stamp=now.getFullYear()+pad(now.getMonth()+1)+pad(now.getDate())+'-'+pad(now.getHours())+pad(now.getMinutes());
+  anchor.href=url;
+  anchor.download='mofakira-anouar-rescue-'+stamp+'.json';
+  anchor.rel='noopener';
+  document.body.append(anchor);anchor.click();anchor.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),60000);
+  toast('تم تجهيز نسخة الإنقاذ المشفرة. احفظ الملف خارج الهاتف واحتفظ بعبارة مرور الخزنة منفصلة.',6500);
+ }catch(error){
+  console.warn('تعذّر إنشاء نسخة الإنقاذ المشفرة',error);
+  toast(error&&error.message?error.message:'تعذّر إنشاء نسخة الإنقاذ. لم نغيّر بيانات الخزنة.',6500);
+ }finally{
+  if(button)button.disabled=false;
+ }
+}
+function openRescueRestorePicker(){
+ if(!vaultUnlocked||!vaultKey){toast('افتح الخزنة أولًا قبل استعادة نسخة الإنقاذ.',4500);return}
+ const picker=$('rescueFilePicker');
+ if(!picker){toast('أداة اختيار ملف الإنقاذ غير متاحة في هذه الصفحة.',4500);return}
+ rescuePendingEnvelope=null;
+ $('backupPassword').value='';
+ picker.value='';
+ picker.click();
+}
+async function handleRescueFileSelected(event){
+ const picker=event&&event.currentTarget?event.currentTarget:$('rescueFilePicker');
+ const file=picker&&picker.files&&picker.files[0];
+ if(!file)return;
+ picker.value='';
+ try{
+  if(file.size>12*1024*1024)throw new Error('حجم ملف الإنقاذ يتجاوز الحد الآمن.');
+  const raw=await file.text();
+  if(raw.length>12000000)throw new Error('حجم ملف الإنقاذ يتجاوز الحد الآمن.');
+  const envelope=JSON.parse(raw);
+  AnwarVaultCrypto.validateEnvelope(envelope);
+  rescuePendingEnvelope=envelope;
+  $('rescueFileName').textContent=file.name||'نسخة إنقاذ مشفرة';
   $('backupPassword').value='';
   $('dg').showModal();
  }catch(error){
-  console.warn('تعذّر تجهيز النسخة الاحتياطية المشفرة',error);
-  toast('تعذّر إنشاء نسخة احتياطية مشفرة. لم نعرض البيانات بصيغة مكشوفة.',6000);
+  rescuePendingEnvelope=null;
+  console.warn('تعذّر قراءة ملف الإنقاذ',error);
+  toast(error&&error.message?error.message:'الملف غير صالح أو ليس نسخة إنقاذ مشفرة.',6000);
  }
 }
-function readEncryptedBackupText(){
- const textValue=$('bt').value.trim();
- if(!textValue)throw new Error('لا توجد نسخة احتياطية في الحقل.');
- const envelope=JSON.parse(textValue);
- AnwarVaultCrypto.validateEnvelope(envelope);
- return textValue;
-}
-function copyEncryptedBackup(){
+async function restoreRescueBackup(){
+ if(!vaultUnlocked||!vaultKey){toast('افتح الخزنة أولًا.',4000);return}
+ if(!rescuePendingEnvelope){toast('اختر ملف إنقاذ صالحًا أولًا.',4000);return}
+ const password=$('backupPassword').value;
+ if(!password){toast('أدخل عبارة مرور الخزنة التي أُنشئت بها النسخة.',5000);return}
+ const button=$('rs');
+ if(button)button.disabled=true;
  try{
-  const textValue=readEncryptedBackupText();
-  if(!navigator.clipboard||!navigator.clipboard.writeText){$('bt').select();toast('النسخة مشفرة. حدد النص لنسخه يدويًا.',4500);return}
-  navigator.clipboard.writeText(textValue).then(()=>toast('تم نسخ النسخة الاحتياطية المشفرة.',3500),()=>toast('تعذّر النسخ؛ يمكنك تحديد النص يدويًا.',4500));
- }catch(error){toast('النسخ متاح للنسخ الاحتياطية المشفرة فقط.',4500)}
-}
-function downloadEncryptedBackup(){
- let textValue='';
- try{textValue=readEncryptedBackupText()}catch(error){toast('التنزيل متاح لملف خزنة مشفر صالح فقط.',4500);return}
- try{
-  const blob=new Blob([textValue],{type:'application/json;charset=utf-8'});
-  const url=URL.createObjectURL(blob),anchor=document.createElement('a');
-  anchor.href=url;anchor.download='mofakira-anouar-encrypted-backup.json';anchor.rel='noopener';
-  document.body.append(anchor);anchor.click();anchor.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),60000);
-  toast('تم تنزيل النسخة الاحتياطية المشفرة.',3500);
- }catch(error){toast('تعذّر تنزيل النسخة الاحتياطية.',4500)}
-}
-async function restoreEncryptedBackup(){
- if(!vaultUnlocked||!vaultKey){toast('افتح الخزنة أولًا.',3500);return}
- const backupText=$('bt').value.trim();
- if(!backupText){toast('الصق محتوى النسخة الاحتياطية أولًا.',4000);return}
- if(backupText.length>12000000){toast('حجم النسخة الاحتياطية يتجاوز الحد الآمن.',5000);return}
- try{
-  const parsed=JSON.parse(backupText);
-  let next;
-  if(parsed&&parsed.format===AnwarVaultCrypto.format){
-   const backupPassword=$('backupPassword').value;
-   if(!backupPassword){toast('أدخل كلمة مرور النسخة الاحتياطية لفك تشفيرها.',5000);return}
-   const decrypted=await AnwarVaultCrypto.decryptEnvelope(backupPassword,parsed);
-   next=readStoredState(decrypted.plaintext);
-  }else if(parsed&&typeof parsed==='object'&&Array.isArray(parsed.notes)){
-   next=normalizeState(parsed);
-  }else throw new Error('ليست نسخة مفكرة مدعومة أو نسخة مشفرة صالحة.');
-  if(!confirm('سيُستبدل محتوى المفكرة الحالي بمحتوى النسخة بعد التحقق منها وتشفيرها. هل تتابع؟'))return;
+  const decrypted=await AnwarVaultCrypto.decryptEnvelope(password,rescuePendingEnvelope);
+  const next=readStoredState(decrypted.plaintext);
+  if(!confirm('ستُستبدل أعمال المفكرة وإعداداتها الموجودة في الخزنة بمحتوى النسخة بعد التحقق منها. لن تتأثر ملفات الإذاعة أو الخدمات الخارجية. هل تتابع؟'))return;
   await vaultSaveQueue;
   const plaintext=JSON.stringify(next);
   await persistVaultSnapshot(plaintext);
   S=next;
+  vaultLastWriteError=null;
   openNote(null);theme();chips();renderList();
   $('backupPassword').value='';
+  rescuePendingEnvelope=null;
   $('dg').close();
-  toast('تمت استعادة النسخة وتخزينها مشفرة.',4500);
+  toast('تمت استعادة نسخة الإنقاذ والتحقق من حفظها داخل الخزنة المشفرة.',6000);
  }catch(error){
-  console.warn('تعذّرت استعادة النسخة الاحتياطية المشفرة',error);
-  toast(error&&error.message?error.message:'النسخة غير صالحة أو كلمة المرور غير صحيحة. لم نستبدل بيانات المفكرة.',6500);
+  console.warn('تعذّرت استعادة نسخة الإنقاذ',error);
+  toast(error&&error.message?error.message:'كلمة المرور غير صحيحة أو الملف تالف. بقيت الأعمال الحالية دون تغيير.',6500);
+ }finally{
+  if(button)button.disabled=false;
  }
 }
 
@@ -2656,8 +2675,8 @@ document.addEventListener('click',e=>{
  else if(id==='pn'&&cur){cur.pin=!cur.pin;save();$('pn').textContent=cur.pin?'⭐ تثبيت':'☆ تثبيت';renderList()}
  else if(id==='cy'&&cur){navigator.clipboard&&navigator.clipboard.writeText((cur.title?cur.title+'\n\n':'')+pg.innerText).then(()=>toast('تم النسخ'),()=>toast('تعذّر النسخ'))}
  else if(id==='dl'&&cur){if(confirm('حذف هذا العمل نهائيًا؟')){S.notes=S.notes.filter(n=>n!==cur);save();openNote(null)}}
- else if(id==='bkp'){openEncryptedBackupDialog()}
- else if(id==='downloadBackup')downloadEncryptedBackup();
+ else if(id==='bkp'){downloadRescueBackup()}
+ else if(id==='restoreRescueBtn'){openRescueRestorePicker()}
  else if(id==='vaultShieldActivate'){
   if(vaultGateMode==='unlock'&&$('vaultPasswordFields').hidden&&globalThis.AnwarDeviceUnlock&&AnwarDeviceUnlock.isConfigured()){
    unlockVaultWithDevice();
@@ -2676,8 +2695,7 @@ document.addEventListener('click',e=>{
  else if(id==='retryStorageAccess')retryStorageAccess();
  else if(id==='restoreBackup')restoreStorageBackup();
  else if(id==='startFresh')startFreshNotebook();
- else if(id==='cp'){copyEncryptedBackup()}
- else if(id==='rs'){restoreEncryptedBackup()}
+ else if(id==='rs'){restoreRescueBackup()}
  else if(id==='cl')$('dg').close();
  else if(id==='ownerBtn')$('ownerDialog').showModal();
  else if(id==='closeOwner')$('ownerDialog').close();
@@ -4104,6 +4122,8 @@ $('vaultDeviceSetupForm').addEventListener('submit',submitVaultDeviceSetup);
 $('vaultDeviceDisableBtn').addEventListener('click',disableVaultDeviceUnlock);
 $('vaultDeviceSetupClose').addEventListener('click',()=>$('vaultDeviceSetupDialog').close());
 $('backupPassword').value='';
+$('rescueFilePicker').addEventListener('change',handleRescueFileSelected);
+$('dg').addEventListener('close',()=>{rescuePendingEnvelope=null;$('backupPassword').value='';$('rescueFileName').textContent='لم يتم اختيار ملف بعد.'});
 bootVault();
 
 /* تهيئة وإدارة موحّدة لكل الطبقات التي تفتحها الأيقونات */
