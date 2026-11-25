@@ -13,7 +13,7 @@
 
 ## الموقع والمستودع
 
-- الموقع المنشور (Cloudflare Pages): https://mofakira-anouar.pages.dev/
+- الموقع المنشور (Cloudflare Pages): https://mofakira-anouar.pages.dev/mofakira-anouar/ (رابط الجذر يحوّل تلقائياً إلى مسار التطبيق).
 - مستودع المصدر: https://github.com/byan80543-tech/mofakira-anouar
 
 ## وثائق المشروع
