@@ -243,7 +243,7 @@
   return {row:row,description:copy.lastChild};
  }
  addPrivacyFact('الموقع الدقيق','لا نستخدم GPS ولا نطلب إذن الموقع.','لا يُستخدم','local');
- addPrivacyFact('مواقيت الصلاة','نرسل المدينة والدولة والتاريخ إلى api.aladhan.com؛ ويمكن للمزوّد رؤية عنوان IP.','خدمة خارجية','external');
+ addPrivacyFact('مواقيت الصلاة','نرسل المدينة والدولة والتاريخ إلى api.aladhan.com؛ ويستطيع المزوّد رؤية عنوان IP.','خدمة خارجية','external');
  const audioPrivacyFact=addPrivacyFact('صوت الأذان','','استضافة صوتية خارجية','external');
  function updatePrivacyAudioDisclosure(){
   const voice=VOICES.find(item=>item.key===settings.voice)||VOICES[0];
