@@ -261,7 +261,8 @@ function showVaultGate(mode,message){
  fallbackToggle.hidden=!deviceConfigured;
  passwordFields.hidden=deviceConfigured;
  deviceManage.hidden=mode!=='unlock'||!deviceApi;
- deviceManage.textContent=deviceConfigured?'إدارة فتح الهاتف':'إعداد فتح الهاتف';
+ const sharedDeviceOrigin=!!(deviceApi&&deviceApi.isSharedGitHubPagesOrigin());
+ deviceManage.textContent=deviceConfigured?'إدارة فتح الهاتف':sharedDeviceOrigin?'سبب تعطيل البصمة':'إعداد فتح الهاتف';
  if(disableEncryption)disableEncryption.hidden=mode!=='unlock';
  if(cancelSetup)cancelSetup.hidden=mode!=='setup';
  $('vaultError').textContent='';
@@ -642,11 +643,14 @@ function openVaultDeviceSetupDialog(){
  $('vaultDeviceSetupPassword').value='';
  $('vaultDeviceSetupForm').hidden=configured||!supported;
  $('vaultDeviceDisableBtn').hidden=!configured;
+ const sharedOrigin=AnwarDeviceUnlock.isSharedGitHubPagesOrigin();
  $('vaultDeviceSetupStatus').textContent=configured
   ?'الفتح السريع مفعّل لهذا المتصفح. يمكنك تعطيله من هنا.'
-  :supported
-   ?'عند التفعيل سيُطلب تحقق الهاتف الآمن. ستبقى كلمة المرور الأساسية وسيلة الاسترداد.'
-   :'هذا المتصفح أو الجهاز لا يدعم ميزة الاعتماد الآمن المطلوبة. يمكنك متابعة استخدام كلمة المرور الأساسية.';
+  :sharedOrigin
+   ?'حمايةً لخصوصيتك، عُطّل الفتح بالبصمة على نطاق GitHub Pages المشترك. استخدم عبارة المرور الأساسية؛ أعمالك المشفرة لم تُحذف.'
+   :supported
+    ?'عند التفعيل سيُطلب تحقق الهاتف الآمن. ستبقى كلمة المرور الأساسية وسيلة الاسترداد.'
+    :'هذا المتصفح أو الجهاز لا يدعم ميزة الاعتماد الآمن المطلوبة. يمكنك متابعة استخدام كلمة المرور الأساسية.';
  if(dialog&&!dialog.open)dialog.showModal();
 }
 async function submitVaultDeviceSetup(event){
