@@ -23,7 +23,18 @@ assert.match(activity, /الخدمات القرآنية والدينية/,
   "the original services button is visible in the notebook");
 assert.match(religiousGate, /LegacyWebActivity::class\.java/,
   'the complete legacy notebook remains reachable from the religious gateway');
-assert.match(activity, /class NativeNotebookActivity\s*:\s*Activity\(\)/);
+assert.match(activity, /class NativeNotebookActivity\s*:\s*FragmentActivity\(\)/,
+  'the notebook uses FragmentActivity for the AndroidX biometric authentication prompt');
+assert.match(activity, /FLAG_SECURE/,
+  'private notebook content is hidden from screenshots and recent-app previews');
+assert.match(activity, /BIOMETRIC_STRONG[\s\S]*?DEVICE_CREDENTIAL/,
+  'Android 11+ accepts strong biometrics or the system device credential');
+assert.match(activity, /setAllowedAuthenticators\(authenticators\)/,
+  'the Android biometric prompt explicitly uses the configured device-authentication policy');
+assert.match(activity, /createConfirmDeviceCredentialIntent/,
+  'older Android versions use the system device-credential confirmation screen');
+assert.match(activity, /authenticationRequiredOnResume = true/,
+  'leaving the foreground requires authentication again before reopening notes');
 assert.doesNotMatch(activity, /WebView|https?:\/\//,
   'the native notebook has no remote or WebView dependency');
 
