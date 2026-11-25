@@ -106,7 +106,7 @@ assert.match(design,/\.anwar-prayer-time\{[^}]*min-height:65px/,'the default pra
 assert.match(design,/\.anwar-prayer-times\{display:grid!important;grid-template-columns:repeat\(5,minmax\(0,1fr\)\);gap:5px/,'the five prayer tiles use the tighter reference spacing');
 assert.match(design,/#rd #anwarPrayerCard\{[^}]*padding:12px 12px 9px!important/,'the prayer card lower spacing is slightly reduced without changing its layout');
 assert.match(html,/prayer-card-design\.css\?v=20261124-1/,'the canonical prayer stylesheet is versioned');
-assert.match(html,/<small>أصوات الأذان<\/small><strong>اختيار الصوت والتنبيهات<\/strong>/,'section card distinguishes adhan sounds from the prayer timetable');
+assert.match(html,/<small>الأذان<\/small><strong>المواقيت والتنبيهات<\/strong>/,'the current service card opens prayer timings and adhan settings');
 assert.match(html,/#rd \.curtain-head #ownerBtn\.radio-owner-pen[\s\S]*?width:34px!important;height:34px!important/,'ownership button matches the close button dimensions');
 assert.match(html,/<div class="curtain-head"><button type="button" id="ownerBtn"/,'purple radio header contains only its functional controls');
 assert.doesNotMatch(html,/<div class="curtain-head"><b>الخدمات القرآنية والدينية<\/b>/,'duplicate services title is removed from purple radio header');
