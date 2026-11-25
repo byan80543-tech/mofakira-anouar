@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import vm from 'node:vm';
 
 const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const core=fs.readFileSync(new URL('../app-core.js',import.meta.url),'utf8');
+assert.doesNotThrow(()=>new vm.Script(core,{filename:'app-core.js'}),'the updated application bundle parses without syntax errors');
 
 assert.ok(html.includes('id="bkp"')&&html.includes('نسخة إنقاذ'),'the one-tap rescue download control is present');
 assert.ok(html.includes('id="restoreRescueBtn"'),'the separate restore entry point is present');
