@@ -727,7 +727,8 @@ async function lockVault(reason='manual'){
     clearVaultIdleTimer();vaultUnlocked=false;vaultReady=false;
     showVaultGate('setup','أنشئ عبارة مرور لتفعيل التشفير الدائم. حفظنا تعديلاتك أولًا، وستُشفّر الأعمال وتُتحقق النسخة قبل إزالة أي نسخة نصية قديمة.');
    }catch(error){
-    toast(error&&error.message?error.message:'تعذّر حفظ المفكرة قبل إعداد القفل. بقيت مفتوحة دون تغيير.',6000);
+    console.warn('تعذّر حفظ المفكرة قبل إعداد القفل',error);
+    toast('تعذّر حفظ المفكرة قبل إعداد القفل. بقيت مفتوحة دون تغيير.',6000);
    }
    return;
   }
@@ -747,7 +748,6 @@ async function lockVault(reason='manual'){
    cur=null;draftNote=null;saved=null;
    pg.innerHTML='';
    $('t').value='';
-   $('bt').value='';
    $('backupPassword').value='';
    $('historyItems').innerHTML='';
    $('archiveItems').innerHTML='';
