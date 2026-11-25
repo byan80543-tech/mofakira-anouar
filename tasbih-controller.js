@@ -255,7 +255,10 @@
     const flushed=await preferences.flush();
     if(!flushed)throw new Error('لم يؤكد مخزن المفكرة إزالة الإعدادات القديمة.');
     const remaining=preferences.get().tasbih||{};
-    if((Number(remaining.count)||0)!==0||Array.isArray(remaining.customDhikrs)&&remaining.customDhikrs.length){
+    if((Number(remaining.count)||0)!==0||remaining.dhikr!==defaultTasbih.dhikr||
+       Array.isArray(remaining.customDhikrs)&&remaining.customDhikrs.length||
+       Array.isArray(remaining.removedOfficialDhikrs)&&remaining.removedOfficialDhikrs.length||
+       remaining.theme!=='emerald'){
      throw new Error('بقيت إعدادات قديمة في مخزن المفكرة. لم نكمل فتح درع السبحة.');
     }
    }
@@ -634,7 +637,10 @@
     let loaded;
     if(shieldMode==='setup'){
      if(password!==shieldConfirm.value)throw new Error('عبارتا المرور غير متطابقتين.');
-     const legacy=legacyInitial&&typeof legacyInitial==='object'?legacyInitial:defaultTasbih;
+     const latestPreferences=preferences&&typeof preferences.get==='function'?preferences.get():null;
+     const currentLegacy=latestPreferences&&latestPreferences.tasbih&&typeof latestPreferences.tasbih==='object'
+      ?latestPreferences.tasbih:legacyInitial;
+     const legacy=currentLegacy&&typeof currentLegacy==='object'?currentLegacy:defaultTasbih;
      const migration={
       count:Number.isSafeInteger(legacy.count)?Math.max(0,Math.min(MAX_COUNT,legacy.count)):0,
       dhikr:typeof legacy.dhikr==='string'&&legacy.dhikr?legacy.dhikr:select.value,
