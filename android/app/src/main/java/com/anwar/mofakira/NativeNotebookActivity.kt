@@ -69,6 +69,8 @@ import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
+import android.security.keystore.KeyPermanentlyInvalidatedException
+import android.security.keystore.UserNotAuthenticatedException
 
 /**
  * First native notebook milestone: private plain-text poems, texts and ideas.
@@ -202,6 +204,16 @@ class NativeNotebookActivity : FragmentActivity() {
             return
         }
 
+        try {
+            ensureAuthBoundKeystoreKey()
+        } catch (error: Exception) {
+            val message = error.message
+                ?: "تعذّر تجهيز مفتاح الحماية المرتبط بقفل الجهاز. لم نعرض الملاحظات."
+            Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+            finish()
+            return
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val authenticators = androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG or
                 androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
@@ -222,8 +234,8 @@ class NativeNotebookActivity : FragmentActivity() {
 
                     override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                         super.onAuthenticationError(errorCode, errString)
-                        Toast.makeText(this@NativeNotebookActivity, "لم يتم فتح المفكرة: $errString", Toast.LENGTH_LONG).show()
-                        finish()
+                        Toast.makeText(this@NativeNotebookActivity, "لم يكتمل التحقق: $errString", Toast.LENGTH_LONG).show()
+                        if (!notebookOpened) finish()
                     }
                 }
             )
@@ -1580,11 +1592,15 @@ class NativeNotebookActivity : FragmentActivity() {
     }
 
     private fun loadNotes() {
+        recoverInterruptedKeyMigration()
         val primary = preferences.getString(PRIMARY_KEY, null)
         if (primary != null) {
             try {
                 val plain = decryptState(primary)
                 val parsed = parseNotes(plain)
+                if (!isAuthBoundStateEnvelope(primary)) {
+                    migrateLegacyNotebookRecords(primary, plain)
+                }
                 notes.clear()
                 notes.addAll(parsed)
                 return
@@ -1783,10 +1799,18 @@ class NativeNotebookActivity : FragmentActivity() {
             if (primaryMayHaveChanged && oldPrimary != null) {
                 runCatching { preferences.edit().putString(PRIMARY_KEY, oldPrimary).commit() }
             }
-            storageMessage = error.message
-                ?.takeIf { it.isNotBlank() }
-                ?.let { "تعذّر إكمال الحفظ المشفر: " + it + " لم نحذف النسخة السابقة." }
-                ?: "تعذّر إكمال الحفظ المشفر. لم نحذف النسخة السابقة."
+            val authExpired = isUserAuthenticationExpired(error)
+            storageMessage = if (authExpired) {
+                "انتهت مهلة التحقق المؤقتة لمفتاح الخزنة. أعد التحقق ببصمة الجهاز أو PIN/النمط، ثم أعد الحفظ. بقيت النسخة السابقة كما هي."
+            } else {
+                error.message
+                    ?.takeIf { it.isNotBlank() }
+                    ?.let { "تعذّر إكمال الحفظ المشفر: " + it + " لم نحذف النسخة السابقة." }
+                    ?: "تعذّر إكمال الحفظ المشفر. لم نحذف النسخة السابقة."
+            }
+            if (authExpired && notebookOpened) {
+                runCatching { authenticateBeforeOpening() }
+            }
             false
         }
     }
@@ -1833,35 +1857,120 @@ class NativeNotebookActivity : FragmentActivity() {
         return array
     }
 
-    private fun getKeystoreKey(createIfMissing: Boolean): SecretKey {
+    /**
+     * Creates the v2 notebook key before showing the Android authentication prompt.
+     * The key itself enforces authentication for every use window; the prompt is
+     * intentionally not passed a CryptoObject because Android requires a
+     * time-based key when biometric and device-credential fallback are both allowed.
+     */
+    private fun ensureAuthBoundKeystoreKey() {
         val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
-        val existing = keyStore.getKey(KEY_ALIAS, null) as? SecretKey
-        if (existing != null) return existing
-        if (!createIfMissing) throw IllegalStateException("مفتاح تشفير دفتر الكتابة غير متاح.")
+        if (keyStore.containsAlias(KEY_ALIAS)) {
+            try {
+                val existing = keyStore.getKey(KEY_ALIAS, null) as? SecretKey
+                if (existing == null) {
+                    throw IllegalStateException("مفتاح حماية دفتر الكتابة غير صالح.")
+                }
+            } catch (error: Exception) {
+                if (isKeyPermanentlyInvalidated(error)) {
+                    throw IllegalStateException(
+                        "تغيّر قفل شاشة الجهاز أو أُعيد ضبطه، فأصبح مفتاح الخزنة غير صالح. لا تحذف بيانات التطبيق؛ استعد نسخة الإنقاذ المشفرة على جهاز موثوق.",
+                        error
+                    )
+                }
+                throw error
+            }
+            return
+        }
+
+        val primary = preferences.getString(PRIMARY_KEY, null)
+        val backup = preferences.getString(BACKUP_KEY, null)
+        val hasStoredRecords = primary != null || backup != null
+        val hasV2Records = isAuthBoundStateEnvelope(primary) || isAuthBoundStateEnvelope(backup)
+        if (hasV2Records) {
+            throw IllegalStateException(
+                "سجل دفتر الكتابة يحتاج إلى مفتاح الحماية الأصلي غير المتاح. لم ننشئ مفتاحاً بديلاً ولم نكتب فوق بياناتك؛ استخدم نسخة الإنقاذ المشفرة."
+            )
+        }
+        if (hasStoredRecords && !keyStore.containsAlias(LEGACY_KEY_ALIAS)) {
+            throw IllegalStateException(
+                "لم نعثر على مفتاح السجل القديم اللازم لترحيل أعمالك. لم نغيّر أي بيانات؛ استخدم نسخة الإنقاذ المشفرة."
+            )
+        }
+
         val generator = KeyGenerator.getInstance(
             KeyProperties.KEY_ALGORITHM_AES,
             "AndroidKeyStore"
         )
-        generator.init(
-            KeyGenParameterSpec.Builder(
-                KEY_ALIAS,
-                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
-            )
-                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                .setRandomizedEncryptionRequired(true)
-                .build()
+        val builder = KeyGenParameterSpec.Builder(
+            KEY_ALIAS,
+            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
         )
-        return generator.generateKey()
+            .setKeySize(256)
+            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+            .setRandomizedEncryptionRequired(true)
+            .setUserAuthenticationRequired(true)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            builder.setUserAuthenticationParameters(
+                KEY_AUTH_VALIDITY_SECONDS,
+                KeyProperties.AUTH_BIOMETRIC_STRONG or KeyProperties.AUTH_DEVICE_CREDENTIAL
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            builder.setUserAuthenticationValidityDurationSeconds(KEY_AUTH_VALIDITY_SECONDS)
+        }
+        generator.init(builder.build())
+        generator.generateKey()
+    }
+
+    private fun getAuthBoundKeystoreKey(): SecretKey {
+        val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+        return keyStore.getKey(KEY_ALIAS, null) as? SecretKey
+            ?: throw IllegalStateException("مفتاح حماية دفتر الكتابة غير متاح.")
+    }
+
+    private fun getLegacyKeystoreKey(): SecretKey {
+        val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+        return keyStore.getKey(LEGACY_KEY_ALIAS, null) as? SecretKey
+            ?: throw IllegalStateException("مفتاح السجل القديم غير متاح؛ لم نحذف أي نسخة احتياطية.")
+    }
+
+    private fun isKeyPermanentlyInvalidated(error: Throwable?): Boolean {
+        var current = error
+        while (current != null) {
+            if (current is KeyPermanentlyInvalidatedException) return true
+            current = current.cause
+        }
+        return false
+    }
+
+    private fun isUserAuthenticationExpired(error: Throwable?): Boolean {
+        var current = error
+        while (current != null) {
+            if (current is UserNotAuthenticatedException) return true
+            current = current.cause
+        }
+        return false
+    }
+
+    private fun isAuthBoundStateEnvelope(encoded: String?): Boolean {
+        if (encoded.isNullOrBlank()) return false
+        return runCatching {
+            val bytes = Base64.decode(encoded, Base64.NO_WRAP)
+            bytes.isNotEmpty() && (bytes[0].toInt() and 0xff) == STATE_ENVELOPE_VERSION
+        }.getOrDefault(false)
     }
 
     private fun encryptState(plain: ByteArray): String {
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-        cipher.init(Cipher.ENCRYPT_MODE, getKeystoreKey(true))
+        cipher.init(Cipher.ENCRYPT_MODE, getAuthBoundKeystoreKey())
         val encrypted = cipher.doFinal(plain)
         val iv = cipher.iv
-        require(iv.size in 12..32)
-        val envelope = ByteBuffer.allocate(1 + iv.size + encrypted.size)
+        require(iv.size == 12) { "متجه التهيئة الخاص بالتشفير غير صالح." }
+        val envelope = ByteBuffer.allocate(2 + iv.size + encrypted.size)
+            .put(STATE_ENVELOPE_VERSION.toByte())
             .put(iv.size.toByte())
             .put(iv)
             .put(encrypted)
@@ -1870,6 +1979,34 @@ class NativeNotebookActivity : FragmentActivity() {
     }
 
     private fun decryptState(encoded: String): ByteArray {
+        return if (isAuthBoundStateEnvelope(encoded)) {
+            decryptAuthBoundState(encoded)
+        } else {
+            decryptLegacyState(encoded)
+        }
+    }
+
+    private fun decryptAuthBoundState(encoded: String): ByteArray {
+        val envelope = Base64.decode(encoded, Base64.NO_WRAP)
+        require(envelope.size > 15 && (envelope[0].toInt() and 0xff) == STATE_ENVELOPE_VERSION) {
+            "صيغة سجل دفتر الكتابة المحمي بقفل الجهاز غير صحيحة."
+        }
+        val ivLength = envelope[1].toInt() and 0xff
+        require(ivLength == 12 && envelope.size > 2 + ivLength + 16) {
+            "بيانات سجل دفتر الكتابة المحمي بقفل الجهاز غير مكتملة."
+        }
+        val iv = envelope.copyOfRange(2, 2 + ivLength)
+        val ciphertext = envelope.copyOfRange(2 + ivLength, envelope.size)
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        cipher.init(
+            Cipher.DECRYPT_MODE,
+            getAuthBoundKeystoreKey(),
+            GCMParameterSpec(128, iv)
+        )
+        return cipher.doFinal(ciphertext)
+    }
+
+    private fun decryptLegacyState(encoded: String): ByteArray {
         val envelope = Base64.decode(encoded, Base64.NO_WRAP)
         require(envelope.size > 14) { "سجل دفتر الكتابة المشفر غير مكتمل." }
         val ivLength = envelope[0].toInt() and 0xff
@@ -1881,10 +2018,115 @@ class NativeNotebookActivity : FragmentActivity() {
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(
             Cipher.DECRYPT_MODE,
-            getKeystoreKey(false),
+            getLegacyKeystoreKey(),
             GCMParameterSpec(128, iv)
         )
         return cipher.doFinal(ciphertext)
+    }
+
+    private fun recoverInterruptedKeyMigration() {
+        val stagedPrimary = preferences.getString(MIGRATION_OLD_PRIMARY_KEY, null) ?: return
+        val stagedBackup = preferences.getString(MIGRATION_OLD_BACKUP_KEY, null)
+            ?: throw IllegalStateException("توجد عملية ترحيل غير مكتملة؛ احتفظنا بنسختها الأصلية ولم نفتح الدفتر.")
+
+        val migratedPairIsValid = runCatching {
+            // Compare the new pair to the exact plaintext represented by the staged
+            // ciphertexts; valid authentication tags alone are not enough.
+            val expectedPrimary = decryptLegacyState(stagedPrimary)
+            val expectedBackup = if (stagedBackup == MIGRATION_BACKUP_ABSENT) {
+                expectedPrimary
+            } else {
+                runCatching { decryptState(stagedBackup) }.getOrElse { expectedPrimary }
+            }
+            val currentPrimary = preferences.getString(PRIMARY_KEY, null)
+                ?: throw IllegalStateException("السجل الرئيسي غير موجود.")
+            val currentBackup = preferences.getString(BACKUP_KEY, null)
+                ?: throw IllegalStateException("النسخة الاحتياطية غير موجودة.")
+            require(isAuthBoundStateEnvelope(currentPrimary) && isAuthBoundStateEnvelope(currentBackup))
+            val actualPrimary = decryptAuthBoundState(currentPrimary)
+            val actualBackup = decryptAuthBoundState(currentBackup)
+            parseNotes(actualPrimary)
+            parseNotes(actualBackup)
+            actualPrimary.contentEquals(expectedPrimary) && actualBackup.contentEquals(expectedBackup)
+        }.getOrDefault(false)
+
+        if (!migratedPairIsValid) {
+            val rollback = preferences.edit().putString(PRIMARY_KEY, stagedPrimary)
+            if (stagedBackup == MIGRATION_BACKUP_ABSENT) {
+                rollback.remove(BACKUP_KEY)
+            } else {
+                rollback.putString(BACKUP_KEY, stagedBackup)
+            }
+            if (!rollback.commit()) {
+                throw IllegalStateException("تعذّر إكمال استرداد السجل القديم. بقيت نسخته الأصلية داخل بيانات التطبيق ولم نحذف مفتاحها.")
+            }
+        }
+
+        if (!preferences.edit()
+                .remove(MIGRATION_OLD_PRIMARY_KEY)
+                .remove(MIGRATION_OLD_BACKUP_KEY)
+                .commit()
+        ) {
+            throw IllegalStateException("تعذّر تنظيف سجل الترحيل بعد التحقق. لم نحذف مفتاح التشفير القديم.")
+        }
+        if (migratedPairIsValid) deleteLegacyKeystoreKey()
+    }
+
+    private fun migrateLegacyNotebookRecords(legacyPrimary: String, primaryPlain: ByteArray) {
+        val oldBackup = preferences.getString(BACKUP_KEY, null)
+        val backupPlain = oldBackup?.let { encoded ->
+            runCatching {
+                decryptState(encoded).also { parseNotes(it) }
+            }.getOrNull()
+        } ?: primaryPlain
+
+        // Produce and verify both v2 envelopes before changing the stored records.
+        val newPrimary = encryptState(primaryPlain)
+        val newBackup = encryptState(backupPlain)
+        val staged = preferences.edit()
+            .putString(MIGRATION_OLD_PRIMARY_KEY, legacyPrimary)
+            .putString(MIGRATION_OLD_BACKUP_KEY, oldBackup ?: MIGRATION_BACKUP_ABSENT)
+        if (!staged.commit()) {
+            throw IllegalStateException("تعذّر تجهيز ترحيل آمن. بقي السجل القديم دون تغيير.")
+        }
+
+        if (!preferences.edit()
+                .putString(PRIMARY_KEY, newPrimary)
+                .putString(BACKUP_KEY, newBackup)
+                .commit()
+        ) {
+            recoverInterruptedKeyMigration()
+            throw IllegalStateException("تعذّر تثبيت السجل الجديد. أعدنا النسخة القديمة دون حذفها.")
+        }
+
+        try {
+            val primaryReadBack = preferences.getString(PRIMARY_KEY, null)
+                ?: throw IllegalStateException("السجل الجديد غير موجود بعد التثبيت.")
+            val backupReadBack = preferences.getString(BACKUP_KEY, null)
+                ?: throw IllegalStateException("النسخة الاحتياطية الجديدة غير موجودة بعد التثبيت.")
+            if (!decryptAuthBoundState(primaryReadBack).contentEquals(primaryPlain) ||
+                !decryptAuthBoundState(backupReadBack).contentEquals(backupPlain)
+            ) {
+                throw IllegalStateException("لم تتطابق مراجعة الترحيل المشفر.")
+            }
+        } catch (error: Exception) {
+            recoverInterruptedKeyMigration()
+            throw IllegalStateException("فشل التحقق من الترحيل؛ أعدنا السجل القديم أو أبقينا نسخة استرداده.", error)
+        }
+
+        // If cleanup fails, the next open verifies the v2 pair and finishes cleanup.
+        val cleaned = preferences.edit()
+            .remove(MIGRATION_OLD_PRIMARY_KEY)
+            .remove(MIGRATION_OLD_BACKUP_KEY)
+            .commit()
+        if (cleaned) deleteLegacyKeystoreKey()
+    }
+
+    private fun deleteLegacyKeystoreKey() {
+        runCatching {
+            val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+            if (keyStore.containsAlias(LEGACY_KEY_ALIAS)) keyStore.deleteEntry(LEGACY_KEY_ALIAS)
+        }
     }
 
     private fun exportPortableBackup() {
@@ -2312,7 +2554,13 @@ class NativeNotebookActivity : FragmentActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_DEVICE_UNLOCK) {
             externalActivityPending = false
-            if (resultCode == RESULT_OK) openAfterDeviceAuthentication() else finish()
+            if (resultCode == RESULT_OK) {
+                openAfterDeviceAuthentication()
+            } else if (!notebookOpened) {
+                finish()
+            } else {
+                Toast.makeText(this, "لم يكتمل تجديد التحقق. بقي العمل الحالي كما هو؛ أعد المحاولة للحفظ.", Toast.LENGTH_LONG).show()
+            }
             return
         }
         if (requestCode == REQUEST_SPEECH || requestCode == REQUEST_EXPORT || requestCode == REQUEST_IMPORT) {
@@ -2495,7 +2743,13 @@ class NativeNotebookActivity : FragmentActivity() {
         private const val PREFERENCES_NAME = "anwar_native_notebook_v1"
         private const val PRIMARY_KEY = "notes_primary_v1"
         private const val BACKUP_KEY = "notes_backup_v1"
-        private const val KEY_ALIAS = "anwar_mofakira_notebook_aes_gcm_v1"
+        private const val KEY_ALIAS = "anwar_mofakira_notebook_aes_gcm_v2"
+        private const val LEGACY_KEY_ALIAS = "anwar_mofakira_notebook_aes_gcm_v1"
+        private const val MIGRATION_OLD_PRIMARY_KEY = "notes_key_migration_old_primary_v2"
+        private const val MIGRATION_OLD_BACKUP_KEY = "notes_key_migration_old_backup_v2"
+        private const val MIGRATION_BACKUP_ABSENT = "__ANWAR_MIGRATION_BACKUP_ABSENT__"
+        private const val STATE_ENVELOPE_VERSION = 0xA2
+        private const val KEY_AUTH_VALIDITY_SECONDS = 300
         private const val FORMAT_VERSION = 1
         private const val PAGE_SIZE = 50
         private const val MAX_NOTES = 2500
