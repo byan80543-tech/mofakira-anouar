@@ -97,6 +97,8 @@ jobs:
         run: node scripts/test-storage.mjs
       - name: Test encrypted vault cryptography and backup integrity
         run: node scripts/test-vault-crypto.mjs
+      - name: Test one-tap encrypted rescue backup and verified restore
+        run: node scripts/test-rescue-backup.mjs
       - name: Test interactive vault shield control
         run: node scripts/test-vault-shield.mjs
       - name: Test verified IndexedDB vault storage and legacy migration
