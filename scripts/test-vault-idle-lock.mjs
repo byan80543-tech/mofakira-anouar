@@ -6,6 +6,8 @@ const html=fs.readFileSync(new URL('../app-core.js',import.meta.url),'utf8');
 const readme=fs.readFileSync(new URL('../README.md',import.meta.url),'utf8');
 assert.ok(readme.includes('يقفل المحتوى المشفر تلقائياً عند انتقال المفكرة إلى الخلفية أو مغادرتها'),
   'project documentation describes immediate background locking');
+assert.ok(readme.includes('بعد خمس دقائق من عدم النشاط الموثوق'),
+  'project documentation describes the five-minute idle-lock policy');
 const start=html.indexOf('const VAULT_IDLE_LOCK_MS=5*60*1000;');
 const end=html.indexOf('function showVaultGate(mode,message){',start);
 assert.ok(start>=0&&end>start,'vault inactivity lock helpers are present');
