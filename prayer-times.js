@@ -1,6 +1,7 @@
 /* Prayer times and adhan for Anwar notebook.
  * Prayer data: AlAdhan API. Default adhan recording: Wikimedia Commons, CC0 1.0.
  * No GPS permission is requested; the chosen city, country and calculation settings are sent to the timings API.
+ * نسخة Chrome/PWA لا يضمن استمرار الصوت بعد إغلاق الصفحة؛ يعتمد ذلك على دعم Android الأصلي وإعداداته.
  */
 (function(){
  'use strict';
@@ -592,7 +593,7 @@
     if(!todayData){
      dateLine.textContent=fallbackDateLabel()||'التاريخ المحلي';
      dateLine.dataset.state='fallback';
-     showNextPrayerPlaceholder('—');
+     showNextPrayerPlaceholder('تعذّر التحميل؛ تحقق من المدينة والاتصال ثم اضغط تحديث');
     }
     setStatus(error&&error.message?error.message:'تعذّر تحديث المواقيت.');
    }
