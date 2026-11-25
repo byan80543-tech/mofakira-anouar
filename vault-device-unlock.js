@@ -100,10 +100,12 @@
      challenge,
      rp:{id:rpId,name:'مفكرة أنوار'},
      user:{id:userId,name:'mofakira-anouar-local',displayName:'مفكرة أنوار على هذا الجهاز'},
-     pubKeyCredParams:[{type:'public-key',alg:-7}],
+     pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
      authenticatorSelection:{
       authenticatorAttachment:'platform',
-      residentKey:'required',
+      // The credential ID is stored locally and supplied in allowCredentials.
+      // A discoverable credential is therefore helpful but not required.
+      residentKey:'preferred',
       userVerification:'required'
      },
      timeout:60000,
