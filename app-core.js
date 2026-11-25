@@ -261,8 +261,8 @@ function showVaultGate(mode,message){
  fallbackToggle.hidden=!deviceConfigured;
  passwordFields.hidden=deviceConfigured;
  deviceManage.hidden=mode!=='unlock'||!deviceApi;
- const sharedDeviceOrigin=!!(deviceApi&&deviceApi.isSharedGitHubPagesOrigin());
- deviceManage.textContent=deviceConfigured?'إدارة فتح الهاتف':sharedDeviceOrigin?'سبب تعطيل البصمة':'إعداد فتح الهاتف';
+ const trustedDeviceOrigin=!!(deviceApi&&deviceApi.isTrustedOrigin());
+ deviceManage.textContent=deviceConfigured?'إدارة فتح الهاتف':trustedDeviceOrigin?'إعداد فتح الهاتف':'سبب تعطيل فتح الهاتف';
  if(disableEncryption)disableEncryption.hidden=mode!=='unlock';
  if(cancelSetup)cancelSetup.hidden=mode!=='setup';
  $('vaultError').textContent='';
@@ -644,13 +644,16 @@ function openVaultDeviceSetupDialog(){
  $('vaultDeviceSetupForm').hidden=configured||!supported;
  $('vaultDeviceDisableBtn').hidden=!configured;
  const sharedOrigin=AnwarDeviceUnlock.isSharedGitHubPagesOrigin();
+ const trustedOrigin=AnwarDeviceUnlock.isTrustedOrigin();
  $('vaultDeviceSetupStatus').textContent=configured
   ?'الفتح السريع مفعّل لهذا المتصفح. يمكنك تعطيله من هنا.'
   :sharedOrigin
-   ?'حمايةً لخصوصيتك، عُطّل الفتح بالبصمة على نطاق GitHub Pages المشترك. استخدم عبارة المرور الأساسية؛ أعمالك المشفرة لم تُحذف.'
-   :supported
-    ?'عند التفعيل سيُطلب تحقق الهاتف الآمن. ستبقى كلمة المرور الأساسية وسيلة الاسترداد.'
-    :'هذا المتصفح أو الجهاز لا يدعم ميزة الاعتماد الآمن المطلوبة. يمكنك متابعة استخدام كلمة المرور الأساسية.';
+   ?'حمايةً لخصوصيتك، عُطّل الفتح بقفل الهاتف على GitHub Pages المشترك. استخدم عبارة المرور الأساسية؛ أعمالك المشفرة لم تُحذف.'
+   :!trustedOrigin
+    ?'حمايةً للخزنة، لا يُتاح فتحها بالبصمة أو قفل الجهاز إلا على نطاق مفكرة أنوار المستقل المعتمد. افتح https://mofakira-anouar.pages.dev/؛ ستبقى كلمة المرور الأساسية متاحة.'
+    :supported
+     ?'عند التفعيل سيُطلب تحقق الهاتف الآمن. ستبقى كلمة المرور الأساسية وسيلة الاسترداد.'
+     :'هذا المتصفح أو الجهاز لا يدعم ميزة الاعتماد الآمن المطلوبة. يمكنك متابعة استخدام كلمة المرور الأساسية.';
  if(dialog&&!dialog.open)dialog.showModal();
 }
 async function submitVaultDeviceSetup(event){
