@@ -166,7 +166,7 @@
   '.anwar-prayer-card{display:grid;gap:10px;padding:12px;border:1px solid #c9a96a;border-radius:14px;background:linear-gradient(145deg,var(--sf),var(--bg));color:var(--tx);box-shadow:0 3px 12px rgba(8,38,77,.07)}',
   '.anwar-prayer-head{display:flex;align-items:center;justify-content:space-between;gap:8px}',
   '.anwar-prayer-head strong{font-family:"Aref Ruqaa",Amiri,serif;font-size:18px;color:var(--ac)}',
-  '.anwar-prayer-head small,.anwar-prayer-date,.anwar-prayer-note{font-size:10px;color:var(--mu);line-height:1.7}',
+  '.anwar-prayer-head small,.anwar-prayer-date{font-size:10px;color:var(--mu);line-height:1.7}',
   '.anwar-prayer-next{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 10px;padding:10px 12px;border-radius:11px;background:linear-gradient(115deg,#0b3159,#1c6077);color:#fff}',
   '.anwar-prayer-next small{font-size:11px;color:#f1dca9;line-height:1.6}.anwar-prayer-next strong{font-size:17px;color:#fff2c5}.anwar-prayer-next-copy,.anwar-prayer-countdown{display:grid;gap:3px;min-width:0}.anwar-prayer-next-when{color:#fff!important}.anwar-prayer-countdown{justify-items:end;text-align:right}.anwar-prayer-next span{font-size:18px;font-weight:700;color:#fff;direction:ltr;text-align:left;font-variant-numeric:tabular-nums;white-space:nowrap}',
   '.anwar-prayer-times{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}',
