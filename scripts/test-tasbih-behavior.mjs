@@ -308,7 +308,10 @@ assert.ok(controller.includes("for(let i=1;i<=12;i++)")&&controller.includes("ro
 assert.ok(controller.includes('function renderClockTicks()')&&controller.includes('i<60')&&controller.includes("i%5===0?' major':''"),'the clock generates all sixty minute ticks with twelve major hour marks');
 assert.ok(controller.includes("hourHand.setAttribute('transform','rotate('+hourDeg+' 50 50)')")&&controller.includes("minuteHand.setAttribute('transform','rotate('+minuteDeg+' 50 50)')")&&controller.includes("secondHand.setAttribute('transform','rotate('+secondDeg+' 50 50)')"),'all three SVG clock hands rotate around the exact 50/50 dial centre');
 assert.ok(html.includes('class="tasbih-clock-hands-svg"')&&html.includes('viewBox="0 0 100 100"')&&html.includes('id="tasbihHandCenterGradient"'),'the clock hands are drawn as explicit SVG geometry instead of empty inline spans');
-assert.ok(/<path d="M50 5 L50 58"[^>]*stroke-width="1\.05"/.test(html)&&html.includes('tasbihSecondHand')&&html.includes('id="tasbihSecondHand"'),'the golden second hand has a clearly visible body and counterweight');
+const secondHandStart=html.indexOf('<g id="tasbihSecondHand"');
+const secondHandEnd=html.indexOf('</g>',secondHandStart);
+const secondHandMarkup=html.slice(secondHandStart,secondHandEnd);
+assert.ok(secondHandStart>=0&&secondHandMarkup.includes('<path d="M50 5.5 L50.82 48.9 L50 50 L49.18 48.9 Z"')&&secondHandMarkup.includes('<path d="M50 50 L50 57.5"')&&secondHandMarkup.includes('<circle cx="50" cy="58" r="1.45"'),'the golden second hand has a clearly visible body, connected counterweight stem, and counterweight jewel');
 assert.ok(html.includes('id="anwar-tasbih-svg-hands-v1"')&&html.includes('z-index:6!important')&&html.includes('z-index:8!important'),'the SVG hand layer stays above dial markings and below the count medallion');
 const clockDialStart=html.indexOf('<div class="tasbih-clock-dial"');
 const clockDialEnd=html.indexOf('\n      </div>\n      <div class="tasbih-elapsed-readout"',clockDialStart);
