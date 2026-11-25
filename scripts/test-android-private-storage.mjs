@@ -6,6 +6,7 @@ const secure = read('android/app/src/main/java/com/anwar/mofakira/AnwarEncrypted
 const adhkar = read('android/app/src/main/java/com/anwar/mofakira/NativeAdhkarActivity.kt');
 const prayer = read('android/app/src/main/java/com/anwar/mofakira/PrayerSettings.kt');
 const notebook = read('android/app/src/main/java/com/anwar/mofakira/NativeNotebookActivity.kt');
+const prayerActivity = read('android/app/src/main/java/com/anwar/mofakira/NativePrayerActivity.kt');
 const gradle = read('android/app/build.gradle.kts');
 
 assert.match(secure, /KeyStore\.getInstance\("AndroidKeyStore"\)/, 'private data key is held by Android Keystore');
@@ -33,6 +34,8 @@ assert.match(adhkar, /AnwarEncryptedStore\.write/, 'personal adhkar updates are 
 assert.doesNotMatch(adhkar, /preferences\.edit\(\)\.putString\(KEY_ENTRIES/,
   'personal adhkar are no longer written as plaintext preferences');
 assert.match(adhkar, /storageAvailable = false/, 'storage failures block further edits instead of replacing unreadable records');
+assert.match(adhkar, /FLAG_SECURE/, 'personal adhkar are hidden from screenshots and recent-app previews');
+assert.match(prayerActivity, /FLAG_SECURE/, 'native prayer settings and schedule are hidden from screenshots and recent-app previews');
 
 assert.match(prayer, /AnwarEncryptedStore\.readPreferencesJson/, 'prayer settings and schedules load from encrypted storage');
 assert.match(prayer, /AnwarEncryptedStore\.write/, 'prayer settings and schedule updates are encrypted');
