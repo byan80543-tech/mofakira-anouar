@@ -107,7 +107,7 @@ jobs:
         run: node scripts/test-vault-startup.mjs
       - name: Test encrypted vault backup fallback and recovery
         run: node scripts/test-vault-recovery.mjs
-      - name: Test inactivity timers remain separate from background shield locking
+      - name: Test five-minute inactivity locking and trusted activity reset
         run: node scripts/test-vault-idle-lock.mjs
       - name: Test encrypted radio, reader and tasbih preferences
         run: node scripts/test-vault-private-preferences.mjs
