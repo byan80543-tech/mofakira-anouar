@@ -169,6 +169,15 @@ class NativeAdhkarActivity : Activity() {
         }
         manageButton.text = "إدارة الأذكار المحفوظة (" + size + ")"
 
+        if (!storageAvailable) {
+            val warning = card(Color.rgb(255, 244, 234), Color.rgb(224, 184, 157))
+            warning.addView(text(storageFailureMessage, 12f, Color.rgb(133, 63, 43), true))
+            listContainer.addView(warning)
+            manageButton.isEnabled = false
+            manageButton.alpha = 0.45f
+            return
+        }
+
         if (entries.isEmpty()) {
             val empty = card(Color.WHITE)
             empty.addView(text(
@@ -184,15 +193,6 @@ class NativeAdhkarActivity : Activity() {
                 muted
             ))
             listContainer.addView(empty)
-            return
-        }
-
-        if (!storageAvailable) {
-            val warning = card(Color.rgb(255, 244, 234), Color.rgb(224, 184, 157))
-            warning.addView(text(storageFailureMessage, 12f, Color.rgb(133, 63, 43), true))
-            listContainer.addView(warning)
-            manageButton.isEnabled = false
-            manageButton.alpha = 0.45f
             return
         }
 
