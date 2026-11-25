@@ -24,35 +24,38 @@
   const voicePanel=$('tasbihVoicePanel'),voiceButton=$('tasbihVoice');
   const voiceState=$('tasbihVoiceState'),voiceStatus=$('tasbihVoiceStatus');
   const voiceButtonLabel=$('tasbihVoiceButtonLabel');
-  const required={panel,select,countNode,phraseNode,beadTrack,counterControl,counterTap,tap,minus,reset,cards,dhikrToggle,dhikrList,customInput,customAdd,customStatus,removeButton,restoreButton,voicePanel,voiceButton,voiceState,voiceStatus,voiceButtonLabel,themeToggle,themePicker,clockDial,clockTicks,clockNumbers,hourHand,minuteHand,secondHand,elapsedNode,...Object.fromEntries(themeButtons.map(item=>['theme'+item.name,item.button]))};
+  const shieldButton=$('tasbihShieldButton'),shieldDialog=$('tasbihShieldDialog');
+  const shieldForm=$('tasbihShieldForm'),shieldPassword=$('tasbihShieldPassword'),shieldConfirm=$('tasbihShieldConfirm');
+  const shieldConfirmWrap=$('tasbihShieldConfirmWrap'),shieldStatus=$('tasbihShieldStatus');
+  const shieldSubmit=$('tasbihShieldSubmit'),shieldLock=$('tasbihShieldLock'),shieldClose=$('tasbihShieldClose');
+  const required={panel,select,countNode,phraseNode,beadTrack,counterControl,counterTap,tap,minus,reset,cards,dhikrToggle,dhikrList,customInput,customAdd,customStatus,removeButton,restoreButton,voicePanel,voiceButton,voiceState,voiceStatus,voiceButtonLabel,themeToggle,themePicker,clockDial,clockTicks,clockNumbers,hourHand,minuteHand,secondHand,elapsedNode,shieldButton,shieldDialog,shieldForm,shieldPassword,shieldConfirm,shieldConfirmWrap,shieldStatus,shieldSubmit,shieldLock,shieldClose,...Object.fromEntries(themeButtons.map(item=>['theme'+item.name,item.button]))};
   const missing=Object.keys(required).filter(key=>!required[key]);
   if(missing.length){
    console.error('تعذر تهيئة السبحة؛ عناصر الواجهة الناقصة:',missing);
    return;
   }
   const preferences=globalThis.AnwarPrivatePreferences;
-  // لا نفترض أن الخزنة تحتوي tasbih؛ قد تكون أول زيارة أو بيانات قديمة.
+  const tasbihVault=globalThis.AnwarTasbihVault;
   const DESIGN_VERSION='royal-reference-1';
-  const defaultTasbih={count:0,dhikr:select.value,customDhikrs:[],removedOfficialDhikrs:[],theme:'emerald',designVersion:DESIGN_VERSION};
+  const defaultTasbih={count:0,dhikr:select.value,customDhikrs:[],removedOfficialDhikrs:[],theme:'emerald',elapsedMs:0,designVersion:DESIGN_VERSION};
+  let legacyInitial=defaultTasbih;
   let initial=defaultTasbih;
   try{
    const stored=preferences&&typeof preferences.get==='function'?preferences.get():null;
-   if(stored&&stored.tasbih&&typeof stored.tasbih==='object')initial=stored.tasbih;
-  }catch(error){console.warn('تعذر قراءة إعدادات السبحة؛ سيبدأ العداد بإعداداته الافتراضية.',error)}
-  if(initial.designVersion!==DESIGN_VERSION&&initial.dhikr==='أستغفر الله العظيم وأتوب إليه')initial={...initial,dhikr:select.value};
+   if(stored&&stored.tasbih&&typeof stored.tasbih==='object')legacyInitial={...defaultTasbih,...stored.tasbih};
+  }catch(error){console.warn('تعذر قراءة الإعدادات القديمة للسبحة؛ لن تُحذف أي بيانات.',error)}
+  let vaultUnlocked=false,shieldMode='setup',shieldBusy=false;
   const MAX_COUNT=1000000000;
   const cleanDhikrList=(items,limit,maxLength=200)=>Array.isArray(items)
    ?[...new Set(items.filter(item=>typeof item==='string').map(item=>item.trim().slice(0,maxLength)).filter(Boolean))].slice(0,limit)
    :[];
-  let count=Number.isSafeInteger(initial.count)?Math.max(0,Math.min(MAX_COUNT,initial.count)):0;
+  let count=0;
   const MAX_ELAPSED_MS=10*365*24*60*60*1000;
-  let elapsedMs=Number.isFinite(initial.elapsedMs)?Math.max(0,Math.min(MAX_ELAPSED_MS,initial.elapsedMs)):0;
-  let sessionStartedAt=null,lastPersistedElapsed=elapsedMs;
+  let elapsedMs=0,sessionStartedAt=null,lastPersistedElapsed=0;
   const allowedThemes=new Set(themeIds);
-  let theme=initial.designVersion===DESIGN_VERSION&&allowedThemes.has(initial.theme)?initial.theme:'emerald';
-  let customDhikrs=cleanDhikrList(initial.customDhikrs,30,200);
-  let removedOfficialDhikrs=cleanDhikrList(initial.removedOfficialDhikrs,60,4000);
-  let recognition=null,voiceActive=false,voiceRequested=false,writingPreferences=false,voiceTargetPhrase='';
+  let theme='emerald';
+  let customDhikrs=[],removedOfficialDhikrs=[];
+  let recognition=null,voiceActive=false,voiceRequested=false,voiceTargetPhrase='';
 
   let voiceMatchCount=0,voiceResultSegments=[],lastRecognitionEvent=null,voiceFallbackPending=false;
   let voiceRestartTimer=null,voiceRestartCount=0;
@@ -207,16 +210,110 @@
    updateClockUi();persist();
   }
   function resetSessionClock(){elapsedMs=0;sessionStartedAt=null;lastPersistedElapsed=0;updateClockUi()}
+  function stateSnapshot(){
+   return {count:count,dhikr:select.value,customDhikrs:[...customDhikrs],removedOfficialDhikrs:[...removedOfficialDhikrs],theme:theme,elapsedMs:currentElapsedMs(),designVersion:DESIGN_VERSION};
+  }
   function persist(){
-   if(!preferences||typeof preferences.set!=='function')return;
-   writingPreferences=true;
+   if(!vaultUnlocked||!tasbihVault||!tasbihVault.isUnlocked())return Promise.resolve(false);
+   const snapshot=stateSnapshot();
+   return tasbihVault.save(snapshot).catch(error=>{
+    console.warn('تعذر حفظ السبحة في خزنتها المستقلة',error);
+    customStatus.textContent='تعذر التحقق من الحفظ المشفر. أبقِ السبحة مفتوحة ولا تحذف بيانات الموقع، ثم أعد المحاولة.';
+    return false;
+   });
+  }
+  function applyVaultState(value){
+   const saved=value&&typeof value==='object'?value:{};
+   count=Number.isSafeInteger(saved.count)?Math.max(0,Math.min(MAX_COUNT,saved.count)):0;
+   elapsedMs=Number.isFinite(saved.elapsedMs)?Math.max(0,Math.min(MAX_ELAPSED_MS,saved.elapsedMs)):0;
+   sessionStartedAt=null;lastPersistedElapsed=elapsedMs;
+   const validVersion=saved.designVersion===DESIGN_VERSION;
+   theme=validVersion&&allowedThemes.has(saved.theme)?saved.theme:'emerald';
+   customDhikrs=cleanDhikrList(saved.customDhikrs,30,200);
+   removedOfficialDhikrs=cleanDhikrList(saved.removedOfficialDhikrs,60,4000);
+   renderCustomOptions();
+   const option=Array.from(select.options).find(item=>item.value===saved.dhikr&&(isCustomOption(item)||!isRemovedOfficial(item)));
+   if(option)select.value=option.value;
+   else if(!visibleOptions().some(item=>item.value===select.value))select.value=firstVisible()?firstVisible().value:'';
+   update();
+   updateClockUi();
+  }
+  function resetLockedMemory(){
+   count=0;elapsedMs=0;sessionStartedAt=null;lastPersistedElapsed=0;
+   customDhikrs=[];removedOfficialDhikrs=[];theme='emerald';
+   const first=Array.from(select.options).find(option=>!option.dataset.anwarOfficialDhikr&&!isCustomOption(option));
+   if(first)select.value=first.value;
+   renderCustomOptions();
+   update();
+   updateClockUi();
+   customStatus.textContent='';
+  }
+  async function clearLegacyTasbihCopies(){
+   if(preferences&&typeof preferences.set==='function'){
+    preferences.set('tasbih',defaultTasbih);
+    if(typeof preferences.flush!=='function')throw new Error('تعذّر التحقق من إزالة الإعدادات القديمة من مخزن المفكرة.');
+    const flushed=await preferences.flush();
+    if(!flushed)throw new Error('لم يؤكد مخزن المفكرة إزالة الإعدادات القديمة.');
+    const remaining=preferences.get().tasbih||{};
+    if((Number(remaining.count)||0)!==0||Array.isArray(remaining.customDhikrs)&&remaining.customDhikrs.length){
+     throw new Error('بقيت إعدادات قديمة في مخزن المفكرة. لم نكمل فتح درع السبحة.');
+    }
+   }
+   for(const name of ['anwar_tasbih_count_v1','anwar_tasbih_dhikr_v1']){
+    try{localStorage.removeItem(name);if(localStorage.getItem(name)!==null)throw new Error('legacy value remains')}
+    catch(error){throw new Error('تعذّر إزالة نسخة قديمة من إعدادات السبحة. احتفظنا بها ولم نعلن اكتمال العزل.')}
+   }
+   legacyInitial=defaultTasbih;
+  }
+  function setShieldVisual(state){
+   shieldButton.dataset.state=state;
+   shieldButton.setAttribute('aria-label',state==='unlocked'?'درع السبحة مفعّل؛ اضغط لقفلها':'حماية السبحة؛ اضغط لفتح الدرع');
+   shieldButton.title=state==='unlocked'?'الخزنة المستقلة مفتوحة. اضغط لقفل السبحة.':'افتح خزنة السبحة المشفّرة';
+  }
+  async function showShieldDialog(){
+   shieldForm.hidden=false;shieldLock.hidden=true;
+   shieldPassword.value='';shieldConfirm.value='';
+   shieldPassword.autocomplete='current-password';
+   shieldConfirmWrap.hidden=true;shieldConfirm.required=false;
+   shieldSubmit.textContent='فتح الدرع';
+   shieldStatus.textContent='جارٍ فحص خزنة السبحة المستقلة…';
    try{
-    preferences.set('tasbih',{count:count,dhikr:select.value,customDhikrs:customDhikrs,removedOfficialDhikrs:removedOfficialDhikrs,theme:theme,elapsedMs:currentElapsedMs(),designVersion:DESIGN_VERSION});
+    if(!tasbihVault)throw new Error('محرك حماية السبحة غير محمّل. حدّث الصفحة قبل المتابعة.');
+    if(vaultUnlocked&&tasbihVault.isUnlocked()){
+     shieldMode='unlocked';shieldForm.hidden=true;shieldLock.hidden=false;
+     shieldStatus.textContent='السبحة مفتوحة الآن. بياناتها تُحفظ مشفّرة في مخزن مستقل عن مفكرة أنوار.';
+    }else{
+     const current=await tasbihVault.status();
+     if(current.exists){
+      shieldMode='unlock';shieldConfirmWrap.hidden=true;shieldConfirm.required=false;
+      shieldSubmit.textContent='فتح الخزنة';
+      shieldStatus.textContent=current.primaryAvailable
+       ?'الخزنة موجودة. أدخل عبارة المرور لفك تشفير بيانات السبحة على هذا الجهاز.'
+       :'النسخة الأساسية غير متاحة؛ سنحاول فتح النسخة الاحتياطية المشفّرة.';
+    }else{
+      shieldMode='setup';shieldConfirmWrap.hidden=false;shieldConfirm.required=true;
+      shieldPassword.autocomplete='new-password';shieldSubmit.textContent='إنشاء الدرع';
+      shieldStatus.textContent='هذه أول حماية مستقلة للسبحة. أنشئ عبارة مرور قوية؛ سيُحفظ العداد والأذكار والمدة مشفّرة قبل إزالة النسخة القديمة.';
+     }
+    }
+   }catch(error){shieldMode='unavailable';shieldForm.hidden=true;shieldLock.hidden=true;shieldStatus.textContent=error.message||'تعذّر فحص التخزين الآمن. لم نفتح السبحة.'}
+   if(!shieldDialog.open)shieldDialog.showModal();
+  }
+  async function lockTasbihVault(){
+   if(!vaultUnlocked)return true;
+   if(voiceActive)stopVoice('أُوقف العد الصوتي عند قفل السبحة.');
+   stopClockAnimation();
+   pauseSessionClock();
+   panel.hidden=true;
+   try{
+    await tasbihVault.lock();
+    vaultUnlocked=false;
+    resetLockedMemory();
+    setShieldVisual('locked');
+    return true;
    }catch(error){
-    console.warn('تعذر حفظ إعدادات السبحة المشفرة',error);
-    customStatus.textContent='تعذر حفظ التغيير في الخزنة المشفرة. تحقق من فتح المفكرة ثم أعد المحاولة.';
-   }finally{
-    writingPreferences=false;
+    customStatus.textContent='تعذّر التحقق من آخر حفظ؛ بقيت الخزنة مفتوحة ولم نمسح بياناتها. '+(error.message||'');
+    return false;
    }
   }
   function renderCustomOptions(){
@@ -470,6 +567,10 @@
    customStatus.textContent='تمت الإضافة.';
   }
   function openPanel(){
+   if(!vaultUnlocked||!tasbihVault||!tasbihVault.isUnlocked()){
+    showShieldDialog();
+    return false;
+   }
    if(!panel.hidden)return true;
    panel.hidden=false;
    startClockAnimation();
@@ -487,6 +588,7 @@
    stopClockAnimation();
    pauseSessionClock();
    panel.hidden=true;
+   if(vaultUnlocked)lockTasbihVault();
    if(restoreFocus!==false){
     const backButton=$('anwarTasbihBack');
     if(backButton)backButton.focus();
@@ -518,6 +620,63 @@
   if(initial.designVersion!==DESIGN_VERSION)persist();
 
   // The service dashboard opens this standalone panel directly; its counter and preferences remain independent.
+
+  shieldButton.addEventListener('click',()=>showShieldDialog());
+  shieldClose.addEventListener('click',()=>shieldDialog.close());
+  shieldDialog.addEventListener('click',event=>{if(event.target===shieldDialog)shieldDialog.close()});
+  shieldForm.addEventListener('submit',async event=>{
+   event.preventDefault();
+   if(shieldBusy)return;
+   shieldBusy=true;shieldSubmit.disabled=true;shieldPassword.disabled=true;shieldConfirm.disabled=true;
+   try{
+    if(!tasbihVault)throw new Error('محرك خزنة السبحة غير متاح.');
+    const password=shieldPassword.value;
+    let loaded;
+    if(shieldMode==='setup'){
+     if(password!==shieldConfirm.value)throw new Error('عبارتا المرور غير متطابقتين.');
+     const legacy=legacyInitial&&typeof legacyInitial==='object'?legacyInitial:defaultTasbih;
+     const migration={
+      count:Number.isSafeInteger(legacy.count)?Math.max(0,Math.min(MAX_COUNT,legacy.count)):0,
+      dhikr:typeof legacy.dhikr==='string'&&legacy.dhikr?legacy.dhikr:select.value,
+      customDhikrs:cleanDhikrList(legacy.customDhikrs,30,200),
+      removedOfficialDhikrs:cleanDhikrList(legacy.removedOfficialDhikrs,60,4000),
+      theme:allowedThemes.has(legacy.theme)?legacy.theme:'emerald',
+      elapsedMs:Number.isFinite(legacy.elapsedMs)?Math.max(0,Math.min(MAX_ELAPSED_MS,legacy.elapsedMs)):0,
+      designVersion:DESIGN_VERSION
+     };
+     shieldStatus.textContent='يجري تشفير بيانات السبحة وإنشاء نسخة احتياطية مستقلة…';
+     loaded=await tasbihVault.create(password,migration);
+    }else if(shieldMode==='unlock'){
+     shieldStatus.textContent='يجري التحقق من عبارة المرور…';
+     const opened=await tasbihVault.unlock(password);
+     loaded=opened.data;
+     if(opened.recoveredFromBackup)customStatus.textContent='فُتحت نسخة السبحة الاحتياطية المشفّرة؛ احفظ أي تعديل لإعادة بناء السجل الأساسي.';
+    }else{
+     throw new Error('حالة الدرع غير صالحة. أغلق النافذة وأعد فتحها.');
+    }
+    vaultUnlocked=true;
+    applyVaultState(loaded);
+    setShieldVisual('unlocked');
+    await clearLegacyTasbihCopies();
+    shieldPassword.value='';shieldConfirm.value='';
+    shieldDialog.close();
+    openPanel();
+   }catch(error){
+    shieldStatus.textContent=error&&error.message?error.message:'تعذّر فتح خزنة السبحة. لم نعرض البيانات.';
+    if(tasbihVault&&tasbihVault.isUnlocked()&&!vaultUnlocked){
+     await tasbihVault.lock();
+    }
+   }finally{
+    shieldBusy=false;shieldSubmit.disabled=false;shieldPassword.disabled=false;shieldConfirm.disabled=false;
+   }
+  });
+  shieldLock.addEventListener('click',async()=>{
+   shieldLock.disabled=true;
+   const locked=await lockTasbihVault();
+   shieldLock.disabled=false;
+   if(locked){shieldDialog.close();shieldStatus.textContent='قُفلت السبحة. لم تعد بياناتها ظاهرة في الواجهة.'}
+  });
+  setShieldVisual('locked');
 
   themeToggle.addEventListener('click',()=>{
    themePicker.hidden=!themePicker.hidden;
@@ -596,6 +755,35 @@
    if(event.key==='Escape'&&!panel.hidden){event.preventDefault();event.stopImmediatePropagation();closePanel(false)}
   },true);
 
+  async function startLocalRecognition(){
+   if(!voiceRequested||!recognition)return;
+   if(typeof SpeechRecognition.available!=='function'||typeof SpeechRecognition.install!=='function'||!('processLocally' in recognition)){
+    voiceRequested=false;voiceActive=false;
+    setVoiceState('error','هذا المتصفح لا يثبت أن التعرف الصوتي محلي. أوقفنا الميزة حفاظاً على خصوصية صوتك.');
+    return;
+   }
+   recognition.processLocally=true;
+   try{
+    let availability=await SpeechRecognition.available({langs:[speechLanguage],processLocally:true,quality:'dictation'});
+    if(availability==='downloadable'){
+     setVoiceState('starting','حزمة التعرف المحلي غير مثبتة. يجري طلب تثبيتها على الجهاز دون إرسال الصوت.');
+     const installed=await SpeechRecognition.install({langs:[speechLanguage],processLocally:true,quality:'dictation'});
+     if(installed)availability='available';
+    }
+    if(!voiceRequested)return;
+    if(availability!=='available'){
+     voiceRequested=false;voiceActive=false;
+     setVoiceState('error','التعرف الصوتي المحلي غير متاح لهذه اللغة على هذا الجهاز. لم نستخدم خدمة خارجية.');
+     return;
+    }
+    recognition.processLocally=true;
+    recognition.start();
+   }catch(error){
+    voiceRequested=false;voiceActive=false;
+    setVoiceState('error','تعذّر تشغيل التعرف الصوتي المحلي. لم نرسل صوتك إلى خدمة خارجية.');
+    console.warn('تعذر بدء التعرف الصوتي المحلي',error);
+   }
+  }
   function scheduleVoiceRestart(message,delay){
    if(!voiceRequested||voiceRestartTimer!==null)return;
    if(voiceRestartCount>=4){
@@ -609,27 +797,24 @@
    voiceRestartTimer=window.setTimeout(()=>{
     voiceRestartTimer=null;
     if(!voiceRequested)return;
-    try{
-     voiceActive=true;
-     recognition.start();
-    }catch(error){
-     voiceActive=false;voiceRequested=false;voiceTargetPhrase='';
-     setVoiceState('error','تعذر استئناف التعرف الصوتي. أوقف التسجيل واسمح بالميكروفون ثم أعد المحاولة.');
-    }
+    startLocalRecognition();
    },delay);
   }
 
   const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(typeof SpeechRecognition!=='function'){
    voiceButton.disabled=true;
-   voiceButtonLabel.textContent='غير مدعوم';
-   setVoiceState('error','التعرف الصوتي غير متاح في هذا المتصفح. استخدم Chrome واسمح بالميكروفون.');
+   voiceButtonLabel.textContent='غير متاح محلياً';
+   setVoiceState('error','التعرف الصوتي غير متاح محلياً في هذا المتصفح. لن نرسل صوتك إلى خدمة خارجية.');
   }else{
    try{
     recognition=new SpeechRecognition();
-    if(!recognition||typeof recognition.start!=='function'||typeof recognition.stop!=='function'){
-     throw new Error('واجهة التعرف الصوتي غير مكتملة.');
+    if(!recognition||typeof recognition.start!=='function'||typeof recognition.stop!=='function'||
+       typeof SpeechRecognition.available!=='function'||typeof SpeechRecognition.install!=='function'||
+       !('processLocally' in recognition)){
+     throw new Error('لا يدعم المتصفح إثبات المعالجة الصوتية المحلية.');
     }
+    recognition.processLocally=true;
     recognition.lang=speechLanguage;
     recognition.continuous=true;
     recognition.interimResults=true;
@@ -713,7 +898,7 @@
       'service-not-allowed':'خدمة التعرف الصوتي محجوبة من المتصفح أو الجهاز.',
       'audio-capture':'لم يتم العثور على ميكروفون صالح.',
       'no-speech':'لم نلتقط الذكر. تحقق من إذن الميكروفون ثم حاول مجدداً.',
-      'network':'تعذر الاتصال بخدمة التعرف الصوتي. تحقق من اتصال الإنترنت.',
+      'network':'تعذر استمرار التعرف الصوتي المحلي. لم نرسل الصوت إلى خدمة خارجية.',
       'aborted':'أُوقف العد الصوتي.',
       'language-not-supported':'العربية غير مدعومة من خدمة التعرف الصوتي على هذا الجهاز.',
       'bad-grammar':'تعذر تحليل الذكر المنطوق؛ حاول مرة أخرى.'
@@ -750,8 +935,8 @@
 
       setVoiceState('starting','');
       voiceRequested=true;
-      voiceActive=true;
-      recognition.start();
+      voiceActive=false;
+      startLocalRecognition();
      }catch(error){
       voiceRequested=false;
       voiceActive=false;
@@ -772,44 +957,30 @@
    if(document.visibilityState==='hidden'){
     stopClockAnimation();
     pauseSessionClock();
+    if(vaultUnlocked)lockTasbihVault();
    }else if(!panel.hidden)startClockAnimation();
   });
   window.addEventListener('pagehide',()=>{
    stopClockAnimation();
    pauseSessionClock();
+   if(vaultUnlocked)lockTasbihVault();
   });
   window.addEventListener('pageshow',()=>{if(!panel.hidden)startClockAnimation()});
 
-  if(preferences&&typeof preferences.subscribe==='function'){
-   preferences.subscribe(saved=>{
-    if(writingPreferences)return;
-    const value=saved&&saved.tasbih?saved.tasbih:{};
-    count=Number.isSafeInteger(value.count)?Math.max(0,value.count):0;
-    elapsedMs=Number.isFinite(value.elapsedMs)?Math.max(0,Math.min(MAX_ELAPSED_MS,value.elapsedMs)):0;
-    sessionStartedAt=null;lastPersistedElapsed=elapsedMs;
-    customDhikrs=cleanDhikrList(value.customDhikrs,30,200);
-    removedOfficialDhikrs=cleanDhikrList(value.removedOfficialDhikrs,60,4000);
-    theme=allowedThemes.has(value.theme)?value.theme:'emerald';
-    renderCustomOptions();
-    const option=Array.from(select.options).find(item=>item.value===value.dhikr&&(isCustomOption(item)||!isRemovedOfficial(item)));
-    if(option)select.value=option.value;
-    else if(!visibleOptions().some(item=>item.value===select.value))select.value=firstVisible()?firstVisible().value:'';
-    update();
-   });
-  }
   window.AnwarTasbihController=Object.freeze({
    toggle(){
     if(!window.__ANWAR_TASBIH_CONTROLLER_READY__)return false;
-    if(panel.hidden)openPanel();
-    else closePanel();
+    if(panel.hidden){openPanel();return true}
+    closePanel();
     return true;
    },
    open(){
     if(!window.__ANWAR_TASBIH_CONTROLLER_READY__)return false;
-    if(panel.hidden)openPanel();
-    return !panel.hidden;
+    if(panel.hidden){openPanel();return true}
+    return true;
    },
-   close(){closePanel(false);return panel.hidden}
+   close(){closePanel(false);return panel.hidden},
+   lock(){return lockTasbihVault()}
   });
   window.__ANWAR_TASBIH_CONTROLLER_READY__=true;
  }
