@@ -12,8 +12,16 @@
  const encoder=new TextEncoder();
  const decoder=new TextDecoder('utf-8',{fatal:true});
  const MAX_CIPHERTEXT=16384;
+ const TRUSTED_ORIGIN='https://mofakira-anouar.pages.dev';
+ const TRUSTED_HOST='mofakira-anouar.pages.dev';
  const SHARED_GITHUB_HOST_SUFFIX='.github.io';
 
+ function isTrustedOrigin(){
+  const location=root.location;
+  return !!(root.isSecureContext&&location&&location.protocol==='https:'&&
+   String(location.hostname||'').toLowerCase()===TRUSTED_HOST&&
+   location.origin===TRUSTED_ORIGIN);
+ }
  function isSharedGitHubPagesOrigin(){
   const host=String(root.location&&root.location.hostname||'').toLowerCase();
   return host==='github.io'||host.endsWith(SHARED_GITHUB_HOST_SUFFIX);
@@ -23,7 +31,11 @@
   try{root.localStorage.removeItem(STORAGE_KEY)}catch(_error){}
  }
  function sharedOriginError(){
-  return 'عُطّل الفتح بالبصمة على GitHub Pages لأن جميع مسارات هذا المضيف تشترك في أصل التخزين نفسه. افتح الخزنة بعبارة المرور الأساسية؛ لا تُحذف أعمالك أو نسختك المشفرة.';
+  return 'عُطّل الفتح بقفل الهاتف على GitHub Pages لأن مسارات هذا المضيف تشترك في أصل التخزين نفسه. افتح الخزنة بعبارة المرور الأساسية؛ أعمالك ونسختك المشفرة لم تُحذف.';
+ }
+ function originBlockedError(){
+  if(isSharedGitHubPagesOrigin())return sharedOriginError();
+  return 'حمايةً للخزنة، لا يُتاح الفتح بالبصمة أو قفل الجهاز إلا على النطاق المستقل المعتمد لمفكرة أنوار: https://mofakira-anouar.pages.dev/';
  }
 
  // GitHub Pages project paths share one origin. Remove the old wrapped-password
@@ -50,12 +62,12 @@
   return out;
  }
  function supported(){
-  return !isSharedGitHubPagesOrigin()&&!!(root.isSecureContext&&root.location&&root.location.hostname&&root.crypto&&root.crypto.subtle&&
+  return isTrustedOrigin()&&!!(root.crypto&&root.crypto.subtle&&
    root.navigator&&root.navigator.credentials&&typeof root.navigator.credentials.create==='function'&&
    typeof root.navigator.credentials.get==='function'&&root.PublicKeyCredential);
  }
  function readRecord(){
-  if(isSharedGitHubPagesOrigin()){clearSharedOriginDeviceWrapper();return null}
+  if(!isTrustedOrigin()){if(isSharedGitHubPagesOrigin())clearSharedOriginDeviceWrapper();return null}
   let raw;
   try{raw=root.localStorage.getItem(STORAGE_KEY)}catch(error){return null}
   if(!raw)return null;
@@ -108,7 +120,7 @@
   return output;
  }
  async function protectPassword(password){
-  if(isSharedGitHubPagesOrigin())throw new Error(sharedOriginError());
+  if(!isTrustedOrigin())throw new Error(originBlockedError());
   if(!supported())throw new Error('الفتح بقفل الهاتف يحتاج HTTPS ومتصفحًا يدعم اعتماد الجهاز.');
   if(typeof password!=='string'||Array.from(password).length<12||password.length>2048)throw new Error('كلمة المرور الأساسية غير صالحة.');
   const rpId=root.location.hostname;
@@ -162,7 +174,7 @@
   return true;
  }
  async function unlockPassword(){
-  if(isSharedGitHubPagesOrigin())throw new Error(sharedOriginError());
+  if(!isTrustedOrigin())throw new Error(originBlockedError());
   const record=readRecord();
   if(!record)throw new Error('لم يُعثر على إعداد صالح لفتح الهاتف على هذا النطاق. استخدم كلمة المرور الأساسية.');
   if(!supported())throw new Error('الفتح بقفل الهاتف غير متاح هنا. استخدم كلمة المرور الأساسية.');
@@ -181,7 +193,7 @@
   }
  }
  function isConfigured(){
-  if(isSharedGitHubPagesOrigin()){clearSharedOriginDeviceWrapper();return false}
+  if(!isTrustedOrigin()){if(isSharedGitHubPagesOrigin())clearSharedOriginDeviceWrapper();return false}
   return !!readRecord();
  }
  function disable(){
@@ -191,6 +203,7 @@
  root.AnwarDeviceUnlock=Object.freeze({
   storageKey:STORAGE_KEY,
   isSharedGitHubPagesOrigin,
+  isTrustedOrigin,
   supported,
   isConfigured,
   protectPassword,
