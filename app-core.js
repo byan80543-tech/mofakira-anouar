@@ -797,7 +797,8 @@ async function downloadRescueBackup(){
  }
 }
 function openRescueRestorePicker(){
- if(!vaultUnlocked||!vaultKey){toast('افتح الخزنة أولًا قبل استعادة نسخة الإنقاذ.',4500);return}
+ const freshDevice=vaultUnlocked&&!vaultKey&&!vaultHasEncryptedData;
+ if(!vaultUnlocked||(!vaultKey&&!freshDevice)){toast('افتح الخزنة الحالية أولًا، أو استعد النسخة مباشرة على جهاز جديد.',4500);return}
  const picker=$('rescueFilePicker');
  if(!picker){toast('أداة اختيار ملف الإنقاذ غير متاحة في هذه الصفحة.',4500);return}
  rescuePendingEnvelope=null;
@@ -827,7 +828,8 @@ async function handleRescueFileSelected(event){
  }
 }
 async function restoreRescueBackup(){
- if(!vaultUnlocked||!vaultKey){toast('افتح الخزنة أولًا.',4000);return}
+ const freshDevice=vaultUnlocked&&!vaultKey&&!vaultHasEncryptedData;
+ if(!vaultUnlocked||(!vaultKey&&!freshDevice)){toast('افتح الخزنة الحالية أولًا قبل الاستعادة.',4000);return}
  if(!rescuePendingEnvelope){toast('اختر ملف إنقاذ صالحًا أولًا.',4000);return}
  const password=$('backupPassword').value;
  if(!password){toast('أدخل عبارة مرور الخزنة التي أُنشئت بها النسخة.',5000);return}
@@ -836,17 +838,39 @@ async function restoreRescueBackup(){
  try{
   const decrypted=await AnwarVaultCrypto.decryptEnvelope(password,rescuePendingEnvelope);
   const next=readStoredState(decrypted.plaintext);
-  if(!confirm('ستُستبدل أعمال المفكرة وإعداداتها الموجودة في الخزنة بمحتوى النسخة بعد التحقق منها. لن تتأثر ملفات الإذاعة أو الخدمات الخارجية. هل تتابع؟'))return;
+  if(!confirm('ستُستبدل أعمال المفكرة وإعداداتها الموجودة بهذا الجهاز بمحتوى النسخة بعد التحقق منها. هل تتابع؟'))return;
   await vaultSaveQueue;
   const plaintext=JSON.stringify(next);
-  await persistVaultSnapshot(plaintext);
-  S=next;
-  vaultLastWriteError=null;
-  openNote(null);theme();chips();renderList();
+  let legacyCleared=true;
+  if(freshDevice){
+   if(!vaultUnlocked||vaultKey||vaultHasEncryptedData)throw new Error('تغيرت حالة الخزنة أثناء الاستعادة. أعد المحاولة بعد فتحها.');
+   vaultKey=decrypted.key;
+   vaultTemplate=decrypted.envelope;
+   try{
+    await persistVaultSnapshot(plaintext);
+    localStorage.setItem(VAULT_MODE_KEY,'encrypted');
+    if(localStorage.getItem(VAULT_MODE_KEY)!=='encrypted')throw new Error('تعذّر تثبيت وضع الخزنة المشفرة على هذا الجهاز.');
+   }catch(storageError){
+    vaultKey=null;vaultTemplate=null;vaultHasEncryptedData=false;
+    throw storageError;
+   }
+   legacyCleared=clearLegacyPlaintext();
+   S=next;
+   vaultLastWriteError=null;
+   finishVaultOpen();
+  }else{
+   if(!vaultUnlocked||!vaultKey||!vaultTemplate)throw new Error('أُغلقت الخزنة أثناء الاستعادة. افتحها وأعد المحاولة.');
+   await persistVaultSnapshot(plaintext);
+   S=next;
+   vaultLastWriteError=null;
+   openNote(null);theme();chips();renderList();
+  }
   $('backupPassword').value='';
   rescuePendingEnvelope=null;
   $('dg').close();
-  toast('تمت استعادة نسخة الإنقاذ والتحقق من حفظها داخل الخزنة المشفرة.',6000);
+  toast(legacyCleared
+   ?'تمت استعادة نسخة الإنقاذ والتحقق من حفظها داخل الخزنة المشفرة.'
+   :'تمت الاستعادة والتشفير، لكن تعذّر حذف بعض البيانات النصية القديمة. لا تمسح بيانات الموقع قبل مراجعتها.',6500);
  }catch(error){
   console.warn('تعذّرت استعادة نسخة الإنقاذ',error);
   toast(error&&error.message?error.message:'كلمة المرور غير صحيحة أو الملف تالف. بقيت الأعمال الحالية دون تغيير.',6500);
