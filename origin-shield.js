@@ -13,13 +13,14 @@
     publicLocation: 'الحسيمة، المغرب',
     documentedConceptOriginDate: '2026-11-17',
     designDistinction: 'بنية مفكرة متكاملة تجمع الكتابة الأدبية والمكتبة وإذاعة القرآن الكريم والدروس الصوتية والسبحة والأذكار وإنشاء الكتب، مع أدوات الأرشفة والنسخ الاحتياطي وإنشاء رموز QR.',
-    officialUrl: 'https://byan80543-tech.github.io/mofakira-anouar/',
+    officialUrl: 'https://mofakira-anouar.pages.dev/mofakira-anouar/',
     sourceRepository: 'https://github.com/byan80543-tech/mofakira-anouar'
   });
 
   const host = String(window.location.hostname || '').toLowerCase();
   const path = String(window.location.pathname || '/').replace(/\/+$/, '') || '/';
-  const isOfficial = host === 'byan80543-tech.github.io' && path === '/mofakira-anouar';
+  const isOfficial = (host === 'mofakira-anouar.pages.dev' && path === '/mofakira-anouar') ||
+    (host === 'byan80543-tech.github.io' && path === '/mofakira-anouar');
   const isLocalDevelopment =
     window.location.protocol === 'file:' ||
     host === 'localhost' ||
