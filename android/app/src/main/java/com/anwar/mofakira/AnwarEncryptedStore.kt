@@ -135,9 +135,24 @@ object AnwarEncryptedStore {
         if (encrypted != null) {
             if (legacy.all.isNotEmpty()) {
                 val legacyJson = preferencesToJson(legacy.all)
-                if (legacyJson.toString() == encrypted &&
+                val encryptedJson = JSONObject(encrypted)
+                val sameValues = encryptedJson.length() == legacyJson.length() &&
+                    encryptedJson.keys().asSequence().all { key ->
+                        val storedValue = encryptedJson.opt(key)
+                        val legacyValue = legacyJson.opt(key)
+                        when {
+                            storedValue is Number && legacyValue is Number ->
+                                storedValue.toDouble() == legacyValue.toDouble()
+                            storedValue is JSONArray && legacyValue is JSONArray ->
+                                storedValue.toString() == legacyValue.toString()
+                            else -> storedValue == legacyValue
+                        }
+                    }
+                if (sameValues &&
                     (!legacy.edit().clear().commit() || legacy.all.isNotEmpty())) {
                     throw IllegalStateException("بقيت نسخة نصية قديمة من الإعدادات. أعد فتح القسم لإكمال التنظيف.")
+                } else if (!sameValues) {
+                    Log.w("AnwarEncryptedStore", "Kept a different legacy settings snapshot instead of deleting potentially newer data.")
                 }
             }
             return encrypted
