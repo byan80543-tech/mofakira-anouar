@@ -61,4 +61,4 @@ h.sandbox.vaultUnlocked=false;
 h.api.recordVaultActivity();
 assert.equal(h.timerCount,0,'locked vault does not arm an inactivity timer');
 
-console.log('All manual-lock-only free-mode inactivity tests passed.');
+console.log('Inactivity timers stay disabled; background shield locking is tested separately.');
