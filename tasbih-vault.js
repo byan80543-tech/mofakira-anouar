@@ -16,6 +16,7 @@
   let key = null;
   let template = null;
   let saveQueue = Promise.resolve();
+  let lastSaveError = null;
 
   function cryptoApi() {
     const api = root.AnwarVaultCrypto;
@@ -147,6 +148,7 @@
     }
     key = created.key;
     template = created.envelope;
+    lastSaveError = null;
     return parse(plaintext);
   }
 
@@ -168,6 +170,7 @@
         const data = parse(opened.plaintext);
         key = opened.key;
         template = opened.envelope;
+        lastSaveError = null;
         return { data, recoveredFromBackup: candidate.name === 'backup' };
       } catch (error) {
         lastError = error;
@@ -195,16 +198,24 @@
         throw new Error('لم تجتز بيانات السبحة اختبار التحقق بعد الحفظ.');
       }
       template = primary;
+      lastSaveError = null;
       return true;
     });
-    saveQueue = operation.catch(() => false);
+    saveQueue = operation.then(
+      () => true,
+      error => { lastSaveError = error; return false; }
+    );
     return operation;
   }
 
   async function lock() {
     await saveQueue;
+    if (lastSaveError) {
+      throw new Error('آخر حفظ لم يجتز التحقق. أبقينا الخزنة مفتوحة حتى لا نفقد التعديل.');
+    }
     key = null;
     template = null;
+    lastSaveError = null;
     return true;
   }
 
