@@ -21,10 +21,11 @@ assert.ok(firstMigrationPath.indexOf('write(context, namespace, plaintext)') <
   firstMigrationPath.indexOf('legacy.edit().remove(legacyKey).commit()'),
   'legacy adhkar text is removed only after encrypted replacement verification');
 const multiMigration = secure.slice(secure.indexOf('fun readPreferencesJson'), secure.indexOf('private fun preferencesToJson'));
-assert.ok(multiMigration.indexOf('write(context, namespace, plaintext)') <
-  multiMigration.indexOf('if (read(context, namespace) != plaintext)') &&
-  multiMigration.indexOf('if (read(context, namespace) != plaintext)') <
-  multiMigration.indexOf('legacy.edit().clear().commit()'),
+const firstPreferencesMigrationPath = multiMigration.slice(multiMigration.indexOf('if (legacy.all.isEmpty()) return null'));
+assert.ok(firstPreferencesMigrationPath.indexOf('write(context, namespace, plaintext)') <
+  firstPreferencesMigrationPath.indexOf('if (read(context, namespace) != plaintext)') &&
+  firstPreferencesMigrationPath.indexOf('if (read(context, namespace) != plaintext)') <
+  firstPreferencesMigrationPath.indexOf('legacy.edit().clear().commit()'),
   'legacy prayer preferences are cleared only after encryption verification');
 
 assert.match(adhkar, /AnwarEncryptedStore\.readOrMigrate/, 'personal adhkar migrate into encrypted storage');
