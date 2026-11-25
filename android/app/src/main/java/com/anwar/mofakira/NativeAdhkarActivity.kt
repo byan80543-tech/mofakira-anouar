@@ -47,6 +47,8 @@ class NativeAdhkarActivity : Activity() {
         getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
     }
     private val entries = mutableListOf<Entry>()
+    private var storageAvailable = true
+    private var storageFailureMessage = ""
 
     private lateinit var listContainer: LinearLayout
     private lateinit var countLabel: TextView
@@ -189,6 +191,15 @@ class NativeAdhkarActivity : Activity() {
             return
         }
 
+        if (!storageAvailable) {
+            val warning = card(Color.rgb(255, 244, 234), Color.rgb(224, 184, 157))
+            warning.addView(text(storageFailureMessage, 12f, Color.rgb(133, 63, 43), true))
+            listContainer.addView(warning)
+            manageButton.isEnabled = false
+            manageButton.alpha = 0.45f
+            return
+        }
+
         entries.forEachIndexed { index, entry ->
             val item = card(Color.WHITE)
             item.addView(text("ذكر " + (index + 1), 10f, muted, bottom = 6))
@@ -201,6 +212,10 @@ class NativeAdhkarActivity : Activity() {
     }
 
     private fun showEditor(existing: Entry?) {
+        if (!storageAvailable) {
+            Toast.makeText(this, storageFailureMessage, Toast.LENGTH_LONG).show()
+            return
+        }
         val editor = EditText(this).apply {
             setText(existing?.text.orEmpty())
             textSize = 17f
@@ -256,6 +271,7 @@ class NativeAdhkarActivity : Activity() {
                     return@setOnClickListener
                 }
 
+                val previousEntries = entries.toList()
                 if (existing == null) {
                     if (entries.size >= MAX_ENTRIES) {
                         Toast.makeText(
@@ -275,11 +291,17 @@ class NativeAdhkarActivity : Activity() {
                     }
                     entries[index] = existing.copy(text = value, updatedAt = System.currentTimeMillis())
                 }
-                saveEntries()
+                if (!saveEntries()) {
+                    entries.clear()
+                    entries.addAll(previousEntries)
+                    Toast.makeText(this, storageFailureMessage, Toast.LENGTH_LONG).show()
+                    renderEntries()
+                    return@setOnClickListener
+                }
                 renderEntries()
                 managerContent?.let { populateManager(it) }
                 dialog.dismiss()
-                Toast.makeText(this, "حُفظ الذكر على هذا الجهاز", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "حُفظ الذكر مشفرًا على هذا الجهاز", Toast.LENGTH_SHORT).show()
             }
         }
         dialog.show()
@@ -287,6 +309,10 @@ class NativeAdhkarActivity : Activity() {
     }
 
     private fun showManager() {
+        if (!storageAvailable) {
+            Toast.makeText(this, storageFailureMessage, Toast.LENGTH_LONG).show()
+            return
+        }
         val body = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             layoutDirection = View.LAYOUT_DIRECTION_RTL
@@ -348,12 +374,18 @@ class NativeAdhkarActivity : Activity() {
     }
 
     private fun confirmDelete(entry: Entry) {
+        if (!storageAvailable) return
         AlertDialog.Builder(this)
             .setTitle("حذف الذكر")
             .setMessage("سيُحذف هذا النص من أذكارك المحفوظة على هذا الجهاز.")
             .setPositiveButton("حذف") { _, _ ->
+                val previousEntries = entries.toList()
                 entries.removeAll { it.id == entry.id }
-                saveEntries()
+                if (!saveEntries()) {
+                    entries.clear()
+                    entries.addAll(previousEntries)
+                    Toast.makeText(this, storageFailureMessage, Toast.LENGTH_LONG).show()
+                }
                 renderEntries()
                 managerContent?.let { populateManager(it) }
             }
@@ -363,8 +395,14 @@ class NativeAdhkarActivity : Activity() {
 
     private fun loadEntries() {
         entries.clear()
-        val raw = preferences.getString(KEY_ENTRIES, "[]") ?: "[]"
-        runCatching {
+        try {
+            val raw = AnwarEncryptedStore.readOrMigrate(
+                this,
+                STORE_NAMESPACE,
+                PREFS_NAME,
+                KEY_ENTRIES,
+                "[]"
+            ) ?: "[]"
             val array = JSONArray(raw)
             for (index in 0 until array.length()) {
                 val item = array.optJSONObject(index) ?: continue
@@ -374,13 +412,16 @@ class NativeAdhkarActivity : Activity() {
                 entries.add(Entry(id, value, item.optLong("updatedAt", 0L)))
                 if (entries.size >= MAX_ENTRIES) break
             }
-        }.onFailure {
-            // A malformed preference must not prevent the rest of the app opening.
+        } catch (error: Exception) {
             entries.clear()
+            storageAvailable = false
+            storageFailureMessage = error.message
+                ?: "تعذّر فتح الأذكار المشفرة. احتفظنا بالبيانات القديمة وأوقفنا التعديل."
         }
     }
 
-    private fun saveEntries() {
+    private fun saveEntries(): Boolean {
+        if (!storageAvailable) return false
         val array = JSONArray()
         entries.take(MAX_ENTRIES).forEach { entry ->
             array.put(JSONObject()
@@ -388,7 +429,15 @@ class NativeAdhkarActivity : Activity() {
                 .put("text", entry.text)
                 .put("updatedAt", entry.updatedAt))
         }
-        preferences.edit().putString(KEY_ENTRIES, array.toString()).apply()
+        return try {
+            AnwarEncryptedStore.write(this, STORE_NAMESPACE, array.toString())
+            true
+        } catch (error: Exception) {
+            storageAvailable = false
+            storageFailureMessage = error.message
+                ?: "تعذّر حفظ الأذكار المشفرة. أوقفنا التعديل حمايةً لبياناتك."
+            false
+        }
     }
 
     private fun card(backgroundColor: Int, stroke: Int? = border) = LinearLayout(this).apply {
@@ -453,6 +502,7 @@ class NativeAdhkarActivity : Activity() {
     companion object {
         private const val PREFS_NAME = "anwar_personal_adhkar"
         private const val KEY_ENTRIES = "entries_v1"
+        private const val STORE_NAMESPACE = "personal.adhkar.entries.v1"
         private const val MAX_TEXT_LENGTH = 3000
         private const val MAX_ENTRIES = 100
     }
