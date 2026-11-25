@@ -261,7 +261,8 @@ function showVaultGate(mode,message){
  fallbackToggle.hidden=!deviceConfigured;
  passwordFields.hidden=deviceConfigured;
  deviceManage.hidden=mode!=='unlock'||!deviceApi;
- deviceManage.textContent=deviceConfigured?'إدارة فتح الهاتف':'إعداد فتح الهاتف';
+ const sharedDeviceOrigin=!!(deviceApi&&deviceApi.isSharedGitHubPagesOrigin());
+ deviceManage.textContent=deviceConfigured?'إدارة فتح الهاتف':sharedDeviceOrigin?'سبب تعطيل البصمة':'إعداد فتح الهاتف';
  if(disableEncryption)disableEncryption.hidden=mode!=='unlock';
  if(cancelSetup)cancelSetup.hidden=mode!=='setup';
  $('vaultError').textContent='';
