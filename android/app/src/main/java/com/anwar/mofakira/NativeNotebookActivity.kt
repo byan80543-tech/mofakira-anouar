@@ -1452,6 +1452,7 @@ class NativeNotebookActivity : Activity() {
             externalActivityPending = true
             startActivityForResult(intent, REQUEST_SPEECH)
         } catch (error: Exception) {
+            externalActivityPending = false
             pendingSpeechEditor = null
             Toast.makeText(this, "الإملاء الصوتي غير متاح على هذا الجهاز.", Toast.LENGTH_LONG).show()
         }
@@ -1903,6 +1904,7 @@ class NativeNotebookActivity : Activity() {
                 externalActivityPending = true
                 startActivityForResult(intent, REQUEST_EXPORT)
             } catch (error: Exception) {
+                externalActivityPending = false
                 pendingExportJson = null
                 Toast.makeText(this, error.message ?: "تعذّر تجهيز النسخة المشفرة.", Toast.LENGTH_LONG).show()
             }
@@ -1920,7 +1922,10 @@ class NativeNotebookActivity : Activity() {
             externalActivityPending = true
             startActivityForResult(intent, REQUEST_IMPORT)
         }
-            .onFailure { Toast.makeText(this, "تعذّر فتح منتقي ملفات النسخ الاحتياطية.", Toast.LENGTH_LONG).show() }
+            .onFailure {
+                externalActivityPending = false
+                Toast.makeText(this, "تعذّر فتح منتقي ملفات النسخ الاحتياطية.", Toast.LENGTH_LONG).show()
+            }
     }
 
     private fun askPassphrase(title: String, confirm: Boolean, onSubmit: (String) -> Unit) {
