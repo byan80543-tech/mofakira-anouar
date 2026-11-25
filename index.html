@@ -5,7 +5,7 @@
 <meta name="google-site-verification" content="HbzspyjaTnE2NqMGXkROH28NC0EpouKzGyZZBzopH_k" />
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.aladhan.com https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="preload" href="./app-core.js?v=20261123-70" as="script">
+<link rel="preload" href="./app-core.js?v=20261125-1" as="script">
 <script src="api-gateway-config.js"></script>
 <script src="./origin-shield.js?v=20261123-2" defer></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -1711,8 +1711,7 @@ dialog[open]>.float-head{display:none!important}
 .tb>#vaultLockBtn{order:0!important}
 
 /* أثناء تحرير العمل: أخفِ الأرشيف والقفل واترك أدوات الكتابة الأساسية فقط */
-.app.ed .tb #archiveBtn,
-.app.ed .tb #vaultLockBtn{display:none!important}
+.app.ed .tb #archiveBtn{display:none!important}
 /* زر × يبقى ظاهراً للعودة من صفحة التحرير */
 .app.ed .tb #bk{display:grid!important}
 /* إلغاء حقل العنوان المرئي؛ أول سطر في الورقة يصبح اسم العمل تلقائياً */
@@ -3268,7 +3267,7 @@ dialog[open]>.float-head{display:none!important}
 <button type="button" id="exitFocus" class="focus-exit" aria-label="الخروج من وضع التركيز" title="الخروج من وضع التركيز">×</button>
 <div class="tb">
  <button class="back" id="bk" aria-label="رجوع" title="إغلاق النافذة أو الرجوع إلى قائمة الأعمال">×</button>
- <button id="vaultLockBtn" type="button" data-encrypted="false" aria-label="تفعيل تشفير المفكرة" title="اضغط هنا لتشفير أعمالك؛ ستبقى المفكرة مفتوحة بعد الإعداد"><svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="10" width="15" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg><svg class="vault-encryption-indicator" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path class="vault-indicator-shield" d="M12 2.5 20 5.7v5.2c0 4.7-3.1 8.4-8 10.6-4.9-2.2-8-5.9-8-10.6V5.7Z"/><path class="vault-indicator-check" d="m8.1 11.9 2.4 2.4 5.4-5.5"/></svg></button>
+ <button id="vaultLockBtn" type="button" data-encrypted="false" data-locked="false" aria-label="درع أنوار: حماية المساحات الخاصة" title="اضغط لإعداد الحماية أو قفل المساحات الخاصة"><svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="10" width="15" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg><svg class="vault-encryption-indicator" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path class="vault-indicator-shield" d="M12 2.5 20 5.7v5.2c0 4.7-3.1 8.4-8 10.6-4.9-2.2-8-5.9-8-10.6V5.7Z"/><path class="vault-indicator-check" d="m8.1 11.9 2.4 2.4 5.4-5.5"/></svg></button>
  <span class="brand"><svg class="brand-mark" viewBox="0 0 512 512" aria-hidden="true"><path d="M70 420 Q235 320 424 60 Q405 260 70 420Z" fill="#e7c16d" stroke="#fff0bd" stroke-width="9"/><path d="M72 420 Q248 250 424 60 M155 340 L145 255 M220 276 L220 185 M292 202 L310 130 M360 132 L390 92" fill="none" stroke="#76501e" stroke-width="10" stroke-linecap="round"/></svg><span class="logo">مفكرة أنوار</span></span>
  <input id="t" placeholder="عنوان العمل">
  <button type="button" id="archiveBtn" class="archive-launch" aria-label="أرشيف أنوار" title="أرشيف أنوار" aria-haspopup="dialog" aria-controls="archiveDialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4.5h18v4H3zM5 8.5v11h14v-11M9 12h6M9 15h6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -3822,6 +3821,7 @@ dialog[open]>.float-head{display:none!important}
 </dialog>
 <div id="vaultGate" hidden>
  <section class="vault-card" role="dialog" aria-modal="true" aria-labelledby="vaultTitle">
+  <button id="vaultGateClose" class="vault-gate-close" type="button" aria-label="العودة إلى المفكرة" title="العودة إلى المفكرة">×</button>
   <button id="vaultShieldActivate" class="vault-mark" type="button" aria-label="تفعيل التشفير الشامل" title="أدخل عبارة المرور ثم اضغط الدرع لتشفير أعمالك">
    <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
     <path d="M12 2.5 20 5.7v5.2c0 4.7-3.1 8.4-8 10.6-4.9-2.2-8-5.9-8-10.6V5.7Z"/>
@@ -3845,7 +3845,7 @@ dialog[open]>.float-head{display:none!important}
   <button id="vaultDisableEncryptionBtn" type="button" hidden>إيقاف التشفير والاستخدام دون قفل</button>
   <button id="vaultCancelSetupBtn" type="button" hidden>متابعة دون تفعيل التشفير</button>
   <p id="vaultError" role="alert" aria-live="polite"></p>
-  <small class="vault-footnote">التشفير يتم على جهازك ولا تُرسل كلمة المرور إلى خادم. بعد الإعداد تبقى المفكرة مفتوحة، وتُحفظ أعمالك مشفرة في كل مرة. القفل اليدوي اختياري؛ احتفظ بعبارة المرور ونسخة احتياطية مشفرة للاسترداد.</small>
+  <small class="vault-footnote">يتم التشفير على جهازك ولا تُرسل عبارة المرور إلى خادم. بعد الإعداد تُحفظ الأعمال مشفرة، وتبقى الواجهة العامة متاحة بعد قفل الدرع. يُقفل المحتوى الخاص تلقائيًا عند مغادرة المفكرة. احتفظ بعبارة المرور ونسخة احتياطية مشفرة للاسترداد.</small>
  </section>
 </div>
 <dialog id="vaultDeviceSetupDialog" aria-labelledby="vaultDeviceSetupTitle">
@@ -3866,7 +3866,7 @@ dialog[open]>.float-head{display:none!important}
 <script src="./vault-device-unlock.js?v=20261118-1"></script>
 <script src="./poetry-dictation.js?v=20261119-1" defer></script>
 <script src="./protective-adhkar.js?v=20261121-1" defer></script>
-<script src="./app-core.js?v=20261123-70" defer></script>
+<script src="./app-core.js?v=20261125-1" defer></script>
 <script src="./adhkar-page-theme.js?v=20261121-2" defer></script>
 <script src="./ibtihalat-radio.js?v=20261121-1" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
@@ -4074,7 +4074,10 @@ dialog[open]>.float-head{display:none!important}
 <style id="anwar-encrypted-vault-ui">
 #vaultGate[hidden]{display:none!important}
 #vaultGate{position:fixed;inset:0;z-index:20000;display:grid;place-items:center;padding:20px;background:rgba(8,22,42,.82);backdrop-filter:none;-webkit-backdrop-filter:none}
-#vaultGate .vault-card{width:min(100%,420px);max-height:calc(100dvh - 40px);overflow:auto;padding:27px 23px;border:1px solid rgba(255,255,255,.24);border-radius:18px;background:#fff;color:#192b43;box-shadow:0 22px 70px rgba(0,0,0,.28);text-align:right}
+#vaultGate .vault-card{position:relative;width:min(100%,420px);max-height:calc(100dvh - 40px);overflow:auto;padding:27px 23px;border:1px solid rgba(255,255,255,.24);border-radius:18px;background:#fff;color:#192b43;box-shadow:0 22px 70px rgba(0,0,0,.28);text-align:right}
+#vaultGate .vault-gate-close{position:absolute;top:10px;inset-inline-start:10px;width:32px;height:32px;border:1px solid #d5deea;border-radius:50%;background:#f5f8fc;color:#49617d;font-size:22px;line-height:1;cursor:pointer}
+#vaultGate .vault-gate-close[hidden]{display:none!important}
+#vaultGate .vault-gate-close:focus-visible{outline:3px solid rgba(55,109,169,.25);outline-offset:2px}
 #vaultGate .vault-mark{width:54px;height:54px;margin:0 auto 12px;display:grid;place-items:center;border:0;padding:0;border-radius:16px;background:#eaf1fa;color:#24548d;cursor:pointer;transition:transform .16s ease,box-shadow .16s ease}
 #vaultGate .vault-mark svg{display:block;width:34px;height:34px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
 #vaultGate .vault-mark:hover{transform:translateY(-1px);box-shadow:0 5px 13px rgba(36,84,141,.16)}
