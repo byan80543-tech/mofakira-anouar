@@ -18,7 +18,7 @@ const actionStart=core.indexOf("else if(id==='vaultShieldActivate'){");
 const actionEnd=core.indexOf("else if(id==='vaultLockBtn')",actionStart);
 assert.ok(actionStart>=0&&actionEnd>actionStart,'the click handler for the shield exists');
 const action=core.slice(actionStart,actionEnd);
-assert.match(action,/vaultPasswordFields\)\.hidden[\s\S]*?unlockVaultWithDevice\(\)/,
+assert.match(action,/vaultPasswordFields'\)\.hidden[\s\S]*?unlockVaultWithDevice\(\)/,
   'the shield uses the existing phone-unlock route when that route is displayed');
 assert.match(action,/form\.requestSubmit\(\)/,
   'the shield submits the existing validated vault form');
