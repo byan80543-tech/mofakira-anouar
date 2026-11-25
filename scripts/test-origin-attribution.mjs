@@ -52,9 +52,9 @@ ok(source.includes('إذاعة القرآن الكريم والدروس الصو
 ok(source.includes('17 نوفمبر 2026'), 'visible attribution carries the documented project-record date');
 ok(source.includes('ANOUAR-MOFKIRA-ORIGIN-2026-01'), 'stable origin marker ID is retained');
 ok(css.includes('.anouar-origin-notice'), 'origin notice has a matching stylesheet');
-ok(html.includes('./origin-shield.js?v=20261123-2'), 'HTML loads the updated origin marker version');
+ok(html.includes('./origin-shield.js?v=20261125-1'), 'HTML loads the current origin marker version');
 ok(html.includes('./origin-shield.css?v=20261123-2'), 'HTML loads the updated origin notice stylesheet version');
-ok(html.includes('./origin-manifest.json?v=20261123-2'), 'HTML exposes the updated origin manifest');
+ok(html.includes('./origin-manifest.json?v=20261125-1'), 'HTML exposes the current origin manifest');
 ok(html.includes('إذاعة القرآن الكريم') && html.includes('الدروس الصوتية'), 'page metadata describes the radio and lessons');
 
 const forbidden = [
@@ -94,14 +94,18 @@ function simulate(hostname, protocol, pathname) {
   return { status: window.__ANOUAR_ORIGIN__?.status, notice: nodes.get('anouar-origin-notice') };
 }
 
-const official = simulate('byan80543-tech.github.io', 'https:', '/mofakira-anouar/');
+const official = simulate('mofakira-anouar.pages.dev', 'https:', '/mofakira-anouar/');
+const legacyOfficial = simulate('byan80543-tech.github.io', 'https:', '/mofakira-anouar/');
 const local = simulate('localhost', 'http:', '/');
 const copied = simulate('copied-example.test', 'https:', '/');
-const wrongPath = simulate('byan80543-tech.github.io', 'https:', '/another-app/');
-ok(official.status === 'official' && !official.notice, 'official GitHub Pages deployment does not show a copied-source notice');
+const wrongPath = simulate('mofakira-anouar.pages.dev', 'https:', '/another-app/');
+ok(manifest.officialDeployment === 'https://mofakira-anouar.pages.dev/mofakira-anouar/', 'manifest points to the official Cloudflare Pages app path');
+ok(source.includes("officialUrl: 'https://mofakira-anouar.pages.dev/mofakira-anouar/'"), 'visible identity points to the official Cloudflare Pages app path');
+ok(official.status === 'official' && !official.notice, 'official Cloudflare Pages deployment does not show a copied-source notice');
+ok(legacyOfficial.status === 'official' && !legacyOfficial.notice, 'legacy GitHub Pages deployment remains recognized without enabling device unlock');
 ok(local.status === 'development' && !local.notice, 'local development does not show a copied-source notice');
 ok(copied.status === 'unverified' && !!copied.notice, 'unverified copied hostname displays an attribution notice');
-ok(wrongPath.status === 'unverified' && !!wrongPath.notice, 'an unrelated path on the official host is not treated as the app');
+ok(wrongPath.status === 'unverified' && !!wrongPath.notice, 'an unrelated path on the Cloudflare host is not treated as the app');
 
 if (failures.length) {
   console.error('\nFAIL', failures.length, 'origin attribution check(s):');
