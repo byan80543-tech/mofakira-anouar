@@ -161,6 +161,7 @@ class NativeNotebookActivity : Activity() {
     private var notebookOpened = false
     private var authenticated = false
     private var externalActivityPending = false
+    private var authenticationRequiredOnResume = false
     private val radioMainExecutor = Executor { command -> runOnUiThread(command) }
     private val radioPlayerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) = syncRadioToolbarState()
@@ -271,7 +272,23 @@ class NativeNotebookActivity : Activity() {
         super.onStop()
         if (authenticated && !externalActivityPending && !isChangingConfigurations && !isFinishing) {
             authenticated = false
-            finish()
+            notebookOpened = false
+            authenticationRequiredOnResume = true
+            notes.clear()
+            pendingExportJson = null
+            pendingImportJson = null
+            pendingSpeechEditor = null
+            managerDialog?.dismiss()
+            managerDialog = null
+            managerContent = null
+            setContentView(TextView(this).apply {
+                text = "مفكرة أنوار\nالمساحة الخاصة مقفلة. تحقق للمتابعة."
+                textSize = 16f
+                setTextColor(navy)
+                gravity = Gravity.CENTER
+                layoutDirection = View.LAYOUT_DIRECTION_RTL
+                setBackgroundColor(Color.rgb(247, 243, 234))
+            })
         }
     }
 
@@ -572,6 +589,11 @@ class NativeNotebookActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        if (authenticationRequiredOnResume) {
+            authenticationRequiredOnResume = false
+            authenticateBeforeOpening()
+            return
+        }
         syncRadioToolbarState()
     }
 
