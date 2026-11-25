@@ -158,6 +158,9 @@ class NativeNotebookActivity : Activity() {
     private var radioControllerFuture: ListenableFuture<MediaController>? = null
     private var radioActionPending = false
     private var pendingSpeechEditor: EditText? = null
+    private var notebookOpened = false
+    private var authenticated = false
+    private var externalActivityPending = false
     private val radioMainExecutor = Executor { command -> runOnUiThread(command) }
     private val radioPlayerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) = syncRadioToolbarState()
@@ -170,7 +173,86 @@ class NativeNotebookActivity : Activity() {
         window.statusBarColor = navy
         window.navigationBarColor = navy
         window.decorView.layoutDirection = View.LAYOUT_DIRECTION_RTL
+        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        setContentView(TextView(this).apply {
+            text = "مفكرة أنوار\nجارٍ التحقق من قفل الجهاز…"
+            textSize = 16f
+            setTextColor(navy)
+            gravity = Gravity.CENTER
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            setBackgroundColor(Color.rgb(247, 243, 234))
+        })
+        authenticateBeforeOpening()
+    }
 
+    private fun authenticateBeforeOpening() {
+        val keyguard = getSystemService(KEYGUARD_SERVICE) as android.app.KeyguardManager
+        if (!keyguard.isDeviceSecure) {
+            AlertDialog.Builder(this)
+                .setTitle("فعّل قفل شاشة الجهاز أولاً")
+                .setMessage("تحتاج مفكرة أنوار إلى رمز PIN أو نمط أو كلمة مرور للجهاز، حتى تتمكن من طلب التحقق قبل عرض أعمالك.")
+                .setPositiveButton("إعداد قفل الجهاز") { _, _ ->
+                    runCatching { startActivity(Intent(android.provider.Settings.ACTION_SECURITY_SETTINGS)) }
+                    finish()
+                }
+                .setNegativeButton("إغلاق") { _, _ -> finish() }
+                .setOnCancelListener { finish() }
+                .show()
+            return
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val authenticators = androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
+            val availability = androidx.biometric.BiometricManager.from(this).canAuthenticate(authenticators)
+            if (availability != androidx.biometric.BiometricManager.BIOMETRIC_SUCCESS) {
+                Toast.makeText(this, "تعذّر تشغيل التحقق البيومتري أو قفل الجهاز. حدّث إعدادات قفل الشاشة ثم أعد المحاولة.", Toast.LENGTH_LONG).show()
+                finish()
+                return
+            }
+            val prompt = androidx.biometric.BiometricPrompt(
+                this,
+                androidx.core.content.ContextCompat.getMainExecutor(this),
+                object : androidx.biometric.BiometricPrompt.AuthenticationCallback() {
+                    override fun onAuthenticationSucceeded(result: androidx.biometric.BiometricPrompt.AuthenticationResult) {
+                        super.onAuthenticationSucceeded(result)
+                        openAfterDeviceAuthentication()
+                    }
+
+                    override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                        super.onAuthenticationError(errorCode, errString)
+                        Toast.makeText(this@NativeNotebookActivity, "لم يتم فتح المفكرة: $errString", Toast.LENGTH_LONG).show()
+                        finish()
+                    }
+                }
+            )
+            val promptInfo = androidx.biometric.BiometricPrompt.PromptInfo.Builder()
+                .setTitle("فتح مفكرة أنوار")
+                .setSubtitle("تحقق ببصمة الإصبع أو بوسيلة قفل الشاشة")
+                .setAllowedAuthenticators(authenticators)
+                .build()
+            prompt.authenticate(promptInfo)
+            return
+        }
+
+        // Older Android versions use the system credential confirmation screen.
+        val credentialIntent = keyguard.createConfirmDeviceCredentialIntent(
+            "فتح مفكرة أنوار",
+            "أدخل رمز قفل الجهاز للمتابعة"
+        )
+        if (credentialIntent == null) {
+            Toast.makeText(this, "تعذّر استدعاء شاشة تحقق الجهاز. لم نعرض الملاحظات.", Toast.LENGTH_LONG).show()
+            finish()
+            return
+        }
+        externalActivityPending = true
+        startActivityForResult(credentialIntent, REQUEST_DEVICE_UNLOCK)
+    }
+
+    private fun openAfterDeviceAuthentication() {
+        if (notebookOpened || isFinishing || isDestroyed) return
+        notebookOpened = true
+        authenticated = true
         try {
             loadNotes()
         } catch (error: Exception) {
@@ -183,6 +265,14 @@ class NativeNotebookActivity : Activity() {
         applySavedAppearance(screen)
         renderFilters()
         renderNotes()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (authenticated && !externalActivityPending && !isChangingConfigurations && !isFinishing) {
+            authenticated = false
+            finish()
+        }
     }
 
     private fun buildScreen(): View {
@@ -1337,6 +1427,7 @@ class NativeNotebookActivity : Activity() {
             putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
         }
         try {
+            externalActivityPending = true
             startActivityForResult(intent, REQUEST_SPEECH)
         } catch (error: Exception) {
             pendingSpeechEditor = null
@@ -1787,6 +1878,7 @@ class NativeNotebookActivity : Activity() {
                     type = "application/json"
                     putExtra(Intent.EXTRA_TITLE, "mofakira-anouar-encrypted-backup.json")
                 }
+                externalActivityPending = true
                 startActivityForResult(intent, REQUEST_EXPORT)
             } catch (error: Exception) {
                 pendingExportJson = null
@@ -1802,7 +1894,10 @@ class NativeNotebookActivity : Activity() {
             type = "application/json"
             putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("application/json", "text/plain"))
         }
-        runCatching { startActivityForResult(intent, REQUEST_IMPORT) }
+        runCatching {
+            externalActivityPending = true
+            startActivityForResult(intent, REQUEST_IMPORT)
+        }
             .onFailure { Toast.makeText(this, "تعذّر فتح منتقي ملفات النسخ الاحتياطية.", Toast.LENGTH_LONG).show() }
     }
 
@@ -2191,6 +2286,14 @@ class NativeNotebookActivity : Activity() {
     @Deprecated("Uses the Android document picker for broad device compatibility.")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_DEVICE_UNLOCK) {
+            externalActivityPending = false
+            if (resultCode == RESULT_OK) openAfterDeviceAuthentication() else finish()
+            return
+        }
+        if (requestCode == REQUEST_SPEECH || requestCode == REQUEST_EXPORT || requestCode == REQUEST_IMPORT) {
+            externalActivityPending = false
+        }
         if (requestCode == REQUEST_SPEECH) {
             val editor = pendingSpeechEditor
             pendingSpeechEditor = null
@@ -2388,6 +2491,7 @@ class NativeNotebookActivity : Activity() {
         private const val MAX_PORTABLE_PLAINTEXT_BYTES = 8 * 1024 * 1024
         private const val MAX_PORTABLE_CIPHERTEXT_BYTES = 8 * 1024 * 1024
         private const val MAX_PORTABLE_FILE_BYTES = 12 * 1024 * 1024
+        private const val REQUEST_DEVICE_UNLOCK = 7299
         private const val REQUEST_EXPORT = 7301
         private const val REQUEST_IMPORT = 7302
         private const val REQUEST_MICROPHONE = 7401
