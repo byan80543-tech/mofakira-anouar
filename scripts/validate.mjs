@@ -69,11 +69,14 @@ ok(tasbihController.includes("voiceButton.addEventListener('click'") && tasbihCo
 ok(html.includes('id="anwar-tasbih-touch-polish-v1"') && html.includes('-webkit-tap-highlight-color:transparent'), 'tasbih touch feedback suppresses the blue tap highlight while retaining keyboard focus');
 ok(html.includes('id="tasbihBeads"') && html.includes('id="tasbihMinus"') && html.includes('id="tasbihTap"') && html.includes('id="tasbihReset"') && html.includes('id="anwar-tasbih-royal-layout-v1"'), 'the royal bead ring and compact decrement, increment and reset controls remain present');
 ok(tasbihController.includes('function normalizeDhikrKey(value)') && tasbihController.includes('officialKeys.has(normalizeDhikrKey(optionText(option)))') && !tasbihController.includes('tasbih-dhikr-card-text'), 'tasbih entries are normalized and legacy copies/full-text repeats are not shown twice');
-ok(tasbihController.includes('const beadRadius=27.5;') && tasbihController.includes('(index/33)*Math.PI*2-Math.PI/2') && tasbihController.includes("panel.classList.toggle('tasbih-choosing-dhikr',expanded)"), 'all 33 tasbih beads form an even full circular ring around the clock');
+ok(tasbihController.includes('const beadRadiusX=31.5;') && tasbihController.includes('const beadRadiusY=25.82;') && tasbihController.includes('(index/33)*Math.PI*2-Math.PI/2') && tasbihController.includes("panel.classList.toggle('tasbih-choosing-dhikr',expanded)"), 'all 33 tasbih beads follow the approved elliptical ring geometry');
 ok(html.includes('id="anwar-tasbih-pearl-bezel-v1"') && html.includes('anwar-tasbih-beads::before') && html.includes('width:55%;height:55%'), 'the bead ring includes its polished gold bezel and pearl-like finish');
 ok(/\.tasbih-count-tap\s*\{[^}]*width:21%!important;height:21%!important/s.test(html), 'the central count disc is deliberately smaller and stays centred');
 ok(/\.tasbih-number-text\s*\{[^}]*top:5\.2%!important/s.test(html), 'the twelve clock numerals share one consistent radial position');
-ok(/<path d="M50 5 L50 58"[^>]*stroke-width="1\.05"/.test(html), 'the golden second hand has sufficient visible width and a defined sweep path');
+const validationSecondHandStart=html.indexOf('<g id="tasbihSecondHand"');
+const validationSecondHandEnd=html.indexOf('</g>',validationSecondHandStart);
+const validationSecondHand=html.slice(validationSecondHandStart,validationSecondHandEnd);
+ok(validationSecondHandStart>=0 && validationSecondHand.includes('<path d="M50 5.5 L50.82 48.9 L50 50 L49.18 48.9 Z"') && validationSecondHand.includes('<path d="M50 50 L50 57.5"') && validationSecondHand.includes('<circle cx="50" cy="58" r="1.45"'), 'the golden second hand has a visible body, connected counterweight stem and jewel');
 const ownerDialogStart=html.indexOf('<dialog id="ownerDialog">');
 const ownerDialogEnd=html.indexOf('</dialog>',ownerDialogStart);
 const ownerDialogHtml=html.slice(ownerDialogStart,ownerDialogEnd);
@@ -93,7 +96,7 @@ ok(html.includes('id="anwar-tasbih-sixth-reference-v1"') && html.includes('aspec
 ok(html.includes('id="tasbihCustomDhikrInput"') && html.includes('placeholder="أو اكتب ذكراً خاصاً هنا"') && html.includes('id="tasbihAddCustomDhikr"'), 'the dhikr chooser contains a simple framed manual entry field');
 const dhikrChooserStart=html.indexOf('id="tasbihDhikrListPanel"');
 const manualDhikrField=html.indexOf('class="tasbih-inner-dhikr-frame"',dhikrChooserStart);
-const tasbihFaceStart=html.indexOf('class="anwar-tasbih-counter anwar-tasbih-sixth-face"');
+const tasbihFaceStart=html.indexOf('class="anwar-tasbih-sixth-face"');
 ok(manualDhikrField>dhikrChooserStart && manualDhikrField<tasbihFaceStart, 'manual dhikr input is inside the expanded chooser, not the clock face');
 ok((html.match(/id="tasbihPhrase"/g)||[]).length===1, 'the selected dhikr text has a single canonical DOM node');
 ok(html.includes('id="tasbihMinus" class="tasbih-minus-control"') && html.includes('id="tasbihReset" class="anwar-tasbih-reset"') && html.includes('id="tasbihRemoveDhikr" class="tasbih-management-remove"'), 'the integrated reset, decrement and list-management controls remain available');
@@ -121,7 +124,7 @@ ok(!!tasbihScript && serviceWorker.includes("'./tasbih-controller.js'") && /cons
 ok(htmlAudit.script_sources.some(src=>src.startsWith('./poetry-dictation.js')) && serviceWorker.includes("'./poetry-dictation.js'") && appCore.includes('window.AnwarPoetryDictation'), 'poetry dictation controller is versioned and precached for offline use');
 
 ok(manifest.name==='مفكرة أنوار' && manifest.short_name==='مفكرة أنوار','PWA name and short_name');
-ok(manifest.start_url==='/mofakira-anouar/' && manifest.scope==='/mofakira-anouar/','GitHub Pages start_url and scope');
+ok(manifest.start_url==='/mofakira-anouar/' && manifest.scope==='/mofakira-anouar/','PWA start_url and scope match the Cloudflare application subpath');
 ok(appSource.includes('rel="manifest" href="manifest.webmanifest'),'HTML references the current manifest path');
 ok(appSource.includes('href="icon-192.png') && appSource.includes('sizes="192x192"'),'browser favicon uses the sharpened 192px PNG');
 ok(appSource.includes('<link rel="apple-touch-icon" href="icon-192.png'),'Apple touch icon uses the sharpened 192px PNG');
