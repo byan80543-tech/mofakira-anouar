@@ -69,11 +69,14 @@ ok(tasbihController.includes("voiceButton.addEventListener('click'") && tasbihCo
 ok(html.includes('id="anwar-tasbih-touch-polish-v1"') && html.includes('-webkit-tap-highlight-color:transparent'), 'tasbih touch feedback suppresses the blue tap highlight while retaining keyboard focus');
 ok(html.includes('id="tasbihBeads"') && html.includes('id="tasbihMinus"') && html.includes('id="tasbihTap"') && html.includes('id="tasbihReset"') && html.includes('id="anwar-tasbih-royal-layout-v1"'), 'the royal bead ring and compact decrement, increment and reset controls remain present');
 ok(tasbihController.includes('function normalizeDhikrKey(value)') && tasbihController.includes('officialKeys.has(normalizeDhikrKey(optionText(option)))') && !tasbihController.includes('tasbih-dhikr-card-text'), 'tasbih entries are normalized and legacy copies/full-text repeats are not shown twice');
-ok(tasbihController.includes('const beadRadius=27.5;') && tasbihController.includes('(index/33)*Math.PI*2-Math.PI/2') && tasbihController.includes("panel.classList.toggle('tasbih-choosing-dhikr',expanded)"), 'all 33 tasbih beads form an even full circular ring around the clock');
+ok(tasbihController.includes('const beadRadiusX=31.5;') && tasbihController.includes('const beadRadiusY=25.82;') && tasbihController.includes('(index/33)*Math.PI*2-Math.PI/2') && tasbihController.includes("panel.classList.toggle('tasbih-choosing-dhikr',expanded)"), 'all 33 tasbih beads follow the approved elliptical ring geometry');
 ok(html.includes('id="anwar-tasbih-pearl-bezel-v1"') && html.includes('anwar-tasbih-beads::before') && html.includes('width:55%;height:55%'), 'the bead ring includes its polished gold bezel and pearl-like finish');
 ok(/\.tasbih-count-tap\s*\{[^}]*width:21%!important;height:21%!important/s.test(html), 'the central count disc is deliberately smaller and stays centred');
 ok(/\.tasbih-number-text\s*\{[^}]*top:5\.2%!important/s.test(html), 'the twelve clock numerals share one consistent radial position');
-ok(/<path d="M50 5 L50 58"[^>]*stroke-width="1\.05"/.test(html), 'the golden second hand has sufficient visible width and a defined sweep path');
+const validationSecondHandStart=html.indexOf('<g id="tasbihSecondHand"');
+const validationSecondHandEnd=html.indexOf('</g>',validationSecondHandStart);
+const validationSecondHand=html.slice(validationSecondHandStart,validationSecondHandEnd);
+ok(validationSecondHandStart>=0 && validationSecondHand.includes('<path d="M50 5.5 L50.82 48.9 L50 50 L49.18 48.9 Z"') && validationSecondHand.includes('<path d="M50 50 L50 57.5"') && validationSecondHand.includes('<circle cx="50" cy="58" r="1.45"'), 'the golden second hand has a visible body, connected counterweight stem and jewel');
 const ownerDialogStart=html.indexOf('<dialog id="ownerDialog">');
 const ownerDialogEnd=html.indexOf('</dialog>',ownerDialogStart);
 const ownerDialogHtml=html.slice(ownerDialogStart,ownerDialogEnd);
@@ -93,7 +96,7 @@ ok(html.includes('id="anwar-tasbih-sixth-reference-v1"') && html.includes('aspec
 ok(html.includes('id="tasbihCustomDhikrInput"') && html.includes('placeholder="أو اكتب ذكراً خاصاً هنا"') && html.includes('id="tasbihAddCustomDhikr"'), 'the dhikr chooser contains a simple framed manual entry field');
 const dhikrChooserStart=html.indexOf('id="tasbihDhikrListPanel"');
 const manualDhikrField=html.indexOf('class="tasbih-inner-dhikr-frame"',dhikrChooserStart);
-const tasbihFaceStart=html.indexOf('class="anwar-tasbih-counter anwar-tasbih-sixth-face"');
+const tasbihFaceStart=html.indexOf('class="anwar-tasbih-sixth-face"');
 ok(manualDhikrField>dhikrChooserStart && manualDhikrField<tasbihFaceStart, 'manual dhikr input is inside the expanded chooser, not the clock face');
 ok((html.match(/id="tasbihPhrase"/g)||[]).length===1, 'the selected dhikr text has a single canonical DOM node');
 ok(html.includes('id="tasbihMinus" class="tasbih-minus-control"') && html.includes('id="tasbihReset" class="anwar-tasbih-reset"') && html.includes('id="tasbihRemoveDhikr" class="tasbih-management-remove"'), 'the integrated reset, decrement and list-management controls remain available');
@@ -121,7 +124,7 @@ ok(!!tasbihScript && serviceWorker.includes("'./tasbih-controller.js'") && /cons
 ok(htmlAudit.script_sources.some(src=>src.startsWith('./poetry-dictation.js')) && serviceWorker.includes("'./poetry-dictation.js'") && appCore.includes('window.AnwarPoetryDictation'), 'poetry dictation controller is versioned and precached for offline use');
 
 ok(manifest.name==='مفكرة أنوار' && manifest.short_name==='مفكرة أنوار','PWA name and short_name');
-ok(manifest.start_url==='/mofakira-anouar/' && manifest.scope==='/mofakira-anouar/','GitHub Pages start_url and scope');
+ok(manifest.start_url==='/mofakira-anouar/' && manifest.scope==='/mofakira-anouar/','PWA start_url and scope match the Cloudflare application subpath');
 ok(appSource.includes('rel="manifest" href="manifest.webmanifest'),'HTML references the current manifest path');
 ok(appSource.includes('href="icon-192.png') && appSource.includes('sizes="192x192"'),'browser favicon uses the sharpened 192px PNG');
 ok(appSource.includes('<link rel="apple-touch-icon" href="icon-192.png'),'Apple touch icon uses the sharpened 192px PNG');
@@ -232,7 +235,7 @@ const toolsGroupStart=html.lastIndexOf('<div class="g"><div>',toolsLabelIndex);
 const toolsGroupEnd=html.indexOf('</div><small>أدوات أنوار</small>',toolsGroupStart);
 const backupButtonIndex=html.indexOf('id="bkp"',toolsGroupStart);
 ok(headerToolbarStart>=0 && headerToolbarEnd>headerToolbarStart && !headerToolbar.includes('id="bkp"') && backupButtonIndex>toolsGroupStart && backupButtonIndex<toolsGroupEnd,'encrypted backup icon is removed from the top bar and placed inside the Anwar tools group');
-ok(appSource.includes('id="bkp"') && appSource.includes('aria-controls="dg"') && appSource.includes('class="b bkp-tool"') && appSource.includes('نسخة مشفرة') && appSource.includes("else if(id==='bkp'){openEncryptedBackupDialog()}"),'in-content encrypted backup button keeps its label, dialog target and existing click action');
+ok(appSource.includes('id="bkp"') && appSource.includes('class="b bkp-tool"') && appSource.includes('aria-label="إنشاء وتنزيل نسخة إنقاذ مشفرة"') && appSource.includes('title="تنزيل نسخة إنقاذ مشفرة بضغطة واحدة"') && appSource.includes('<span>نسخة إنقاذ</span>') && appSource.includes("else if(id==='bkp'){downloadRescueBackup()}") && appSource.includes('async function downloadRescueBackup()') && appSource.includes('AnwarVaultCrypto.encryptWithKey(vaultKey,vaultTemplate,plaintext)') && appSource.includes('AnwarVaultCrypto.decryptWithKey(vaultKey,envelope)'), 'in-content rescue backup button keeps its accessible label, click action and encrypt-then-verify flow');
 const iconPolishStart=html.indexOf('<style id="toolbar-icon-polish-v1">');
 const iconPolishEnd=html.indexOf('</style>',iconPolishStart);
 const iconPolish=html.slice(iconPolishStart,iconPolishEnd);
@@ -243,7 +246,7 @@ ok(accessibleControlIds.every(id=>htmlAudit.elements.some(element=>element.attrs
 ok(toolbarBackNavigation.includes("paletteButton.setAttribute('aria-expanded'") && toolbarBackNavigation.includes("radioButton.setAttribute('aria-pressed'") && toolbarBackNavigation.includes('إيقاف إذاعة القرآن مؤقتًا'),'toolbar controls keep palette and Quran playback states accessible');
 
 try{new vm.Script(toolbarBackNavigation,{filename:'toolbar-back-navigation.js'});ok(true,'contextual back-navigation helper JavaScript syntax is valid')}catch(error){failures.push('toolbar-back-navigation.js: '+error.message)}
-ok(appSource.includes('const VAULT_IDLE_LOCK_MS=0;') && appSource.includes('document.addEventListener(eventName,recordVaultActivity,true)'),'free-use mode disables automatic inactivity locking while retaining the manual-lock activity hooks');
+ok(appSource.includes('const VAULT_IDLE_LOCK_MS=5*60*1000;') && appSource.includes('function armVaultIdleTimer()') && appSource.includes('function recordVaultActivity(event)') && appSource.includes('document.addEventListener(eventName,recordVaultActivity,true)') && appSource.includes('function enforceVaultIdleLock()'), 'vault auto-locks after five minutes of inactivity while retaining trusted activity tracking and manual locking');
 ok(appSource.includes("VAULT_MODE_KEY='anwar_vault_mode_v1'") && appSource.includes("if(mode==='encrypted'&&savedVault===null&&savedBackup===null)"),'vault startup respects the saved free/encrypted mode and never bypasses a missing encrypted vault');
 ok(appSource.includes("if(!vaultKey||!vaultTemplate){") && appSource.includes("showVaultGate('setup'"),'manual lock from free mode opens the optional encryption setup');
 ok(appSource.includes('function persistPlainSnapshot(plaintext)') && appSource.includes("localStorage.setItem(VAULT_MODE_KEY,'plain')") && appSource.includes("localStorage.setItem(VAULT_MODE_KEY,'encrypted')"),'free and encrypted modes are explicitly persisted after verified storage writes');
