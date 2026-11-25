@@ -4,6 +4,7 @@ on:
     paths:
       - "android/**"
       - "scripts/test-native-tasbih.mjs"
+      - "scripts/test-android-private-storage.mjs"
       - "scripts/generate-native-adhkar-catalog.mjs"
       - "official-adhkar.js"
       - ".github/workflows/android-validation.yml"
@@ -36,5 +37,7 @@ jobs:
           node-version: 22
       - name: Test the native tasbih screen, catalog and preserved features
         run: node scripts/test-native-tasbih.mjs
+      - name: Verify encrypted Android private storage and device re-authentication
+        run: node scripts/test-android-private-storage.mjs
       - name: Compile the Android debug package
         run: gradle -p android assembleDebug
