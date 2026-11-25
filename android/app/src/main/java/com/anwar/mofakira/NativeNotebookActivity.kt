@@ -1,7 +1,6 @@
 package com.anwar.mofakira
 
 import android.Manifest
-import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -38,6 +37,7 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.fragment.app.FragmentActivity
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
@@ -77,7 +77,7 @@ import android.security.keystore.KeyProperties
  * Native records use an independent Android Keystore key and a verified,
  * encrypted backup-before-replace write sequence.
  */
-class NativeNotebookActivity : Activity() {
+class NativeNotebookActivity : FragmentActivity() {
     private data class HistoryVersion(
         val title: String,
         val type: String,
@@ -278,9 +278,6 @@ class NativeNotebookActivity : Activity() {
             pendingExportJson = null
             pendingImportJson = null
             pendingSpeechEditor = null
-            managerDialog?.dismiss()
-            managerDialog = null
-            managerContent = null
             setContentView(TextView(this).apply {
                 text = "مفكرة أنوار\nالمساحة الخاصة مقفلة. تحقق للمتابعة."
                 textSize = 16f
