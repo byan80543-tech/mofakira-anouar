@@ -54,14 +54,14 @@ const styleSources=requireDirective('style-src',"'self'","'unsafe-inline'",'http
 assert.ok(styleSources.includes("'unsafe-inline'"),'inline styles remain supported intentionally');
 requireDirective('img-src',"'self'",'data:','blob:','https://upload.wikimedia.org');
 requireDirective('font-src',"'self'",'data:','https://fonts.gstatic.com');
-const gatewayMatch=gatewayConfig.match(/globalThis\\.ANWAR_API_GATEWAY_BASE\\s*=\\s*(['"])(.*?)\\1\\s*;/);
+const gatewayMatch=gatewayConfig.match(/globalThis[.]ANWAR_API_GATEWAY_BASE[ ]*=[ ]*["']([^"']*)["'][ ]*;/);
 assert.ok(gatewayMatch,'the API gateway configuration is explicit');
 const gatewayBase=gatewayMatch[2].trim();
 const gatewaySources=[];
 if(gatewayBase){
  const gatewayUrl=new URL(gatewayBase);
  assert.equal(gatewayUrl.protocol,'https:','the optional API gateway must use HTTPS');
- assert.match(gatewayUrl.hostname,/^anwar-api-gateway\\.[a-z0-9-]+\\.workers\\.dev$/,'the optional API gateway must use its exact approved Worker host');
+ assert.match(gatewayUrl.hostname,/^anwar-api-gateway[.][a-z0-9-]+[.]workers[.]dev$/,'the optional API gateway must use its exact approved Worker host');
  assert.equal(gatewayUrl.pathname,'/','the API gateway origin must not include a path');
  assert.equal(gatewayUrl.search,'','the API gateway origin must not include a query');
  assert.equal(gatewayUrl.hash,'','the API gateway origin must not include a fragment');
