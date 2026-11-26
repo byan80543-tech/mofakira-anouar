@@ -346,11 +346,9 @@
   function chooseDhikr(value,resetCount){
    const option=Array.from(select.options).find(item=>item.value===value&&(isCustomOption(item)||!isRemovedOfficial(item)));
    if(!option)return;
-   if(voiceRequested)stopVoice('توقف العد الصوتي لأن الذكر المختار تغيّر.');
+   if(voiceRequested)stopVoice('توقف العد الصوتي لأن الذكر المختار تغيّر.',true);
    select.value=option.value;
    voiceTargetPhrase=optionText(option);
-   voiceMatchCount=0;
-   voiceResultSegments=[];lastRecognitionEvent=null;
    if(resetCount){count=0;resetSessionClock()}
    setDhikrListOpen(false);
 
@@ -374,7 +372,8 @@
    voiceButton.setAttribute('aria-pressed',active?'true':'false');
    voiceButtonLabel.textContent=active?'إيقاف العد الصوتي':state==='error'?'إعادة المحاولة':'ابدأ العد الصوتي';
   }
-  function stopVoice(message){
+  function stopVoice(message,invalidatePending){
+   if(invalidatePending)voiceSessionId++;
    voiceRequested=false;
    voiceActive=false;
    voiceTargetPhrase='';
@@ -382,55 +381,6 @@
    voiceEngine=null;
    if(engine){try{engine.stop()}catch(error){}}
    setVoiceState('idle',message||'تم إيقاف العد الصوتي.');
-  }
-  function normalizeSpeech(value){
-   return String(value||'').toLocaleLowerCase('ar').normalize('NFD')
-    .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\uFE00-\uFE0F]/g,'')
-    .replace(/[،؛؟٪٫٬۔,:;.!؟]+/g,' ')
-    .replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/ـ/g,'')
-    .replace(/[^\u0600-\u06FFa-z0-9\s]/gi,' ').replace(/\s+/g,' ').trim();
-  }
-  function countPhraseMatches(transcript,phrase){
-   const heard=normalizeSpeech(transcript).split(' ').filter(Boolean);
-   const target=normalizeSpeech(phrase).split(' ').filter(Boolean);
-   if(!target.length||heard.length<target.length)return 0;
-   let matches=0;
-   for(let i=0;i<=heard.length-target.length;i++){
-    let same=true;
-    for(let j=0;j<target.length;j++){if(heard[i+j]!==target[j]){same=false;break}}
-    if(same){matches++;i+=target.length-1}
-   }
-   return matches;
-  }
-  function lastMatchedPhraseText(transcript,phrase){
-   const words=String(transcript||'').trim().split(/\s+/).filter(Boolean);
-   const target=normalizeSpeech(phrase).split(' ').filter(Boolean);
-   if(!target.length||words.length<target.length)return '';
-   const normalized=words.map(normalizeSpeech);
-   for(let i=words.length-target.length;i>=0;i--){
-    let matched=true;
-    for(let j=0;j<target.length;j++){
-     if(normalized[i+j]!==target[j]){matched=false;break}
-    }
-    if(matched)return words.slice(i,i+target.length).join(' ');
-   }
-   return '';
-  }
-  function bestSpeechText(result,phrase){
-   if(!result)return '';
-   const alternatives=Number.isInteger(result.length)&&result.length>0?result.length:1;
-   const target=normalizeSpeech(phrase).split(' ').filter(Boolean);
-   let best='',bestScore=-Infinity;
-   for(let i=0;i<alternatives;i++){
-    const candidate=result[i]&&typeof result[i].transcript==='string'?result[i].transcript.trim():'';
-    if(!candidate)continue;
-    const heard=normalizeSpeech(candidate).split(' ').filter(Boolean);
-    const overlap=target.reduce((sum,word)=>sum+(heard.includes(word)?1:0),0);
-    const exact=countPhraseMatches(candidate,phrase);
-    const score=exact*10000+overlap*100-Math.abs(target.length-heard.length)+heard.length*0.01;
-    if(score>bestScore){best=candidate;bestScore=score}
-   }
-   return best;
   }
   function addCustomDhikr(){
    const value=String(customInput.value||'').replace(/\s+/g,' ').trim();
@@ -534,9 +484,8 @@
   customInput.addEventListener('click',event=>event.stopPropagation());
   customInput.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();event.stopPropagation();addCustomDhikr()}});
   select.addEventListener('change',()=>{
-   if(voiceActive)stopVoice('توقف التسجيل لأن الذكر المختار تغيّر.');
+   if(voiceRequested)stopVoice('توقف العد الصوتي لأن الذكر المختار تغيّر.',true);
    voiceTargetPhrase=optionText(Array.from(select.options).find(option=>option.value===select.value))||'';
-   voiceMatchCount=0;
    count=0;
    resetSessionClock();
    saveAndUpdate();
@@ -549,7 +498,7 @@
    const custom=isCustomOption(selected);
    const message=custom?'هل تريد حذف هذا الذكر المضاف من قائمتك على هذا الجهاز؟':'هل تريد إزالة هذا الذكر الرسمي من قائمتك على هذا الجهاز فقط؟ يمكنك استعادته لاحقاً.';
    if(!window.confirm(message))return;
-   if(voiceActive)stopVoice('توقف العد الصوتي بسبب تعديل قائمة الأذكار.');
+   if(voiceRequested)stopVoice('توقف العد الصوتي بسبب تعديل قائمة الأذكار.',true);
    if(custom)customDhikrs=customDhikrs.filter(item=>item!==selected.value);
    else {
     const removalKeys=new Set([selected.dataset&&selected.dataset.anwarOfficialId||selected.value]);
@@ -570,7 +519,7 @@
   });
   restoreButton.addEventListener('click',()=>{
    if(!removedOfficialDhikrs.length)return;
-   if(voiceActive)stopVoice('توقف التسجيل بسبب استعادة قائمة الأذكار.');
+   if(voiceRequested)stopVoice('توقف العد الصوتي بسبب استعادة قائمة الأذكار.',true);
    removedOfficialDhikrs=[];
    if(!select.value)select.value=firstVisible()?firstVisible().value:'';
    count=0;
