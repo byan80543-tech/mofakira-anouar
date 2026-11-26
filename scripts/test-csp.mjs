@@ -56,7 +56,7 @@ requireDirective('img-src',"'self'",'data:','blob:','https://upload.wikimedia.or
 requireDirective('font-src',"'self'",'data:','https://fonts.gstatic.com');
 const gatewayMatch=gatewayConfig.match(/globalThis[.]ANWAR_API_GATEWAY_BASE[ ]*=[ ]*["']([^"']*)["'][ ]*;/);
 assert.ok(gatewayMatch,'the API gateway configuration is explicit');
-const gatewayBase=gatewayMatch[2].trim();
+const gatewayBase=gatewayMatch[1].trim();
 const gatewaySources=[];
 if(gatewayBase){
  const gatewayUrl=new URL(gatewayBase);
