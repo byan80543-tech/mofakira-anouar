@@ -19,6 +19,15 @@ assert.match(activity, /KEY_AUTH_VALIDITY_SECONDS = 300/,
   'the authorization window is bounded to five minutes');
 assert.match(activity, /setAllowedAuthenticators\(authenticators\)/,
   'the system prompt uses the same biometric/device-credential pair');
+
+assert.match(activity, /BiometricManager\.Authenticators\.BIOMETRIC_STRONG or\s*androidx\.biometric\.BiometricManager\.Authenticators\.DEVICE_CREDENTIAL/,
+  'Android offers strong biometrics and the system screen-lock pattern/PIN/password fallback');
+assert.match(activity, /if \(!keyguard\.isDeviceSecure\)/,
+  'a secure system screen lock remains mandatory before showing private notes');
+assert.doesNotMatch(activity, /BiometricManager\.from\(this\)\.canAuthenticate/,
+  'a restrictive preflight result cannot block the screen-lock credential fallback');
+assert.match(activity, /setSubtitle\("تحقق ببصمة الإصبع أو استخدم نمط\/رمز قفل الجهاز"\)/,
+  'the Android prompt explicitly explains the pattern/device-credential fallback');
 assert.match(activity, /prompt\.authenticate\(promptInfo\)/,
   'fallback mode deliberately uses the non-CryptoObject prompt required by Android for biometric-or-device-credential time-window keys');
 assert.doesNotMatch(activity, /prompt\.authenticate\(promptInfo,\s*androidx\.biometric\.BiometricPrompt\.CryptoObject/,
