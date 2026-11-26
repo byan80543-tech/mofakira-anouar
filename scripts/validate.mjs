@@ -258,7 +258,7 @@ ok(/function beginVaultDisableEncryption\(\)[\s\S]*?التشفير الشامل 
 ok(/async function cancelVaultSetup\(\)[\s\S]*?يجب إكمال إعداد التشفير/.test(appSource),'mandatory encryption setup cannot be cancelled to enter plaintext mode');
 ok(appSource.includes("if(vaultGateMode==='setup')return;"),'the mandatory setup gate cannot be dismissed');
 
-ok(/function save\(\)\s*\{[\s\S]*?persistVaultSnapshot\(snapshot\)/.test(appSource) && /async function persistVaultSnapshot\(plaintext\)\s*\{[\s\S]*?AnwarVaultCrypto\.encryptWithKey/.test(appSource),'notebook saves queue snapshots through encrypted vault persistence');
+ok(/function save\(\)\s*\{[\s\S]*?persistVaultSnapshot\(snapshot\)/.test(appSource) && /async function persistVaultSnapshot\(plaintext,options=\{\}\)\s*\{[\s\S]*?AnwarVaultCrypto\.encryptWithKey/.test(appSource),'notebook saves queue snapshots through encrypted vault persistence');
 ok(appSource.includes('snapshot.notes.length>2500') && appSource.includes('snapshot.notes.some(noteContentTooLarge)') && appSource.includes('parsed.notes.some(noteContentTooLarge)') && appSource.includes('function noteContentTooLarge(note)'),'startup restore and encrypted saves share the same safe legacy-note size guard');
 ok(appSource.includes("if(S.notes.length>=2500){toast("),'the UI blocks creation beyond the restore-supported 2500-note limit');
 ok(vaultCrypto.includes("CIPHER='AES-256-GCM'") && vaultCrypto.includes("ITERATIONS=600000"),'vault helper pins AES-GCM and the approved PBKDF2 work factor');
