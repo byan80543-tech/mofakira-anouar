@@ -20,6 +20,7 @@ class FakeRecognition{
  end(){this.onend?.()}
 }
 FakeRecognition.prototype.processLocally=false;
+FakeRecognition.available=()=>Promise.resolve('available');
 class RemoteOnlyRecognition{
  constructor(){this.started=false}
  start(){this.started=true}
@@ -105,5 +106,9 @@ let remoteOnlyError='';
 const remoteController=remoteOnly.AnwarPoetryDictation.create({onStatus:(state,detail)=>{if(state==='error')remoteOnlyError=detail}});
 assert.equal(remoteController.start(),false,'a recognizer without processLocally support must not start');
 assert.match(remoteOnlyError,/لم نبدأ الميكروفون|محلي/,'unsupported remote-only recognition is rejected with a privacy explanation');
+const setterOnlyWindow={SpeechRecognition:class SetterOnlyRecognition{}};
+setterOnlyWindow.SpeechRecognition.prototype.processLocally=false;
+vm.runInNewContext(localSpeechSource,{window:setterOnlyWindow,globalThis:setterOnlyWindow,WeakSet,Array,Object,String,Number,Math});
+assert.equal(setterOnlyWindow.AnwarLocalSpeech.supported(),false,'a writable processLocally property without the availability API is rejected');
 
 console.log('PASS Arabic poetry dictation requires processLocally=true; remote-only recognition is rejected before microphone capture');
