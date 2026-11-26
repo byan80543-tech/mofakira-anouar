@@ -38,6 +38,8 @@ object VoiceCache {
         val voice = VoiceCatalog.get(voiceKey) ?: return null
         val directory = File(context.filesDir, "adhan")
         if (!directory.exists() && !directory.mkdirs()) return null
+        listOf("adhan-al-aqsa-najee.mp3", "adhan-haram-makki-ali-mala.mp3",
+            "adhan-morocco-kamal.mp3", "adhan-madina.ogg").forEach { File(directory, it).delete() }
         val target = File(directory, voice.fileName)
         if (isVerified(target)) return target
 
@@ -61,7 +63,7 @@ object VoiceCache {
                     }
                 }
             }
-            val actualSha1 = digest.digest().joinToString("") { "%02x".format(it) }
+            val actualSha1 = digest.digest().joinToString("") { "%02x".format(it.toInt() and 0xff) }
             if (total != EXPECTED_BYTES || actualSha1 != EXPECTED_SHA1) {
                 temporary.delete()
                 return null
