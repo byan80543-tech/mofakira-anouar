@@ -67,8 +67,8 @@ assert.match(prayer,/function methodForCountry\(country\)/,'calculation method i
 assert.doesNotMatch(prayer,/METHOD_OPTIONS|methodSelect/,'technical calculation-method picker is removed');
 assert.match(prayer,/countrySelect\.addEventListener\('change'/,'manual country override remains available');
 assert.match(prayer,/const nativeBridgeReady=syncNativeBackground\(\)/,'native background adhan syncs after refreshed prayer data confirms the timezone');
-assert.match(prayer,/settings\.school='0'/,'refresh preserves the fixed standard Asr calculation for API and Android sync');
-assert.match(prayer,/settings\.timezone='';[\s\S]*?refreshTimes\(false\)/,'country change clears the old timezone and automatically fetches the selected country');
+assert.match(prayer,/settings\.school='0'/,'refresh preserves the fixed standard Asr calculation for local and Android sync');
+assert.match(prayer,/countrySelect\.addEventListener\('change',[\s\S]*?settings\.timezone=window\.AnwarLocalPrayerEngine&&window\.AnwarLocalPrayerEngine\.getTimezone\(settings\.country,settings\.city\)\|\|'';[\s\S]*?refreshTimes\(false\)/,'country change resolves the selected city timezone locally and recalculates');
 assert.match(prayer,/meknes:'مكناس'/,'Meknes is displayed in Arabic');
 assert.match(prayer,/locationLabel\.textContent=cityForDisplay\(settings\.city\)\+' · '\+countryForDisplay\(settings\.country\)/,'location heading displays city before country in Arabic');
 assert.match(prayer,/fields\.append\(countrySelect,cityInput,voiceSelect\)/,'settings retain only country, city and adhan voice controls');
