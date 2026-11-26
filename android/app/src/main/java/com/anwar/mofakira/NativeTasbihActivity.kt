@@ -237,6 +237,11 @@ class NativeTasbihActivity : FragmentActivity() {
             screenOpened = false
             authenticationRequiredOnResume = true
             stopVoice(null)
+            if (::rootContent.isInitialized) rootContent.removeAllViews()
+            if (::phraseView.isInitialized) phraseView.text = ""
+            if (::countView.isInitialized) countView.text = ""
+            if (::customInput.isInitialized) customInput.setText("")
+            if (::voiceStatus.isInitialized) voiceStatus.text = ""
             count = 0
             customDhikrs.clear()
             removedDhikrs.clear()
