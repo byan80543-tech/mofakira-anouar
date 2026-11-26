@@ -26,7 +26,7 @@ assert.match(prefs,/\['radio','readerAdvance','tasbih','prayer','adhkarPageTheme
 assert.match(prefs,/adhkarPageTheme:\[/,'the protective adhkar palette is part of the encrypted preference model');
 
 const migrationStart=core.indexOf('function importLegacyPrivatePreferences(base){');
-const migrationEnd=core.indexOf('async function persistVaultSnapshot(plaintext){',migrationStart);
+const migrationEnd=core.indexOf('async function persistVaultSnapshot(plaintext,options={}){',migrationStart);
 assert.ok(migrationStart>=0&&migrationEnd>migrationStart,'legacy preference migration exists');
 const migration=core.slice(migrationStart,migrationEnd);
 assert.match(migration,/anwar_prayer_settings_v1/,'legacy prayer settings are migrated before enabling mandatory encryption');
