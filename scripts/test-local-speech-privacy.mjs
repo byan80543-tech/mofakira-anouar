@@ -58,7 +58,7 @@ assert.match(poetry,/localSpeech\.create\(LANGUAGES\[0\]\)/,'the dormant dictati
 assert.doesNotMatch(html,/id="sp"|poetry-dictation\.js/,'writing tools expose no dictation microphone control or script');
 assert.doesNotMatch(core,/id==='sp'\)togglePoetryDictation/,'the notebook toolbar cannot start microphone dictation');
 assert.ok(html.indexOf('local-speech-privacy.js')<html.indexOf('tasbih-controller.js'),'the tasbih voice code remains separated from local-only writing recognition');
-assert.match(html,/tasbih-controller\.js\?v=20261126-3/,'the tasbih voice fix receives a fresh browser asset URL');
+assert.match(html,/tasbih-controller\.js\?v=20261126-4/,'the tasbih voice fix receives a fresh browser asset URL');
 assert.match(headers,/microphone=\(self\)/,'microphone access is limited to this origin');
 assert.match(headers,/on-device-speech-recognition=\(self\)/,'on-device speech recognition is explicitly permitted for this origin');
 assert.match(worker,/\.\/local-speech-privacy\.js/,'the local speech privacy gate is included in the offline shell');
