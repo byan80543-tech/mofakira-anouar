@@ -23,7 +23,8 @@ assert.match(prayer,/infoSummary\.append\(privacyIcon,el\('span','','الخصو�
 assert.match(prayer,/لا نستخدم GPS ولا نطلب إذن الموقع/,'the disclosure accurately states that adhan does not request precise location permission');
 assert.match(prayer,/api\.aladhan\.com/,'the disclosure names the external prayer-times provider');
 assert.match(prayer,/المزوّد رؤية عنوان IP/,'the disclosure explains that the external provider can see the network address');
-assert.match(prayer,/تُحفظ على جهازك في localStorage، من دون تشفير إضافي/,'the disclosure does not misrepresent local adhan settings as encrypted');
+assert.match(prayer,/تُحفظ ضمن تفضيلات مفكرة أنوار المشفرة على هذا الجهاز/,'the disclosure accurately states that adhan settings are stored in the encrypted vault');
+assert.doesNotMatch(prayer,/localStorage|sessionStorage/,'the prayer controller does not persist private adhan settings in plaintext browser storage');
 assert.match(prayer,/HTTPS يشفّر الاتصال أثناء النقل فقط/,'the disclosure describes transport encryption concisely');
 assert.match(prayer,/function updatePrivacyAudioDisclosure\(\)/,'the disclosed audio host follows the selected adhan voice');
 assert.match(prayer,/updatePrivacyAudioDisclosure\(\);/,'changing the adhan voice refreshes the disclosed audio host');
