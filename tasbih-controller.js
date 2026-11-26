@@ -676,18 +676,21 @@
     }else{
      throw new Error('حالة الدرع غير صالحة. أغلق النافذة وأعد فتحها.');
     }
+    await clearLegacyTasbihCopies();
     vaultUnlocked=true;
     applyVaultState(loaded);
     setShieldVisual('unlocked');
-    await clearLegacyTasbihCopies();
     shieldPassword.value='';shieldConfirm.value='';
     shieldDialog.close();
     openPanel();
    }catch(error){
     shieldStatus.textContent=error&&error.message?error.message:'تعذّر فتح خزنة السبحة. لم نعرض البيانات.';
-    if(tasbihVault&&tasbihVault.isUnlocked()&&!vaultUnlocked){
-     await tasbihVault.lock();
+    if(tasbihVault&&tasbihVault.isUnlocked()){
+     try{await tasbihVault.lock()}catch(lockError){}
     }
+    vaultUnlocked=false;
+    resetLockedMemory();
+    setShieldVisual('locked');
    }finally{
     shieldBusy=false;shieldSubmit.disabled=false;shieldPassword.disabled=false;shieldConfirm.disabled=false;
    }
