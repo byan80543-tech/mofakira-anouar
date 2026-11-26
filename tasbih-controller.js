@@ -44,9 +44,10 @@
    if(stored&&stored.tasbih&&typeof stored.tasbih==='object')legacyInitial={...defaultTasbih,...stored.tasbih};
   }catch(error){console.warn('تعذر قراءة الإعدادات القديمة للسبحة؛ لن تُحذف أي بيانات.',error)}
   let vaultUnlocked=!!(tasbihVault&&tasbihVault.isUnlocked()),shieldMode='setup',shieldBusy=false;
-  let initial=vaultUnlocked?legacyInitial:defaultTasbih;
+  let initial=vaultUnlocked?legacyInitial:defaultTasbih,initialVersionMigration=false;
   if(initial.designVersion!==DESIGN_VERSION&&initial.dhikr==='أستغفر الله العظيم وأتوب إليه'){
    initial={...initial,dhikr:select.value,designVersion:DESIGN_VERSION};
+   initialVersionMigration=true;
   }
   const MAX_COUNT=1000000000;
   const cleanDhikrList=(items,limit,maxLength=200)=>Array.isArray(items)
@@ -982,6 +983,11 @@
    }
   }
   updateClockUi();
+  if(vaultUnlocked&&initialVersionMigration){
+   persist().then(saved=>{
+    if(!saved)customStatus.textContent='تم تحميل الذكر القديم، لكن تعذّر تثبيت ترحيله في خزنة السبحة. لا تغلق الصفحة قبل إعادة المحاولة.';
+   });
+  }
   document.addEventListener('visibilitychange',()=>{
    if(document.visibilityState==='hidden'){
     stopClockAnimation();
