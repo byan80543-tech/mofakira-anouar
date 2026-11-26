@@ -1343,8 +1343,10 @@ class NativeTasbihActivity : FragmentActivity() {
     }
 
     private fun startVoice() {
-        if (!SpeechRecognizer.isRecognitionAvailable(this)) {
-            setVoiceStatus("خدمة التعرف الصوتي غير متاحة على هذا الجهاز. يمكنك متابعة العد اليدوي.", true)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
+            !SpeechRecognizer.isOnDeviceRecognitionAvailable(this)
+        ) {
+            setVoiceStatus("التعرف الصوتي المحلي غير متاح على هذا الجهاز. أوقفنا الميزة حتى لا يُرسل صوتك إلى خدمة خارجية؛ يمكنك متابعة العد اليدوي.", true)
             return
         }
         if (selectedText.isBlank()) {
@@ -1353,7 +1355,7 @@ class NativeTasbihActivity : FragmentActivity() {
         }
         try {
             if (speechRecognizer == null) {
-                speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
+                speechRecognizer = SpeechRecognizer.createOnDeviceSpeechRecognizer(this)
                 speechRecognizer?.setRecognitionListener(recognitionListener)
             }
             voiceRequested = true
@@ -1443,6 +1445,7 @@ class NativeTasbihActivity : FragmentActivity() {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, speechLanguages[speechLanguageIndex])
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, speechLanguages[speechLanguageIndex])
             putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+            putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
             putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
             putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, packageName)
         }
@@ -1778,8 +1781,13 @@ class NativeTasbihActivity : FragmentActivity() {
 
     companion object {
         private const val PREFS_NAME = "anwar_tasbih_secure_v1"
-        private const val STATE_KEY = "tasbih_envelope_v1"
-        private const val KEY_ALIAS = "anwar_mofakira_tasbih_aes_gcm_v1"
+        private const val STATE_KEY = "tasbih_envelope_v2"
+        private const val BACKUP_STATE_KEY = "tasbih_backup_v2"
+        private const val LEGACY_STATE_KEY = "tasbih_envelope_v1"
+        private const val KEY_ALIAS = "anwar_mofakira_tasbih_aes_gcm_auth_v2"
+        private const val LEGACY_KEY_ALIAS = "anwar_mofakira_tasbih_aes_gcm_v1"
+        private const val KEY_AUTH_VALIDITY_SECONDS = 86_400
+        private const val REQUEST_DEVICE_UNLOCK = 9_151
         private const val MAX_COUNT = 1_000_000_000
         private const val BEAD_COUNT = 33
         private const val MAX_CUSTOM_DHIKRS = 30
