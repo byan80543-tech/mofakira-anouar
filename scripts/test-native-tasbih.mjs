@@ -154,7 +154,7 @@ assert.ok(tasbihPersistBlock.includes('tasbihVault.save(snapshot)')&&!tasbihPers
   'active web Tasbih persistence is isolated; the notebook adapter is used only to clear verified legacy copies');
 assert.ok(oldBehaviorTests.includes('royal tasbih ring renders exactly 33 beads'));
 assert.ok(oldBehaviorTests.includes('recognition prefers the visitor’s Moroccan Arabic locale'));
-assert.ok(oldOpenTests.includes('the live tasbih state no longer uses the notebook-wide preferences adapter'));
+assert.ok(oldOpenTests.includes('live Tasbih persistence uses only its own encrypted vault'));
 
 assert.match(religiousGate, /PortalItem\("📿", "السبحة"/);
 assert.match(religiousGate, /NativeTasbihActivity::class\.java/);
