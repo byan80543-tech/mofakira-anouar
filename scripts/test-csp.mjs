@@ -103,4 +103,6 @@ assert.deepEqual([...deployedScriptSources].sort(),[...scriptSources].sort(),'Cl
 for(const item of hashSources)assert.ok(deployedCsp[1].includes(item),'Cloudflare response CSP includes '+item);
 assert.ok(deployedCsp[1].includes(html2canvasHash),'Cloudflare response CSP includes the exact html2canvas SRI hash');
 assert.ok(deployedCsp[1].includes(qrcodeHash),'Cloudflare response CSP includes the exact qrcodejs SRI hash');
+const hstsHeader=deployedHeaders.split('\n').find(line=>line.trim().startsWith('Strict-Transport-Security:'));
+assert.equal(hstsHeader?.trim(),'Strict-Transport-Security: max-age=31536000','Cloudflare response headers enable one-year HSTS for this host only, without includeSubDomains or preload');
 console.log('CSP checks passed: required network origins match across page and Cloudflare response policies; inline scripts and eval remain blocked.');
