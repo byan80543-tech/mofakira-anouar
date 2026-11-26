@@ -99,6 +99,7 @@ async function readBodyBytesLimited(request, maxBytes) {
     for (const chunk of chunks) {
       bytes.set(chunk, offset);
       offset += chunk.byteLength;
+      chunk.fill(0);
     }
     return { bytes, tooLarge: false };
   } catch {
@@ -118,10 +119,10 @@ function bytesToBase64(bytes) {
 
 function normalizeTasbihSpeech(value) {
   return String(value || "").toLocaleLowerCase("ar").normalize("NFD")
-    .replace(/[\\u064B-\\u065F\\u0670\\u06D6-\\u06ED\\uFE00-\\uFE0F]/g, "")
+    .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\uFE00-\uFE0F]/g, "")
     .replace(/[،؛؟٪٫٬۔,:;.!؟]+/g, " ")
     .replace(/[أإآٱ]/g, "ا").replace(/ى/g, "ي").replace(/ة/g, "ه").replace(/ـ/g, "")
-    .replace(/[^\\u0600-\\u06FFa-z0-9\\s]/gi, " ").replace(/\\s+/g, " ").trim();
+    .replace(/[^\u0600-\u06FFa-z0-9\s]/gi, " ").replace(/\s+/g, " ").trim();
 }
 
 function countTasbihPhraseMatches(transcript, phrase) {
