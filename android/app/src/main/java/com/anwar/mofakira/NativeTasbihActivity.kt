@@ -2,6 +2,7 @@ package com.anwar.mofakira
 
 import android.Manifest
 import android.app.Activity
+import androidx.fragment.app.FragmentActivity
 import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -14,6 +15,8 @@ import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
 import android.os.Bundle
+import android.os.Build
+import android.view.WindowManager
 import android.os.Handler
 import android.os.Looper
 import android.security.keystore.KeyGenParameterSpec
@@ -42,6 +45,8 @@ import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
+import android.security.keystore.KeyPermanentlyInvalidatedException
+import android.security.keystore.UserNotAuthenticatedException
 
 /**
  * Native equivalent of the complete legacy tasbih experience.
@@ -51,7 +56,7 @@ import javax.crypto.spec.GCMParameterSpec
  * non-exportable Android Keystore key before they are written to preferences.
  * The old WebView vault remains untouched and is still reachable separately.
  */
-class NativeTasbihActivity : Activity() {
+class NativeTasbihActivity : FragmentActivity() {
 
     private data class DhikrItem(
         val id: String,
@@ -160,6 +165,11 @@ class NativeTasbihActivity : Activity() {
     private var themeKey = "pink"
     private var storageAvailable = true
     private var storageFailureMessage = ""
+    private var authenticated = false
+    private var screenOpened = false
+    private var authenticationRequiredOnResume = false
+    private var externalActivityPending = false
+    private var legacyMigrationPending = false
 
     private lateinit var rootContent: LinearLayout
     private lateinit var phraseView: TextView
@@ -199,15 +209,19 @@ class NativeTasbihActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.decorView.layoutDirection = View.LAYOUT_DIRECTION_RTL
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_SECURE,
+            WindowManager.LayoutParams.FLAG_SECURE
+        )
         officialDhikrs = loadOfficialCatalog()
-        loadEncryptedState()
-        applyWindowTheme()
-        setContentView(buildScreen())
-        updateCounter()
-        updateSelectedPhrase()
-        renderDhikrList()
-        if (!storageAvailable) {
-            customStatus.text = storageFailureMessage
+        authenticateBeforeOpening()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (authenticationRequiredOnResume) {
+            authenticationRequiredOnResume = false
+            authenticateBeforeOpening()
         }
     }
 
@@ -216,11 +230,52 @@ class NativeTasbihActivity : Activity() {
         super.onPause()
     }
 
+    override fun onStop() {
+        super.onStop()
+        if (authenticated && !externalActivityPending && !isChangingConfigurations && !isFinishing) {
+            authenticated = false
+            screenOpened = false
+            authenticationRequiredOnResume = true
+            stopVoice(null)
+            count = 0
+            customDhikrs.clear()
+            removedDhikrs.clear()
+            selectedKey = ""
+            selectedTitle = ""
+            selectedText = ""
+            setContentView(TextView(this).apply {
+                text = "السبحة\nأُغلقت المساحة الخاصة. تحقّق ببصمتك أو بقفل الجهاز للمتابعة."
+                textSize = 15f
+                setTextColor(Color.rgb(21, 68, 48))
+                gravity = Gravity.CENTER
+                layoutDirection = View.LAYOUT_DIRECTION_RTL
+                setBackgroundColor(Color.rgb(247, 243, 234))
+            })
+        }
+    }
+
     override fun onDestroy() {
         stopVoice(null)
         speechRecognizer?.destroy()
         speechRecognizer = null
+        customDhikrs.clear()
+        removedDhikrs.clear()
+        count = 0
+        selectedText = ""
         super.onDestroy()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != REQUEST_DEVICE_UNLOCK) return
+        externalActivityPending = false
+        if (resultCode == RESULT_OK) {
+            openAfterDeviceAuthentication()
+        } else if (!screenOpened) {
+            finish()
+        } else {
+            Toast.makeText(this, "لم يكتمل تجديد التحقق. أبقينا بيانات السبحة كما هي.", Toast.LENGTH_LONG).show()
+        }
     }
 
     override fun onRequestPermissionsResult(
@@ -235,6 +290,103 @@ class NativeTasbihActivity : Activity() {
         } else {
             setVoiceStatus("لم يُسمح باستخدام الميكروفون. يمكنك متابعة العد اليدوي.", true)
         }
+    }
+
+    private fun authenticateBeforeOpening() {
+        if (isFinishing || isDestroyed || screenOpened) return
+        val keyguard = getSystemService(KEYGUARD_SERVICE) as android.app.KeyguardManager
+        if (!keyguard.isDeviceSecure) {
+            AlertDialog.Builder(this)
+                .setTitle("فعّل قفل شاشة الجهاز أولاً")
+                .setMessage("تحتاج السبحة إلى رمز PIN أو نمط أو كلمة مرور للجهاز، حتى نربط مفتاح التشفير بمصادقة الجهاز.")
+                .setPositiveButton("إعداد قفل الجهاز") { _, _ ->
+                    runCatching { startActivity(Intent(android.provider.Settings.ACTION_SECURITY_SETTINGS)) }
+                    finish()
+                }
+                .setNegativeButton("إغلاق") { _, _ -> finish() }
+                .setOnCancelListener { finish() }
+                .show()
+            return
+        }
+        try {
+            ensureAuthBoundKeystoreKey()
+        } catch (error: Exception) {
+            Toast.makeText(
+                this,
+                error.message ?: "تعذّر تجهيز مفتاح السبحة المرتبط بقفل الجهاز. لم نعرض بياناتها.",
+                Toast.LENGTH_LONG
+            ).show()
+            finish()
+            return
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val authenticators = androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
+            val availability = androidx.biometric.BiometricManager.from(this).canAuthenticate(authenticators)
+            if (availability != androidx.biometric.BiometricManager.BIOMETRIC_SUCCESS) {
+                Toast.makeText(this, "تعذّر تشغيل البصمة أو قفل الجهاز. حدّث إعدادات قفل الشاشة ثم أعد المحاولة.", Toast.LENGTH_LONG).show()
+                finish()
+                return
+            }
+            val prompt = androidx.biometric.BiometricPrompt(
+                this,
+                androidx.core.content.ContextCompat.getMainExecutor(this),
+                object : androidx.biometric.BiometricPrompt.AuthenticationCallback() {
+                    override fun onAuthenticationSucceeded(result: androidx.biometric.BiometricPrompt.AuthenticationResult) {
+                        super.onAuthenticationSucceeded(result)
+                        openAfterDeviceAuthentication()
+                    }
+
+                    override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                        super.onAuthenticationError(errorCode, errString)
+                        Toast.makeText(this@NativeTasbihActivity, "لم يكتمل التحقق: $errString", Toast.LENGTH_LONG).show()
+                        if (!screenOpened) finish()
+                    }
+                }
+            )
+            val promptInfo = androidx.biometric.BiometricPrompt.PromptInfo.Builder()
+                .setTitle("فتح السبحة المحمية")
+                .setSubtitle("تحقق ببصمة الإصبع أو بوسيلة قفل الشاشة")
+                .setAllowedAuthenticators(authenticators)
+                .build()
+            prompt.authenticate(promptInfo)
+            return
+        }
+
+        val credentialIntent = keyguard.createConfirmDeviceCredentialIntent(
+            "فتح السبحة المحمية",
+            "أدخل رمز قفل الجهاز للمتابعة"
+        )
+        if (credentialIntent == null) {
+            Toast.makeText(this, "تعذّر استدعاء شاشة تحقق الجهاز. لم نعرض بيانات السبحة.", Toast.LENGTH_LONG).show()
+            finish()
+            return
+        }
+        externalActivityPending = true
+        startActivityForResult(credentialIntent, REQUEST_DEVICE_UNLOCK)
+    }
+
+    private fun openAfterDeviceAuthentication() {
+        if (screenOpened || isFinishing || isDestroyed) return
+        authenticated = true
+        screenOpened = true
+        try {
+            loadEncryptedState()
+            if (legacyMigrationPending && !saveEncryptedState()) {
+                storageAvailable = false
+                storageFailureMessage = "تعذّر التحقق من ترقية السجل القديم. احتفظنا بالسجل القديم ولم نحذفه."
+            }
+        } catch (error: Exception) {
+            storageAvailable = false
+            storageFailureMessage = "تعذّر التحقق من سجل السبحة المشفر. لم نعرض محتواه ولم نحذفه."
+        }
+        applyWindowTheme()
+        setContentView(buildScreen())
+        updateCounter()
+        updateSelectedPhrase()
+        renderDhikrList()
+        if (!storageAvailable) customStatus.text = storageFailureMessage
     }
 
     private fun loadOfficialCatalog(): List<DhikrItem> {
