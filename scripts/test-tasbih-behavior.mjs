@@ -548,7 +548,7 @@ const unsupportedVoice=buildApp({noRecognition:true});
 assert.equal(unsupportedVoice.nodes.tasbihVoice.disabled,true,'unsupported browsers get a clear disabled voice control');
 const browserRecognition=buildApp();
 browserRecognition.nodes.tasbihVoice.click();
-assert.equal(browserRecognition.recognitions[0].started,1,'the tasbih recognizer starts only after the explicit privacy confirmation');
+assert.equal(browserRecognition.recognitions[0].started,1,'the tasbih recognizer starts directly on the visitor’s button press without an extra site confirmation');
 browserRecognition.nodes.tasbihTap.click();
 assert.equal(count(browserRecognition),1,'manual tasbih remains usable alongside browser speech recognition');
 
