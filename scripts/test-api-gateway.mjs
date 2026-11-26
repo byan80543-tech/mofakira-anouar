@@ -267,12 +267,81 @@ try {
   assert.equal((await last.json()).bucket, "total");
   assert.equal(updateCalls, 50, "the rejected 51st request does not update the SQLite row");
 
-  // The retired audio transcription endpoint is no longer exposed.
+
+  // The focused tasbih endpoint accepts a short Arabic audio segment and returns
+  // only the number of exact dhikr matches. The transcript never leaves the Worker.
+  const tasbihAiCalls = [];
+  const tasbihEnv = {
+    ...baseEnv(),
+    AI: {
+      async run(model, input) {
+        tasbihAiCalls.push({ model, input });
+        return { transcription_info: { text: "سبحان الله سبحان الله", language: "ar", word_count: 4 } };
+      }
+    }
+  };
+  const makeTasbihRequest = (fields = {}) => {
+    const form = new FormData();
+    form.append("audio", new Blob(["test-audio-bytes"], { type: fields.mime || "audio/webm" }), "segment.webm");
+    form.append("phrase", fields.phrase || "سبحان الله");
+    if (fields.consent !== false) form.append("consent", "true");
+    else form.append("consent", "false");
+    return new Request("https://gateway.example.workers.dev/v1/tasbih/count", {
+      method: "POST",
+      headers: { Origin: "https://byan80543-tech.github.io", "CF-Connecting-IP": "192.0.2.61" },
+      body: form
+    });
+  };
+  response = await worker.fetch(makeTasbihRequest(), tasbihEnv, context);
+  assert.equal(response.status, 200, "the focused tasbih route accepts a valid, consented Arabic audio segment");
+  const tasbihPayload = await response.json();
+  assert.deepEqual(tasbihPayload, { matches: 2 }, "the response contains only the matched dhikr count");
+  assert.equal(response.headers.get("Cache-Control"), "no-store, private, max-age=0");
+  assert.deepEqual(tasbihEnv.IP_LIMITER.bucketsSeen.at(-1), ["total", "client", "tasbih"]);
+  assert.equal(tasbihAiCalls.length, 1);
+  assert.equal(tasbihAiCalls[0].model, "@cf/openai/whisper-large-v3-turbo");
+  assert.equal(tasbihAiCalls[0].input.language, "ar");
+  assert.equal(tasbihAiCalls[0].input.task, "transcribe");
+  assert.equal(typeof tasbihAiCalls[0].input.audio, "string");
+  assert.doesNotMatch(JSON.stringify(tasbihPayload), /سبحان الله|transcription|language|word_count/,
+    "the recognised words and transcription metadata never return to the browser");
+
+  const callsBeforeDeniedVoice = tasbihAiCalls.length;
+  response = await worker.fetch(makeTasbihRequest({ consent: false }), tasbihEnv, context);
+  assert.equal(response.status, 403, "the audio endpoint requires explicit per-session consent");
+  assert.equal(tasbihAiCalls.length, callsBeforeDeniedVoice, "unconsented audio never reaches the model");
+
+  response = await worker.fetch(makeTasbihRequest({ mime: "application/octet-stream" }), tasbihEnv, context);
+  assert.equal(response.status, 415, "unknown binary formats are rejected before model processing");
+  assert.equal(tasbihAiCalls.length, callsBeforeDeniedVoice, "unsupported audio types never reach the model");
+
+  response = await worker.fetch(makeTasbihRequest(), { ...baseEnv(), AI: null }, context);
+  assert.equal(response.status, 503, "missing Workers AI binding fails closed");
+
+  const deniedTasbihEnv = { ...tasbihEnv, IP_LIMITER: makeLimiter({ denyBucket: "tasbih" }) };
+  const callsBeforeRateLimit = tasbihAiCalls.length;
+  response = await worker.fetch(makeTasbihRequest(), deniedTasbihEnv, context);
+  assert.equal(response.status, 429, "the dedicated tasbih rate limit blocks excessive audio submissions");
+  assert.equal(tasbihAiCalls.length, callsBeforeRateLimit, "rate-limited audio never reaches the model");
+
+  const oversizedForm = new FormData();
+  oversizedForm.append("audio", new Blob([new Uint8Array(390 * 1024)], { type: "audio/webm" }), "oversized.webm");
+  oversizedForm.append("phrase", "سبحان الله");
+  oversizedForm.append("consent", "true");
+  response = await worker.fetch(new Request("https://gateway.example.workers.dev/v1/tasbih/count", {
+    method: "POST",
+    headers: { Origin: "https://byan80543-tech.github.io", "CF-Connecting-IP": "192.0.2.62" },
+    body: oversizedForm
+  }), tasbihEnv, context);
+  assert.equal(response.status, 413, "oversized request bodies are rejected by the bounded reader");
+  assert.equal(tasbihAiCalls.length, callsBeforeRateLimit, "oversized audio never reaches the model");
+
+  // The broad legacy transcription route remains retired.
   response = await worker.fetch(new Request("https://gateway.example.workers.dev/v1/transcribe", {
     method: "POST",
     headers: { Origin: "https://byan80543-tech.github.io", "CF-Connecting-IP": "192.0.2.60" }
   }), baseEnv(), context);
-  assert.equal(response.status, 404, "the removed audio transcription endpoint returns not found");
+  assert.equal(response.status, 404, "the removed general transcription endpoint remains unavailable");
 
 
   // Authenticated owner endpoints remain rate-limited even with a valid signed token.
