@@ -2815,7 +2815,7 @@ document.addEventListener('click',e=>{
  else if(id==='prn')doPrint();
  else if(id==='pdf')doPdf();
  else if(id==='word')doWord();
- else if(id==='sp')togglePoetryDictation();
+
  else if(id==='speakRead')speakText();
  else if(id==='fb'){const r=t.getBoundingClientRect(),m=$('fm');m.style.top=r.bottom+4+'px';m.style.left=Math.max(6,Math.min(r.left,innerWidth-266))+'px';fontList('');$('fq').value='';m.classList.toggle('o');loadFontStylesheets(true).catch(error=>{console.warn(error);toast('بعض الخطوط تحتاج إلى اتصال بالإنترنت',3500)})}
  else if(id==='vs'&&cur)insertPoetryVerse();

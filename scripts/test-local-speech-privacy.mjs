@@ -51,17 +51,17 @@ vm.runInNewContext(helper,{window:absentWindow,globalThis:absentWindow});
 assert.equal(absentWindow.AnwarLocalSpeech.supported(),false,'a browser without speech recognition fails closed');
 
 assert.doesNotMatch(helper,/\.install\s*\(/,'the app never downloads speech models automatically');
-assert.match(tasbih,/LocalSpeech\.create\(speechLanguage\)/,'tasbih uses the local-only factory');
-assert.match(tasbih,/recognition\.processLocally=true/,'tasbih explicitly requires on-device processing before starting');
-assert.doesNotMatch(tasbih,/webkitSpeechRecognition|new\s+SpeechRecognition/,'tasbih has no direct remote-capable recognition constructor');
-assert.match(poetry,/localSpeech\.create\(LANGUAGES\[0\]\)/,'poetry dictation uses the local-only factory');
-assert.doesNotMatch(poetry,/webkitSpeechRecognition|new\s+Recognition/,'poetry dictation has no direct remote-capable constructor');
-assert.ok(html.indexOf('local-speech-privacy.js')<html.indexOf('poetry-dictation.js'),'the privacy gate loads before poetry dictation');
-assert.ok(html.indexOf('local-speech-privacy.js')<html.indexOf('tasbih-controller.js'),'the privacy gate loads before tasbih');
+assert.match(tasbih,/new\s+SpeechRecognition\(\)/,'tasbih alone has a dedicated browser speech recognizer');
+assert.doesNotMatch(tasbih,/AnwarLocalSpeech|processLocally/,'tasbih does not inherit the writing tools local-only restriction');
+assert.match(tasbih,/window\.confirm\(['\"]تنبيه خصوصية/,'tasbih asks consent before activating potentially remote speech recognition');
+assert.match(poetry,/localSpeech\.create\(LANGUAGES\[0\]\)/,'the dormant dictation module remains local-only if ever reused');
+assert.doesNotMatch(html,/id="sp"|poetry-dictation\.js/,'writing tools expose no dictation microphone control or script');
+assert.doesNotMatch(core,/id==='sp'\)togglePoetryDictation/,'the notebook toolbar cannot start microphone dictation');
+assert.ok(html.indexOf('local-speech-privacy.js')<html.indexOf('tasbih-controller.js'),'the privacy gate remains available for local-only features');
 assert.match(headers,/microphone=\(self\)/,'microphone access is limited to this origin');
 assert.match(headers,/on-device-speech-recognition=\(self\)/,'on-device speech recognition is explicitly permitted for this origin');
 assert.match(worker,/\.\/local-speech-privacy\.js/,'the local speech privacy gate is included in the offline shell');
 assert.match(worker,/v223/,'the offline shell cache is refreshed after all privacy assets');
-assert.match(core,/لا يبدأ الميكروفون إلا مع تعرف محلي مؤكد/,'the user-facing dictation notice describes the local-only boundary');
+assert.match(html,/قد يرسل المتصفح الصوت إلى خدمة التعرف التابعة له/,'tasbih warns that browser recognition may send audio to its provider');
 
-console.log('PASS: voice input is fail-closed; microphone recognition requires processLocally=true and never falls back to remote processing.');
+console.log('PASS: writing dictation is removed; tasbih browser recognition is isolated behind explicit privacy consent.');
