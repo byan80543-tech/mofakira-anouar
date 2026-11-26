@@ -78,7 +78,7 @@ function buildApp(options={}){
   'tasbihCounterControl','tasbihClockDial','tasbihClockTicks','tasbihClockNumbers','tasbihHourHand','tasbihMinuteHand','tasbihSecondHand','tasbihElapsedTime','tasbihThemeToggle','tasbihThemePicker','tasbihThemeEmerald','tasbihThemeDark','tasbihThemePink','tasbihThemeNight','tasbihThemeHeritage','tasbihThemeGlass',
   'tasbihShieldButton','tasbihShieldDialog','tasbihShieldForm','tasbihShieldPassword','tasbihShieldConfirm','tasbihShieldConfirmWrap','tasbihShieldStatus','tasbihShieldSubmit','tasbihShieldLock','tasbihShieldClose'
  ];
- for(const id of ids)nodes[id]=id==='tasbihDhikr'?new FakeSelect(id):new FakeElement(id,(['ownerDialog','tasbihShieldDialog'].includes(id)?'DIALOG':(['tasbihShieldForm'].includes(id)?'FORM':'DIV'));
+ for(const id of ids)nodes[id]=id==='tasbihDhikr'?new FakeSelect(id):new FakeElement(id,(['ownerDialog','tasbihShieldDialog'].includes(id)?'DIALOG':(['tasbihShieldForm'].includes(id)?'FORM':'DIV')));
  const themeNames=['emerald','dark','pink','night','heritage','glass'];
  themeNames.forEach(name=>{nodes['tasbihTheme'+name[0].toUpperCase()+name.slice(1)].dataset.tasbihThemeOption=name});
  nodes.tasbihThemePicker.hidden=true;
