@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 
 const read = (path) => fs.readFileSync(new URL('../' + path, import.meta.url), 'utf8');
 const manifest = read('android/app/src/main/AndroidManifest.xml');
@@ -12,6 +13,8 @@ const receiver = read('android/app/src/main/java/com/anwar/mofakira/alarm/Prayer
 const service = read('android/app/src/main/java/com/anwar/mofakira/playback/AdhanPlaybackService.kt');
 const calendar = read('android/app/src/main/java/com/anwar/mofakira/alarm/PrayerCalendarRepository.kt');
 const prayer = read('prayer-times.js');
+const nativePrayer = read('android/app/src/main/java/com/anwar/mofakira/NativePrayerActivity.kt');
+const prayerSettings = read('android/app/src/main/java/com/anwar/mofakira/PrayerSettings.kt');
 const voiceCatalog = read('android/app/src/main/java/com/anwar/mofakira/playback/VoiceCatalog.kt');
 const companionReadme = read('android/README.md');
 
@@ -87,6 +90,10 @@ assert.match(voiceCatalog, /assetPath = "www\/assets\/adhan\/beautiful-adhan\.og
 assert.doesNotMatch(voiceCatalog, /https?:\/\/|HttpURLConnection|URL\(/,
   'the Android adhan catalog and cache cannot contact an external audio host');
 assert.match(voiceCatalog, /EXPECTED_SHA1 = "a1fa4fd942401922c5c3301816384aae86956522"/);
+const localAdhanBytes = fs.readFileSync(new URL('../assets/adhan/beautiful-adhan.ogg', import.meta.url));
+assert.equal(localAdhanBytes.length, 1_229_032, 'the APK source recording has the expected byte length');
+assert.equal(createHash('sha1').update(localAdhanBytes).digest('hex'),
+  'a1fa4fd942401922c5c3301816384aae86956522', 'the APK source recording matches the verified CC0 asset');
 assert.doesNotMatch(service, /voice\.url|setDataSource\(voice\./,
   'native playback has no URL fallback');
 assert.match(service, /VoiceCache\.cachedFile\(this, config\.voiceKey\)/);
@@ -97,8 +104,6 @@ assert.doesNotMatch(nativePrayer, /NativePrayerVoice\("(?:aqsa|haram_makki|moroc
 assert.doesNotMatch(read('android/app/src/main/java/com/anwar/mofakira/alarm/PrayerRefreshWorker.kt'), /NetworkType|Constraints|CONNECTED/);
 assert.doesNotMatch(prayer, /youtube\.com|morocco_old|الحاج محمد العمري/);
 assert.doesNotMatch(voiceCatalog, /youtube\.com|morocco_old|الحاج محمد العمري/);
-const nativePrayer = read('android/app/src/main/java/com/anwar/mofakira/NativePrayerActivity.kt');
-const prayerSettings = read('android/app/src/main/java/com/anwar/mofakira/PrayerSettings.kt');
 assert.match(manifest, /android:name="\.NativePrayerActivity"[\s\S]*?android:exported="false"/,
   'native prayer times screen is registered as an internal activity');
 assert.match(nativePrayer, /class NativePrayerActivity : Activity\(\)/);
