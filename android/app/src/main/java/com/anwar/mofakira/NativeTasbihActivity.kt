@@ -436,52 +436,83 @@ class NativeTasbihActivity : FragmentActivity() {
     }
 
     private fun loadEncryptedState() {
-        val envelope = preferences.getString(STATE_KEY, null) ?: return
-        try {
-            val raw = decryptState(envelope)
-            val json = JSONObject(String(raw, StandardCharsets.UTF_8))
-            count = json.optInt("count", 0).coerceIn(0, MAX_COUNT)
-            themeKey = json.optString("theme", "pink")
-                .let { saved -> if (saved == "emerald") "pink" else saved }
-                .takeIf { value -> themes.any { it.key == value } } ?: "pink"
-            customDhikrs.clear()
-            val custom = json.optJSONArray("customDhikrs") ?: JSONArray()
-            for (index in 0 until custom.length()) {
-                val value = custom.optString(index).replace(WHITESPACE, " ").trim()
-                if (value.isNotBlank() && value.length <= MAX_CUSTOM_LENGTH &&
-                    !customDhikrs.contains(value) && customDhikrs.size < MAX_CUSTOM_DHIKRS
-                ) customDhikrs.add(value)
-            }
-            removedDhikrs.clear()
-            val removed = json.optJSONArray("removedDhikrs") ?: JSONArray()
-            for (index in 0 until removed.length()) {
-                val value = removed.optString(index)
-                if (value.isNotBlank() && value.length <= 4000 && removedDhikrs.size < 60) {
-                    removedDhikrs.add(value)
+        val primary = preferences.getString(STATE_KEY, null)
+        val backup = preferences.getString(BACKUP_STATE_KEY, null)
+
+        if (primary != null || backup != null) {
+            var lastError: Exception? = null
+            val candidates = listOfNotNull(primary, backup)
+            for ((index, encoded) in candidates.withIndex()) {
+                try {
+                    applyDecryptedState(decryptState(encoded))
+                    if (index > 0) {
+                        storageFailureMessage = "استُعيدت السبحة من نسختها الاحتياطية المشفّرة. احفظ أي تعديل لإعادة بناء السجل الأساسي."
+                    }
+                    return
+                } catch (error: Exception) {
+                    lastError = error
                 }
             }
-            selectedKey = json.optString("selectedKey", selectedKey)
-            selectedTitle = json.optString("selectedTitle", selectedTitle)
-            selectedText = json.optString("selectedText", selectedText)
-            if (selectedText.isBlank() || selectedText.length > MAX_SELECTED_TEXT) {
-                selectedKey = "builtin:legacy-default"
-                selectedTitle = "سبوح قدوس رب الملائكة والروح"
-                selectedText = "سبوح قدوس رب الملائكة والروح."
+            storageAvailable = false
+            storageFailureMessage = if (lastError is UserNotAuthenticatedException) {
+                "انتهت مهلة مصادقة الجهاز. أعد فتح السبحة بعد التحقق ببصمتك أو بقفل الجهاز."
+            } else {
+                "تعذّر فك تشفير سجلات السبحة أو التحقق منها. أبقينا السجلين كما هما ولم نكتب فوقهما."
             }
-            if (selectedKey.startsWith("custom:") && !customDhikrs.contains(selectedText)) {
-                selectedKey = "builtin:legacy-default"
-                selectedTitle = "سبوح قدوس رب الملائكة والروح"
-                selectedText = "سبوح قدوس رب الملائكة والروح."
-            }
+            return
+        }
+
+        val legacy = preferences.getString(LEGACY_STATE_KEY, null) ?: return
+        try {
+            applyDecryptedState(decryptState(legacy, legacy = true))
+            legacyMigrationPending = true
         } catch (error: Exception) {
             storageAvailable = false
-            storageFailureMessage = "تعذر فك تشفير إعدادات السبحة. أبقينا السجل المشفر كما هو ولم نكتب فوقه."
+            storageFailureMessage = "تعذّر فتح سجل السبحة القديم. لم نحذفه ولم ننشئ سجلاً بديلاً فوقه."
+        }
+    }
+
+    private fun applyDecryptedState(raw: ByteArray) {
+        val json = JSONObject(String(raw, StandardCharsets.UTF_8))
+        count = json.optInt("count", 0).coerceIn(0, MAX_COUNT)
+        themeKey = json.optString("theme", "pink")
+            .let { saved -> if (saved == "emerald") "pink" else saved }
+            .takeIf { value -> themes.any { it.key == value } } ?: "pink"
+        customDhikrs.clear()
+        val custom = json.optJSONArray("customDhikrs") ?: JSONArray()
+        for (index in 0 until custom.length()) {
+            val value = custom.optString(index).replace(WHITESPACE, " ").trim()
+            if (value.isNotBlank() && value.length <= MAX_CUSTOM_LENGTH &&
+                !customDhikrs.contains(value) && customDhikrs.size < MAX_CUSTOM_DHIKRS
+            ) customDhikrs.add(value)
+        }
+        removedDhikrs.clear()
+        val removed = json.optJSONArray("removedDhikrs") ?: JSONArray()
+        for (index in 0 until removed.length()) {
+            val value = removed.optString(index)
+            if (value.isNotBlank() && value.length <= 4000 && removedDhikrs.size < 60) {
+                removedDhikrs.add(value)
+            }
+        }
+        selectedKey = json.optString("selectedKey", selectedKey)
+        selectedTitle = json.optString("selectedTitle", selectedTitle)
+        selectedText = json.optString("selectedText", selectedText)
+        if (selectedText.isBlank() || selectedText.length > MAX_SELECTED_TEXT) {
+            selectedKey = "builtin:legacy-default"
+            selectedTitle = "سبوح قدوس رب الملائكة والروح"
+            selectedText = "سبوح قدوس رب الملائكة والروح."
+        }
+        if (selectedKey.startsWith("custom:") && !customDhikrs.contains(selectedText)) {
+            selectedKey = "builtin:legacy-default"
+            selectedTitle = "سبوح قدوس رب الملائكة والروح"
+            selectedText = "سبوح قدوس رب الملائكة والروح."
         }
     }
 
     private fun saveEncryptedState(): Boolean {
-        if (!storageAvailable) {
-            customStatus.text = storageFailureMessage
+        if (!storageAvailable || !authenticated) {
+            if (::customStatus.isInitialized) customStatus.text =
+                if (!authenticated) "السبحة مقفلة. تحقّق قبل الحفظ." else storageFailureMessage
             return false
         }
         return try {
@@ -500,43 +531,132 @@ class NativeTasbihActivity : FragmentActivity() {
 
             val plain = json.toString().toByteArray(StandardCharsets.UTF_8)
             val encrypted = encryptState(plain)
-            if (!preferences.edit().putString(STATE_KEY, encrypted).commit()) {
-                throw IllegalStateException("تعذر تثبيت سجل السبحة في التخزين المحلي.")
+            val encryptedBackup = encryptState(plain)
+            if (!preferences.edit()
+                    .putString(STATE_KEY, encrypted)
+                    .putString(BACKUP_STATE_KEY, encryptedBackup)
+                    .commit()
+            ) {
+                throw IllegalStateException("تعذّر تثبيت سجل السبحة والنسخة الاحتياطية المشفّرين.")
             }
             val saved = preferences.getString(STATE_KEY, null)
-                ?: throw IllegalStateException("لم نعثر على السجل الذي حُفظ.")
-            val verified = decryptState(saved)
-            if (!verified.contentEquals(plain)) {
-                throw IllegalStateException("لم تتطابق مراجعة السجل المشفر مع البيانات الأصلية.")
+                ?: throw IllegalStateException("لم نعثر على السجل الأساسي الذي حُفظ.")
+            val savedBackup = preferences.getString(BACKUP_STATE_KEY, null)
+                ?: throw IllegalStateException("لم نعثر على النسخة الاحتياطية التي حُفظت.")
+            if (!decryptState(saved).contentEquals(plain) ||
+                !decryptState(savedBackup).contentEquals(plain)
+            ) {
+                throw IllegalStateException("لم تتطابق مراجعة السجل الأساسي والاحتياطي مع البيانات الأصلية.")
             }
+
+            if (legacyMigrationPending) {
+                if (!preferences.edit().remove(LEGACY_STATE_KEY).commit() ||
+                    preferences.contains(LEGACY_STATE_KEY)
+                ) {
+                    throw IllegalStateException("حُفظت النسخة المحمية وتحققنا منها، لكن تعذّر تنظيف السجل القديم. لم نحذف مفتاحه.")
+                }
+                runCatching {
+                    KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+                        .deleteEntry(LEGACY_KEY_ALIAS)
+                }
+                legacyMigrationPending = false
+            }
+            storageFailureMessage = ""
             true
         } catch (error: Exception) {
-            storageFailureMessage = "تعذر حفظ التغيير المشفر. لم نحذف السجل السابق."
-            customStatus.text = storageFailureMessage
+            storageFailureMessage = when {
+                isUserAuthenticationExpired(error) ->
+                    "انتهت مهلة مصادقة الجهاز. أقفل السبحة وأعد فتحها ببصمتك أو بقفل الشاشة قبل متابعة الحفظ."
+                isKeyPermanentlyInvalidated(error) ->
+                    "تغيّر قفل الجهاز فأصبح مفتاح السبحة غير صالح. لم نحذف السجل؛ استخدم نسخة إنقاذ موثوقة إن كانت لديك."
+                else -> "تعذّر حفظ السجل المشفّر والتحقق من نسخته الاحتياطية. لم نحذف السجل السابق."
+            }
+            if (::customStatus.isInitialized) customStatus.text = storageFailureMessage
             false
         }
     }
 
-    private fun getKeystoreKey(createIfMissing: Boolean): SecretKey {
+    private fun ensureAuthBoundKeystoreKey() {
         val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
-        val existing = keyStore.getKey(KEY_ALIAS, null) as? SecretKey
-        if (existing != null) return existing
-        if (!createIfMissing) throw IllegalStateException("مفتاح تشفير السبحة غير متاح.")
+        if (keyStore.containsAlias(KEY_ALIAS)) {
+            try {
+                val existing = keyStore.getKey(KEY_ALIAS, null) as? SecretKey
+                    ?: throw IllegalStateException("مفتاح حماية السبحة غير صالح.")
+                return
+            } catch (error: Exception) {
+                if (isKeyPermanentlyInvalidated(error)) {
+                    throw IllegalStateException(
+                        "تغيّر قفل شاشة الجهاز أو أُعيد ضبطه فأصبح مفتاح السبحة غير صالح. لم نحذف السجل المشفّر.",
+                        error
+                    )
+                }
+                throw error
+            }
+        }
+
+        if (preferences.contains(STATE_KEY) || preferences.contains(BACKUP_STATE_KEY)) {
+            throw IllegalStateException("سجلات السبحة المحمية موجودة لكن مفتاحها غير متاح. لم ننشئ مفتاحاً بديلاً.")
+        }
+        if (preferences.contains(LEGACY_STATE_KEY) && !keyStore.containsAlias(LEGACY_KEY_ALIAS)) {
+            throw IllegalStateException("سجل السبحة القديم موجود لكن مفتاحه الأصلي غير متاح. لم نغيّر أي بيانات.")
+        }
+
         val generator = KeyGenerator.getInstance(
             KeyProperties.KEY_ALGORITHM_AES,
             "AndroidKeyStore"
         )
-        generator.init(
-            KeyGenParameterSpec.Builder(
-                KEY_ALIAS,
-                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
-            )
-                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                .setRandomizedEncryptionRequired(true)
-                .build()
+        val builder = KeyGenParameterSpec.Builder(
+            KEY_ALIAS,
+            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
         )
-        return generator.generateKey()
+            .setKeySize(256)
+            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+            .setRandomizedEncryptionRequired(true)
+            .setUserAuthenticationRequired(true)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            builder.setUserAuthenticationParameters(
+                KEY_AUTH_VALIDITY_SECONDS,
+                KeyProperties.AUTH_BIOMETRIC_STRONG or KeyProperties.AUTH_DEVICE_CREDENTIAL
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            builder.setUserAuthenticationValidityDurationSeconds(KEY_AUTH_VALIDITY_SECONDS)
+        }
+        generator.init(builder.build())
+        generator.generateKey()
+    }
+
+    private fun getKeystoreKey(createIfMissing: Boolean, legacy: Boolean = false): SecretKey {
+        val alias = if (legacy) LEGACY_KEY_ALIAS else KEY_ALIAS
+        val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+        val existing = keyStore.getKey(alias, null) as? SecretKey
+        if (existing != null) return existing
+        if (legacy || !createIfMissing) {
+            throw IllegalStateException("مفتاح تشفير السبحة غير متاح. لم ننشئ مفتاحاً بديلاً.")
+        }
+        ensureAuthBoundKeystoreKey()
+        return keyStore.getKey(KEY_ALIAS, null) as? SecretKey
+            ?: throw IllegalStateException("تعذّر الوصول إلى مفتاح السبحة المرتبط بقفل الجهاز.")
+    }
+
+    private fun isKeyPermanentlyInvalidated(error: Throwable?): Boolean {
+        var current = error
+        while (current != null) {
+            if (current is KeyPermanentlyInvalidatedException) return true
+            current = current.cause
+        }
+        return false
+    }
+
+    private fun isUserAuthenticationExpired(error: Throwable?): Boolean {
+        var current = error
+        while (current != null) {
+            if (current is UserNotAuthenticatedException) return true
+            current = current.cause
+        }
+        return false
     }
 
     private fun encryptState(plain: ByteArray): String {
@@ -544,7 +664,7 @@ class NativeTasbihActivity : FragmentActivity() {
         cipher.init(Cipher.ENCRYPT_MODE, getKeystoreKey(true))
         val encrypted = cipher.doFinal(plain)
         val iv = cipher.iv
-        require(iv.isNotEmpty() && iv.size <= 32)
+        require(iv.size == 12) { "متجه التهيئة الخاص بالتشفير غير صالح." }
         val envelope = ByteBuffer.allocate(1 + iv.size + encrypted.size)
             .put(iv.size.toByte())
             .put(iv)
@@ -553,11 +673,11 @@ class NativeTasbihActivity : FragmentActivity() {
         return Base64.encodeToString(envelope, Base64.NO_WRAP)
     }
 
-    private fun decryptState(encoded: String): ByteArray {
+    private fun decryptState(encoded: String, legacy: Boolean = false): ByteArray {
         val envelope = Base64.decode(encoded, Base64.NO_WRAP)
         require(envelope.size > 14) { "سجل السبحة المشفر غير مكتمل." }
         val ivLength = envelope[0].toInt() and 0xff
-        require(ivLength in 12..32 && envelope.size > 1 + ivLength + 16) {
+        require(ivLength == 12 && envelope.size > 1 + ivLength + 16) {
             "صيغة سجل السبحة المشفر غير صحيحة."
         }
         val iv = envelope.copyOfRange(1, 1 + ivLength)
@@ -565,7 +685,7 @@ class NativeTasbihActivity : FragmentActivity() {
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(
             Cipher.DECRYPT_MODE,
-            getKeystoreKey(false),
+            getKeystoreKey(false, legacy),
             GCMParameterSpec(128, iv)
         )
         return cipher.doFinal(ciphertext)
