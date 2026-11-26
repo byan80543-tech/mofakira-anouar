@@ -130,7 +130,7 @@ assert.match(prayerSettings, /fun updateNative\(/,
 assert.match(localCalculator, /"الحسيمة"/,
   'Al Hoceima is supported when entered in Arabic');
 assert.match(localCalculator, /fun supportedCities\(\)/);
-assert.match(localCalculator, /"Morocco", "Meknes"/);
+assert.match(localCalculator, /Place\("Morocco","Meknes"/);
 assert.match(read('android/app/src/test/java/com/anwar/mofakira/alarm/LocalPrayerCalculatorTest.kt'), /meknesMatchesPublishedNovember2026TimesWithinOneMinute/);
 assert.match(calendar, /PrayerSettings\.saveEvents\(context, events\.toString\(\)\)/);
 assert.match(calendar, /if \(config\.enabled && VoiceCatalog\.supports\(config\.voiceKey\)\)/,
