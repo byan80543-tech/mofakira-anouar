@@ -66,3 +66,10 @@
 - Cloudflare Pages custom headers: https://developers.cloudflare.com/pages/configuration/headers/
 - W3C CSP Level 3 — meta restrictions: https://www.w3.org/TR/CSP3/
 - MDN CSP implementation: https://developer.mozilla.org/en-US/docs/Web/Security/Practical_implementation_guides/CSP
+
+
+## حالة التحقق من الاستجابة الحية — 2026-11-26
+
+ملف `_headers` وسير `.github/workflows/deploy-cloudflare-pages.yml` يهيئان نشر الرؤوس في جذر مخرجات Cloudflare Pages، ويتحقق سير البناء من وجود CSP و`frame-ancestors 'none'` و`X-Content-Type-Options` وHSTS في ملف الإخراج. هذا **تحقق من إعدادات المصدر والبناء**، وليس دليلاً مستقلاً على أن كل رأس وصل فعلياً إلى كل استجابة منشورة.
+
+لم تُلتقط في مراجعة 2026-11-26 استجابة HTTP حية من الموقع للتحقق من الرؤوس وTLS. قبل وصف هذه الرؤوس بأنها مؤكدة على الإنتاج، نفّذ فحص GET/HEAD للمسار الرئيسي وصفحة الخصوصية وملفات JavaScript وService Worker، وسجّل التاريخ والنتيجة والرؤوس الفعلية. لا تُسجل هذه الخطوة على أنها ناجحة قبل تنفيذها.

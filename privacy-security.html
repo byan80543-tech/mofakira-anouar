@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ملف الخصوصية والأمان | مفكرة أنوار</title>
+<meta name="description" content="ملف علني قابل للفهرسة يشرح تشفير مفكرة أنوار المحلي، وسياسات الاتصال والأذونات، والموارد الخارجية، وحدود الاختبارات والخصوصية.">
+<meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">
+<link rel="canonical" href="https://mofakira-anouar.pages.dev/privacy-security.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ملف الخصوصية والأمان | مفكرة أنوار">
+<meta property="og:description" content="التصميم الأمني، معالجة البيانات، الأذونات، الخدمات الخارجية، ومنهجية المراجعة وحدودها.">
+<meta property="og:url" content="https://mofakira-anouar.pages.dev/privacy-security.html">
+<style>
+:root{color-scheme:light;--ink:#203044;--muted:#5a6675;--paper:#f7f8fa;--line:#dce2e9;--blue:#164a70;--gold:#a98645;--white:#fff}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.9 system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif}
+header,main,footer{width:min(920px,calc(100% - 28px));margin:auto}
+header{padding:34px 0 18px}h1{font-size:clamp(1.7rem,5vw,2.5rem);line-height:1.4;margin:0 0 10px;color:var(--blue)}
+h2{font-size:1.25rem;color:var(--blue);margin:0 0 10px}h3{font-size:1.05rem;margin:16px 0 5px}
+p{margin:7px 0 13px}.meta{color:var(--muted);font-size:.92rem}.intro{font-size:1.06rem}
+section{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:20px;margin:14px 0}
+a{color:#145c8c;text-decoration-thickness:1px;text-underline-offset:3px;overflow-wrap:anywhere}
+ul{padding-inline-start:22px;margin:8px 0}li{margin:5px 0}
+.tag{display:inline-block;border:1px solid var(--line);border-radius:6px;padding:1px 8px;font-size:.85rem;color:var(--muted);margin-inline-start:5px}
+.notice{border-inline-start:4px solid var(--gold);padding:10px 14px;background:#fbf8f1;border-radius:7px}
+code{direction:ltr;unicode-bidi:embed;background:#f0f2f5;padding:2px 5px;border-radius:4px}
+.en{direction:ltr;text-align:left;border-top:1px solid var(--line);margin-top:22px;padding-top:18px}
+footer{padding:15px 0 35px;color:var(--muted);font-size:.9rem}
+@media(max-width:540px){section{padding:15px}body{font-size:15px}}
+</style>
+</head>
+<body>
+<header>
+<p class="meta">مفكرة أنوار · ملف عام للخصوصية والأمان · مراجعة مصدرية بتاريخ 26 نوفمبر 2026</p>
+<h1>الخصوصية والأمان في مفكرة أنوار</h1>
+<p class="intro">تشرح هذه الصفحة كيف تتعامل نسخة الويب من مفكرة أنوار مع البيانات المحلية والتشفير والميكروفون والاتصالات الخارجية، وما الذي اختُبر وما الذي لا يزال يحتاج إلى تحقق مستقل. أُعدّت لتكون مرجعاً عاماً واضحاً يمكن لمحركات البحث وأدوات تقييم المواقع الرجوع إليه.</p>
+<p><a href="/mofakira-anouar/">فتح مفكرة أنوار</a> · <a href="/privacy-security.json">البيانات المنظّمة JSON</a> · <a href="https://github.com/byan80543-tech/mofakira-anouar">مستودع المصدر</a></p>
+</header>
+<main>
+<section>
+<h2>الخلاصة ونطاق المراجعة</h2>
+<p>المراجعة الحالية هي <strong>مراجعة ساكنة للمصدر والإعدادات</strong> وليست شهادة اعتماد أو اختبار اختراق مستقلاً. جرى ربط النتائج بالنسخة المصدرية <code>810c1ff2e214459af4829b3025a691bde3c69500</code>، مع مراجعة ملفات الخزنة وسياسة المحتوى ورؤوس النشر وعامل الخدمة وإعدادات الاتصالات.</p>
+<p class="notice">لا نضع درجة رقمية لقوة الخصوصية؛ لم يُنفّذ حتى تاريخ المراجعة اختبار اختراق مستقل أو اختبار يدوي كامل على المتصفح والهاتف، كما لم نتحقق مباشرة من رؤوس HTTP على الاستجابة الحية. لذلك يجب على أي جهة تقييم احتساب هذه الحدود وعدم اعتبار وجود إعدادات الحماية دليلاً على شهادة أمنية.</p>
+</section>
+<section>
+<h2>1. التخزين المحلي والتشفير</h2>
+<ul>
+<li>تتيح المفكرة خزنة محلية اختيارية للملاحظات والبيانات التي تديرها الخزنة. يجب على المستخدم تفعيلها بعبارة مرور؛ لا يعني وجود الميزة أن كل بيانات كل زائر مشفرة تلقائياً.</li>
+<li>تستخدم الخزنة <strong>AES-256-GCM</strong> مع اشتقاق المفتاح عبر <strong>PBKDF2-HMAC-SHA-256</strong> بعدد 600,000 تكرار.</li>
+<li>ينشأ ملح عشوائي بطول 128 بت ومتجه تهيئة عشوائي جديد بطول 96 بت لكل عملية تشفير، مع وسم مصادقة GCM بطول 128 بت.</li>
+<li>مفتاح التشفير غير قابل للتصدير من Web Crypto API، ولا تحفظ الشيفرة عبارة المرور أو المفتاح الخام في <code>localStorage</code>.</li>
+<li>تحفظ أغلفة الخزنة المشفرة في IndexedDB. يتحقق التطبيق من الكتابة بإعادة القراءة، ولا ينظف النسخة القديمة قبل التحقق من ترحيلها.</li>
+<li>يتاح قفل يدوي وقفل تلقائي بعد خمس دقائق من الخمول، إضافة إلى القفل عند انتقال الصفحة إلى الخلفية أو مغادرتها.</li>
+<li>يمكن إعداد فتح إضافي عبر WebAuthn PRF على أصل المفكرة المعتمد فقط، في الأجهزة والمتصفحات الداعمة؛ وتبقى عبارة المرور الأساسية وسيلة الاسترداد.</li>
+<li>ملف «نسخة الإنقاذ» المقصود للاسترداد يُنشأ محلياً بصيغة JSON مشفرة ولا يُرفع تلقائياً إلى خادم المفكرة. احتفظ بالملف وعبارة المرور كلٍّ على حدة.</li>
+</ul>
+<p class="notice">التشفير يحمي البيانات المخزنة عندما تكون الخزنة مقفلة. لا يحمي المحتوى وهو ظاهر والخزنة مفتوحة من شيفرة خبيثة داخل أصل الموقع أو من امتداد متصفح مخوّل أو من جهاز مخترق. كما أن ملفات التصدير العادية TXT وHTML وPDF وWord مقروءة وغير مشفرة تلقائياً.</p>
+</section>
+<section>
+<h2>2. الميكروفون والتعرف الصوتي</h2>
+<ul>
+<li>لا يبدأ العد الصوتي في السبحة إلا بعد ضغط المستخدم زر تشغيل العد الصوتي ومنح إذن الميكروفون في المتصفح عند طلبه.</li>
+<li>يعتمد العد الصوتي على واجهة التعرف الصوتي التي يوفرها المتصفح. لا يفرض مسار السبحة الحالي <code>processLocally</code>؛ لذلك قد يُرسل المتصفح الصوت إلى خدمة التعرف التابعة له.</li>
+<li>توضح واجهة السبحة هذا الاحتمال بجوار زر العد. معالجة الصوت لدى مزود المتصفح تخضع لسياساته وشروطه، وليست تحت سيطرة المفكرة.</li>
+<li>لم يظهر في مسار السبحة الذي روجع رفع ملف تسجيل صوتي إلى خادم المفكرة أو حفظ التسجيل كملف. لكن هذا لا يمنع مزود التعرف الصوتي من معالجة الصوت وفق آلية المتصفح.</li>
+<li>أزيلت أداة الإملاء الصوتي بالميكروفون من أدوات الكتابة؛ وتبقى وظيفة القراءة الصوتية إخراجاً صوتياً لا يتطلب التقاط صوت المستخدم.</li>
+</ul>
+</section>
+<section>
+<h2>3. الأذونات وحماية المتصفح</h2>
+<ul>
+<li>تقيّد سياسة الأذونات المهيأة الكاميرا والموقع الجغرافي، وتسمح بالميكروفون والتعرف الصوتي المحلي والتشغيل التلقائي وملء الشاشة ضمن أصل المفكرة.</li>
+<li>تستخدم الصفحة سياسة <strong>Content Security Policy</strong> تبدأ بـ <code>default-src 'none'</code> وتقصر السكريبتات على ملفات الأصل نفسه وملفات CDN محددة ببصمات سلامة SRI.</li>
+<li>لا تسمح <code>script-src</code> بـ <code>unsafe-inline</code> أو <code>unsafe-eval</code>. ويسمح <code>style-src</code> بالأنماط المضمنة لأسباب توافق التصميم؛ وهذا استثناء CSS وليس استثناء تنفيذ JavaScript.</li>
+<li>تتضمن إعدادات النشر رؤوس <code>frame-ancestors 'none'</code> و<code>X-Frame-Options: DENY</code> و<code>X-Content-Type-Options: nosniff</code> و<code>Referrer-Policy: strict-origin-when-cross-origin</code> و<code>Strict-Transport-Security</code>.</li>
+</ul>
+<p class="notice">هذه الرؤوس موجودة في ملف إعداد Cloudflare Pages ويجري التحقق من موضعه في سير البناء. لم نتحقق في هذه المراجعة من قيم الرؤوس على استجابة الموقع الحية؛ لذلك تبقى حالة التطبيق الفعلي لهذه الرؤوس بحاجة إلى فحص خارجي بعد النشر.</p>
+</section>
+<section>
+<h2>4. الاتصالات والخدمات الخارجية</h2>
+<p>المفكرة ليست معزولة تماماً عن الإنترنت. تظهر في المصدر اتصالات وموارد خارجية لازمة لبعض الوظائف، ومنها:</p>
+<ul>
+<li><strong>Google Fonts</strong> لتحميل الخطوط.</li>
+<li><strong>CDNJS</strong> لمكتبتي html2canvas 1.4.1 وqrcodejs 1.0.0، مع بصمات SRI والتحقق من المصدر.</li>
+<li><strong>MP3Quran</strong> لفهرس القراء والبيانات الصوتية.</li>
+<li>مصادر تشغيل التسجيلات والدروس: MP3Quran وWay2Quran وInternet Archive وIslamHouse وal-Badr وSabil Al-Rashad ومحطة asmaki.ma.</li>
+<li>مكتبة jsPDF 4.2.1 مستضافة محلياً ضمن ملفات المشروع.</li>
+</ul>
+<p>قد تتلقى هذه الخدمات طلبات الشبكة المعتادة وبيانات الاتصال التقنية مثل عنوان IP ومعلومات المتصفح وفق سياساتها. يحدّ التطبيق من مصادر الاتصال والوسائط المسموحة، لكنه لا يستطيع فرض سياسة احتفاظ أو معالجة على مزود خارجي.</p>
+<p>بوابة API الاختيارية الخاصة بالمشروع موجودة في المستودع، لكن عنوانها مضبوط حالياً على قيمة فارغة في <code>api-gateway-config.js</code>؛ لذلك لا نعدّها خدمة فعالة في النسخة التي روجعت. كما أن عامل الخدمة يخزّن موارد التطبيق المحلية من الأصل نفسه ولا يعترض تدفقات الصوت الخارجية.</p>
+<p>لا تقدم هذه المراجعة ادعاءً بأن الموقع لا يستخدم أي قياس زيارات على مستوى منصة الاستضافة أو أن جميع الأطراف الخارجية لا تجمع بيانات. يجب الرجوع إلى سياسات Cloudflare ومزودي الخدمات المذكورين لمعرفة معالجتهم واحتفاظهم بالبيانات.</p>
+</section>
+<section>
+<h2>5. ملفات التوثيق والأدلة</h2>
+<ul>
+<li><a href="https://github.com/byan80543-tech/mofakira-anouar/blob/main/SECURITY.md">سياسة الأمان والإبلاغ</a>.</li>
+<li><a href="https://github.com/byan80543-tech/mofakira-anouar/blob/main/SECURITY-HEADERS.md">سياسة CSP ورؤوس HTTP وإعداد النشر</a>.</li>
+<li><a href="https://github.com/byan80543-tech/mofakira-anouar/blob/main/SECURITY-AUDIT.md">سجل المراجعات الأمنية التاريخية والحالية</a>.</li>
+<li><a href="https://github.com/byan80543-tech/mofakira-anouar/blob/main/TEST-PLAN.md">خطة الاختبار والاختبارات اليدوية التي لا تزال مطلوبة</a>.</li>
+<li><a href="https://github.com/byan80543-tech/mofakira-anouar/blob/main/ARCHITECTURE.md">البنية التقنية</a> · <a href="https://github.com/byan80543-tech/mofakira-anouar/blob/main/ASSET-REGISTER.md">سجل الموارد والاعتماديات الخارجية</a>.</li>
+</ul>
+</section>
+<section>
+<h2>6. ما لم يثبت بعد</h2>
+<ul>
+<li>لم ينفذ اختبار اختراق مستقل من جهة خارجية، ولا توجد شهادة أمنية أو تدقيق امتثال رسمي.</li>
+<li>لم يكتمل اختبار الاستخدام الأمني اليدوي على Chrome Android والهاتف المستهدف.</li>
+<li>لم يُتحقق مباشرة من رؤوس HTTP وTLS على الاستجابة المنشورة ضمن هذه المراجعة.</li>
+<li>لم تُختبر جميع حالات XSS الحية وسلوك امتدادات المتصفح والأجهزة المصابة ببرمجيات خبيثة.</li>
+<li>لم تُراجع سياسات كل مزود خارجي مراجعة قانونية شاملة، ولا تتحكم المفكرة في ممارساتهم.</li>
+</ul>
+<p>تُحدّث هذه الصفحة مع تغييرات جوهرية في الشيفرة أو سياسة الاتصال أو طريقة التخزين. لا تمثل النتائج ضماناً مطلقاً أو ترتيباً رقمياً بين المواقع.</p>
+</section>
+<section class="en" lang="en">
+<h2>Privacy &amp; Security Profile — English Summary</h2>
+<p>Anwar Notebook is a web-based Arabic productivity application. This profile describes a source-level review of its web release, not an independent certification or penetration test. The reviewed application source revision is <code>810c1ff2e214459af4829b3025a691bde3c69500</code>, reviewed on 26 November 2026.</p>
+<ul>
+<li><strong>Local vault:</strong> optional, user-enabled client-side encryption using AES-256-GCM and PBKDF2-HMAC-SHA-256 with 600,000 iterations. Encrypted vault envelopes are stored in IndexedDB. The feature does not mean all visitor data is encrypted by default.</li>
+<li><strong>Backups and exports:</strong> the encrypted rescue backup is generated locally and is not automatically uploaded to the app server. Ordinary TXT, HTML, PDF and Word exports are readable and are not encrypted automatically.</li>
+<li><strong>Voice input:</strong> Tasbih voice counting is user-initiated and uses the browser's speech-recognition API. The current Tasbih path does not enforce on-device processing, so the browser may send audio to its recognition provider. Writing-tool dictation is removed.</li>
+<li><strong>Browser controls:</strong> a restrictive CSP, script integrity hashes for selected CDN libraries, a media/connect allowlist, and configured Cloudflare response headers are present in source/configuration. Live response headers were not independently verified in this review.</li>
+<li><strong>Third parties:</strong> Google Fonts, CDNJS, MP3Quran and listed audio providers are used. Their own privacy and retention practices are outside the app's control.</li>
+<li><strong>Limitations:</strong> no independent penetration test, no complete live mobile-browser test and no direct live HTTP-header verification were completed for this review. No numeric privacy score or certification is claimed.</li>
+</ul>
+<p>Machine-readable profile: <a href="/privacy-security.json">privacy-security.json</a>. Source repository: <a href="https://github.com/byan80543-tech/mofakira-anouar">GitHub</a>.</p>
+</section>
+</main>
+<footer>مفكرة أنوار · آخر مراجعة مصدرية: 26 نوفمبر 2026 · <a href="/mofakira-anouar/">العودة إلى المفكرة</a></footer>
+</body>
+</html>

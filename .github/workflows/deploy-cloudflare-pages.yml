@@ -40,6 +40,10 @@ jobs:
               .github/*|workers/*|scripts/*|*.md|_headers)
                 continue
                 ;;
+              robots.txt|sitemap.xml|privacy-security.html|privacy-security.json)
+                cp "$file" "dist/$file"
+                continue
+                ;;
             esac
             mkdir -p "dist/mofakira-anouar/$(dirname "$file")"
             cp "$file" "dist/mofakira-anouar/$file"
@@ -71,6 +75,12 @@ jobs:
           grep -q "frame-ancestors 'none'" dist/_headers
           grep -q "X-Content-Type-Options: nosniff" dist/_headers
           grep -q "Strict-Transport-Security: max-age=31536000" dist/_headers
+          for file in robots.txt sitemap.xml privacy-security.html privacy-security.json; do
+            test -s "dist/$file"
+          done
+          python3 -m json.tool dist/privacy-security.json >/dev/null
+          grep -Fq "Sitemap: https://mofakira-anouar.pages.dev/sitemap.xml" dist/robots.txt
+          grep -Fq "https://mofakira-anouar.pages.dev/privacy-security.html" dist/sitemap.xml
 
       - name: Verify required secrets
         env:

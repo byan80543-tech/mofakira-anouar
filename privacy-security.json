@@ -1,0 +1,136 @@
+{
+  "profile_schema": "anwar-privacy-security-profile/1.0",
+  "project": {
+    "name": "مفكرة أنوار",
+    "official_url": "https://mofakira-anouar.pages.dev/mofakira-anouar/",
+    "privacy_profile_url": "https://mofakira-anouar.pages.dev/privacy-security.html",
+    "machine_readable_profile_url": "https://mofakira-anouar.pages.dev/privacy-security.json",
+    "source_repository": "https://github.com/byan80543-tech/mofakira-anouar",
+    "reviewed_application_source_revision": "810c1ff2e214459af4829b3025a691bde3c69500"
+  },
+  "review": {
+    "date": "2026-11-26",
+    "method": "static source and configuration review",
+    "scope": [
+      "web app source",
+      "local vault cryptography",
+      "IndexedDB storage",
+      "service worker",
+      "CSP",
+      "Cloudflare Pages header configuration",
+      "external resource allowlists",
+      "Tasbih voice recognition path"
+    ],
+    "status": "source_review_only",
+    "numeric_privacy_score": null,
+    "certification_claimed": false,
+    "independent_penetration_test": false,
+    "live_mobile_browser_test_completed": false,
+    "live_http_response_headers_verified": false,
+    "limitations": "Source inspection does not prove runtime behavior or eliminate vulnerabilities. No independent penetration test or complete live browser/device test was performed for this review."
+  },
+  "local_data_protection": {
+    "encrypted_vault": {
+      "available": true,
+      "enabled_by_default": false,
+      "user_action_required": true,
+      "cipher": "AES-256-GCM",
+      "key_derivation": "PBKDF2-HMAC-SHA-256",
+      "iterations": 600000,
+      "salt_bytes": 16,
+      "iv_bytes_per_encryption": 12,
+      "gcm_authentication_tag_bits": 128,
+      "storage": "IndexedDB encrypted envelopes",
+      "raw_password_persisted": false,
+      "raw_key_persisted": false,
+      "automatic_idle_lock_minutes": 5,
+      "locks_on_page_background_or_exit": true,
+      "webauthn_prf_device_unlock": "optional; restricted in source to the approved HTTPS origin and supporting authenticators",
+      "protects_while_vault_locked": true,
+      "protects_against_same_origin_malicious_code_while_unlocked": false,
+      "protects_against_compromised_device": false
+    },
+    "rescue_backup": {
+      "encrypted": true,
+      "generated_locally": true,
+      "automatically_uploaded_to_app_server": false,
+      "password_stored_in_backup": false
+    },
+    "ordinary_exports": {
+      "formats": [
+        "TXT",
+        "HTML",
+        "PDF",
+        "Word"
+      ],
+      "encrypted_automatically": false,
+      "readable_by_design": true
+    }
+  },
+  "permissions_and_input": {
+    "camera": "denied_by_configured_Permissions_Policy",
+    "geolocation": "denied_by_configured_Permissions_Policy",
+    "microphone": "allowed_only_for_same_origin_by_configured_Permissions_Policy",
+    "tasbih_voice_recognition": {
+      "user_initiated": true,
+      "uses_browser_speech_recognition": true,
+      "enforces_on_device_processing": false,
+      "browser_provider_may_receive_audio": true,
+      "app_recording_file_upload_observed_in_review": false,
+      "disclosure_visible_in_interface": true
+    },
+    "writing_tool_microphone_dictation": "removed_from_current_web_interface"
+  },
+  "browser_security": {
+    "csp_default_src": "'none'",
+    "script_src_allows_arbitrary_inline_scripts": false,
+    "script_src_allows_eval": false,
+    "style_src_allows_unsafe_inline": true,
+    "selected_cdn_scripts_use_sri": true,
+    "configured_headers": [
+      "Content-Security-Policy",
+      "X-Frame-Options: DENY",
+      "X-Content-Type-Options: nosniff",
+      "Referrer-Policy: strict-origin-when-cross-origin",
+      "Permissions-Policy",
+      "X-DNS-Prefetch-Control: off",
+      "Strict-Transport-Security: max-age=31536000"
+    ],
+    "live_headers_verified": false
+  },
+  "network_and_third_parties": {
+    "api_gateway_worker_configured_in_client": false,
+    "api_gateway_config_value": "empty",
+    "app_catalog_api": [
+      "https://www.mp3quran.net"
+    ],
+    "font_provider": [
+      "Google Fonts"
+    ],
+    "script_cdn": [
+      "cdnjs.cloudflare.com"
+    ],
+    "audio_media_providers": [
+      "mp3quran.net",
+      "media.way2quran.com",
+      "archive.org",
+      "d1.islamhouse.com",
+      "al-badr.net",
+      "sabil-alrashad.com",
+      "asmaki.ma:8000"
+    ],
+    "local_pdf_library": "jsPDF 4.2.1",
+    "service_worker_caches_same_origin_app_assets": true,
+    "service_worker_caches_remote_audio_or_api_responses": false,
+    "third_party_processing_outside_app_control": true,
+    "blanket_no_analytics_or_no_tracking_claim": false
+  },
+  "public_evidence": {
+    "security_policy": "https://github.com/byan80543-tech/mofakira-anouar/blob/main/SECURITY.md",
+    "header_policy": "https://github.com/byan80543-tech/mofakira-anouar/blob/main/SECURITY-HEADERS.md",
+    "audit_log": "https://github.com/byan80543-tech/mofakira-anouar/blob/main/SECURITY-AUDIT.md",
+    "test_plan": "https://github.com/byan80543-tech/mofakira-anouar/blob/main/TEST-PLAN.md",
+    "architecture": "https://github.com/byan80543-tech/mofakira-anouar/blob/main/ARCHITECTURE.md",
+    "asset_register": "https://github.com/byan80543-tech/mofakira-anouar/blob/main/ASSET-REGISTER.md"
+  }
+}

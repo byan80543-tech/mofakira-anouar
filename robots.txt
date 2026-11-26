@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /mofakira-anouar/
+Allow: /privacy-security.html
+Allow: /privacy-security.json
+Sitemap: https://mofakira-anouar.pages.dev/sitemap.xml

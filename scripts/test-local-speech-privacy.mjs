@@ -53,19 +53,19 @@ assert.equal(absentWindow.AnwarLocalSpeech.supported(),false,'a browser without 
 assert.doesNotMatch(helper,/\.install\s*\(/,'the app never downloads speech models automatically');
 assert.match(tasbih,/new\s+SpeechRecognition\(\)/,'tasbih alone has a dedicated browser speech recognizer');
 assert.doesNotMatch(tasbih,/AnwarLocalSpeech|processLocally/,'tasbih does not inherit the writing tools local-only restriction');
-assert.match(tasbih,/window\.confirm\(['\"]تنبيه خصوصية/,'tasbih asks consent before activating potentially remote speech recognition');
+assert.doesNotMatch(tasbih,/window\.confirm\(['\"]تنبيه خصوصية/,'tasbih does not add a blocking privacy confirmation dialog');
 assert.match(poetry,/localSpeech\.create\(LANGUAGES\[0\]\)/,'the dormant dictation module remains local-only if ever reused');
 assert.doesNotMatch(html,/id="sp"|poetry-dictation\.js/,'writing tools expose no dictation microphone control or script');
 assert.doesNotMatch(core,/id==='sp'\)togglePoetryDictation/,'the notebook toolbar cannot start microphone dictation');
 assert.ok(html.indexOf('local-speech-privacy.js')<html.indexOf('tasbih-controller.js'),'the tasbih voice code remains separated from local-only writing recognition');
-assert.match(html,/tasbih-controller\.js\?v=20261126-3/,'the tasbih voice fix receives a fresh browser asset URL');
+assert.match(html,/tasbih-controller\.js\?v=20261126-4/,'the tasbih voice fix receives a fresh browser asset URL');
 assert.match(headers,/microphone=\(self\)/,'microphone access is limited to this origin');
 assert.match(headers,/on-device-speech-recognition=\(self\)/,'on-device speech recognition is explicitly permitted for this origin');
 assert.match(worker,/\.\/local-speech-privacy\.js/,'the local speech privacy gate is included in the offline shell');
-assert.match(worker,/v228/,'the offline shell is refreshed for the voice-counting fix and latest media security policy');
+assert.match(worker,/v229/,'the offline shell version matches the current release');
 assert.match(html,/قد يرسل المتصفح الصوت إلى خدمة التعرف التابعة له/,'tasbih warns that browser recognition may send audio to its provider');
 
-console.log('PASS: writing dictation is removed; tasbih browser recognition is isolated behind explicit privacy consent.');
+console.log('PASS: writing dictation is removed; tasbih voice starts from its button and the interface discloses possible browser-provider audio processing.');
 
 assert.match(html,/preload[^>]+app-core\.js\?v=20261126-81/,'the preload points to the updated app-core bundle');
 assert.match(html,/script src="\.\/app-core\.js\?v=20261126-81"/,'the executed app-core script uses the same updated version as preload');
