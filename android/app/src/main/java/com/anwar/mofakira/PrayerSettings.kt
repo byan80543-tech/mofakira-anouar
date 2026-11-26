@@ -49,7 +49,7 @@ object PrayerSettings {
             method = safeText(p.optString(KEY_METHOD, "21"), "21"),
             school = if (p.optString(KEY_SCHOOL, "0") == "1") "1" else "0",
             timeZone = zone,
-            voiceKey = safeText(p.optString(KEY_VOICE, "calm"), "calm"),
+            voiceKey = "calm",
             volume = p.optDouble(KEY_VOLUME, 0.9).toFloat().coerceIn(0f, 1f)
         )
     }
@@ -74,7 +74,7 @@ object PrayerSettings {
             method = safeText(method, fallback.method),
             school = if (school == "1") "1" else "0",
             timeZone = validZone,
-            voiceKey = safeText(voiceKey, fallback.voiceKey),
+            voiceKey = "calm",
             volume = volume.takeIf { it.isFinite() }?.coerceIn(0f, 1f) ?: fallback.volume
         )
         val saved = state(context)
@@ -102,7 +102,7 @@ object PrayerSettings {
             method = safeText(json.optString("method", fallback.method), fallback.method),
             school = if (json.optString("school", fallback.school) == "1") "1" else "0",
             timeZone = runCatching { ZoneId.of(rawZone).id }.getOrElse { fallback.timeZone },
-            voiceKey = safeText(json.optString("voice", fallback.voiceKey), fallback.voiceKey),
+            voiceKey = "calm",
             volume = json.optDouble("volume", fallback.volume.toDouble())
                 .toFloat().takeIf { it.isFinite() }?.coerceIn(0f, 1f) ?: fallback.volume
         )

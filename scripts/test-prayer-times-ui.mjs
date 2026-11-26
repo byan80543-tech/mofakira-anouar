@@ -33,7 +33,7 @@ assert.doesNotMatch(prayer,/localStorage|sessionStorage/,'the prayer controller 
 assert.match(prayer,/HTTPS يشفّر الاتصال أثناء النقل فقط/,'the disclosure describes transport encryption concisely');
 assert.match(prayer,/function updatePrivacyAudioDisclosure\(\)/,'the browser audio privacy disclosure is centralized');
 assert.match(prayer,/updatePrivacyAudioDisclosure\(\);/,'changing the adhan voice refreshes the disclosed audio host');
-assert.match(prayer,/if\(window\.AnwarAdhanBridge\)\{[\s\S]*?AlAdhan[\s\S]*?عنوان IP/,'Android WebView discloses its separate external calendar and background audio path');
+assert.match(prayer,/if\(window\.AnwarAdhanBridge\)\{[\s\S]*?محليًا[\s\S]*?مضيف خارجي/,'Android WebView discloses its local-only background prayer path');
 assert.match(prayer,/card\.append\(head,nextBox,timesGrid,dateLine,infoDetails,backgroundPermissionWrap,status,details,audio\)/,'status feedback sits immediately after the permission control and outside the collapsed settings panel');
 assert.match(prayer,/details\.append\(summary,fields,actions,toggleLabel,volumeWrap\)/,'collapsed settings no longer contain the only permission feedback');
 assert.match(prayer,/\.anwar-prayer-status:not\(:empty\)\{display:block;margin:7px 0 0/,'permission feedback is visibly styled beside the control');
@@ -122,7 +122,7 @@ assert.match(html,/local-prayer-engine\.js\?v=20261126-1/,'HTML loads the local 
 assert.match(worker,/\.\/vendor\/praytime\.js/,'service worker precaches calculation library');
 assert.match(worker,/\.\/local-prayer-engine\.js/,'service worker precaches local city table');
 assert.match(worker,/\.\/assets\/adhan\/beautiful-adhan\.ogg/,'service worker precaches the local CC0 adhan audio');
-assert.match(html,/prayer-times\.js\?v=20261126-4/,'HTML loads the local-audio prayer controller');
+assert.match(html,/prayer-times\.js\?v=20261126-5/,'HTML loads the local-audio prayer controller');
 const cacheVersion=worker.match(/const CACHE_NAME='anwar-shell-\d{4}-\d{2}-\d{2}-v(\d+)';/);
 assert.ok(cacheVersion&&Number(cacheVersion[1])>=157,'the updated prayer controller has a refreshed offline shell version');
 assert.match(worker,/\.\/prayer-card-design\.css/,'service worker precaches the canonical prayer card stylesheet');

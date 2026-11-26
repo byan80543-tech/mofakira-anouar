@@ -57,7 +57,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.13"
-      - name: Validate native adhan bridge and scheduling wiring
+      - name: Validate fully local Android adhan calendar, audio and offline boundaries
         run: node scripts/test-native-adhan.mjs
       - name: Validate Android launcher icon and on-demand microphone permissions
         run: node scripts/test-android-permissions-and-icon.mjs

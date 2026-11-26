@@ -80,9 +80,9 @@ class AdhanPlaybackService : Service() {
         }
 
         try {
-            val cached = VoiceCache.cachedFile(this, config.voiceKey)
-            if (cached != null) media.setDataSource(cached.absolutePath)
-            else media.setDataSource(voice.url)
+            val bundledFile = VoiceCache.cachedFile(this, config.voiceKey)
+                ?: throw IllegalStateException("Verified bundled adhan audio is unavailable")
+            media.setDataSource(bundledFile.absolutePath)
             media.prepareAsync()
         } catch (error: Exception) {
             Log.e(TAG, "Unable to prepare adhan audio source", error)

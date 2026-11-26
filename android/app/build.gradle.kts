@@ -9,8 +9,8 @@ android {
         applicationId = "com.anwar.mofakira"
         minSdk = 23
         targetSdk = 35
-        versionCode = 18
-        versionName = "0.9.9"
+        versionCode = 19
+        versionName = "0.10.0"
     }
     signingConfigs {
         create("release") {
@@ -26,7 +26,7 @@ android {
     buildTypes {
         getByName("debug") {
             // Previews are kept apart from the production app and earlier previews.
-            applicationIdSuffix = ".preview.v18"
+            applicationIdSuffix = ".preview.v19"
             versionNameSuffix = "-preview"
         }
         getByName("release") {
@@ -51,6 +51,7 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.10.1")
     implementation("androidx.media3:media3-exoplayer:1.11.1")
     implementation("androidx.media3:media3-session:1.11.1")
+    testImplementation("junit:junit:4.13.2")
 }
 
 
