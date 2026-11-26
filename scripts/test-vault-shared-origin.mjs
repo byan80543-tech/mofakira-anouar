@@ -86,6 +86,9 @@ for (const [host,options] of [
   assert.equal(blocked.values.has('anwar_vault_device_unlock_v1'),true,host);
 }
 
-assert.ok(appCore.includes("deviceManage.textContent=deviceConfigured?'إدارة فتح الهاتف':trustedDeviceOrigin?'إعداد فتح الهاتف':'سبب تعطيل فتح الهاتف';"));
+assert.ok(appCore.includes("const deviceSupported=mode==='unlock'&&!!(deviceApi&&trustedDeviceOrigin&&deviceApi.supported());"),
+ 'device unlock remains restricted to the exact trusted origin and supported WebAuthn contexts');
+assert.ok(appCore.includes("deviceManage.textContent=deviceConfigured")&&appCore.includes("trustedDeviceOrigin?'إعداد فتح الهاتف':'سبب تعطيل فتح الهاتف'"),
+ 'device management continues to report setup or origin restrictions without weakening origin checks');
 assert.ok(appCore.includes("const trustedOrigin=AnwarDeviceUnlock.isTrustedOrigin();"));
 console.log('Dedicated-origin device unlock tests passed.');
