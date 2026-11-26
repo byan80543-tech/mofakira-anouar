@@ -7,7 +7,7 @@ const page=await fetch(pageUrl,{redirect:'follow',signal:AbortSignal.timeout(150
 assert.equal(page.status,200,'staging application page returns HTTP 200');
 const html=await page.text();
 const headerCsp=page.headers.get('content-security-policy')||'';
-const metaCsp=html.match(/<meta[^>]+http-equiv=["']Content-Security-Policy["'][^>]+content=["']([^"']+)["']/i)?.[1]||'';
+const metaCsp=html.match(/<meta[^>]+http-equiv=["']Content-Security-Policy["'][^>]+content="([^"]+)"/i)?.[1]||'';
 assert.ok(headerCsp.includes('media-src'),'staging response includes media-src in HTTP CSP');
 assert.ok(metaCsp.includes('media-src'),'staging HTML includes document media-src');
 const parse=value=>new Map(value.split(';').map(part=>{const tokens=part.trim().split(/\\s+/);return [tokens.shift(),tokens]}));
