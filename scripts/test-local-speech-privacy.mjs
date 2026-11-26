@@ -34,7 +34,7 @@ class RemoteOnlyRecognizer {
 const remoteWindow={SpeechRecognition:RemoteOnlyRecognizer};
 vm.runInNewContext(helper,{window:remoteWindow,globalThis:remoteWindow});
 assert.equal(remoteWindow.AnwarLocalSpeech.supported(),false,'remote-only recognizers are not eligible');
-assert.throws(()=>remoteWindow.AnwarLocalSpeech.create('ar'),/لم نبدأ الميكروفون/,'remote-only recognizers are rejected before microphone start');
+assert.throws(()=>remoteWindow.AnwarLocalSpeech.create('ar'),/أوقفنا الميكروفون/,'remote-only recognizers are rejected before microphone start');
 
 class NoOpLocalFlagRecognizer{
   start(){}
