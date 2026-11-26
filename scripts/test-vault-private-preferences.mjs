@@ -20,6 +20,7 @@ assert.equal(state.tasbih.dhikr,'أستغفر الله العظيم وأتوب �
 assert.equal(state.prayer.enabled,false);
 assert.equal(state.prayer.volume,0.9);
 assert.equal(state.prayer.lastPlayedKey,'');
+assert.equal(state.adhkarPageTheme,'white');
 assert.deepEqual(Array.from(state.tasbih.customDhikrs),[],'custom dhikr list starts empty');
 
 let notifications=0,persisted=null;
@@ -43,13 +44,17 @@ assert.equal(api.get().prayer.enabled,true);
 assert.equal(api.get().prayer.volume,0.65);
 assert.equal(api.get().prayer.lastPlayedKey,'2026-11-26|Fajr|Meknes|Morocco');
 assert.equal(persisted.prayer.city,'Meknes','prayer preferences are passed to the vault persistence handler');
+api.set('adhkarPageTheme','gold');
+assert.equal(api.get().adhkarPageTheme,'gold');
+assert.equal(persisted.adhkarPageTheme,'gold','protective adhkar palette is persisted by the vault');
 assert.ok(notifications>=5,'subscribers receive initial and changed preference snapshots');
 
 state=api.normalize({
  radio:{reciter:'ق'.repeat(500),surah:999},
  readerAdvance:'invalid',
  tasbih:{count:-5,elapsedMs:-10,dhikr:'ذ'.repeat(300),theme:'unknown',designVersion:'v'.repeat(100)},
- prayer:{country:'C'.repeat(150),city:'M'.repeat(150),method:'x'.repeat(80),enabled:'yes',volume:5,timezone:'T'.repeat(140),voice:'V'.repeat(60),countrySource:'bad',lastPlayedKey:'K'.repeat(240)}
+ prayer:{country:'C'.repeat(150),city:'M'.repeat(150),method:'x'.repeat(80),enabled:'yes',volume:5,timezone:'T'.repeat(140),voice:'V'.repeat(60),countrySource:'bad',lastPlayedKey:'K'.repeat(240)},
+ adhkarPageTheme:'danger'
 });
 assert.equal(state.radio.reciter.length,120,'reciter names are length-limited');
 assert.equal(state.radio.surah,1,'invalid surah indices are rejected');
@@ -65,6 +70,7 @@ assert.equal(state.prayer.timezone.length,90,'prayer time zones are length-limit
 assert.equal(state.prayer.voice.length,40,'adhan voice keys are length-limited');
 assert.equal(state.prayer.countrySource,'auto','unknown country source values use the automatic safe default');
 assert.equal(state.prayer.lastPlayedKey.length,180,'last-played markers are length-limited');
+assert.equal(state.adhkarPageTheme,'white','unknown adhkar page themes fall back to white');
 assert.equal(state.tasbih.dhikr.length,200,'dhikr labels are length-limited');
 assert.equal(state.tasbih.theme,'emerald','unknown color themes safely fall back to emerald');
 assert.equal(state.tasbih.designVersion.length,40,'design migration metadata is length-limited');
@@ -88,7 +94,8 @@ const stored=new Map([
  ['anwar_tasbih_count_v1','144'],
  ['anwar_tasbih_dhikr_v1','الحمد لله'],
  ['anwar_prayer_settings_v1',JSON.stringify({country:'Morocco',city:'Meknes',method:'21',school:'0',enabled:true,volume:0.7,timezone:'Africa/Casablanca',voice:'morocco_kamal',countrySource:'manual'})],
- ['anwar_prayer_last_adhan_v1','2026-11-26|Fajr|Meknes|Morocco']
+ ['anwar_prayer_last_adhan_v1','2026-11-26|Fajr|Meknes|Morocco'],
+ ['anwar_adhkar_page_theme','gold']
 ]);
 sandbox.localStorage={
  getItem(key){return stored.has(key)?stored.get(key):null},
@@ -108,11 +115,13 @@ assert.equal(migrated.prayer.volume,0.7);
 assert.equal(migrated.prayer.voice,'morocco_kamal');
 assert.equal(migrated.prayer.countrySource,'manual');
 assert.equal(migrated.prayer.lastPlayedKey,'2026-11-26|Fajr|Meknes|Morocco');
-assert.equal(stored.size,6,'migration does not delete plaintext settings before encrypted persistence');
+assert.equal(migrated.adhkarPageTheme,'gold');
+assert.equal(stored.size,7,'migration does not delete plaintext settings before encrypted persistence');
 assert.equal(sandbox.clearLegacy(),true);
 assert.equal(stored.size,0,'legacy settings can be removed after encrypted persistence succeeds');
 assert.ok(!html.includes("localStorage.setItem('anwar_prayer_settings_v1'"),'prayer settings are not written to plaintext browser storage');
 assert.ok(!html.includes("localStorage.setItem('anwar_prayer_last_adhan_v1'"),'last-played prayer state is not written to plaintext browser storage');
+assert.ok(!html.includes("localStorage.setItem('anwar_adhkar_page_theme'"),'protective adhkar theme is not written to plaintext browser storage');
 
 assert.ok(!html.includes("localStorage.setItem('anwar_reader_advance'"),'reader mode no longer writes plaintext');
 assert.ok(!html.includes("localStorage.setItem(countKey"),'tasbih count no longer writes plaintext');
