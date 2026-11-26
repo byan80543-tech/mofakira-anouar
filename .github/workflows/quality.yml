@@ -75,6 +75,8 @@ jobs:
         run: node scripts/test-adhkar-workflow.mjs
       - name: Test adhkar management UI privacy and offline integration
         run: node scripts/test-adhkar-ui.mjs
+      - name: Test local offline prayer calculations and supported city coordinates
+        run: node scripts/test-local-prayer-engine.mjs
       - name: Test compact prayer card and loading states
         run: node scripts/test-prayer-times-ui.mjs
       - name: Test direct tasbih icon opens its dialog
