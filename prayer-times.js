@@ -152,7 +152,7 @@
  }
  let settings=readSettings();
  function validTimeZone(value){try{new Intl.DateTimeFormat('en',{timeZone:value}).format();return value;}catch(_e){return Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';}}
- let todayData=null,tomorrowData=null,timeZone=validTimeZone(settings.timezone||(window.AnwarPrayerEngine&&window.AnwarPrayerEngine.timezoneForCountry(settings.country))||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC');
+ let todayData=null,tomorrowData=null,timeZone=validTimeZone((window.AnwarPrayerEngine&&window.AnwarPrayerEngine.timezoneForCountry(settings.country))||settings.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC');
  let loading=false,loadToken=0,lastTick=Date.now(),lastDateCheck='';
  let pendingAdhanKey='',lastAutoAttemptAt=0;
  const el=(tag,className,text)=>{
@@ -167,6 +167,7 @@
   '.anwar-prayer-head{display:flex;align-items:center;justify-content:space-between;gap:8px}',
   '.anwar-prayer-head strong{font-family:"Aref Ruqaa",Amiri,serif;font-size:18px;color:var(--ac)}',
   '.anwar-prayer-head small,.anwar-prayer-date{font-size:10px;color:var(--mu);line-height:1.7}',
+  '.anwar-prayer-local-note{display:block;margin-top:-5px;color:var(--mu);font-size:10px;line-height:1.7}',
   '.anwar-prayer-next{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 10px;padding:10px 12px;border-radius:11px;background:linear-gradient(115deg,#0b3159,#1c6077);color:#fff}',
   '.anwar-prayer-next small{font-size:11px;color:#f1dca9;line-height:1.6}.anwar-prayer-next strong{font-size:17px;color:#fff2c5}.anwar-prayer-next-copy,.anwar-prayer-countdown{display:grid;gap:3px;min-width:0}.anwar-prayer-next-when{color:#fff!important}.anwar-prayer-countdown{justify-items:end;text-align:right}.anwar-prayer-next span{font-size:18px;font-weight:700;color:#fff;direction:ltr;text-align:left;font-variant-numeric:tabular-nums;white-space:nowrap}',
   '.anwar-prayer-times{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}',
@@ -226,6 +227,7 @@
  showNextPrayerPlaceholder('بانتظار المواقيت');
  const timesGrid=el('div','anwar-prayer-times');
  const dateLine=el('div','anwar-prayer-date','جارٍ تحميل مواقيت الصلاة…');
+ const localAccuracyNote=el('small','anwar-prayer-local-note','المواقيت المغربية حساب محلي تقديري، وليست جدولاً رسمياً؛ راجع توقيت المسجد المحلي قبل الاعتماد على التنبيه.');
  const infoDetails=el('details','anwar-prayer-info');
  const infoSummary=el('summary');
  const privacyIcon=el('span','anwar-prayer-privacy-icon');
@@ -311,7 +313,7 @@
  const audio=document.createElement('audio');
  audio.id='anwarPrayerAdhanAudio';audio.preload='none';audio.hidden=true;audio.controls=false;audio.setAttribute('playsinline','');audio.setAttribute('aria-label','صوت الأذان');
  audio.volume=settings.volume;
- card.append(head,nextBox,timesGrid,dateLine,infoDetails,backgroundPermissionWrap,status,details,audio);
+ card.append(head,nextBox,timesGrid,dateLine,localAccuracyNote,infoDetails,backgroundPermissionWrap,status,details,audio);
  const prayerMount=document.getElementById('anwarPrayerMount');
  if(prayerMount)prayerMount.append(card);
  else{const insertBefore=panel.querySelector('.radio-section-title');if(insertBefore)panel.insertBefore(card,insertBefore);else panel.append(card);}
@@ -507,7 +509,7 @@
    date:dateText,
    city:settings.city,
    country:settings.country,
-   timezone:settings.timezone||engine.timezoneForCountry(settings.country)||timeZone,
+   timezone:engine.timezoneForCountry(settings.country)||settings.timezone||timeZone,
    school:settings.school
   });
   if(token!==loadToken)return null;
@@ -762,7 +764,7 @@
   const changed=signature!==JSON.stringify(settings);
   settings=next;
   if(!changed)return;
-  timeZone=validTimeZone(settings.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC');
+  timeZone=validTimeZone((window.AnwarPrayerEngine&&window.AnwarPrayerEngine.timezoneForCountry(settings.country))||settings.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC');
   countrySelect.value=settings.country;
   cityInput.value=settings.city;
   enabledInput.checked=settings.enabled;
