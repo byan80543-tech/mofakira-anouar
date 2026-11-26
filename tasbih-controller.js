@@ -707,6 +707,7 @@
      if(code==='network'){
       voiceRequested=false;
       voiceTargetPhrase='';
+      try{recognition.abort()}catch(error){}
       setVoiceState('error','توقف التعرف المحلي؛ لم نستخدم خدمة خارجية. يمكنك متابعة العد يدوياً.');
       return;
      }
