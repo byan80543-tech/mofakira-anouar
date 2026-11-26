@@ -61,7 +61,7 @@ const rescueStart=core.indexOf('async function restoreStorageBackup(){');
 const rescueEnd=core.indexOf('function exportStorageRecovery(){',rescueStart);
 assert.ok(rescueStart>=0&&rescueEnd>rescueStart,'legacy recovery source exists');
 const rescue=core.slice(rescueStart,rescueEnd);
-assert.match(rescue,/استعدنا النسخة الاحتياطية في الذاكرة دون إنشاء نسخة نصية جديدة/,'legacy backup recovery stages data in memory');
+assert.match(rescue,/تمت استعادة النسخة إلى الذاكرة دون عرض محتواها/,'legacy backup recovery stages data in memory');
 assert.doesNotMatch(rescue,/openNote\(|renderList\(/,'legacy recovery does not render private notes before encryption');
 assert.match(rescue,/\$\('cards'\)\)\$\('cards'\)\.innerHTML=''/,'legacy recovery clears any stale private note cards before setup');
 assert.doesNotMatch(rescue,/localStorage\.setItem\('anwar_v1'/,'legacy recovery does not create new plaintext notebook files');
