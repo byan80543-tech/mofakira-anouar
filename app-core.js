@@ -288,6 +288,20 @@ function showVaultGate(mode,message){
  if(disableEncryption)disableEncryption.hidden=true;
  if(cancelSetup)cancelSetup.hidden=true;
  $('vaultError').textContent='';
+ if(mode==='unlock'&&deviceApi){
+  const diagnostic=deviceApi.diagnostics();
+  if(!diagnostic.supported){
+   const reasons=[];
+   if(!diagnostic.trustedOrigin)reasons.push('النطاق المعتمد');
+   if(!diagnostic.secureContext)reasons.push('الاتصال الآمن');
+   if(!diagnostic.credentialsApi||!diagnostic.publicKeyCredential)reasons.push('واجهة قفل الجهاز');
+   if(!diagnostic.cryptoSubtle)reasons.push('التشفير الآمن');
+   if(!diagnostic.localStorageReadable)reasons.push('التخزين المحلي');
+   $('vaultError').textContent='تعذّر إظهار قفل الهاتف في هذه الجلسة. سبب الفحص: '+(reasons.join('، ')||'دعم قفل الجهاز غير مكتمل')+'. يمكنك فتح الخزنة بكلمة المرور؛ لم تتغير بياناتك.';
+  }else if(!diagnostic.recordConfigured){
+   $('vaultError').textContent='إعداد قفل الهاتف غير موجود في هذه الجلسة. استخدم زر «إعداد قفل الهاتف» لإعادة ربطه بعد التحقق بكلمة المرور الحالية.';
+  }
+ }
  submit.disabled=false;
  passwordInput.disabled=false;
  requestAnimationFrame(()=>{
