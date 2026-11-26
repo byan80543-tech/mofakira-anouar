@@ -12,6 +12,6 @@ test('blocks common XSS',()=>{for(const s of ['<script>alert(1)</script>','<img 
 test('blocks common SQL injection',()=>{for(const s of ["' OR 1=1 --",'UNION SELECT password FROM users','DROP TABLE users','information_schema.tables'])assert.equal(shield.inspect(s).status,'blocked',s);});
 test('blocks command injection chains',()=>{for(const s of ['hello; curl https://bad.example','$(bash -c id)','text && powershell -enc AAA'])assert.equal(shield.inspect(s).status,'blocked',s);});
 test('routes template and prototype patterns to review',()=>{assert.equal(shield.inspect('$'+'{constructor.constructor("return process")()}').status,'review');assert.equal(shield.inspect('__proto__.polluted = true').status,'review');});
-test('detects encoded executable markup',()=>{assert.equal(shield.inspect('%3Cscript%3Ealert(1)%3C/script%3E').status,'review');assert.equal(shield.inspect('&#x3c;script&#x3e;alert(1)').status,'blocked');});
+test('detects encoded executable markup',()=>{assert.equal(shield.inspect('%3Cscript%3Ealert(1)%3C/script%3E').status,'blocked');assert.equal(shield.inspect('&#x3c;script&#x3e;alert(1)').status,'blocked');});
 test('keeps ordinary Arabic and notebook prose clean',()=>{for(const s of ['السلام عليكم ورحمة الله وبركاته','كتبت اليوم قصيدة عن المطر والحنين.','أستغفر الله العظيم وأتوب إليه','Meeting notes: call the team at 10:30'])assert.equal(shield.inspect(s).status,'clean',s);});
 test('normalizes zero-width characters',()=>assert.equal(shield.inspect('java\u200Bscript:alert(1)').status,'blocked'));
