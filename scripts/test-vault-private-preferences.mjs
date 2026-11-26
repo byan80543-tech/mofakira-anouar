@@ -86,7 +86,7 @@ assert.equal(capped.tasbih.customDhikrs.length,30,'custom dhikr list is capped a
 assert.ok(capped.tasbih.customDhikrs.every(item=>item.length<=200&&item.trim()),'custom dhikr entries are normalized and length-limited');
 
 const helperStart=html.indexOf('function importLegacyPrivatePreferences(base){');
-const helperEnd=html.indexOf('async function persistVaultSnapshot(plaintext){',helperStart);
+const helperEnd=html.indexOf('async function persistVaultSnapshot(plaintext,options={}){',helperStart);
 assert.ok(helperStart>=0&&helperEnd>helperStart,'legacy settings migration helpers are present');
 const stored=new Map([
  ['anwar_rd',JSON.stringify({r:'قارئ قديم',n:55,m:'c'})],
