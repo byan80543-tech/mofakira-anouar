@@ -245,7 +245,7 @@
  addPrivacyFact('مواقيت الصلاة','نحسب المواقيت داخل الجهاز بإحداثيات المدينة؛ لا نرسل اسم المدينة أو التاريخ إلى خدمة خارجية.','حساب محلي','local');
  const audioPrivacyFact=addPrivacyFact('صوت الأذان','','استضافة صوتية خارجية','external');
  function updatePrivacyAudioDisclosure(){
-  audioPrivacyFact.description.textContent='يُشغّل مشغّل الأذان تسجيلًا محليًا مضمّنًا في المفكرة؛ ولا يتيح هذا المشغّل اختيار مضيف صوت خارجي.';
+  audioPrivacyFact.description.textContent='يُشغّل التسجيل من ملف محلي داخل المفكرة؛ ولا يتيح هذا المشغّل اختيار مضيف صوت خارجي.';
   audioPrivacyFact.state.textContent='ملف محلي فقط';
   audioPrivacyFact.state.className='anwar-prayer-privacy-state local';
  }
