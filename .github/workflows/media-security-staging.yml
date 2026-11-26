@@ -1,0 +1,49 @@
+name: Deploy media security staging preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: anwar-media-security-staging
+  cancel-in-progress: false
+jobs:
+  deploy-and-probe:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'security/media-src-audit-2026-11-26' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out the exact pull request commit that passed quality checks
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Prepare isolated Pages preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf dist
+          mkdir -p dist/mofakira-anouar
+          while IFS= read -r -d '' file; do
+            case "$file" in
+              .github/*|workers/*|scripts/*|*.md|_headers) continue ;;
+            esac
+            mkdir -p "dist/mofakira-anouar/$(dirname "$file")"
+            cp "$file" "dist/mofakira-anouar/$file"
+          done < <(git ls-files -z)
+          cp _headers dist/_headers
+          cat > dist/index.html <<'EOF'
+          <!doctype html>
+          <html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0; url=/mofakira-anouar/"><title>مفكرة أنوار · بيئة الاختبار</title></head><body><a href="/mofakira-anouar/">افتح بيئة اختبار مفكرة أنوار</a></body></html>
+          EOF
+      - name: Deploy non-production Cloudflare Pages branch
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          test -n "$CLOUDFLARE_API_TOKEN"
+          test -n "$CLOUDFLARE_ACCOUNT_ID"
+          npx --yes wrangler@4.164.0 pages deploy dist --project-name=mofakira-anouar --branch=media-security-staging
+      - name: Probe live staging headers and real audio providers
+        run: node scripts/test-media-staging.mjs https://media-security-staging.mofakira-anouar.pages.dev

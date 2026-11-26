@@ -70,7 +70,12 @@ if(gatewayBase){
 const expectedConnectSources=["'self'",'https://www.mp3quran.net',...gatewaySources];
 const pageConnectSources=requireDirective('connect-src',...expectedConnectSources);
 assert.deepEqual([...pageConnectSources].sort(),[...expectedConnectSources].sort(),'connect-src permits only the same origin, the Quran catalogue API, and an explicitly configured exact gateway origin');
-requireDirective('media-src',"'self'",'https:','blob:');
+const mediaSources=requireDirective('media-src',"'self'",'blob:','https://mp3quran.net','https://*.mp3quran.net','https://media.way2quran.com','https://archive.org','https://*.archive.org','https://d1.islamhouse.com','https://al-badr.net','https://*.al-badr.net','https://sabil-alrashad.com','https://asmaki.ma:8000');
+assert.ok(!mediaSources.includes('https:'),'media-src must not allow every HTTPS host');
+assert.deepEqual([...mediaSources].sort(),["'self'",'blob:','https://mp3quran.net','https://*.mp3quran.net','https://media.way2quran.com','https://archive.org','https://*.archive.org','https://d1.islamhouse.com','https://al-badr.net','https://*.al-badr.net','https://sabil-alrashad.com','https://asmaki.ma:8000'].sort(),'media-src is limited to inventoried audio providers');
+assert.match(core,/host\.endsWith\('\.mp3quran\.net'\)/,'dynamic reciter hosts are restricted to MP3Quran subdomains');
+assert.match(core,/host==='asmaki\.ma'&&u\.port==='8000'/,'the radio exception is restricted to the exact host and port');
+assert.match(core,/if\(!approved\)return ''/,'unknown HTTPS media hosts from external catalogues are rejected');
 requireDirective('frame-src',"'self'",'blob:');
 requireDirective('worker-src',"'self'",'blob:');
 requireDirective('manifest-src',"'self'");
@@ -90,6 +95,9 @@ const deployedDirectives=new Map(deployedCsp[1].split(';').map(part=>{
  const tokens=part.trim().split(/\s+/);
  return [tokens.shift(),tokens];
 }));
+const deployedMediaSources=deployedDirectives.get('media-src');
+assert.ok(deployedMediaSources,'Cloudflare response CSP includes media-src');
+assert.deepEqual([...deployedMediaSources].sort(),[...mediaSources].sort(),'Cloudflare response media-src must exactly match the page media allowlist');
 const deployedConnectSources=deployedDirectives.get('connect-src');
 assert.ok(deployedConnectSources,'Cloudflare response CSP includes connect-src');
 assert.deepEqual(
