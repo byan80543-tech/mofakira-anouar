@@ -621,15 +621,15 @@
    },delay);
   }
 
-  const LocalSpeech=window.AnwarLocalSpeech;
-  if(!LocalSpeech||!LocalSpeech.supported()){
+  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(typeof SpeechRecognition!=='function'){
    voiceButton.disabled=true;
-   voiceButtonLabel.textContent='غير متاح محلياً';
-   setVoiceState('error','حمايةً لخصوصيتك، لم نبدأ الميكروفون لأن هذا المتصفح لا يضمن التعرف على الجهاز نفسه. استخدم العداد اليدوي.');
+   voiceButtonLabel.textContent='غير متاح';
+   setVoiceState('error','التعرف الصوتي غير متاح في هذا المتصفح. يمكنك متابعة العد يدوياً.');
   }else{
    try{
-    recognition=LocalSpeech.create(speechLanguage);
-    if(!recognition||typeof recognition.start!=='function'||typeof recognition.stop!=='function'||recognition.processLocally!==true){
+    recognition=new SpeechRecognition();
+    if(!recognition||typeof recognition.start!=='function'||typeof recognition.stop!=='function'){
      throw new Error('واجهة التعرف الصوتي المحلي غير مكتملة. لم نبدأ الميكروفون.');
     }
     recognition.lang=speechLanguage;
@@ -708,17 +708,17 @@
       voiceRequested=false;
       voiceTargetPhrase='';
       try{recognition.abort()}catch(error){}
-      setVoiceState('error','توقف التعرف المحلي؛ لم نستخدم خدمة خارجية. يمكنك متابعة العد يدوياً.');
+      setVoiceState('error','تعذر الاتصال بخدمة التعرف الصوتي. يمكنك متابعة العد يدوياً.');
       return;
      }
      voiceRequested=false;
      voiceTargetPhrase='';
      const messages={
       'not-allowed':'لم يُسمح بالميكروفون. افتح إعدادات الموقع واسمح باستخدامه.',
-      'service-not-allowed':'لا يتوفر محرك التعرف المحلي على هذا الجهاز؛ لم نلجأ إلى خدمة خارجية.',
+      'service-not-allowed':'خدمة التعرف الصوتي غير متاحة في هذا المتصفح.',
       'audio-capture':'لم يتم العثور على ميكروفون صالح.',
       'no-speech':'لم نلتقط الذكر. تحقق من إذن الميكروفون ثم حاول مجدداً.',
-      'network':'توقف التعرف المحلي؛ لم نستخدم خدمة خارجية. تابع العد يدوياً.',
+      'network':'تعذر الاتصال بخدمة التعرف الصوتي. تابع العد يدوياً.',
       'aborted':'أُوقف العد الصوتي.',
       'language-not-supported':'العربية غير مدعومة من خدمة التعرف الصوتي على هذا الجهاز.',
       'bad-grammar':'تعذر تحليل الذكر المنطوق؛ حاول مرة أخرى.'
@@ -744,11 +744,11 @@
     voiceButton.addEventListener('click',()=>{
      if(voiceRequested){stopVoice('تم إيقاف التسجيل.');return}
      try{
+      if(!window.confirm('تنبيه خصوصية: قد يرسل المتصفح الصوت إلى خدمة التعرف التابعة له لمعالجة الكلام. لن يحفظ التطبيق التسجيل أو الكلمات. هل تريد تشغيل العد الصوتي للسبحة؟'))return;
       voiceMatchCount=0;
       voiceResultSegments=[];lastRecognitionEvent=null;voiceFallbackPending=false;voiceRestartCount=0;
       speechLanguageIndex=0;speechLanguage=speechLanguages[speechLanguageIndex];recognition.lang=speechLanguage;
-      recognition.processLocally=true;
-      if(recognition.processLocally!==true)throw new Error('هذا المتصفح لا يضمن المعالجة الصوتية المحلية.');
+
       voiceTargetPhrase=String(optionText(Array.from(select.options).find(option=>option.value===select.value))||'').trim();
       if(!voiceTargetPhrase){
        setVoiceState('error','اختر ذكراً قبل بدء التسجيل.');
