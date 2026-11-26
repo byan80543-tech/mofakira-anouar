@@ -1,22 +1,37 @@
-/* ANWAR SHIELD 3D v0.2.0 — local text-input threat gate; defense in depth only. */
+/* ANWAR SHIELD 3D v0.3.0 — strict Arabic creative-space input gate; defense in depth only. */
 (function(root){
  'use strict';
- if(root.AnwarShield3D&&root.AnwarShield3D.version==='0.2.0')return;
- const VERSION='0.2.0',MAX=200000;
+ if(root.AnwarShield3D&&root.AnwarShield3D.version==='0.3.0')return;
+ const VERSION='0.3.0',MAX=200000;
  const RULES=[
+ /* Explicit product policy: this notebook is for Arabic creativity and remembrance,
+    so names of attack classes are blocked even when pasted as isolated words. */
+ {id:'known-attack-vocabulary',status:'blocked',re:/\b(?:xss|cross[\s_-]*site[\s_-]*scripting|sql[\s_-]*injection|sqli|nosql[\s_-]*injection|command[\s_-]*injection|os[\s_-]*command[\s_-]*injection|shell[\s_-]*injection|code[\s_-]*injection|remote[\s_-]*code[\s_-]*execution|rce|csrf|cross[\s_-]*site[\s_-]*request[\s_-]*forgery|ssrf|server[\s_-]*side[\s_-]*request[\s_-]*forgery|xxe|xml[\s_-]*external[\s_-]*entity|ssti|server[\s_-]*side[\s_-]*template[\s_-]*injection|lfi|local[\s_-]*file[\s_-]*inclusion|rfi|remote[\s_-]*file[\s_-]*inclusion|path[\s_-]*traversal|directory[\s_-]*traversal|prototype[\s_-]*pollution|ldap[\s_-]*injection|xpath[\s_-]*injection|crlf[\s_-]*injection|header[\s_-]*injection|html[\s_-]*injection|template[\s_-]*injection|deserialization[\s_-]*attack|insecure[\s_-]*deserialization|open[\s_-]*redirect|clickjacking|session[\s_-]*fixation|credential[\s_-]*stuffing|brute[\s_-]*force|reverse[\s_-]*shell|webshell|shellcode|keylogger|phishing|ransomware|malware|exploit(?:ation)?|zero[\s_-]*day)\b/i},
+ {id:'standalone-executable-terms',status:'blocked',re:/\b(?:javascript|vbscript|eval|document\.cookie|innerhtml|outerhtml|onerror|onload|onmouseover|onfocus|onanimationstart)\b/i},
  {id:'xss-dangerous-element',status:'blocked',re:/<\s*(?:script|iframe|object|embed|applet|svg|math|link|meta)\b/i},
- {id:'xss-event-handler',status:'blocked',re:/\bon[a-z]{3,}\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/i},
+ {id:'xss-event-handler',status:'blocked',re:/\bon[a-z]{3,}\s*=\s*(?:\"[^\"]*\"|'[^']*'|[^\s>]+)/i},
  {id:'xss-javascript-url',status:'blocked',re:/\b(?:javascript|vbscript)\s*:/i},
  {id:'xss-html-data-url',status:'blocked',re:/\bdata\s*:\s*text\/html/i},
+ {id:'dangerous-uri-scheme',status:'blocked',re:/\b(?:file|gopher|dict)\s*:\s*\/\//i},
  {id:'xss-html-injection',status:'blocked',re:/<\/?(?:img|video|audio|source|form|input|button)\b[^>]*>/i},
+ {id:'xss-css-execution',status:'blocked',re:/\bexpression\s*\(|url\s*\(\s*[\"']?\s*(?:javascript|vbscript|data\s*:\s*text\/html)\s*:/i},
+ {id:'malicious-complete-url',status:'blocked',re:/https?:\/\/[^\s<>\"']{0,2000}(?:%3c\s*(?:script|svg|iframe)|<\s*(?:script|svg|iframe)|javascript%3a|vbscript%3a|%0d%0a|%2e%2e(?:%2f|\/)|\.\.\/|(?:onerror|onload)%3d)/i},
+ {id:'ssrf-local-target-url',status:'blocked',re:/https?:\/\/(?:localhost|127(?:\.\d{1,3}){3}|0\.0\.0\.0|169\.254\.169\.254|10(?:\.\d{1,3}){3}|192\.168(?:\.\d{1,3}){2}|172\.(?:1[6-9]|2\d|3[01])(?:\.\d{1,3}){2})(?::\d+)?(?:[/?#]|$)/i},
  {id:'sql-union-select',status:'blocked',re:/\bunion\s+(?:all\s+)?select\b/i},
- {id:'sql-tautology',status:'blocked',re:/(?:'|")?\s*(?:or|and)\s*(?:'|")?\d+(?:'|")?\s*=\s*(?:'|")?\d+/i},
+ {id:'sql-tautology',status:'blocked',re:/(?:'|\")?\s*(?:or|and)\s*(?:'|\")?\d+(?:'|\")?\s*=\s*(?:'|\")?\d+/i},
  {id:'sql-destructive',status:'blocked',re:/\b(?:drop|truncate|alter)\s+(?:table|database)\b|\bdelete\s+from\b/i},
  {id:'sql-metadata-probe',status:'blocked',re:/\binformation_schema\b|\bpg_catalog\b/i},
+ {id:'sql-comment-or-time-probe',status:'blocked',re:/\b(?:sleep|benchmark)\s*\(|\bwaitfor\s+delay\b|\/\*[\s\S]{0,120}?\*\//i},
+ {id:'nosql-operator-injection',status:'blocked',re:/(?:\$|％|＄)\s*(?:where|ne|gt|gte|lt|lte|regex|exists|expr)\b|\b\$where\b/i},
+ {id:'ldap-xpath-injection',status:'blocked',re:/(?:\*\)\s*\(\s*(?:uid|cn|objectclass)\s*=|\]\s*\|\s*\|\s*\[|\bor\s+1\s*=\s*1\s*\])/i},
+ {id:'xml-external-entity',status:'blocked',re:/<!\s*(?:DOCTYPE|ENTITY)\b[\s\S]{0,500}?(?:SYSTEM|PUBLIC)\b/i},
+ {id:'path-traversal',status:'blocked',re:/(?:\.\.\/|\.\.\\|%2e%2e(?:%2f|%5c|\/|\\)|%252e%252e(?:%252f|%255c)|%c0%ae%c0%ae)/i},
+ {id:'crlf-header-injection',status:'blocked',re:/(?:%0d%0a|\\r\\n|\r\n)(?:[a-z0-9-]{2,40}\s*:|location\s*:)/i},
  {id:'command-chain',status:'blocked',re:/(?:;|&&|\|\|)\s*(?:curl|wget|bash|sh|zsh|powershell|pwsh|cmd(?:\.exe)?|nc|netcat|python(?:3)?|perl|ruby)\b/i},
  {id:'command-substitution',status:'blocked',re:/\$\(\s*(?:curl|wget|bash|sh|powershell|cmd|nc|python|perl|ruby)\b|\x60(?:curl|wget|bash|sh|powershell|cmd|nc)\b/i},
+ {id:'powershell-obfuscation',status:'blocked',re:/\b(?:powershell|pwsh)\b[^\n]{0,100}\s-(?:enc|encodedcommand|e)\b/i},
  {id:'template-injection',status:'review',re:/\$\{\s*(?:constructor|process|require|globalThis|this\b)|<%[=!]?\s*[\s\S]{0,80}?%>|\{\{\s*(?:constructor|__proto__|7\s*\*\s*7)/i},
- {id:'prototype-pollution',status:'review',re:/(?:__proto__|prototype\s*\[?\s*["']?constructor|constructor\s*\[\s*["']?prototype)/i},
+ {id:'prototype-pollution',status:'review',re:/(?:__proto__|prototype\s*\[?\s*[\"']?constructor|constructor\s*\[\s*[\"']?prototype)/i},
  {id:'encoded-executable-markup',status:'review',re:/(?:%3c\s*(?:script|svg|iframe)|&#x0*3c;?\s*(?:script|svg)|\\x3c\\x73\\x63\\x72\\x69\\x70\\x74)/i},
  {id:'suspicious-control-sequence',status:'review',re:/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/}
  ];
