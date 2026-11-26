@@ -379,7 +379,7 @@
    voiceTargetPhrase='';
    const engine=voiceEngine;
    voiceEngine=null;
-   if(engine){try{engine.stop()}catch(error){}}
+   if(engine){try{engine.stop(Boolean(invalidatePending))}catch(error){}}
    setVoiceState('idle',message||'تم إيقاف العد الصوتي.');
   }
   function addCustomDhikr(){
@@ -575,6 +575,13 @@
       },
       onStatus(state,message){
        if(activeSession!==voiceSessionId)return;
+       if(state==='error'){
+        voiceSessionId++;
+        voiceRequested=false;
+        voiceActive=false;
+        voiceTargetPhrase='';
+        if(voiceEngine===engine)voiceEngine=null;
+       }
        setVoiceState(state,message);
       }
      });
