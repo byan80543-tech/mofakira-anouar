@@ -217,11 +217,12 @@ class NativeNotebookActivity : FragmentActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val authenticators = androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG or
                 androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
-            // Let the system prompt choose an enrolled strong biometric or
-            // the device credential (pattern, PIN or password). Do not put a
-            // preflight gate in front of the credential fallback: some OEM
-            // builds report biometric availability inconsistently even when
-            // a secure device credential is enrolled.
+            val availability = androidx.biometric.BiometricManager.from(this).canAuthenticate(authenticators)
+            if (availability != androidx.biometric.BiometricManager.BIOMETRIC_SUCCESS) {
+                Toast.makeText(this, "تعذّر تشغيل التحقق البيومتري أو قفل الجهاز. حدّث إعدادات قفل الشاشة ثم أعد المحاولة.", Toast.LENGTH_LONG).show()
+                finish()
+                return
+            }
             val prompt = androidx.biometric.BiometricPrompt(
                 this,
                 androidx.core.content.ContextCompat.getMainExecutor(this),
@@ -240,7 +241,7 @@ class NativeNotebookActivity : FragmentActivity() {
             )
             val promptInfo = androidx.biometric.BiometricPrompt.PromptInfo.Builder()
                 .setTitle("فتح مفكرة أنوار")
-                .setSubtitle("تحقق ببصمة الإصبع أو استخدم نمط/رمز قفل الجهاز")
+                .setSubtitle("تحقق ببصمة الإصبع أو بوسيلة قفل الشاشة")
                 .setAllowedAuthenticators(authenticators)
                 .build()
             prompt.authenticate(promptInfo)
@@ -250,7 +251,7 @@ class NativeNotebookActivity : FragmentActivity() {
         // Older Android versions use the system credential confirmation screen.
         val credentialIntent = keyguard.createConfirmDeviceCredentialIntent(
             "فتح مفكرة أنوار",
-            "أدخل النمط أو رمز PIN أو كلمة مرور قفل الجهاز للمتابعة"
+            "أدخل رمز قفل الجهاز للمتابعة"
         )
         if (credentialIntent == null) {
             Toast.makeText(this, "تعذّر استدعاء شاشة تحقق الجهاز. لم نعرض الملاحظات.", Toast.LENGTH_LONG).show()

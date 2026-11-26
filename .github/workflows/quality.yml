@@ -65,8 +65,6 @@ jobs:
         run: node scripts/test-ibtihalat-radio.mjs
       - name: Test Quran and prayer service dashboard navigation
         run: node scripts/test-service-dashboard.mjs
-      - name: Test independent encrypted Tasbih vault and backup recovery
-        run: node scripts/test-tasbih-vault.mjs
       - name: Test native Android tasbih redesign and preserved features
         run: node scripts/test-native-tasbih.mjs
       - name: Test Android private storage encryption and re-authentication

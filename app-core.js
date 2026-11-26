@@ -26,7 +26,7 @@
  }
  let state=normalize({});
  const listeners=new Set();
- let persistHandler=null,flushHandler=null;
+ let persistHandler=null;
  const copy=()=>normalize(state);
  function notify(){
   const snapshot=copy();
@@ -53,12 +53,7 @@
   return ()=>listeners.delete(listener);
  }
  function setPersistHandler(handler){persistHandler=typeof handler==='function'?handler:null}
- function setFlushHandler(handler){flushHandler=typeof handler==='function'?handler:null}
- async function flush(){
-  if(!flushHandler)return false;
-  return await flushHandler();
- }
- root.AnwarPrivatePreferences=Object.freeze({normalize,load,get:copy,set,subscribe,setPersistHandler,setFlushHandler,flush});
+ root.AnwarPrivatePreferences=Object.freeze({normalize,load,get:copy,set,subscribe,setPersistHandler});
 })(globalThis);
 requestAnimationFrame(()=>setTimeout(()=>{
 
@@ -641,50 +636,25 @@ async function unlockVaultWithDevice(){
   button.disabled=false;
  }
 }
-async function openVaultDeviceSetupDialog(){
+function openVaultDeviceSetupDialog(){
  const dialog=$('vaultDeviceSetupDialog');
  const configured=AnwarDeviceUnlock.isConfigured();
  const supported=AnwarDeviceUnlock.supported();
+ $('vaultDeviceSetupPassword').value='';
+ $('vaultDeviceSetupForm').hidden=configured||!supported;
+ $('vaultDeviceDisableBtn').hidden=!configured;
  const sharedOrigin=AnwarDeviceUnlock.isSharedGitHubPagesOrigin();
  const trustedOrigin=AnwarDeviceUnlock.isTrustedOrigin();
- const form=$('vaultDeviceSetupForm');
- $('vaultDeviceSetupPassword').value='';
- $('vaultDeviceDisableBtn').hidden=!configured;
- form.hidden=true;
+ $('vaultDeviceSetupStatus').textContent=configured
+  ?'الفتح السريع مفعّل لهذا المتصفح. يمكنك تعطيله من هنا.'
+  :sharedOrigin
+   ?'حمايةً لخصوصيتك، عُطّل الفتح بقفل الهاتف على GitHub Pages المشترك. استخدم عبارة المرور الأساسية؛ أعمالك المشفرة لم تُحذف.'
+   :!trustedOrigin
+    ?'حمايةً للخزنة، لا يُتاح فتحها بالبصمة أو قفل الجهاز إلا على نطاق مفكرة أنوار المستقل المعتمد. افتح https://mofakira-anouar.pages.dev/؛ ستبقى كلمة المرور الأساسية متاحة.'
+    :supported
+     ?'عند التفعيل سيُطلب تحقق الهاتف الآمن. ستبقى كلمة المرور الأساسية وسيلة الاسترداد.'
+     :'هذا المتصفح أو الجهاز لا يدعم ميزة الاعتماد الآمن المطلوبة. يمكنك متابعة استخدام كلمة المرور الأساسية.';
  if(dialog&&!dialog.open)dialog.showModal();
-
- if(configured){
-  $('vaultDeviceSetupStatus').textContent='الفتح بقفل الهاتف مفعّل لهذا المتصفح. يمكنك تعطيله من هنا.';
-  return;
- }
- if(sharedOrigin){
-  $('vaultDeviceSetupStatus').textContent='حمايةً لخصوصيتك، لا نفعّل فتح الخزنة على GitHub Pages المشترك. استخدم كلمة المرور الأساسية؛ أعمالك المشفرة لم تُحذف.';
-  return;
- }
- if(!trustedOrigin){
-  $('vaultDeviceSetupStatus').textContent='حمايةً للخزنة، لا يُتاح فتحها إلا على النطاق المستقل المعتمد: https://mofakira-anouar.pages.dev/ . ستبقى كلمة المرور الأساسية متاحة.';
-  return;
- }
- if(!supported){
-  $('vaultDeviceSetupStatus').textContent='هذا المتصفح لا يوفّر واجهة اعتماد الهاتف الآمن المطلوبة. يمكنك متابعة استخدام كلمة المرور الأساسية.';
-  return;
- }
-
- $('vaultDeviceSetupStatus').textContent='يجري التحقق من دعم المتصفح لميزة الحماية الآمنة…';
- const prfStatus=await AnwarDeviceUnlock.prfSupportStatus();
- if(AnwarDeviceUnlock.isConfigured()){
-  $('vaultDeviceSetupStatus').textContent='الفتح بقفل الهاتف مفعّل لهذا المتصفح. يمكنك تعطيله من هنا.';
-  $('vaultDeviceDisableBtn').hidden=false;
-  return;
- }
- if(prfStatus===false){
-  $('vaultDeviceSetupStatus').textContent='هذا المتصفح لا يعلن دعم ميزة PRF اللازمة لاشتقاق مفتاح الخزنة من اعتماد الهاتف؛ لذلك لم نعرض تفعيلًا لن يعمل. استخدم كلمة المرور الأساسية أو متصفحًا محدّثًا يدعم PRF.';
-  return;
- }
- form.hidden=false;
- $('vaultDeviceSetupStatus').textContent=prfStatus===true
-  ?'يعلن المتصفح دعم ميزة PRF والتحقق عبر الجهاز؛ لكن يلزم أن يدعمها اعتماد الهاتف نفسه أيضًا. عند التفعيل سيطلب نظام الهاتف قفل الشاشة (النمط أو PIN أو كلمة المرور) أو البصمة بحسب إعداد جهازك. لا يقرأ الموقع هذه الوسيلة ولا يخزنها، وستبقى كلمة المرور الأساسية للاسترداد.'
-  :'تعذّر على المتصفح إعلان دعم PRF مسبقًا. سنختبره أثناء التفعيل؛ لن تتغير الخزنة أو كلمة المرور الأساسية عند فشل الاختبار.';
 }
 async function submitVaultDeviceSetup(event){
  event.preventDefault();
@@ -1141,13 +1111,6 @@ function flushPrivatePreferenceSave(){
   if(vaultUnlocked)save();
  }
 }
-globalThis.AnwarPrivatePreferences.setFlushHandler(async()=>{
- if(!vaultUnlocked)return false;
- flushPrivatePreferenceSave();
- await vaultSaveQueue;
- if(vaultLastWriteError)throw new Error('تعذّر التحقق من حفظ إعدادات المفكرة.');
- return true;
-});
 const iso=d=>d.toISOString().slice(0,10);
 function streak(){const d=new Set(S.days);let n=0,c=new Date();if(!d.has(iso(c)))c.setDate(c.getDate()-1);while(d.has(iso(c))){n++;c.setDate(c.getDate()-1)}return n}
 const fmt=ts=>new Date(ts).toLocaleDateString('ar',{day:'numeric',month:'long',year:'numeric'});
