@@ -16,7 +16,7 @@ assert.match(prayer,/const VOICES=\[\s*\{key:'calm',label:'أذان هادئ · 
 assert.doesNotMatch(prayer,/key:'aqsa'|key:'haram_makki'|key:'morocco_kamal'|key:'madina'/,'the browser player has no externally hosted adhan choices');
 assert.match(prayer,/key:'calm',label:'أذان هادئ · محلي',url:'\.\/assets\/adhan\/beautiful-adhan\.ogg'/,'the default adhan is loaded from a bundled local asset');
 assert.match(prayer,/يُشغّل التسجيل من ملف محلي داخل المفكرة/,'privacy disclosure identifies the bundled default audio as local');
-assert.match(prayer,/audioPrivacyFact\.state\.textContent='ملف محلي'/,'audio privacy status changes to local for bundled audio');
+assert.match(prayer,/audioPrivacyFact\.state\.textContent='ملف محلي فقط'/,'audio privacy status identifies the browser player as local-only');
 assert.doesNotMatch(prayer,/raw\.githubusercontent\.com\/Kiwifu\/adhan-mp3|upload\.wikimedia\.org\/wikipedia\/commons\/7\/7c\/33937/,'the browser adhan controller contains no remote audio host');
 assert.doesNotMatch(prayer,/key:'maahur'/,'Persian adhan option is removed');
 assert.doesNotMatch(prayer,/مسجد الحسن الثاني/,'modern Hassan II field recording is removed');
@@ -31,7 +31,7 @@ assert.match(prayer,/لا نستخدم GPS ولا نطلب إذن الموقع/,
 assert.match(prayer,/تُحفظ ضمن تفضيلات مفكرة أنوار المشفرة على هذا الجهاز/,'the disclosure accurately states that adhan settings are stored in the encrypted vault');
 assert.doesNotMatch(prayer,/localStorage|sessionStorage/,'the prayer controller does not persist private adhan settings in plaintext browser storage');
 assert.match(prayer,/HTTPS يشفّر الاتصال أثناء النقل فقط/,'the disclosure describes transport encryption concisely');
-assert.match(prayer,/function updatePrivacyAudioDisclosure\(\)/,'the disclosed audio host follows the selected adhan voice');
+assert.match(prayer,/function updatePrivacyAudioDisclosure\(\)/,'the browser audio privacy disclosure is centralized');
 assert.match(prayer,/updatePrivacyAudioDisclosure\(\);/,'changing the adhan voice refreshes the disclosed audio host');
 assert.match(prayer,/if\(window\.AnwarAdhanBridge\)\{[\s\S]*?AlAdhan[\s\S]*?عنوان IP/,'Android WebView discloses its separate external calendar and background audio path');
 assert.match(prayer,/card\.append\(head,nextBox,timesGrid,dateLine,infoDetails,backgroundPermissionWrap,status,details,audio\)/,'status feedback sits immediately after the permission control and outside the collapsed settings panel');
