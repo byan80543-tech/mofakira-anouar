@@ -554,7 +554,10 @@ async function submitVaultForm(event,suppliedPassword){
     const backupRead=JSON.parse(await AnwarVaultStorage.get(VAULT_BACKUP_KEY)||'null');
     if(await AnwarVaultCrypto.decryptWithKey(vaultKey,backupRead)!==plaintext)throw new Error('تعذّر التحقق من النسخة المشفرة الإضافية.');
     vaultBackupWarningShown=false;
-   }catch(backupError){console.warn('تعذّر إنشاء النسخة المشفرة الإضافية أثناء الإعداد',backupError);vaultBackupWarningShown=true}
+   }catch(backupError){
+    console.warn('تعذّر إنشاء النسخة المشفرة الإضافية أثناء الإعداد؛ أُبقيت بيانات الاسترداد القديمة دون حذف.',backupError);
+    throw new Error('تعذّر إنشاء النسخة الاحتياطية المشفرة والتحقق منها. أبقينا بيانات الاسترداد القديمة دون حذف؛ أعد المحاولة بعد إتاحة التخزين.');
+   }
    localStorage.setItem(VAULT_MODE_KEY,'encrypted');
    if(localStorage.getItem(VAULT_MODE_KEY)!=='encrypted')throw new Error('تعذّر تثبيت وضع التشفير على هذا الجهاز. بقيت بياناتك السابقة كما هي.');
    setupEncryptedCommitted=true;
