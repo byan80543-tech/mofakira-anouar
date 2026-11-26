@@ -266,7 +266,7 @@
  updatePrivacyAudioDisclosure();
  addPrivacyFact('الإعدادات','تُحفظ ضمن تفضيلات مفكرة أنوار المشفرة على هذا الجهاز.','داخل الخزنة المشفرة','secure');
  addPrivacyFact('الحساب','لا يلزم حساب أو بريد إلكتروني.','دون حساب','local');
- addPrivacyFact('الاتصال','HTTPS يشفّر الاتصال أثناء النقل فقط.','تشفير أثناء النقل','secure');
+ addPrivacyFact('الاتصال','حساب المواقيت وتشغيل ملف الأذان محليان، ولا يحتاج قسم الأذان إلى اتصال خارجي.','محلي دون اتصال','local');
  const privacyFootnote=el('small','anwar-prayer-privacy-footnote','بيان موجز عن النسخة الحالية، وليس تدقيقًا أمنيًا مستقلًا.');
  infoDetails.append(infoSummary,privacyList,privacyFootnote);
  const details=el('details','anwar-prayer-settings');
