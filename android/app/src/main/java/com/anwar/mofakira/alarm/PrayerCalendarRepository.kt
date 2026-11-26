@@ -26,14 +26,15 @@ object PrayerCalendarRepository {
                     school = config.school,
                     date = date
                 )
-                listOf(
+                val prayerEntries = listOf(
                     Triple("Fajr", "الفجر", "Fajr"),
                     Triple("Dhuhr", "الظهر", "Dhuhr"),
                     Triple("Asr", "العصر", "Asr"),
                     Triple("Maghrib", "المغرب", "Maghrib"),
                     Triple("Isha", "العشاء", "Isha")
-                ).forEach { (key, name, timeKey) ->
-                    val time = times[timeKey] ?: return@forEach
+                )
+                for ((key, name, timeKey) in prayerEntries) {
+                    val time = times[timeKey] ?: continue
                     val timestamp = date.atTime(time).atZone(zone).toInstant().toEpochMilli()
                     events.put(
                         JSONObject()
