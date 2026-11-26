@@ -19,8 +19,6 @@
   {key:'madina',label:'المسجد النبوي · تسجيل ميداني',url:'https://upload.wikimedia.org/wikipedia/commons/7/7c/33937_ejaz215_call-to-prayer-from-the-prophet-s-mo.ogg',page:'https://commons.wikimedia.org/wiki/File:33937_ejaz215_call-to-prayer-from-the-prophet-s-mo.ogg',credit:'ejaz215',license:'CC BY 3.0'}
  ];
  const DEFAULT_VOICE='calm';
- const SETTINGS_KEY='anwar_prayer_settings_v1';
- const PLAYED_KEY='anwar_prayer_last_adhan_v1';
  const PRAYERS=[
   {key:'Fajr',name:'الفجر'},
   {key:'Dhuhr',name:'الظهر'},
@@ -128,27 +126,33 @@
   const match=COUNTRY_OPTIONS.find(item=>item.api===normalizeCountry(country));
   return match?match.method:'auto';
  }
+ function normalizeSavedSettings(value){
+  const source=value&&typeof value==='object'&&!Array.isArray(value)?value:{};
+  const defaults={country:detectCountry(),city:'',method:'auto',school:'0',enabled:false,volume:0.9,timezone:'',voice:DEFAULT_VOICE,countrySource:'auto',lastPlayedKey:''};
+  const storedCountry=normalizeCountry(source.country);
+  const manualCountry=source.countrySource==='manual'||(!source.countrySource&&storedCountry&&storedCountry!=='Morocco');
+  const country=manualCountry&&storedCountry?storedCountry:defaults.country;
+  const changedFromSaved=!!storedCountry&&storedCountry!==country;
+  const storedCity=typeof source.city==='string'?source.city.trim().slice(0,90):'';
+  return {
+   country:country,
+   city:changedFromSaved||!storedCity?defaultCity(country):storedCity,
+   method:methodForCountry(country),
+   countrySource:manualCountry?'manual':'auto',
+   school:source.school==='1'?'1':'0',
+   enabled:source.enabled===true,
+   volume:Number.isFinite(Number(source.volume))?Math.max(0,Math.min(1,Number(source.volume))):defaults.volume,
+   timezone:changedFromSaved?'':(typeof source.timezone==='string'?source.timezone.slice(0,90):''),
+   voice:VOICES.some(item=>item.key===source.voice)?source.voice:DEFAULT_VOICE,
+   lastPlayedKey:typeof source.lastPlayedKey==='string'?source.lastPlayedKey.slice(0,180):''
+  };
+ }
  function readSettings(){
-  const defaults={country:detectCountry(),city:'',method:'auto',school:'0',enabled:false,volume:0.9,timezone:'',voice:DEFAULT_VOICE,countrySource:'auto'};
   try{
-   const value=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}');
-   const storedCountry=normalizeCountry(value.country);
-   const manualCountry=value.countrySource==='manual'||(!value.countrySource&&storedCountry&&storedCountry!=='Morocco');
-   const country=manualCountry&&storedCountry?storedCountry:defaults.country;
-   const changedFromSaved=!!storedCountry&&storedCountry!==country;
-   const storedCity=typeof value.city==='string'?value.city.trim().slice(0,90):'';
-   return {
-    country:country,
-    city:changedFromSaved||!storedCity?defaultCity(country):storedCity,
-    method:methodForCountry(country),
-    countrySource:manualCountry?'manual':'auto',
-    school:'0',
-    enabled:value.enabled===true,
-    volume:Number.isFinite(Number(value.volume))?Math.max(0,Math.min(1,Number(value.volume))):defaults.volume,
-    timezone:changedFromSaved?'':(typeof value.timezone==='string'?value.timezone.slice(0,90):''),
-    voice:VOICES.some(item=>item.key===value.voice)?value.voice:DEFAULT_VOICE
-   };
-  }catch(_e){return defaults;}
+   const privatePrefs=window.AnwarPrivatePreferences;
+   const saved=privatePrefs&&typeof privatePrefs.get==='function'?privatePrefs.get():null;
+   return normalizeSavedSettings(saved&&saved.prayer);
+  }catch(_e){return normalizeSavedSettings({})}
  }
  let settings=readSettings();
  function validTimeZone(value){try{new Intl.DateTimeFormat('en',{timeZone:value}).format();return value;}catch(_e){return Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';}}
@@ -252,7 +256,7 @@
   audioPrivacyFact.description.textContent='يُحمّل التسجيل من '+host+' عبر HTTPS؛ ويمكن للمضيف رؤية عنوان IP.';
  }
  updatePrivacyAudioDisclosure();
- addPrivacyFact('الإعدادات','تُحفظ على جهازك في localStorage، من دون تشفير إضافي.','محفوظة محليًا','plain');
+ addPrivacyFact('الإعدادات','تُحفظ ضمن تفضيلات مفكرة أنوار المشفرة على هذا الجهاز.','داخل الخزنة المشفرة','secure');
  addPrivacyFact('الحساب','لا يلزم حساب أو بريد إلكتروني.','دون حساب','local');
  addPrivacyFact('الاتصال','HTTPS يشفّر الاتصال أثناء النقل فقط.','تشفير أثناء النقل','secure');
  const privacyFootnote=el('small','anwar-prayer-privacy-footnote','بيان موجز عن النسخة الحالية، وليس تدقيقًا أمنيًا مستقلًا.');
@@ -311,7 +315,13 @@
  else{const insertBefore=panel.querySelector('.radio-section-title');if(insertBefore)panel.insertBefore(card,insertBefore);else panel.append(card);}
 
  function persist(){
-  try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings))}catch(_e){}
+  const privatePrefs=window.AnwarPrivatePreferences;
+  if(!privatePrefs||typeof privatePrefs.set!=='function'){
+   setStatus('التفضيلات المشفرة غير متاحة. لم تُحفظ إعدادات الأذان.');
+   return false;
+  }
+  try{privatePrefs.set('prayer',settings);return true}
+  catch(error){setStatus('تعذّر حفظ إعدادات الأذان داخل الخزنة المشفرة.');return false}
  }
  testButton.textContent='تجربة الأذان';
  function syncNativeBackground(requestPermissions){
@@ -496,12 +506,8 @@
   nextWhen.textContent=message||'بانتظار المواقيت';
   countdown.textContent='--:--:--';
  }
- function alreadyPlayed(key){
-  try{return localStorage.getItem(PLAYED_KEY)===key}catch(_e){return false}
- }
- function markPlayed(key){
-  try{localStorage.setItem(PLAYED_KEY,key)}catch(_e){}
- }
+ function alreadyPlayed(key){return settings.lastPlayedKey===key}
+ function markPlayed(key){settings.lastPlayedKey=String(key||'').slice(0,180);persist()}
  async function playAdhan(prayer,isTest){
   if(!isTest&&!settings.enabled)return false;
   if(!audio.paused&&!audio.ended){if(isTest)setStatus('الأذان يعمل بالفعل.');return false;}
@@ -671,11 +677,37 @@
   const item=el('div','anwar-prayer-time');item.append(el('b','',prayer.name),el('strong','','—'));return item;
  }));
  updateHeader();
- // Reconcile previously saved PWA settings with the native Android alarm
- // bridge on startup. Preserve native settings when this is a fresh WebView.
- try{
-  if(localStorage.getItem(SETTINGS_KEY)!==null)syncNativeBackground();
- }catch(_e){}
+ // Apply settings only after the encrypted vault loads them. A fresh or locked
+ // notebook exposes defaults here; unlock notifications restore the user's
+ // encrypted prayer preferences without consulting plaintext browser storage.
+ let lastAppliedPrayerSignature=JSON.stringify(settings);
+ function applyVaultPrayerPreferences(snapshot){
+  const next=normalizeSavedSettings(snapshot&&snapshot.prayer);
+  const signature=JSON.stringify(next);
+  if(signature===lastAppliedPrayerSignature)return;
+  lastAppliedPrayerSignature=signature;
+  const changed=signature!==JSON.stringify(settings);
+  settings=next;
+  if(!changed)return;
+  timeZone=validTimeZone(settings.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC');
+  countrySelect.value=settings.country;
+  cityInput.value=settings.city;
+  voiceSelect.value=settings.voice;
+  enabledInput.checked=settings.enabled;
+  volumeInput.value=String(settings.volume);
+  audio.volume=settings.volume;
+  audio.pause();
+  const restoredVoice=VOICES.find(item=>item.key===settings.voice)||VOICES[0];
+  audio.src=restoredVoice.url;
+  audio.load();
+  todayData=null;tomorrowData=null;lastDateCheck='';
+  updateHeader();updatePrivacyAudioDisclosure();
+  showNextPrayerPlaceholder('بانتظار المواقيت المحفوظة');
+  refreshTimes(false);
+  if(settings.enabled)syncNativeBackground();
+ }
+ const privatePrefs=window.AnwarPrivatePreferences;
+ if(privatePrefs&&typeof privatePrefs.subscribe==='function')privatePrefs.subscribe(applyVaultPrayerPreferences);
  lastTick=Date.now();
  refreshTimes(false);
  window.setInterval(tick,1000);
