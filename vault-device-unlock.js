@@ -196,6 +196,21 @@
   if(!isTrustedOrigin()){if(isSharedGitHubPagesOrigin())clearSharedOriginDeviceWrapper();return false}
   return !!readRecord();
  }
+ function diagnostics(){
+  let localStorageReadable=false;
+  try{root.localStorage.getItem(STORAGE_KEY);localStorageReadable=true}catch(_error){}
+  let standalone=false;
+  try{standalone=!!(root.matchMedia&&root.matchMedia('(display-mode: standalone)').matches)||root.navigator.standalone===true}catch(_error){}
+  const secureContext=!!root.isSecureContext;
+  const trustedOrigin=isTrustedOrigin();
+  const credentialsApi=!!(root.navigator&&root.navigator.credentials&&
+   typeof root.navigator.credentials.create==='function'&&typeof root.navigator.credentials.get==='function');
+  const publicKeyCredential=!!root.PublicKeyCredential;
+  const cryptoSubtle=!!(root.crypto&&root.crypto.subtle);
+  const recordConfigured=trustedOrigin&&!!readRecord();
+  return Object.freeze({secureContext,trustedOrigin,credentialsApi,publicKeyCredential,cryptoSubtle,
+   localStorageReadable,recordConfigured,standalone,supported:secureContext&&trustedOrigin&&credentialsApi&&publicKeyCredential&&cryptoSubtle});
+ }
  function disable(){
   try{root.localStorage.removeItem(STORAGE_KEY);return true}
   catch(error){throw new Error('تعذّر إيقاف فتح الهاتف في التخزين المحلي.')}
@@ -206,6 +221,7 @@
   isTrustedOrigin,
   supported,
   isConfigured,
+  diagnostics,
   protectPassword,
   unlockPassword,
   disable
