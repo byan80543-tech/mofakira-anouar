@@ -60,6 +60,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Test Anwar Shield 3D local input threat gate
+        run: node --test scripts/test-anwar-shield-3d.mjs
       - name: Block device-password wrapping on shared GitHub Pages origins
         run: node scripts/test-vault-shared-origin.mjs
       - name: Test DOM value targets and Arabic vault lock errors
