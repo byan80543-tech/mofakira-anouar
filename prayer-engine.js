@@ -66,7 +66,7 @@
   };
 
   const COUNTRY_TIMEZONES = {
-    Morocco: 'Africa/Casablanca', Algeria: 'Africa/Algiers', Tunisia: 'Africa/Tunis',
+    Morocco: 'UTC', Algeria: 'Africa/Algiers', Tunisia: 'Africa/Tunis',
     Libya: 'Africa/Tripoli', Egypt: 'Africa/Cairo', Sudan: 'Africa/Khartoum',
     Mauritania: 'Africa/Nouakchott', Somalia: 'Africa/Mogadishu', Djibouti: 'Africa/Djibouti',
     Comoros: 'Indian/Comoro', 'Saudi Arabia': 'Asia/Riyadh', Yemen: 'Asia/Aden',
@@ -115,7 +115,7 @@
     const key = normalizeCity(city);
     const pair = group[key] || group[String(city || '').trim()];
     if (!pair) return null;
-    return { latitude: pair[0], longitude: pair[1] };
+    return { latitude: pair[0], longitude: pair[1], heightMeters: 0 };
   }
 
   function timezoneForCountry(country) {
@@ -196,13 +196,41 @@
     if (!coords) {
       throw new Error('هذه المدينة غير مدرجة في قاعدة الإحداثيات المحلية. لم نرسلها إلى أي خدمة؛ اختر مدينة مدعومة أو أضف إحداثياتها في تحديث لاحق.');
     }
-    const timezone = source.timezone || timezoneForCountry(source.country) || 'UTC';
+    const dateKey = year + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+    // Morocco's official clock has been GMT/UTC since 17 September 2026.
+    // Use UTC explicitly for current/future Moroccan times instead of trusting
+    // a device's possibly stale Africa/Casablanca time-zone database.
+    const timezone = source.country === 'Morocco' && dateKey >= '2026-09-17'
+      ? 'UTC'
+      : (source.timezone || timezoneForCountry(source.country) || 'UTC');
     try { new Intl.DateTimeFormat('en', { timeZone: timezone }).format(validation); }
     catch (_error) { throw new Error('المنطقة الزمنية المحددة غير صالحة.'); }
 
-    const solar = solarPosition(year, month, day);
     const latitude = coords.latitude;
     const longitude = coords.longitude;
+    if (source.country === 'Morocco') {
+      const moroccoMethod = root.AnwarMoroccoPrayerMethod;
+      if (!moroccoMethod || typeof moroccoMethod.calculate !== 'function') {
+        throw new Error('محرك الحساب المغربي المحلي غير جاهز. حدّث المفكرة وأعد فتحها.');
+      }
+      const moroccoTimings = moroccoMethod.calculate({
+        latitude: latitude,
+        longitude: longitude,
+        year: year,
+        month: month,
+        day: day,
+        heightMeters: coords.heightMeters,
+        school: source.school
+      });
+      const gregorian = String(dateMatch[1]) + '-' + String(dateMatch[2]) + '-' + String(dateMatch[3]);
+      return {
+        timings: moroccoTimings,
+        date: { gregorian: { date: gregorian }, hijri: { date: hijriDate(year, month, day) } },
+        meta: { timezone: timezone, source: 'local-morocco-method-estimate' }
+      };
+    }
+
+    const solar = solarPosition(year, month, day);
     const solarNoonUtc = 720 - 4 * longitude - solar.equationOfTime;
     const sunsetAngle = hourAngle(-0.833, latitude, solar.declination);
     const fajrAngle = source.country === 'Morocco' ? 19 : (METHOD_PARAMETERS[source.country] || { fajr: 18 }).fajr;
