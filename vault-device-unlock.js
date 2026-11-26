@@ -166,7 +166,7 @@
   }
   if(!credential)throw new Error('لم يكتمل إعداد قفل الهاتف.');
   const prfResult=credential.getClientExtensionResults?.().prf;
-  if(!prfResult||prfResult.enabled!==true)throw new Error('أنشأ مدير كلمات المرور اعتمادًا للهاتف، لكنه لم يثبت دعمه لاشتقاق مفتاح PRF اللازم لحماية الخزنة. لم يُربط الاعتماد بالخزنة، وبقيت كلمة المرور الأساسية كما هي. قد تحتاج إلى إزالة اعتماد «مفكرة أنوار» غير المستخدم من مدير كلمات المرور.');
+  if(!prfResult||prfResult.enabled!==true)throw new Error('لا يدعم هذا الاعتماد ميزة PRF اللازمة لاشتقاق مفتاح الخزنة. لم يُربط الاعتماد بالخزنة، وبقيت كلمة المرور الأساسية كما هي. قد تحتاج إلى إزالة اعتماد «مفكرة أنوار» غير المستخدم من مدير كلمات المرور.');
   const credentialId=toBase64Url(new Uint8Array(credential.rawId));
   const credentialIdBytes=new Uint8Array(credential.rawId);
   if(!credentialIdBytes.length)throw new Error('لم يُرجع الهاتف معرّف اعتماد صالحًا.');
