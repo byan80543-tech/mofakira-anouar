@@ -51,7 +51,7 @@ vm.runInNewContext(helper,{window:absentWindow,globalThis:absentWindow});
 assert.equal(absentWindow.AnwarLocalSpeech.supported(),false,'a browser without speech recognition fails closed');
 
 assert.doesNotMatch(helper,/\.install\s*\(/,'the app never downloads speech models automatically');
-assert.match(tasbih,/AnwarTasbihCloudSpeech\.create\(/,'tasbih uses the focused ephemeral audio-count module');
+assert.match(tasbih,/CloudSpeech\.create\(/,'tasbih uses the focused ephemeral audio-count module');
 assert.doesNotMatch(tasbih,/SpeechRecognition|webkitSpeechRecognition/,'tasbih no longer delegates clean speech to the browser speech service');
 assert.doesNotMatch(tasbih,/AnwarLocalSpeech|processLocally/,'tasbih does not inherit the writing tools local-only restriction');
 assert.match(tasbih,/window\.confirm\(['\"]تنبيه خصوصية: عند المتابعة/,'tasbih obtains explicit consent before uploading short audio segments');
