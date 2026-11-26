@@ -60,7 +60,7 @@ assert.match(prayer,/label:'تونس'/,'Arabic country list includes Tunisia');
 assert.match(prayer,/function detectCountry\(\)/,'country is detected from device settings');
 assert.match(prayer,/TIME_ZONE_COUNTRY/,'timezone mapping is available for supported countries');
 assert.match(prayer,/function methodForCountry\(country\)/,'calculation method is selected internally by country');
-assert.match(prayer,/engine\.timezoneForCountry\(settings\.country\)/,'the calculation engine supplies the country's local timezone');
+assert.match(prayer,/engine\.timezoneForCountry\(settings\.country\)/,"the calculation engine supplies the selected country local timezone");
 assert.doesNotMatch(prayer,/METHOD_OPTIONS|methodSelect/,'technical calculation-method picker is removed');
 assert.match(prayer,/countrySelect\.addEventListener\('change'/,'manual country override remains available');
 assert.match(prayer,/const nativeBridgeReady=syncNativeBackground\(\)/,'native background adhan syncs after refreshed prayer data confirms the timezone');
