@@ -97,8 +97,10 @@ assert.equal(h.sandbox.vaultUnlocked,false,'first launch remains locked until th
 
 h=makeHarness({'anwar_vault_mode_v1':'plain','anwar_vault_v1':'stale-encrypted-copy'});
 await h.api.bootVault();
-assert.equal(h.calls.finished,false,'a legacy plaintext-mode marker no longer permits unlocked startup');
-assert.equal(h.calls.mode,'setup','legacy plaintext mode must migrate through mandatory encryption');
+assert.equal(h.calls.finished,false,'a legacy plaintext-mode marker cannot bypass an existing encrypted vault');
+assert.equal(h.sandbox.vaultHasEncryptedData,true,'existing encrypted records are detected even when local mode metadata says plain');
+assert.equal(h.sandbox.vaultGateMode,'unlock','an existing encrypted vault remains locked and requires its original passphrase');
+assert.equal(h.calls.legacyPrepared,false,'the app does not overwrite an existing encrypted vault by starting a new plaintext migration');
 
 h=makeHarness({},true);
 await h.api.bootVault();
