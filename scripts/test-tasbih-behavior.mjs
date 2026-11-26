@@ -75,15 +75,18 @@ function buildApp(options={}){
   'tasbihReset','tasbihDhikrCards','tasbihCustomDhikrInput','tasbihAddCustomDhikr','tasbihCustomDhikrStatus',
   'tasbihRemoveDhikr','tasbihRestoreOfficial','tasbihVoicePanel','tasbihVoice','tasbihVoiceState',
   'tasbihVoiceStatus','tasbihVoiceButtonLabel','tasbihBeads','morningTab','eveningTab',
-  'tasbihCounterControl','tasbihClockDial','tasbihClockTicks','tasbihClockNumbers','tasbihHourHand','tasbihMinuteHand','tasbihSecondHand','tasbihElapsedTime','tasbihThemeToggle','tasbihThemePicker','tasbihThemeEmerald','tasbihThemeDark','tasbihThemePink','tasbihThemeNight','tasbihThemeHeritage','tasbihThemeGlass'
+  'tasbihCounterControl','tasbihClockDial','tasbihClockTicks','tasbihClockNumbers','tasbihHourHand','tasbihMinuteHand','tasbihSecondHand','tasbihElapsedTime','tasbihThemeToggle','tasbihThemePicker','tasbihThemeEmerald','tasbihThemeDark','tasbihThemePink','tasbihThemeNight','tasbihThemeHeritage','tasbihThemeGlass',
+  'tasbihShieldButton','tasbihShieldDialog','tasbihShieldForm','tasbihShieldPassword','tasbihShieldConfirm','tasbihShieldConfirmWrap','tasbihShieldStatus','tasbihShieldSubmit','tasbihShieldLock','tasbihShieldClose'
  ];
- for(const id of ids)nodes[id]=id==='tasbihDhikr'?new FakeSelect(id):new FakeElement(id,id==='ownerDialog'?'DIALOG':'DIV');
+ for(const id of ids)nodes[id]=id==='tasbihDhikr'?new FakeSelect(id):new FakeElement(id,(['ownerDialog','tasbihShieldDialog'].includes(id)?'DIALOG':(['tasbihShieldForm'].includes(id)?'FORM':'DIV')));
  const themeNames=['emerald','dark','pink','night','heritage','glass'];
  themeNames.forEach(name=>{nodes['tasbihTheme'+name[0].toUpperCase()+name.slice(1)].dataset.tasbihThemeOption=name});
  nodes.tasbihThemePicker.hidden=true;
  nodes.tasbihPanel.hidden=true;
  const counter=new FakeElement('tasbihCounterControl','DIV');nodes.tasbihPanel.counter=counter;nodes.tasbihCounterControl=counter;
  nodes.ownerDialog.showModal=function(){this.open=true};
+ nodes.tasbihShieldDialog.showModal=function(){this.open=true};
+ nodes.tasbihShieldDialog.close=function(){this.open=false};
  const groupPattern=/<optgroup label="([^"]*)">([\s\S]*?)<\/optgroup>/g;
  for(const groupMatch of selectMatch[1].matchAll(groupPattern)){
   const group=new FakeElement('', 'OPTGROUP');group.label=groupMatch[1];
@@ -99,7 +102,16 @@ function buildApp(options={}){
  const preferences={
   get(){return clone(state)},
   set(section,value){state={...state,[section]:clone(value)};for(const listener of listeners)listener(clone(state));return clone(state)},
+  flush(){return Promise.resolve(true)},
   subscribe(listener){listeners.add(listener);listener(clone(state));return ()=>listeners.delete(listener)}
+ };
+ const tasbihVault={
+  isUnlocked(){return true},
+  status(){return Promise.resolve({exists:true,primaryAvailable:true,backupAvailable:true,unlocked:true})},
+  save(value){state.tasbih=clone(value);return Promise.resolve(true)},
+  lock(){return Promise.resolve(true)},
+  create(password,value){state.tasbih=clone(value);return Promise.resolve(clone(value))},
+  unlock(){return Promise.resolve({data:clone(state.tasbih),recoveredFromBackup:false})}
  };
  const documentListeners=new Map(),windowListeners=new Map();
  const document={
@@ -126,12 +138,14 @@ function buildApp(options={}){
   }
  }
  class MockSpeechRecognition {
-  constructor(){if(options.throwRecognition)throw new Error('mock constructor failure');recognitions.push(this)}
+  constructor(){if(options.throwRecognition)throw new Error('mock constructor failure');this.processLocally=false;recognitions.push(this)}
+  static available(){return Promise.resolve('available')}
+  static install(){return Promise.resolve(true)}
   start(){this.started=(this.started||0)+1}
   stop(){this.stopped=(this.stopped||0)+1}
  }
  const sandbox={
-  document,window:null,globalThis:null,Date:MockDate,AnwarPrivatePreferences:preferences,
+  document,window:null,globalThis:null,Date:MockDate,AnwarPrivatePreferences:preferences,AnwarTasbihVault:tasbihVault,
   requestAnimationFrame(callback){const id=++timerSequence;frames.set(id,callback);return id},
   cancelAnimationFrame(id){frames.delete(id)},
   confirm(){return true},
@@ -195,14 +209,19 @@ const nextSecondAngle=sweepClock.nodes.tasbihSecondHand.attributes.transform;
 assert.notEqual(nextSecondAngle,sweepTwoFrames,'the second hand advances by a six-degree step at the next whole second');
 sweepClock.setVisibility('hidden');
 assert.equal(sweepClock.pendingFrames,0,'hiding the browser tab cancels the animation frame loop');
-sweepClock.advanceTime(1000);
+await new Promise(resolve=>setImmediate(resolve));
+assert.equal(sweepClock.nodes.tasbihPanel.hidden,true,'hiding the browser tab closes the protected Tasbih panel');
+assert.equal(sweepClock.nodes.tasbihShieldButton.dataset.state,'locked','hiding the browser tab locks the independent Tasbih vault');
 const hiddenHandAngle=sweepClock.nodes.tasbihSecondHand.attributes.transform;
+sweepClock.advanceTime(1000);
 sweepClock.setVisibility('visible');
-assert.ok(sweepClock.pendingFrames>0,'returning to a visible tab resumes the clock animation');
-sweepClock.advanceFrames(1);
-assert.notEqual(sweepClock.nodes.tasbihSecondHand.attributes.transform,hiddenHandAngle,'the clock catches up to device time when the tab becomes visible');
+await new Promise(resolve=>setImmediate(resolve));
+assert.equal(sweepClock.pendingFrames,0,'returning to the foreground does not silently reopen or animate a locked Tasbih');
+assert.equal(sweepClock.nodes.tasbihPanel.hidden,true,'the Tasbih remains hidden until the shield is opened again');
+assert.equal(sweepClock.nodes.tasbihSecondHand.attributes.transform,hiddenHandAngle,'the locked Tasbih does not resume its clock in the background');
 sweepClock.fireWindowEvent('pagehide');
-assert.equal(sweepClock.pendingFrames,0,'pagehide cancels the running animation frame');
+await new Promise(resolve=>setImmediate(resolve));
+assert.equal(sweepClock.pendingFrames,0,'pagehide keeps the protected counter locked and cancels animation');
 
 const counterInput=buildApp();
 counterInput.nodes.tasbihCounterControl.click();
@@ -215,6 +234,7 @@ counterInput.nodes.tasbihCounterControl.dispatch('keydown',{key:' '});
 assert.equal(count(counterInput),3,'the circular counter supports Space from the keyboard');
 
 const legacyDefault=buildApp({initialDhikr:'أستغفر الله العظيم وأتوب إليه',initialVersion:''});
+await new Promise(resolve=>setImmediate(resolve));
 assert.equal(legacyDefault.nodes.tasbihDhikr.value,'سبوح قدوس رب الملائكة والروح.','the old generic dhikr default migrates to the selected royal reference phrase');
 assert.equal(legacyDefault.state.tasbih.designVersion,'royal-reference-1','the new design version is saved after the one-time migration');
 
@@ -316,15 +336,17 @@ assert.ok(html.includes('id="anwar-tasbih-svg-hands-v1"')&&html.includes('z-inde
 const clockDialStart=html.indexOf('<div class="tasbih-clock-dial"');
 const clockDialEnd=html.indexOf('\n      </div>\n      <div class="tasbih-elapsed-readout"',clockDialStart);
 assert.ok(clockDialStart>=0&&clockDialEnd>clockDialStart&&html.slice(clockDialStart,clockDialEnd).includes('id="tasbihCounterControl"'),'the tasbih count button is positioned in the center of the analog clock dial');
-assert.ok(html.includes('id="tasbihElapsedTime"')&&controller.includes('elapsedMs:currentElapsedMs()'),'session duration remains tracked and saved with encrypted private preferences');
+assert.ok(html.includes('id="tasbihElapsedTime"')&&controller.includes('elapsedMs:currentElapsedMs()'),'session duration remains tracked and saved with the independent encrypted Tasbih vault');
 assert.ok(html.includes('id="anwar-tasbih-clean-analog-face-v1"')&&/\.tasbih-elapsed-readout\s*\{\s*display:none!important;\s*\}/.test(html),'the old digital elapsed-time display is hidden so it cannot cover the successful analog clock');
 assert.ok(html.includes('id="anwar-tasbih-visible-clock-hands-v2"')&&/\.tasbih-hour-hand\s*\{[^}]*height:25%/s.test(html)&&/\.tasbih-minute-hand\s*\{[^}]*height:36%/s.test(html),'visible hour and minute hands are explicitly sized and layered above the dial markings');
 assert.ok(/\.tasbih-count-tap\s*\{[^}]*top:50%[^}]*z-index:8/s.test(html),'the central count medallion overlays the hand pivot without hiding the clock hands');
 assert.ok(/\.tasbih-selected-phrase\s*\{[\s\S]*?clip:rect\(0,0,0,0\)!important;/.test(html),'the floating selected-dhikr line is visually hidden while its controller node remains available');
 assert.equal(app.nodes.tasbihBeads.children.filter(bead=>bead.classList.contains('is-counted')).length,0,'the bead ring begins uncounted');
 assert.equal(app.nodes.ownerDialog.open,false,'opening the tasbih no longer opens the ownership dialog');
-assert.equal(app.sandbox.AnwarTasbihController.close(),true,'the public tasbih controller closes the panel');
-assert.equal(app.nodes.tasbihPanel.hidden,true,'the tasbih panel hides when closed');
+const closeApp=buildApp();
+closeApp.sandbox.AnwarTasbihController.open();
+assert.equal(closeApp.sandbox.AnwarTasbihController.close(),true,'the public tasbih controller closes the panel');
+assert.equal(closeApp.nodes.tasbihPanel.hidden,true,'the tasbih panel hides when closed without locking the separate voice-recognition test session');
 assert.match(appCore,/if\(name==='tasbih'\)[\s\S]*?controller\.open\(\)/,'the dedicated tasbih service card opens the same standalone counter controller');
 assert.doesNotMatch(appCore,/toggleTasbihFromToolbar|adhkarTasbihToggle/,'the obsolete dialog launcher is removed from the notebook delegate');
 assert.equal(app.nodes.tasbihPanel.dataset.tasbihTheme,'emerald','the classic emerald theme is the safe default');
@@ -425,19 +447,25 @@ assert.equal(recognition.lang,'ar-MA','speech recognition prefers the visitor’
 app.nodes.tasbihDhikr.value='سبحان الله';
 app.nodes.tasbihDhikr.dispatch('change');
 app.nodes.tasbihVoice.click();
-assert.equal(recognition.started,1,'the voice-count button starts speech recognition');
+ await new Promise(resolve=>setImmediate(resolve));
+assert.equal(recognition.started,1,'the voice-count button starts on-device speech recognition');
 recognition.onstart();
+assert.equal(app.nodes.tasbihVoicePanel.dataset.state,'listening','the local recognition session must be active before accepting results');
 recognition.onspeechstart();
 const incompleteInterim={0:{transcript:'سُبْحَانَ'},length:1,isFinal:false};
 recognition.onresult({resultIndex:0,results:[incompleteInterim]});
 assert.equal(count(app),0,'an incomplete interim phrase does not increment the counter');
 const interim={0:{transcript:'سُبْحَانَ الله'},length:1,isFinal:false};
 recognition.onresult({resultIndex:0,results:[interim]});
-assert.equal(count(app),1,'a complete spoken dhikr increments the counter immediately');
+assert.match(app.nodes.tasbihVoiceStatus.textContent,/تم احتساب/,'a matching local transcript is accepted by the phrase matcher');
+assert.match(app.nodes.tasbihCount.textContent,/[١1]/,'a complete spoken dhikr updates the visible counter immediately');
+await new Promise(resolve=>setImmediate(resolve));
+assert.equal(count(app),1,'the first spoken dhikr is persisted after the independent encrypted save completes');
 assert.doesNotMatch(app.nodes.tasbihVoiceStatus.textContent,/سبحان الله/,'the status never displays recognized speech');
 const spoken={0:{transcript:'سُبْحَانَ الله، سبحان الله'},length:1,isFinal:true};
 recognition.onresult({resultIndex:0,results:[spoken]});
-assert.equal(count(app),2,'a finalized result counts only the additional repetition');
+await new Promise(resolve=>setImmediate(resolve));
+assert.equal(count(app),2,'a finalized result persists only the additional repetition');
 assert.equal(app.pendingTimers.length,0,'speech matching creates no transcript timers');
 const duplicateFinalEvent={resultIndex:0,results:[spoken]};
 recognition.onresult(duplicateFinalEvent);
@@ -445,19 +473,21 @@ recognition.onresult(duplicateFinalEvent);
 assert.equal(count(app),2,'duplicate recognition events are not counted twice');
 const punctuated={0:{transcript:'سبحان الله؛'},length:1,isFinal:true};
 recognition.onresult({resultIndex:1,results:[spoken,punctuated]});
-assert.equal(count(app),3,'Arabic punctuation and cumulative final results are counted correctly');
+await new Promise(resolve=>setImmediate(resolve));
+assert.equal(count(app),3,'Arabic punctuation and cumulative final results are persisted correctly');
 assert.doesNotMatch(app.nodes.tasbihVoiceStatus.textContent,/سبحان الله/,'recognized text remains absent from the status');
 recognition.onspeechend();
 assert.equal(app.pendingTimers.length,0,'speech-end does not schedule transcript removal');
 recognition.onspeechstart();
 assert.equal(app.pendingTimers.length,0,'resuming speech needs no transcript cleanup');
-assert.equal(app.state.tasbih.count,3,'only the numeric count is retained in private tasbih preferences');
+assert.equal(app.state.tasbih.count,3,'only the numeric count is retained in the independent encrypted Tasbih vault');
 assert.ok(!Object.keys(app.state.tasbih).some(key=>/transcript|speechText|audio/i.test(key)),'recognized words and audio are absent from saved tasbih preferences');
 
 const alternativeApp=buildApp();
 alternativeApp.nodes.tasbihDhikr.value='أستغفر الله';
 alternativeApp.nodes.tasbihDhikr.dispatch('change');
 alternativeApp.nodes.tasbihVoice.click();
+ await new Promise(resolve=>setImmediate(resolve));
 const alternativeRecognition=alternativeApp.recognitions[0];
 alternativeRecognition.onstart();
 const alternatives={0:{transcript:'استغفر بالله'},1:{transcript:'أستغفر الله'},length:2,isFinal:true};
@@ -469,6 +499,7 @@ const splitApp=buildApp();
 splitApp.nodes.tasbihDhikr.value='أستغفر الله العظيم وأتوب إليه';
 splitApp.nodes.tasbihDhikr.dispatch('change');
 splitApp.nodes.tasbihVoice.click();
+ await new Promise(resolve=>setImmediate(resolve));
 const splitRecognition=splitApp.recognitions[0];
 splitRecognition.onstart();
 const firstPart={0:{transcript:'أستغفر الله العظيم'},length:1,isFinal:true};
@@ -485,6 +516,7 @@ const resetBatchApp=buildApp();
 resetBatchApp.nodes.tasbihDhikr.value='سبحان الله';
 resetBatchApp.nodes.tasbihDhikr.dispatch('change');
 resetBatchApp.nodes.tasbihVoice.click();
+ await new Promise(resolve=>setImmediate(resolve));
 const resetBatchRecognition=resetBatchApp.recognitions[0];
 resetBatchRecognition.onstart();
 const firstRepeatedResult={0:{transcript:'سبحان الله'},length:1,isFinal:true};
@@ -498,6 +530,7 @@ const fallbackApp=buildApp();
 fallbackApp.nodes.tasbihDhikr.value='سبحان الله';
 fallbackApp.nodes.tasbihDhikr.dispatch('change');
 fallbackApp.nodes.tasbihVoice.click();
+ await new Promise(resolve=>setImmediate(resolve));
 const fallbackRecognition=fallbackApp.recognitions[0];
 fallbackRecognition.onstart();
 fallbackRecognition.onerror({error:'language-not-supported'});
@@ -506,6 +539,7 @@ assert.equal(fallbackApp.nodes.tasbihVoiceState.textContent,'جارٍ تشغيل
 fallbackRecognition.onend();
 assert.equal(fallbackApp.pendingTimers.length,1,'the fallback waits for the previous recognition session to end');
 fallbackApp.flushTimers();
+await new Promise(resolve=>setImmediate(resolve));
 assert.equal(fallbackRecognition.started,2,'the recognizer restarts automatically with the fallback language');
 fallbackRecognition.onstart();
 assert.equal(fallbackApp.nodes.tasbihVoiceState.textContent,'الميكروفون نشط','the fallback session becomes active after it starts');
@@ -514,11 +548,13 @@ const restartApp=buildApp();
 restartApp.nodes.tasbihDhikr.value='سبحان الله';
 restartApp.nodes.tasbihDhikr.dispatch('change');
 restartApp.nodes.tasbihVoice.click();
+ await new Promise(resolve=>setImmediate(resolve));
 const restartRecognition=restartApp.recognitions[0];
 restartRecognition.onstart();
 restartRecognition.onend();
 assert.equal(restartApp.nodes.tasbihVoiceState.textContent,'جارٍ تشغيل الميكروفون','an unexpected mobile recognition end schedules a recovery session');
 restartApp.flushTimers();
+await new Promise(resolve=>setImmediate(resolve));
 assert.equal(restartRecognition.started,2,'the same voice session automatically restarts after an unexpected end');
 
 // A broken speech-recognition constructor must not disable the manual tasbih.
