@@ -94,6 +94,8 @@ jobs:
         run: node scripts/test-tasbih-open.mjs
       - name: Test tasbih counter, voice capture and dhikr management
         run: node scripts/test-tasbih-behavior.mjs
+      - name: Test automatic short-segment tasbih capture and count-only responses
+        run: node scripts/test-tasbih-cloud-speech.mjs
       - name: Test Arabic poetry voice dictation across Android result batches
         run: node scripts/test-poetry-dictation.mjs
       - name: Test microphone privacy and on-device-only recognition
