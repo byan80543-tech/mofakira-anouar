@@ -445,20 +445,6 @@
   berkane:'بركان',larache:'العرائش',essaouira:'الصويرة',
   taroudant:'تارودانت',guelmim:'كلميم',dakhla:'الداخلة'
  };
- const CITY_API_AR={
-  'مكناس':'Meknes','فاس':'Fes','الدار البيضاء':'Casablanca','الرباط':'Rabat',
-  'طنجة':'Tangier','مراكش':'Marrakech','اكادير':'Agadir','وجدة':'Oujda',
-  'تطوان':'Tetouan','القنيطرة':'Kenitra','اسفي':'Safi','تازة':'Taza',
-  'الحسيمة':'Al Hoceima','الناظور':'Nador','بني ملال':'Beni Mellal',
-  'خريبكة':'Khouribga','سطات':'Settat','بركان':'Berkane','العرائش':'Larache',
-  'الصويرة':'Essaouira','تارودانت':'Taroudant','كلميم':'Guelmim','الداخلة':'Dakhla'
- };
- function cityForApi(value,country){
-  const city=trimmedCountry(value);
-  if(countryForApi(country)!=='Morocco')return city;
-  const key=city.replace(/[أإآ]/g,'ا').replace(/\s+/g,' ').trim();
-  return CITY_API_AR[key]||city;
- }
  function cityForDisplay(value){
   const city=trimmedCountry(value);
   const key=city.toLowerCase().replace(/[éèê]/g,'e').replace(/[àâ]/g,'a').replace(/[îï]/g,'i').replace(/[ô]/g,'o').replace(/[ùû]/g,'u').replace(/\s+/g,' ').trim();
@@ -680,7 +666,7 @@
     if(!todayData){
      dateLine.textContent=fallbackDateLabel()||'التاريخ المحلي';
      dateLine.dataset.state='fallback';
-     showNextPrayerPlaceholder('تعذّر التحميل؛ تحقق من المدينة والاتصال ثم اضغط تحديث');
+     showNextPrayerPlaceholder('تعذّر الحساب المحلي؛ تحقق من المدينة المدعومة ثم اضغط تحديث');
     }
     setStatus(error&&error.message?error.message:'تعذّر تحديث المواقيت.');
    }
