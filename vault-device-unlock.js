@@ -72,11 +72,14 @@
   if(typeof credentialApi.getClientCapabilities!=='function')return null;
   try{
    const capabilities=await credentialApi.getClientCapabilities();
-   if(capabilities&&capabilities.userVerifyingPlatformAuthenticator===false)return false;
-   if(capabilities&&Object.prototype.hasOwnProperty.call(capabilities,'extension:prf')){
-    return capabilities['extension:prf']===true;
-   }
-   // An omitted capability is unknown, not proof of support or failure.
+   if(!capabilities)return null;
+   const hasPrf=Object.prototype.hasOwnProperty.call(capabilities,'extension:prf');
+   const hasPlatform=Object.prototype.hasOwnProperty.call(capabilities,'userVerifyingPlatformAuthenticator');
+   if((hasPrf&&capabilities['extension:prf']===false)||
+      (hasPlatform&&capabilities.userVerifyingPlatformAuthenticator===false))return false;
+   if(hasPrf&&hasPlatform&&capabilities['extension:prf']===true&&
+      capabilities.userVerifyingPlatformAuthenticator===true)return true;
+   // An omitted capability is unknown; don't claim platform+PRF support.
    return null;
   }catch(_error){return null}
  }
