@@ -154,7 +154,8 @@ async function handleTasbihCount(request, env, origin) {
     return errorResponse("خدمة العد الصوتي الآمن غير مهيأة حالياً.", 503, origin);
   }
 
-  const contentType = String(request.headers.get("Content-Type") || "").toLowerCase();
+  const contentTypeHeader = String(request.headers.get("Content-Type") || "");
+  const contentType = contentTypeHeader.toLowerCase();
   if (!contentType.startsWith("multipart/form-data;") || !contentType.includes("boundary=")) {
     return errorResponse("صيغة طلب الصوت غير صالحة.", 415, origin);
   }
@@ -201,7 +202,7 @@ async function handleTasbihCount(request, env, origin) {
   try {
     try {
       form = await new Response(bodyBytes, {
-        headers: { "Content-Type": contentType }
+        headers: { "Content-Type": contentTypeHeader }
       }).formData();
     } catch {
       return errorResponse("بيانات مقطع الصوت غير صالحة.", 400, origin);
