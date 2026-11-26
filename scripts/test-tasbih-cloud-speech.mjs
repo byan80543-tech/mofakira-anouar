@@ -77,6 +77,7 @@ nextFrameAt(1251,0);
 await Promise.resolve();
 await Promise.resolve();
 await Promise.resolve();
+console.log('VAD TEST DIAGNOSTICS',JSON.stringify({requests:requests.length,recorders:recorders.length,frames:frames.size,now,level,statuses,counts}));
 assert.equal(requests.length,1,'a natural pause closes and uploads exactly one short audio segment; statuses='+JSON.stringify(statuses)+'; recorderCount='+recorders.length+'; activeFrames='+frames.size);
 assert.equal(requests[0].url,'https://anwar-api-gateway.test-account.workers.dev/v1/tasbih/count');
 assert.equal(counts.length,1);
