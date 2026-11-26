@@ -125,6 +125,8 @@ jobs:
         run: node scripts/test-vault-device-unlock.mjs
       - name: Test PWA device unlock recovery and safe re-binding
         run: node scripts/test-vault-device-unlock-recovery.mjs
+      - name: Test local PWA device unlock diagnostics
+        run: node scripts/test-vault-device-unlock-diagnostics.mjs
       - name: Validate offline app shell and local resources
         run: python3 scripts/validate_app.py
       - name: Test service-worker lifecycle, caching and offline fallback
