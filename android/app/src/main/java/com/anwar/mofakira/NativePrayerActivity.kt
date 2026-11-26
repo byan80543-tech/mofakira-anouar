@@ -119,11 +119,7 @@ class NativePrayerActivity : Activity() {
     )
 
     private val voices = listOf(
-        NativePrayerVoice("calm", "أذان هادئ · الافتراضي"),
-        NativePrayerVoice("aqsa", "المسجد الأقصى · ناجي قزاز"),
-        NativePrayerVoice("haram_makki", "الحرم المكي · علي بن أحمد ملا"),
-        NativePrayerVoice("morocco_kamal", "أذان مغربي · كمال محمد المروش"),
-        NativePrayerVoice("madina", "المسجد النبوي · تسجيل ميداني")
+        NativePrayerVoice("calm", "أذان هادئ · ملف محلي CC0")
     )
 
     private val countdownTicker = object : Runnable {
@@ -410,7 +406,7 @@ class NativePrayerActivity : Activity() {
             return
         }
         refreshing = true
-        statusText.text = "جارٍ جلب مواقيت الشهر الحالي والقادم..."
+        statusText.text = "جارٍ حساب مواقيت الشهر الحالي والقادم محليًا..."
         Thread({
             val result = runCatching { PrayerCalendarRepository.refreshAndSchedule(this) }
             runOnUiThread {
