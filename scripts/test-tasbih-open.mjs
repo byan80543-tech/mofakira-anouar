@@ -50,7 +50,10 @@ assert.ok(!appCore.includes("else if(id==='adhkarTab')")&&!appCore.includes('tog
 assert.ok(controller.includes('window.AnwarTasbihController=Object.freeze({')&&controller.includes('open(){'),'the independent controller exposes its direct open action');
 assert.ok(!controller.includes('ownerDialog')&&!controller.includes('ownerPanel')&&!controller.includes('switchOwnerView'),'the counter controller no longer depends on ownership navigation');
 assert.ok(controller.includes('tasbihVault.save(snapshot)')&&controller.includes('clearLegacyTasbihCopies'),'counter data is moved to an independent encrypted vault and the older shared copy is cleared only after verification');
-assert.ok(!controller.includes("preferences.set('tasbih'")&&!controller.includes('preferences.subscribe(saved=>'),'the live tasbih state no longer uses the notebook-wide preferences adapter');
+const tasbihPersistStart = controller.indexOf('function persist()');
+const tasbihPersistEnd = controller.indexOf('function applyVaultState', tasbihPersistStart);
+const tasbihPersistBlock = controller.slice(tasbihPersistStart, tasbihPersistEnd);
+assert.ok(tasbihPersistBlock.includes('tasbihVault.save(snapshot)')&&!tasbihPersistBlock.includes("preferences.set('tasbih'")&&!controller.includes('preferences.subscribe(saved=>'),'live Tasbih persistence uses only its own encrypted vault; the notebook adapter remains only for verified legacy cleanup');
 assert.ok(html.includes('id="tasbihShieldDialog"')&&html.includes('id="tasbihShieldButton"'),'the shield icon opens the dedicated vault dialog');
 assert.ok(html.includes('tasbih-vault.js')&&controller.includes('tasbihVault.isUnlocked()'),'the standalone encrypted vault is loaded before counter access is enabled');
 assert.ok(controller.includes('recognition.processLocally=true')&&controller.includes('SpeechRecognition.available'),'browser speech recognition is constrained to on-device processing');
