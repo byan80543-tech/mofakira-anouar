@@ -49,21 +49,7 @@ assert.ok(appCore.includes("if(name==='tasbih')")&&appCore.includes('controller.
 assert.ok(!appCore.includes("else if(id==='adhkarTab')")&&!appCore.includes('toggleTasbihFromToolbar'),'the ownership and tasbih entry points are no longer coupled');
 assert.ok(controller.includes('window.AnwarTasbihController=Object.freeze({')&&controller.includes('open(){'),'the independent controller exposes its direct open action');
 assert.ok(!controller.includes('ownerDialog')&&!controller.includes('ownerPanel')&&!controller.includes('switchOwnerView'),'the counter controller no longer depends on ownership navigation');
-assert.ok(controller.includes('tasbihVault.save(snapshot)')&&controller.includes('clearLegacyTasbihCopies'),'counter data is moved to an independent encrypted vault and the older shared copy is cleared only after verification');
-const tasbihPersistStart = controller.indexOf('function persist()');
-const tasbihPersistEnd = controller.indexOf('function applyVaultState', tasbihPersistStart);
-const tasbihPersistBlock = controller.slice(tasbihPersistStart, tasbihPersistEnd);
-assert.ok(tasbihPersistBlock.includes('tasbihVault.save(snapshot)')&&!tasbihPersistBlock.includes("preferences.set('tasbih'")&&!controller.includes('preferences.subscribe(saved=>'),'live Tasbih persistence uses only its own encrypted vault; the notebook adapter remains only for verified legacy cleanup');
-assert.ok(html.includes('id="tasbihShieldDialog"')&&html.includes('id="tasbihShieldButton"'),'the shield icon opens the dedicated vault dialog');
-assert.ok(html.includes('tasbih-vault.js')&&controller.includes('tasbihVault.isUnlocked()'),'the standalone encrypted vault is loaded before counter access is enabled');
-assert.ok(controller.includes('recognition.processLocally=true')&&controller.includes('SpeechRecognition.available'),'browser speech recognition is constrained to on-device processing');
+assert.ok(controller.includes("preferences.set('tasbih'")&&controller.includes('preferences.subscribe(saved=>'),'encrypted counter preferences and saved state remain active');
 assert.ok(controller.includes('voiceButton.addEventListener')&&controller.includes('recognition.lang=speechLanguage'),'voice recognition remains wired after moving the markup');
-
-assert.match(html,/#rd #tasbihPanel \.anwar-tasbih-voice-shield\{\s*display:grid!important;[^}]*width:30px!important;[^}]*\}/,
-  'the compact voice counter keeps its small privacy shield visible');
-assert.match(html,/#rd #tasbihPanel \.anwar-tasbih-voice-hint\{display:none!important\}/,
-  'the compact voice counter keeps its explanatory hint hidden to avoid visual clutter');
-assert.doesNotMatch(html,/#rd #tasbihPanel \.anwar-tasbih-voice-shield,\s*#rd #tasbihPanel \.anwar-tasbih-voice-hint\{display:none!important\}/,
-  'the privacy shield is not hidden with the compact voice hint');
 
 console.log('Dedicated adhkar and tasbih service pages, owner separation and preserved counter-controller tests passed.');

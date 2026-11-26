@@ -66,23 +66,6 @@
    root.navigator&&root.navigator.credentials&&typeof root.navigator.credentials.create==='function'&&
    typeof root.navigator.credentials.get==='function'&&root.PublicKeyCredential);
  }
- async function prfSupportStatus(){
-  if(!supported())return false;
-  const credentialApi=root.PublicKeyCredential;
-  if(typeof credentialApi.getClientCapabilities!=='function')return null;
-  try{
-   const capabilities=await credentialApi.getClientCapabilities();
-   if(!capabilities)return null;
-   const hasPrf=Object.prototype.hasOwnProperty.call(capabilities,'extension:prf');
-   const hasPlatform=Object.prototype.hasOwnProperty.call(capabilities,'userVerifyingPlatformAuthenticator');
-   if((hasPrf&&capabilities['extension:prf']===false)||
-      (hasPlatform&&capabilities.userVerifyingPlatformAuthenticator===false))return false;
-   if(hasPrf&&hasPlatform&&capabilities['extension:prf']===true&&
-      capabilities.userVerifyingPlatformAuthenticator===true)return true;
-   // An omitted capability is unknown; don't claim platform+PRF support.
-   return null;
-  }catch(_error){return null}
- }
  function readRecord(){
   if(!isTrustedOrigin()){if(isSharedGitHubPagesOrigin())clearSharedOriginDeviceWrapper();return null}
   let raw;
@@ -169,7 +152,7 @@
   }
   if(!credential)throw new Error('لم يكتمل إعداد قفل الهاتف.');
   const prfResult=credential.getClientExtensionResults?.().prf;
-  if(!prfResult||prfResult.enabled!==true)throw new Error('لا يدعم هذا الاعتماد ميزة PRF اللازمة لاشتقاق مفتاح الخزنة. لم يُربط الاعتماد بالخزنة، وبقيت كلمة المرور الأساسية كما هي. قد تحتاج إلى إزالة اعتماد «مفكرة أنوار» غير المستخدم من مدير كلمات المرور.');
+  if(!prfResult||prfResult.enabled!==true)throw new Error('هذا القفل أو المتصفح لا يدعم ميزة PRF اللازمة لحماية مفتاح المفكرة. بقيت كلمة المرور الأساسية كما هي.');
   const credentialId=toBase64Url(new Uint8Array(credential.rawId));
   const credentialIdBytes=new Uint8Array(credential.rawId);
   if(!credentialIdBytes.length)throw new Error('لم يُرجع الهاتف معرّف اعتماد صالحًا.');
@@ -222,7 +205,6 @@
   isSharedGitHubPagesOrigin,
   isTrustedOrigin,
   supported,
-  prfSupportStatus,
   isConfigured,
   protectPassword,
   unlockPassword,
