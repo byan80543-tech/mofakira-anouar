@@ -66,6 +66,19 @@
    root.navigator&&root.navigator.credentials&&typeof root.navigator.credentials.create==='function'&&
    typeof root.navigator.credentials.get==='function'&&root.PublicKeyCredential);
  }
+ async function prfSupportStatus(){
+  if(!supported())return false;
+  const credentialApi=root.PublicKeyCredential;
+  if(typeof credentialApi.getClientCapabilities!=='function')return null;
+  try{
+   const capabilities=await credentialApi.getClientCapabilities();
+   if(capabilities&&Object.prototype.hasOwnProperty.call(capabilities,'extension:prf')){
+    return capabilities['extension:prf']===true;
+   }
+   // An omitted capability is unknown, not proof of support or failure.
+   return null;
+  }catch(_error){return null}
+ }
  function readRecord(){
   if(!isTrustedOrigin()){if(isSharedGitHubPagesOrigin())clearSharedOriginDeviceWrapper();return null}
   let raw;
@@ -152,7 +165,7 @@
   }
   if(!credential)throw new Error('لم يكتمل إعداد قفل الهاتف.');
   const prfResult=credential.getClientExtensionResults?.().prf;
-  if(!prfResult||prfResult.enabled!==true)throw new Error('هذا القفل أو المتصفح لا يدعم ميزة PRF اللازمة لحماية مفتاح المفكرة. بقيت كلمة المرور الأساسية كما هي.');
+  if(!prfResult||prfResult.enabled!==true)throw new Error('أنشأ مدير كلمات المرور اعتمادًا للهاتف، لكنه لم يثبت دعمه لاشتقاق مفتاح PRF اللازم لحماية الخزنة. لم يُربط الاعتماد بالخزنة، وبقيت كلمة المرور الأساسية كما هي. قد تحتاج إلى إزالة اعتماد «مفكرة أنوار» غير المستخدم من مدير كلمات المرور.');
   const credentialId=toBase64Url(new Uint8Array(credential.rawId));
   const credentialIdBytes=new Uint8Array(credential.rawId);
   if(!credentialIdBytes.length)throw new Error('لم يُرجع الهاتف معرّف اعتماد صالحًا.');
@@ -205,6 +218,7 @@
   isSharedGitHubPagesOrigin,
   isTrustedOrigin,
   supported,
+  prfSupportStatus,
   isConfigured,
   protectPassword,
   unlockPassword,
