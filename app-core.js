@@ -293,10 +293,9 @@ async function continueVaultAfterRecovery(){
  let mode=null,stored=null,backup=null;
  try{
   mode=localStorage.getItem(VAULT_MODE_KEY);
-  if(mode!=='plain'){
-   stored=await AnwarVaultStorage.get(VAULT_STORAGE_KEY);
-   if(stored===null)backup=await AnwarVaultStorage.get(VAULT_BACKUP_KEY);
-  }
+  // A stale or tampered local mode flag must never hide an existing vault.
+  stored=await AnwarVaultStorage.get(VAULT_STORAGE_KEY);
+  if(stored===null)backup=await AnwarVaultStorage.get(VAULT_BACKUP_KEY);
  }catch(error){
   showStorageRecoveryNotice('تعذّر الوصول إلى مخزن الخزنة الآمن','تعذّر فتح مخزن المفكرة الآمن. لا تمسح بيانات الموقع؛ أعد المحاولة بعد السماح بالتخزين في المتصفح.',null);
   return;
@@ -482,10 +481,9 @@ async function bootVault(){
  let mode=null,savedVault=null,savedBackup=null;
  try{
   mode=localStorage.getItem(VAULT_MODE_KEY);
-  if(mode!=='plain'){
-   savedVault=await AnwarVaultStorage.get(VAULT_STORAGE_KEY);
-   if(savedVault===null)savedBackup=await AnwarVaultStorage.get(VAULT_BACKUP_KEY);
-  }
+  // A stale or tampered local mode flag must never hide an existing vault.
+  savedVault=await AnwarVaultStorage.get(VAULT_STORAGE_KEY);
+  if(savedVault===null)savedBackup=await AnwarVaultStorage.get(VAULT_BACKUP_KEY);
  }catch(error){
   showStorageRecoveryNotice('المتصفح لا يتيح الوصول إلى الخزنة','تعذّر الوصول إلى مخزن المفكرة الآمن. لا تحذف بيانات الموقع؛ أعد المحاولة بعد السماح بالتخزين.',null);
   theme();chips();openNote(null);return;
@@ -494,7 +492,7 @@ async function bootVault(){
   showStorageRecoveryNotice('تعذّر العثور على الخزنة المشفّرة','علامة التشفير موجودة لكن ملفات الخزنة غير متاحة. لم نفتح المفكرة دون تحقق، ولم نحذف أي بيانات.',null);
   theme();chips();openNote(null);return;
  }
- if(mode!=='plain'&&(savedVault!==null||savedBackup!==null)){
+ if(savedVault!==null||savedBackup!==null){
   S=emptyStorageState();
   vaultKey=null;vaultTemplate=null;vaultUnlocked=false;vaultReady=false;
   vaultHasEncryptedData=true;vaultGateMode='unlock';
@@ -1039,10 +1037,8 @@ async function retryStorageAccess(){
  let mode=null,existingVault=null,existingBackup=null;
  try{
   mode=localStorage.getItem(VAULT_MODE_KEY);
-  if(mode!=='plain'){
-   existingVault=await AnwarVaultStorage.get(VAULT_STORAGE_KEY);
-   if(existingVault===null)existingBackup=await AnwarVaultStorage.get(VAULT_BACKUP_KEY);
-  }
+  existingVault=await AnwarVaultStorage.get(VAULT_STORAGE_KEY);
+  if(existingVault===null)existingBackup=await AnwarVaultStorage.get(VAULT_BACKUP_KEY);
  }catch(error){toast('لا يزال المتصفح يمنع الوصول إلى مخزن الخزنة الآمن؛ لم تتغير أي بيانات.',5000);return false}
  if(mode==='encrypted'&&existingVault===null&&existingBackup===null){toast('لا تزال ملفات الخزنة المشفّرة غير متاحة؛ لم نفتح المفكرة دون تحقق.',5000);return false}
  clearStorageRecovery();
