@@ -16,6 +16,7 @@ class LocalRecognizer {
   stop(){}
 }
 LocalRecognizer.prototype.processLocally=false;
+LocalRecognizer.available=()=>Promise.resolve('available');
 const localWindow={SpeechRecognition:LocalRecognizer};
 vm.runInNewContext(helper,{window:localWindow,globalThis:localWindow});
 assert.equal(localWindow.AnwarLocalSpeech.supported(),true,'recognizer with processLocally support is eligible');
@@ -34,6 +35,16 @@ const remoteWindow={SpeechRecognition:RemoteOnlyRecognizer};
 vm.runInNewContext(helper,{window:remoteWindow,globalThis:remoteWindow});
 assert.equal(remoteWindow.AnwarLocalSpeech.supported(),false,'remote-only recognizers are not eligible');
 assert.throws(()=>remoteWindow.AnwarLocalSpeech.create('ar'),/لم نبدأ الميكروفون/,'remote-only recognizers are rejected before microphone start');
+
+class NoOpLocalFlagRecognizer{
+  start(){}
+  stop(){}
+}
+NoOpLocalFlagRecognizer.prototype.processLocally=false;
+const noOpWindow={SpeechRecognition:NoOpLocalFlagRecognizer};
+vm.runInNewContext(helper,{window:noOpWindow,globalThis:noOpWindow});
+assert.equal(noOpWindow.AnwarLocalSpeech.supported(),false,'a no-op processLocally property without local availability support is rejected');
+
 
 const absentWindow={};
 vm.runInNewContext(helper,{window:absentWindow,globalThis:absentWindow});
