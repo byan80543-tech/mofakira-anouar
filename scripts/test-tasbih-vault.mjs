@@ -11,8 +11,9 @@ const cryptoSource = fs.readFileSync(path.join(root, 'vault-crypto.js'), 'utf8')
 const vaultSource = fs.readFileSync(path.join(root, 'tasbih-vault.js'), 'utf8');
 
 assert.match(vaultSource, /anwar-tasbih-private-vault-v1/);
-assert.match(vaultSource, /AnwarVaultCrypto\.createVault/);
-assert.match(vaultSource, /AnwarVaultCrypto\.encryptWithKey/);
+assert.match(vaultSource, /root\.AnwarVaultCrypto/);
+assert.match(vaultSource, /api\.createVault/);
+assert.match(vaultSource, /api\.encryptWithKey/);
 assert.match(vaultSource, /writePair\(primaryText, backupText\)/);
 assert.match(vaultSource, /await saveQueue/);
 assert.doesNotMatch(vaultSource, /localStorage|sessionStorage|fetch\s*\(|XMLHttpRequest|sendBeacon/,
