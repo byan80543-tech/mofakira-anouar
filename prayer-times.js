@@ -1,6 +1,7 @@
 /* Prayer times and adhan for Anwar notebook.
  * Prayer times are calculated locally with bundled PrayTime data.
  * Default adhan audio is bundled locally under CC0 1.0 and precached for offline use.
+ * نسخة Chrome/PWA لا يضمن استمرار الصوت بعد إغلاق الصفحة؛ يعتمد ذلك على دعم Android الأصلي وإعداداته.
  */
 (function(){
  'use strict';
