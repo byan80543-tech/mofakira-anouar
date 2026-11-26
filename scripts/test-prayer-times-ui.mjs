@@ -19,10 +19,13 @@ assert.match(prayer,/raw\.githubusercontent\.com\/Kiwifu\/adhan-mp3/,'new adhan 
 assert.doesNotMatch(prayer,/key:'maahur'/,'Persian adhan option is removed');
 assert.doesNotMatch(prayer,/مسجد الحسن الثاني/,'modern Hassan II field recording is removed');
 assert.match(prayer,/infoDetails\.append\(infoSummary,privacyList,privacyFootnote\)/,'the privacy shield opens a concise transparency disclosure');
+assert.doesNotMatch(prayer,/api\.aladhan\.com|fetch\s*\(/,'the web prayer controller makes no external timing request');
+assert.match(prayer,/window\.AnwarLocalPrayerEngine/,'the prayer controller calls the offline calculation engine');
+assert.match(prayer,/حساب محلي/,'the privacy disclosure identifies local calculation');
 assert.match(prayer,/infoSummary\.append\(privacyIcon,el\('span','','الخصوصية'\)\)/,'the adhan card exposes a concise privacy shield label');
 assert.match(prayer,/لا نستخدم GPS ولا نطلب إذن الموقع/,'the disclosure accurately states that adhan does not request precise location permission');
-assert.match(prayer,/api\.aladhan\.com/,'the disclosure names the external prayer-times provider');
-assert.match(prayer,/المزوّد رؤية عنوان IP/,'the disclosure explains that the external provider can see the network address');
+
+
 assert.match(prayer,/تُحفظ ضمن تفضيلات مفكرة أنوار المشفرة على هذا الجهاز/,'the disclosure accurately states that adhan settings are stored in the encrypted vault');
 assert.doesNotMatch(prayer,/localStorage|sessionStorage/,'the prayer controller does not persist private adhan settings in plaintext browser storage');
 assert.match(prayer,/HTTPS يشفّر الاتصال أثناء النقل فقط/,'the disclosure describes transport encryption concisely');
@@ -32,27 +35,27 @@ assert.match(prayer,/card\.append\(head,nextBox,timesGrid,dateLine,infoDetails,b
 assert.match(prayer,/details\.append\(summary,fields,actions,toggleLabel,volumeWrap\)/,'collapsed settings no longer contain the only permission feedback');
 assert.match(prayer,/\.anwar-prayer-status:not\(:empty\)\{display:block;margin:7px 0 0/,'permission feedback is visibly styled beside the control');
 assert.match(prayer,/data-anwar-prayer-permission/,'the permission control is protected from global click-burst cancellation');
-assert.match(prayer,/showNextPrayerPlaceholder\('بانتظار المواقيت'\)/,'the upcoming-prayer panel remains visible while timings are pending');
+assert.match(prayer,/showNextPrayerPlaceholder\('بانتظار الحساب المحلي'\)/,'upcoming prayer remains visible during local calculation');
 assert.match(prayer,/nextName\.textContent='—'/,'the pending state uses a neutral placeholder instead of inventing a prayer name');
 assert.match(prayer,/countdown\.textContent='--:--:--'/,'the pending state uses a neutral countdown placeholder');
 
 assert.match(prayer,/nextBox\.hidden=false/,'countdown appears when a next prayer event is calculated');
 
-assert.match(prayer,/جارٍ تحميل مواقيت الصلاة…/,'initial loading state is clear and visible');
+assert.match(prayer,/جارٍ حساب مواقيت الصلاة محليًا…/,'initial loading state is clear and visible during local calculation');
 assert.match(prayer,/function fallbackDateLabel\(\)/,'local Gregorian and Hijri dates remain available without a successful timings response');
 assert.match(prayer,/dateLine\.textContent=fallbackDateLabel\(\)\|\|'التاريخ المحلي'/,'failed timing requests preserve the date row instead of replacing it with an error message');
 assert.match(prayer,/dateLine\.dataset\.state='fallback'/,'fallback date has a distinct non-error state');
 assert.match(prayer,/dateLine\.dataset\.state='ready'/,'successful timings mark the card ready');
 assert.match(prayer,/function cityForDisplay\(value\)/,'city display helper exists');
-assert.match(prayer,/const CITY_API_AR=\{/,'Arabic Moroccan city names have explicit API equivalents');
-assert.match(prayer,/function cityForApi\(value,country\)/,'city names are normalized before requesting prayer times');
-assert.match(prayer,/CITY_API_AR\[key\]\|\|city/,'Arabic city input is converted to the Latin city name expected by the city timings service');
-assert.match(prayer,/'الحسيمة':'Al Hoceima'/,'Al Hoceima has an explicit Arabic-to-API city mapping');
-assert.match(prayer,/'اكادير':'Agadir'/,'Arabic hamza normalization is compatible with the Agadir city mapping');
-assert.match(prayer,/'اسفي':'Safi'/,'Arabic madda normalization is compatible with the Safi city mapping');
-assert.match(prayer,/url\.searchParams\.set\('city',cityForApi\(settings\.city,settings\.country\)\)/,'the API receives a normalized city name, not raw Arabic input');
-assert.match(prayer,/window\.setTimeout\(\(\)=>\{if\(controller\)controller\.abort\(\);\},12000\)/,'a stalled timings request is cancelled after twelve seconds');
-assert.match(prayer,/showNextPrayerPlaceholder\('تعذّر التحميل؛ تحقق من المدينة والاتصال ثم اضغط تحديث'\)/,'a failed request leaves a clear recovery instruction in the card');
+
+
+
+
+
+
+
+
+assert.match(prayer,/showNextPrayerPlaceholder\('تعذّر الحساب؛ تحقق من اسم المدينة أو اختر مدينة مدعومة ثم اضغط تحديث'\)/,'unsupported city has a clear local recovery instruction');
 assert.match(prayer,/const COUNTRY_OPTIONS=\[/,'country list replaces calculation-method picker');
 assert.match(prayer,/label:'المغرب'/,'Arabic country list includes Morocco');
 assert.match(prayer,/label:'الجزائر'/,'Arabic country list includes Algeria');
@@ -60,12 +63,12 @@ assert.match(prayer,/label:'تونس'/,'Arabic country list includes Tunisia');
 assert.match(prayer,/function detectCountry\(\)/,'country is detected from device settings');
 assert.match(prayer,/TIME_ZONE_COUNTRY/,'timezone mapping is available for supported countries');
 assert.match(prayer,/function methodForCountry\(country\)/,'calculation method is selected internally by country');
-assert.match(prayer,/if\(settings\.method!==\'auto\'\)url\.searchParams\.set\(\'method\',settings\.method\)/,'automatic method is omitted from API request instead of sending an invalid value');
+
 assert.doesNotMatch(prayer,/METHOD_OPTIONS|methodSelect/,'technical calculation-method picker is removed');
 assert.match(prayer,/countrySelect\.addEventListener\('change'/,'manual country override remains available');
 assert.match(prayer,/const nativeBridgeReady=syncNativeBackground\(\)/,'native background adhan syncs after refreshed prayer data confirms the timezone');
-assert.match(prayer,/settings\.school='0'/,'refresh preserves the fixed standard Asr calculation for API and Android sync');
-assert.match(prayer,/settings\.timezone='';[\s\S]*?refreshTimes\(false\)/,'country change clears the old timezone and automatically fetches the selected country');
+assert.match(prayer,/settings\.school='0'/,'refresh preserves the fixed standard Asr calculation for local and Android sync');
+assert.match(prayer,/countrySelect\.addEventListener\('change',[\s\S]*?settings\.timezone=window\.AnwarLocalPrayerEngine&&window\.AnwarLocalPrayerEngine\.getTimezone\(settings\.country,settings\.city\)\|\|'';[\s\S]*?refreshTimes\(false\)/,'country change resolves the selected city timezone locally and recalculates');
 assert.match(prayer,/meknes:'مكناس'/,'Meknes is displayed in Arabic');
 assert.match(prayer,/locationLabel\.textContent=cityForDisplay\(settings\.city\)\+' · '\+countryForDisplay\(settings\.country\)/,'location heading displays city before country in Arabic');
 assert.match(prayer,/fields\.append\(countrySelect,cityInput,voiceSelect\)/,'settings retain only country, city and adhan voice controls');
@@ -111,7 +114,11 @@ assert.match(html,/<small>الأذان<\/small><strong>المواقيت والت
 assert.match(html,/#rd \.curtain-head #ownerBtn\.radio-owner-pen[\s\S]*?width:34px!important;height:34px!important/,'ownership button matches the close button dimensions');
 assert.match(html,/<div class="curtain-head"><button type="button" id="ownerBtn"/,'purple radio header contains only its functional controls');
 assert.doesNotMatch(html,/<div class="curtain-head"><b>الخدمات القرآنية والدينية<\/b>/,'duplicate services title is removed from purple radio header');
-assert.match(html,/prayer-times\.js\?v=20261126-1/,'HTML loads the encrypted prayer-settings controller bundle');
+assert.match(html,/vendor\/praytime\.js\?v=20261126-1/,'HTML loads the offline calculation library');
+assert.match(html,/local-prayer-engine\.js\?v=20261126-1/,'HTML loads the local city table');
+assert.match(worker,/\.\/vendor\/praytime\.js/,'service worker precaches calculation library');
+assert.match(worker,/\.\/local-prayer-engine\.js/,'service worker precaches local city table');
+assert.match(html,/prayer-times\.js\?v=20261126-2/,'HTML loads the updated prayer controller');
 const cacheVersion=worker.match(/const CACHE_NAME='anwar-shell-\d{4}-\d{2}-\d{2}-v(\d+)';/);
 assert.ok(cacheVersion&&Number(cacheVersion[1])>=157,'the updated prayer controller has a refreshed offline shell version');
 assert.match(worker,/\.\/prayer-card-design\.css/,'service worker precaches the canonical prayer card stylesheet');
