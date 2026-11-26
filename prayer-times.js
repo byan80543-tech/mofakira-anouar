@@ -227,7 +227,13 @@
  showNextPrayerPlaceholder('بانتظار المواقيت');
  const timesGrid=el('div','anwar-prayer-times');
  const dateLine=el('div','anwar-prayer-date','جارٍ تحميل مواقيت الصلاة…');
- const localAccuracyNote=el('small','anwar-prayer-local-note','المواقيت المغربية حساب محلي تقديري، وليست جدولاً رسمياً؛ راجع توقيت المسجد المحلي قبل الاعتماد على التنبيه.');
+ const localAccuracyNote=el('small','anwar-prayer-local-note');
+ function updateLocalAccuracyNote(){
+  localAccuracyNote.textContent=settings.country==='Morocco'
+   ?'مواقيت المغرب حساب محلي تقديري، وليست جدولاً رسمياً؛ راجع توقيت المسجد المحلي قبل الاعتماد على التنبيه.'
+   :'المواقيت تقديرات حسابية محلية وقد تختلف باختلاف المدينة وطريقة الحساب؛ راجع توقيت مسجدك قبل اعتماد التنبيه.';
+ }
+ updateLocalAccuracyNote();
  const infoDetails=el('details','anwar-prayer-info');
  const infoSummary=el('summary');
  const privacyIcon=el('span','anwar-prayer-privacy-icon');
@@ -696,7 +702,7 @@
   settings.timezone=(window.AnwarPrayerEngine&&window.AnwarPrayerEngine.timezoneForCountry(selected))||'';
   timeZone=validTimeZone(settings.timezone||timeZone);
   cityInput.value=settings.city;
-  persist();updateHeader();
+  persist();updateHeader();updateLocalAccuracyNote();
   todayData=null;tomorrowData=null;lastDateCheck='';
   showNextPrayerPlaceholder('بانتظار المواقيت');
   timesGrid.replaceChildren(...PRAYERS.map(prayer=>{const item=el('div','anwar-prayer-time');item.append(el('b','',prayer.name),el('strong','','—'));return item;}));
@@ -757,7 +763,7 @@
   volumeInput.value=String(settings.volume);
   audio.volume=settings.volume;
   todayData=null;tomorrowData=null;lastDateCheck='';
-  updateHeader();updatePrivacyAudioDisclosure();
+  updateHeader();updatePrivacyAudioDisclosure();updateLocalAccuracyNote();
   showNextPrayerPlaceholder('بانتظار المواقيت المحفوظة');
   refreshTimes(false);
   if(settings.enabled)syncNativeBackground();
