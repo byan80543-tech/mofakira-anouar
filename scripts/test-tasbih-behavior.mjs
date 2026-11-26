@@ -480,7 +480,7 @@ assert.doesNotMatch(app.state.tasbih&&JSON.stringify(app.state.tasbih),/سبحا
 // A cloud speech initialization failure never disables the manual tasbih.
 const brokenVoice=buildApp({throwRecognition:true});
 brokenVoice.nodes.tasbihVoice.click();
-assert.equal(brokenVoice.nodes.tasbihVoiceLabel.textContent,'إعادة المحاولة','a failed voice engine reports a retryable error');
+assert.equal(brokenVoice.nodes.tasbihVoiceButtonLabel.textContent,'إعادة المحاولة','a failed voice engine reports a retryable error');
 brokenVoice.nodes.tasbihTap.click();
 assert.equal(count(brokenVoice),1,'the manual counter remains usable when voice initialization fails');
 
