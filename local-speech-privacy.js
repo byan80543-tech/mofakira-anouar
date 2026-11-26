@@ -1,6 +1,7 @@
 /* Privacy gate for speech recognition.
  * Audio capture is permitted only when the browser exposes the standard
- * processLocally control. No remote fallback and no automatic model download.
+ * processLocally control AND the on-device availability API. No remote fallback,
+ * model installation, or automatic download is permitted.
  */
 (function installAnwarLocalSpeech(root){
  'use strict';
@@ -10,6 +11,7 @@
  function supported(){
   const Recognition=getConstructor();
   return typeof Recognition==='function'&&
+   typeof Recognition.available==='function'&&
    !!Recognition.prototype&&
    'processLocally' in Recognition.prototype;
  }
