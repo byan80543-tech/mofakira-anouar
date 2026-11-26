@@ -67,7 +67,7 @@ assert.equal(skipWaitingCalled,false,'install waits for user approval instead of
 assert.equal(store.get(absolute('./index.html'))?.body,'cached:./index.html','install precaches the local HTML shell');
 assert.equal(store.get(absolute('./manifest.webmanifest'))?.body,'cached:./manifest.webmanifest','install precaches the web manifest');
 assert.equal(store.get(absolute('./app-core.js'))?.body,'cached:./app-core.js','install precaches the deferred main application bundle for offline startup');
-assert.equal(store.get(absolute('./poetry-dictation.js'))?.body,'cached:./poetry-dictation.js','install precaches the poetry dictation controller for offline use');
+assert.equal(store.has(absolute('./poetry-dictation.js')),false,'install does not precache the inactive writing dictation controller');
 assert.equal(store.get(absolute('./tasbih-controller.js'))?.body,'cached:./tasbih-controller.js','install precaches the standalone tasbih controller for offline use');
 assert.equal(store.get(absolute('./protective-adhkar.js'))?.body,'cached:./protective-adhkar.js','install precaches protective adhkar data for offline use');
 assert.equal(store.get(absolute('./vault-crypto.js'))?.body,'cached:./vault-crypto.js','install precaches the local vault cryptography helper');
