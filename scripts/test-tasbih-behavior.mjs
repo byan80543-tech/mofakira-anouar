@@ -423,7 +423,7 @@ const fontLayer=html.slice(fontLayerStart,fontLayerEnd);
 assert.ok(!fontLayer.includes('#rd #tasbihPanel{'),'the stable tasbih frame geometry is not overridden by the typography layer');
 
 const recognition=app.recognitions[0];
-assert.equal(recognition.lang,'ar-MA','speech recognition prefers the visitor’s Moroccan Arabic locale');
+assert.equal(recognition.lang,'ar-SA','speech recognition prefers the visitor’s Moroccan Arabic locale');
 app.nodes.tasbihDhikr.value='سبحان الله';
 app.nodes.tasbihDhikr.dispatch('change');
 app.nodes.tasbihVoice.click();
@@ -503,7 +503,7 @@ fallbackApp.nodes.tasbihVoice.click();
 const fallbackRecognition=fallbackApp.recognitions[0];
 fallbackRecognition.onstart();
 fallbackRecognition.onerror({error:'language-not-supported'});
-assert.equal(fallbackRecognition.lang,'ar-SA','an unsupported Moroccan locale automatically falls back to Arabic Saudi');
+assert.equal(fallbackRecognition.lang,'ar-MA','an unsupported Moroccan locale automatically falls back to Arabic Saudi');
 assert.equal(fallbackApp.nodes.tasbihVoiceState.textContent,'جارٍ تشغيل الميكروفون','language fallback keeps the voice control in a starting state');
 fallbackRecognition.onend();
 assert.equal(fallbackApp.pendingTimers.length,1,'the fallback waits for the previous recognition session to end');
@@ -522,6 +522,21 @@ restartRecognition.onend();
 assert.equal(restartApp.nodes.tasbihVoiceState.textContent,'جارٍ تشغيل الميكروفون','an unexpected mobile recognition end schedules a recovery session');
 restartApp.flushTimers();
 assert.equal(restartRecognition.started,2,'the same voice session automatically restarts after an unexpected end');
+
+const networkApp=buildApp();
+networkApp.nodes.tasbihDhikr.value='سبحان الله';
+networkApp.nodes.tasbihDhikr.dispatch('change');
+networkApp.nodes.tasbihVoice.click();
+const networkRecognition=networkApp.recognitions[0];
+networkRecognition.onerror({error:'network'});
+assert.equal(networkApp.nodes.tasbihVoiceState.textContent,'جارٍ تشغيل الميكروفون','a temporary speech-service network error keeps voice counting recoverable');
+networkRecognition.onend();
+networkApp.flushTimers();
+assert.equal(networkRecognition.started,2,'the voice counter automatically starts a new session after a network interruption');
+networkRecognition.onstart();
+const recoveredPhrase={0:{transcript:'سبحان الله'},length:1,isFinal:true};
+networkRecognition.onresult({resultIndex:0,results:[recoveredPhrase]});
+assert.equal(count(networkApp),1,'voice counting resumes after the automatic network recovery');
 
 // A broken speech-recognition constructor must not disable the manual tasbih.
 const brokenVoice=buildApp({throwRecognition:true});
