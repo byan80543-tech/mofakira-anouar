@@ -122,7 +122,7 @@ assert.match(html,/local-prayer-engine\.js\?v=20261126-1/,'HTML loads the local 
 assert.match(worker,/\.\/vendor\/praytime\.js/,'service worker precaches calculation library');
 assert.match(worker,/\.\/local-prayer-engine\.js/,'service worker precaches local city table');
 assert.match(worker,/\.\/assets\/adhan\/beautiful-adhan\.ogg/,'service worker precaches the local CC0 adhan audio');
-assert.match(html,/prayer-times\.js\?v=20261126-4/,'HTML loads the local-audio prayer controller');
+assert.match(html,/prayer-times\.js\?v=20261126-5/,'HTML loads the local-audio prayer controller');
 const cacheVersion=worker.match(/const CACHE_NAME='anwar-shell-\d{4}-\d{2}-\d{2}-v(\d+)';/);
 assert.ok(cacheVersion&&Number(cacheVersion[1])>=157,'the updated prayer controller has a refreshed offline shell version');
 assert.match(worker,/\.\/prayer-card-design\.css/,'service worker precaches the canonical prayer card stylesheet');
