@@ -234,6 +234,7 @@ counterInput.nodes.tasbihCounterControl.dispatch('keydown',{key:' '});
 assert.equal(count(counterInput),3,'the circular counter supports Space from the keyboard');
 
 const legacyDefault=buildApp({initialDhikr:'أستغفر الله العظيم وأتوب إليه',initialVersion:''});
+await new Promise(resolve=>setImmediate(resolve));
 assert.equal(legacyDefault.nodes.tasbihDhikr.value,'سبوح قدوس رب الملائكة والروح.','the old generic dhikr default migrates to the selected royal reference phrase');
 assert.equal(legacyDefault.state.tasbih.designVersion,'royal-reference-1','the new design version is saved after the one-time migration');
 
