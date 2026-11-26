@@ -47,4 +47,13 @@ assert.match(core,/addEventListener\('pagehide',[\s\S]{0,180}lockVault\('backgro
   'encrypted private content also locks on page exit');
 assert.match(core,/if\(!vaultUnlocked\)[\s\S]{0,220}showVaultGate\('unlock'/,
   'creating a new note while locked first requires authentication');
+
+assert.match(core,/if\(disableEncryption\)disableEncryption\.hidden=true/,'the UI permanently hides the option to disable encryption');
+assert.match(core,/function beginVaultDisableEncryption\(\)[\s\S]{0,180}التشفير الشامل إلزامي/,'the legacy disable action is a harmless no-op');
+assert.match(core,/function persistPlainSnapshot\(\)[\s\S]{0,150}الحفظ دون تشفير معطّل/,'the plaintext persistence function cannot write unencrypted records');
+assert.match(core,/if\(!vaultKey\|\|!vaultTemplate\)[\s\S]{0,150}الحفظ متوقف حتى اكتمال التشفير الشامل/,'save refuses to write if the encryption key or envelope is absent');
+assert.match(core,/async function bootVault\(\)[\s\S]{0,2400}showVaultGate\('setup','التشفير الشامل مطلوب/,'first launch requires encryption before opening private data');
+assert.match(core,/if\(vaultGateMode==='setup'\)return;[\s\S]{0,120}vaultGate'\)\.hidden=true/,'the setup gate cannot be dismissed to bypass mandatory encryption');
+assert.match(core,/if\(!removedLegacy\|\|!removedPreferences\)[\s\S]{0,300}لم نفتح المحتوى/,'legacy plaintext cleanup failure keeps private content locked');
+
 console.log('Vault shield control tests passed.');
