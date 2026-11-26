@@ -27,7 +27,9 @@ function makeHarness({failVerification=false}={}){
     ['anwar_rd',JSON.stringify({r:'قارئ قديم',n:55,m:'c'})],
     ['anwar_reader_advance','s'],
     ['anwar_tasbih_count_v1','144'],
-    ['anwar_tasbih_dhikr_v1','الحمد لله']
+    ['anwar_tasbih_dhikr_v1','الحمد لله'],
+    ['anwar_prayer_settings_v1',JSON.stringify({country:'Morocco',city:'Meknes',method:'21',school:'0',enabled:true,volume:0.7,timezone:'Africa/Casablanca',voice:'morocco_kamal',countrySource:'manual'})],
+    ['anwar_prayer_last_adhan_v1','2026-11-26|Fajr|Meknes|Morocco']
   ]);
   const operations=[];
   const vaultRecords=new Map();
@@ -101,7 +103,10 @@ assert.equal(data.has('anwar_rd'),false,'legacy radio preference is removed afte
 assert.equal(data.has('anwar_reader_advance'),false,'legacy reader preference is removed after encrypted verification');
 assert.equal(data.has('anwar_tasbih_count_v1'),false,'legacy tasbih count is removed after encrypted verification');
 assert.equal(data.has('anwar_tasbih_dhikr_v1'),false,'legacy tasbih choice is removed after encrypted verification');
-assert.deepEqual(JSON.parse(await sandbox.AnwarVaultCrypto.decryptWithKey(sandbox.vaultKey,primary)).preferences,{radio:{reciter:'قارئ قديم',surah:55},readerAdvance:'s',tasbih:{count:144,dhikr:'الحمد لله',customDhikrs:[],removedOfficialDhikrs:[],theme:'emerald',designVersion:''}},'legacy settings and the empty custom dhikr list are included in the encrypted snapshot');
+assert.equal(data.has('anwar_prayer_settings_v1'),false,'legacy prayer settings are removed after encrypted verification');
+assert.equal(data.has('anwar_prayer_last_adhan_v1'),false,'legacy last-played prayer marker is removed after encrypted verification');
+const encryptedPreferences=JSON.parse(await sandbox.AnwarVaultCrypto.decryptWithKey(sandbox.vaultKey,primary)).preferences;
+assert.deepEqual(encryptedPreferences,{radio:{reciter:'قارئ قديم',surah:55},readerAdvance:'s',prayer:{country:'Morocco',city:'Meknes',method:'21',school:'0',enabled:true,volume:0.7,timezone:'Africa/Casablanca',voice:'morocco_kamal',countrySource:'manual',lastPlayedKey:'2026-11-26|Fajr|Meknes|Morocco'},tasbih:{count:144,elapsedMs:0,dhikr:'الحمد لله',customDhikrs:[],removedOfficialDhikrs:[],theme:'emerald',designVersion:''}},'legacy prayer, tasbih and reader settings are included in the encrypted snapshot');
 assert.equal(elements.vaultPassword.value,'','password field is cleared after success');
 assert.equal(elements.vaultPasswordConfirm.value,'','password confirmation field is cleared after success');
 assert.ok(operations.indexOf('remove:anwar_v1')>operations.indexOf('vault:get:anwar_vault_backup_v1'),'legacy cleanup occurs after the encrypted backup has been written and read back');
@@ -116,6 +121,8 @@ assert.ok(failed.data.has('anwar_rd'),'legacy radio preference is retained after
 assert.ok(failed.data.has('anwar_reader_advance'),'legacy reader preference is retained after failed verification');
 assert.ok(failed.data.has('anwar_tasbih_count_v1'),'legacy tasbih count is retained after failed verification');
 assert.ok(failed.data.has('anwar_tasbih_dhikr_v1'),'legacy tasbih choice is retained after failed verification');
+assert.ok(failed.data.has('anwar_prayer_settings_v1'),'legacy prayer settings are retained after failed verification');
+assert.ok(failed.data.has('anwar_prayer_last_adhan_v1'),'legacy last-played prayer marker is retained after failed verification');
 assert.equal(failed.vaultRecords.has('anwar_vault_v1'),false,'unverified encrypted primary envelope is rolled back');
 assert.equal(failed.vaultRecords.has('anwar_vault_backup_v1'),false,'no secondary backup is written before primary verification');
 assert.equal(failed.data.has('anwar_vault_mode_v1'),false,'failed encrypted setup rolls back the mode marker and remains recoverable as plaintext');
