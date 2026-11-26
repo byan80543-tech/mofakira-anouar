@@ -3,7 +3,7 @@
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: camera=(), geolocation=(), microphone=(self), autoplay=(self), fullscreen=(self)
+  Permissions-Policy: camera=(), geolocation=(), microphone=(self), on-device-speech-recognition=(self), autoplay=(self), fullscreen=(self)
   X-DNS-Prefetch-Control: off
 
 /icon-512.png
