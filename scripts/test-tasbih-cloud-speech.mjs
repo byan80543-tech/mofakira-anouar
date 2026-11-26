@@ -74,11 +74,10 @@ function nextFrameAt(time,amplitude){
 nextFrameAt(100,0.06);
 nextFrameAt(400,0.06);
 nextFrameAt(1251,0);
-await Promise.resolve();
-await Promise.resolve();
-await Promise.resolve();
-console.log('VAD TEST DIAGNOSTICS',JSON.stringify({requests:requests.length,recorders:recorders.length,frames:frames.size,now,level,statuses,counts}));
-assert.equal(requests.length,1,'a natural pause closes and uploads exactly one short audio segment; statuses='+JSON.stringify(statuses)+'; recorderCount='+recorders.length+'; activeFrames='+frames.size);
+for(let attempt=0;attempt<10&&engine.getQueuedSegments()>0;attempt++){
+ await new Promise(resolve=>setTimeout(resolve,0));
+}
+assert.equal(requests.length,1,'a natural pause closes and uploads exactly one short audio segment');
 assert.equal(requests[0].url,'https://anwar-api-gateway.test-account.workers.dev/v1/tasbih/count');
 assert.equal(counts.length,1);
 assert.equal(counts[0],2,'the client receives only the integer count from the server');
