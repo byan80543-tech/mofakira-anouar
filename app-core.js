@@ -641,25 +641,50 @@ async function unlockVaultWithDevice(){
   button.disabled=false;
  }
 }
-function openVaultDeviceSetupDialog(){
+async function openVaultDeviceSetupDialog(){
  const dialog=$('vaultDeviceSetupDialog');
  const configured=AnwarDeviceUnlock.isConfigured();
  const supported=AnwarDeviceUnlock.supported();
- $('vaultDeviceSetupPassword').value='';
- $('vaultDeviceSetupForm').hidden=configured||!supported;
- $('vaultDeviceDisableBtn').hidden=!configured;
  const sharedOrigin=AnwarDeviceUnlock.isSharedGitHubPagesOrigin();
  const trustedOrigin=AnwarDeviceUnlock.isTrustedOrigin();
- $('vaultDeviceSetupStatus').textContent=configured
-  ?'الفتح السريع مفعّل لهذا المتصفح. يمكنك تعطيله من هنا.'
-  :sharedOrigin
-   ?'حمايةً لخصوصيتك، عُطّل الفتح بقفل الهاتف على GitHub Pages المشترك. استخدم عبارة المرور الأساسية؛ أعمالك المشفرة لم تُحذف.'
-   :!trustedOrigin
-    ?'حمايةً للخزنة، لا يُتاح فتحها بالبصمة أو قفل الجهاز إلا على نطاق مفكرة أنوار المستقل المعتمد. افتح https://mofakira-anouar.pages.dev/؛ ستبقى كلمة المرور الأساسية متاحة.'
-    :supported
-     ?'عند التفعيل سيُطلب تحقق الهاتف الآمن. ستبقى كلمة المرور الأساسية وسيلة الاسترداد.'
-     :'هذا المتصفح أو الجهاز لا يدعم ميزة الاعتماد الآمن المطلوبة. يمكنك متابعة استخدام كلمة المرور الأساسية.';
+ const form=$('vaultDeviceSetupForm');
+ $('vaultDeviceSetupPassword').value='';
+ $('vaultDeviceDisableBtn').hidden=!configured;
+ form.hidden=true;
  if(dialog&&!dialog.open)dialog.showModal();
+
+ if(configured){
+  $('vaultDeviceSetupStatus').textContent='الفتح بقفل الهاتف مفعّل لهذا المتصفح. يمكنك تعطيله من هنا.';
+  return;
+ }
+ if(sharedOrigin){
+  $('vaultDeviceSetupStatus').textContent='حمايةً لخصوصيتك، لا نفعّل فتح الخزنة على GitHub Pages المشترك. استخدم كلمة المرور الأساسية؛ أعمالك المشفرة لم تُحذف.';
+  return;
+ }
+ if(!trustedOrigin){
+  $('vaultDeviceSetupStatus').textContent='حمايةً للخزنة، لا يُتاح فتحها إلا على النطاق المستقل المعتمد: https://mofakira-anouar.pages.dev/ . ستبقى كلمة المرور الأساسية متاحة.';
+  return;
+ }
+ if(!supported){
+  $('vaultDeviceSetupStatus').textContent='هذا المتصفح لا يوفّر واجهة اعتماد الهاتف الآمن المطلوبة. يمكنك متابعة استخدام كلمة المرور الأساسية.';
+  return;
+ }
+
+ $('vaultDeviceSetupStatus').textContent='يجري التحقق من دعم المتصفح لميزة الحماية الآمنة…';
+ const prfStatus=await AnwarDeviceUnlock.prfSupportStatus();
+ if(AnwarDeviceUnlock.isConfigured()){
+  $('vaultDeviceSetupStatus').textContent='الفتح بقفل الهاتف مفعّل لهذا المتصفح. يمكنك تعطيله من هنا.';
+  $('vaultDeviceDisableBtn').hidden=false;
+  return;
+ }
+ if(prfStatus===false){
+  $('vaultDeviceSetupStatus').textContent='هذا المتصفح لا يعلن دعم ميزة PRF اللازمة لاشتقاق مفتاح الخزنة من اعتماد الهاتف؛ لذلك لم نعرض تفعيلًا لن يعمل. استخدم كلمة المرور الأساسية أو متصفحًا محدّثًا يدعم PRF.';
+  return;
+ }
+ form.hidden=false;
+ $('vaultDeviceSetupStatus').textContent=prfStatus===true
+  ?'يدعم المتصفح ميزة PRF. عند التفعيل سيطلب نظام الهاتف التحقق بقفل الشاشة أو البصمة بحسب إعداد جهازك. لا يقرأ الموقع النمط أو PIN ولا يخزنه، وستبقى كلمة المرور الأساسية للاسترداد.'
+  :'تعذّر على المتصفح إعلان دعم PRF مسبقًا. سنختبره أثناء التفعيل؛ لن تتغير الخزنة أو كلمة المرور الأساسية عند فشل الاختبار.';
 }
 async function submitVaultDeviceSetup(event){
  event.preventDefault();
