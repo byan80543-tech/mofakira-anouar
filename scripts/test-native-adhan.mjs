@@ -48,7 +48,14 @@ assert.match(receiver, /startForegroundService/);
 assert.match(service, /ServiceCompat.startForeground/);
 assert.match(service, /MediaPlayer/);
 assert.ok(service.includes('media.setVolume(config.volume, config.volume)'), 'native playback applies the selected adhan volume');
-assert.match(calendar, /calendarByCity/);
+assert.match(calendar, /LocalPrayerCalculator\.calculateDay/);
+assert.doesNotMatch(calendar, /HttpURLConnection|api\.aladhan\.com|calendarByCity|URL\(/,
+  'the Android prayer calendar is calculated locally without HTTP fallbacks');
+const localCalculator = read('android/app/src/main/java/com/anwar/mofakira/alarm/LocalPrayerCalculator.kt');
+assert.match(localCalculator, /Africa\/Casablanca/);
+assert.match(localCalculator, /"Meknes"/);
+assert.match(localCalculator, /tuneSunrise = -5\.0, tuneDhuhr = 5\.0, tuneMaghrib = 5\.0/);
+assert.match(calendar, /PrayerSettings\.saveEvents/);
 assert.match(prayer, /function syncNativeBackground\(requestPermissions\)/);
 assert.match(prayer, /if\(requestPermissions===true\)payload\.requestPermissions=true/);
 assert.match(activity, /optBoolean\("requestPermissions", false\)/);
@@ -76,9 +83,18 @@ assert.match(prayer,/const VOICES=\[\s*\{key:'calm',[^}]*assets\/adhan\/beautifu
   'the browser playback route is restricted to its bundled local voice');
 assert.doesNotMatch(prayer,/key:'aqsa'|key:'haram_makki'|key:'morocco_kamal'|key:'madina'/,
   'the browser route cannot select remote audio sources');
-for (const key of ['aqsa', 'haram_makki', 'morocco_kamal']) {
-    assert.ok(voiceCatalog.includes('"' + key + '" to AdhanVoice'), 'the separately scoped Android catalog still contains ' + key);
-}
+assert.match(voiceCatalog, /assetPath = "www\/assets\/adhan\/beautiful-adhan\.ogg"/);
+assert.doesNotMatch(voiceCatalog, /https?:\/\/|HttpURLConnection|URL\(/,
+  'the Android adhan catalog and cache cannot contact an external audio host');
+assert.match(voiceCatalog, /EXPECTED_SHA1 = "a1fa4fd942401922c5c3301816384aae86956522"/);
+assert.doesNotMatch(service, /voice\.url|setDataSource\(voice\./,
+  'native playback has no URL fallback');
+assert.match(service, /VoiceCache\.cachedFile\(this, config\.voiceKey\)/);
+assert.match(voiceCatalog, /context\.assets\.open\(voice\.assetPath\)/);
+assert.match(voiceCatalog, /total != EXPECTED_BYTES/);
+assert.match(nativePrayer, /NativePrayerVoice\("calm"/);
+assert.doesNotMatch(nativePrayer, /NativePrayerVoice\("(?:aqsa|haram_makki|morocco_kamal|madina)"/);
+assert.doesNotMatch(read('android/app/src/main/java/com/anwar/mofakira/alarm/PrayerRefreshWorker.kt'), /NetworkType|Constraints|CONNECTED/);
 assert.doesNotMatch(prayer, /youtube\.com|morocco_old|الحاج محمد العمري/);
 assert.doesNotMatch(voiceCatalog, /youtube\.com|morocco_old|الحاج محمد العمري/);
 const nativePrayer = read('android/app/src/main/java/com/anwar/mofakira/NativePrayerActivity.kt');
@@ -106,11 +122,11 @@ assert.match(nativePrayer, /LegacyWebActivity::class\.java/,
   'all remaining legacy services stay reachable from the native prayer screen');
 assert.match(prayerSettings, /fun updateNative\(/,
   'native controls persist to the same prayer preference store as the legacy bridge');
-assert.match(calendar, /appendQueryParameter\("city", cityForApi\(city, country\)\)/,
-  'Arabic Moroccan city names are normalized before the prayer API request');
-assert.match(calendar, /private fun cityForApi\(value: String, country: String\)/);
-assert.match(calendar, /"الحسيمة" to "Al Hoceima"/,
+assert.match(localCalculator, /"الحسيمة"/,
   'Al Hoceima is supported when entered in Arabic');
+assert.match(localCalculator, /fun supportedCities\(\)/);
+assert.match(localCalculator, /"Morocco", "Meknes"/);
+assert.match(read('android/app/src/test/java/com/anwar/mofakira/alarm/LocalPrayerCalculatorTest.kt'), /meknesMatchesPublishedNovember2026TimesWithinOneMinute/);
 assert.match(calendar, /PrayerSettings\.saveEvents\(context, events\.toString\(\)\)/);
 assert.match(calendar, /if \(config\.enabled && VoiceCatalog\.supports\(config\.voiceKey\)\)/,
   'prayer times are fetched and stored even when automatic adhan is switched off');
