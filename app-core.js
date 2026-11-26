@@ -7,15 +7,29 @@
   const source=value&&typeof value==='object'&&!Array.isArray(value)?value:{};
   const radio=source.radio&&typeof source.radio==='object'&&!Array.isArray(source.radio)?source.radio:{};
   const tasbih=source.tasbih&&typeof source.tasbih==='object'&&!Array.isArray(source.tasbih)?source.tasbih:{};
-  const count=Number(tasbih.count),surah=Number(radio.surah);
+  const prayer=source.prayer&&typeof source.prayer==='object'&&!Array.isArray(source.prayer)?source.prayer:{};
+  const count=Number(tasbih.count),surah=Number(radio.surah),elapsed=Number(tasbih.elapsedMs),volume=Number(prayer.volume);
   return {
    radio:{
     reciter:typeof radio.reciter==='string'?radio.reciter.trim().slice(0,120):'',
     surah:Number.isSafeInteger(surah)&&surah>=1&&surah<=114?surah:1
    },
    readerAdvance:source.readerAdvance==='s'?'s':'c',
+   prayer:{
+    country:typeof prayer.country==='string'?prayer.country.trim().slice(0,90):'',
+    city:typeof prayer.city==='string'?prayer.city.trim().slice(0,90):'',
+    method:typeof prayer.method==='string'?prayer.method.trim().slice(0,40):'auto',
+    school:prayer.school==='1'?'1':'0',
+    enabled:prayer.enabled===true,
+    volume:Number.isFinite(volume)?Math.max(0,Math.min(1,volume)):0.9,
+    timezone:typeof prayer.timezone==='string'?prayer.timezone.trim().slice(0,90):'',
+    voice:typeof prayer.voice==='string'?prayer.voice.trim().slice(0,40):'calm',
+    countrySource:prayer.countrySource==='manual'?'manual':'auto',
+    lastPlayedKey:typeof prayer.lastPlayedKey==='string'?prayer.lastPlayedKey.slice(0,180):''
+   },
    tasbih:{
     count:Number.isSafeInteger(count)?Math.max(0,Math.min(1000000000,count)):0,
+    elapsedMs:Number.isFinite(elapsed)?Math.max(0,Math.min(3153600000,elapsed)):0,
     dhikr:typeof tasbih.dhikr==='string'&&tasbih.dhikr.trim()?tasbih.dhikr.trim().slice(0,200):DEFAULT_DHIKR,
     customDhikrs:Array.isArray(tasbih.customDhikrs)?[...new Set(tasbih.customDhikrs.filter(item=>typeof item==='string').map(item=>item.trim().replace(/\s+/g,' ').slice(0,200)).filter(Boolean))].slice(0,30):[],
     removedOfficialDhikrs:Array.isArray(tasbih.removedOfficialDhikrs)?[...new Set(tasbih.removedOfficialDhikrs.filter(item=>typeof item==='string').map(item=>item.trim().replace(/\s+/g,' ').slice(0,200)).filter(Boolean))].slice(0,60):[],
@@ -37,7 +51,7 @@
  }
  function load(value){state=normalize(value);notify();return copy()}
  function set(section,value){
-  if(!['radio','readerAdvance','tasbih'].includes(section))throw new Error('إعداد خاص غير معروف.');
+  if(!['radio','readerAdvance','tasbih','prayer'].includes(section))throw new Error('إعداد خاص غير معروف.');
   const next=copy();next[section]=value;state=normalize(next);
   const snapshot=copy();
   if(persistHandler){
@@ -366,6 +380,24 @@ function importLegacyPrivatePreferences(base){
   if(count!==null&&/^\d{1,10}$/.test(count))preferences.tasbih.count=Math.min(1000000000,Number(count));
   const dhikr=localStorage.getItem('anwar_tasbih_dhikr_v1');
   if(typeof dhikr==='string'&&dhikr.trim())preferences.tasbih.dhikr=dhikr.slice(0,200);
+  const prayerRaw=localStorage.getItem('anwar_prayer_settings_v1');
+  if(prayerRaw){
+   const saved=JSON.parse(prayerRaw);
+   if(saved&&typeof saved==='object'&&!Array.isArray(saved))preferences.prayer={
+    country:typeof saved.country==='string'?saved.country.slice(0,90):preferences.prayer.country,
+    city:typeof saved.city==='string'?saved.city.slice(0,90):preferences.prayer.city,
+    method:typeof saved.method==='string'?saved.method.slice(0,40):preferences.prayer.method,
+    school:saved.school==='1'?'1':'0',
+    enabled:saved.enabled===true,
+    volume:Number.isFinite(Number(saved.volume))?Math.max(0,Math.min(1,Number(saved.volume))):preferences.prayer.volume,
+    timezone:typeof saved.timezone==='string'?saved.timezone.slice(0,90):preferences.prayer.timezone,
+    voice:typeof saved.voice==='string'?saved.voice.slice(0,40):preferences.prayer.voice,
+    countrySource:saved.countrySource==='manual'?'manual':'auto',
+    lastPlayedKey:preferences.prayer.lastPlayedKey
+   };
+  }
+  const lastPlayed=localStorage.getItem('anwar_prayer_last_adhan_v1');
+  if(typeof lastPlayed==='string')preferences.prayer.lastPlayedKey=lastPlayed.slice(0,180);
  }catch(error){
   throw new Error('تعذّرت قراءة إعداداتك القديمة. لم نحذفها؛ أعد المحاولة بعد التأكد من إتاحة تخزين الموقع.');
  }
@@ -373,7 +405,7 @@ function importLegacyPrivatePreferences(base){
 }
 function clearLegacyPrivatePreferences(){
  let cleared=true;
- for(const key of ['anwar_rd','anwar_reader_advance','anwar_tasbih_count_v1','anwar_tasbih_dhikr_v1']){
+ for(const key of ['anwar_rd','anwar_reader_advance','anwar_tasbih_count_v1','anwar_tasbih_dhikr_v1','anwar_prayer_settings_v1','anwar_prayer_last_adhan_v1']){
   try{localStorage.removeItem(key);if(localStorage.getItem(key)!==null)cleared=false}
   catch(error){cleared=false;console.warn('تعذّر حذف إعداد خاص قديم',key,error)}
  }
