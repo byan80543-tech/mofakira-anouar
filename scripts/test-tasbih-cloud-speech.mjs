@@ -96,7 +96,7 @@ const invalid=sandbox.AnwarTasbihCloudSpeech.create({
 await assert.rejects(()=>invalid.start(),/بوابة العد الصوتي غير مطابقة/,'the client rejects any gateway host outside the exact Anwar worker pattern');
 assert.equal(getUserMediaCalls,1,'an invalid gateway is rejected before requesting microphone permission');
 
-const unsupported={navigator:{mediaDevices:{getUserMedia(){throw new Error('should not be called')}}},MediaRecorder:class{static isTypeSupported(){return false}},AudioContext:MockAudioContext};
+const unsupported={navigator:{mediaDevices:{getUserMedia(){throw new Error('should not be called')}}},MediaRecorder:class{static isTypeSupported(){return false}},AudioContext:MockAudioContext,URL};
 unsupported.window=unsupported;unsupported.globalThis=unsupported;
 vm.runInNewContext(source,unsupported);
 const noFormat=unsupported.AnwarTasbihCloudSpeech.create({baseUrl:'https://anwar-api-gateway.test-account.workers.dev',phrase:'سبحان الله'});
