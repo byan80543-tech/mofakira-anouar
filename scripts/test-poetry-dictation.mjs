@@ -3,11 +3,15 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 
 const source=fs.readFileSync(new URL('../poetry-dictation.js',import.meta.url),'utf8');
+const localSpeechSource=fs.readFileSync(new URL('../local-speech-privacy.js',import.meta.url),'utf8');
 const timers=new Map();
 let nextTimer=1;
 const instances=[];
 class FakeRecognition{
  constructor(){this.lang='';this.continuous=false;this.interimResults=false;this.maxAlternatives=0;this.started=false;instances.push(this)}
+}
+FakeRecognition.prototype.processLocally=false;
+class RemoteOnlyRecognition{constructor(){this.started=false}start(){this.started=true}stop(){}
  start(){this.started=true;this.onstart?.()}
  stop(){this.stopped=true;this.onend?.()}
  abort(){this.aborted=true;this.onend?.()}
@@ -23,6 +27,7 @@ const browser={
  setTimeout(callback){const id=nextTimer++;timers.set(id,callback);return id},
  clearTimeout(id){timers.delete(id)}
 };
+vm.runInNewContext(localSpeechSource,{window:browser,globalThis:browser,WeakSet,Array,Object,String,Number,Math});
 vm.runInNewContext(source,{window:browser,globalThis:browser,WeakSet,Array,Object,String,Number,Math});
 assert.ok(browser.AnwarPoetryDictation,'dictation controller is exported');
 assert.deepEqual(Array.from(browser.AnwarPoetryDictation.LANGUAGES),['ar'],'only standard Arabic is enabled');
@@ -46,6 +51,7 @@ let controller=browser.AnwarPoetryDictation.create({
 });
 assert.equal(controller.start(),true,'dictation should start when SpeechRecognition exists');
 assert.equal(instances[0].lang,'ar','standard Arabic is the sole recognition language');
+assert.equal(instances[0].processLocally,true,'the recognizer must force local processing before any microphone start');
 assert.equal(controller.getLanguage(),'ar','controller exposes Arabic only');
 assert.equal(instances[0].continuous,true,'recognition stays continuous where supported');
 assert.equal(instances[0].interimResults,true,'interim recognition is enabled');
@@ -82,10 +88,19 @@ interrupted.stop();
 assert.ok(statuses.some(item=>item.state==='restarting'),'temporary recognition interruption is surfaced to the UI');
 
 const unsupported={};
+vm.runInNewContext(localSpeechSource,{window:unsupported,globalThis:unsupported,WeakSet,Array,Object,String,Number,Math});
 vm.runInNewContext(source,{window:unsupported,globalThis:unsupported,WeakSet,Array,Object,String,Number,Math});
 let unsupportedStatus='';
 const unavailable=unsupported.AnwarPoetryDictation.create({onStatus:(state)=>unsupportedStatus=state});
 assert.equal(unavailable.start(),false,'unsupported browsers must not pretend to start');
 assert.equal(unsupportedStatus,'error','unsupported browser state is reported');
 
-console.log('PASS Arabic-only poetry dictation: standard Arabic, fresh Android batches, repeated phrases, cumulative results, interim filtering, bounded reconnect and stop');
+const remoteOnly={SpeechRecognition:RemoteOnlyRecognition};
+vm.runInNewContext(localSpeechSource,{window:remoteOnly,globalThis:remoteOnly,WeakSet,Array,Object,String,Number,Math});
+vm.runInNewContext(source,{window:remoteOnly,globalThis:remoteOnly,WeakSet,Array,Object,String,Number,Math});
+let remoteOnlyError='';
+const remoteController=remoteOnly.AnwarPoetryDictation.create({onStatus:(state,detail)=>{if(state==='error')remoteOnlyError=detail}});
+assert.equal(remoteController.start(),false,'a recognizer without processLocally support must not start');
+assert.match(remoteOnlyError,/لم نبدأ الميكروفون|محلي/,'unsupported remote-only recognition is rejected with a privacy explanation');
+
+console.log('PASS Arabic poetry dictation requires processLocally=true; remote-only recognition is rejected before microphone capture');
