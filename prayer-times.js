@@ -255,7 +255,7 @@
  const audioPrivacyFact=addPrivacyFact('صوت الأذان','','ملف محلي','local');
  function updatePrivacyAudioDisclosure(){
   audioPrivacyFact.description.textContent=localAudioObjectUrl
-   ?'ملف الأذان محفوظ على هذا الجهاز داخل مساحة تخزين المفكرة. لا يُحمّل من مضيف صوتي خارجي.'
+   ?'ملف الأذان محفوظ على هذا الجهاز في IndexedDB، ولا يُرسل إلى خادم. وهو ملف صوتي عام منفصل عن الخزنة المشفرة.'
    :'لم يُستورد ملف أذان بعد. اختر ملف MP3 أو OGG من جهازك ليُحفظ محلياً.';
   const state=audioPrivacyFact.row.querySelector('.anwar-prayer-privacy-state');
   if(state){
