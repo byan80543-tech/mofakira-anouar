@@ -475,7 +475,7 @@ assert.doesNotMatch(controller,/SpeechRecognition|webkitSpeechRecognition|onresu
 assert.match(controller,/engine\.start\(\)/,'the tasbih starts the automatic capture engine');
 assert.match(controller,/engine\.stop\(\)/,'the same control stops automatic capture');
 assert.match(html,/tasbih-cloud-speech\.js/,'the tasbih speech engine is a separate local asset');
-assert.doesNotMatch(app.state.tasbih&&JSON.stringify(app.state.tasbih),/سبحان الله|أستغفر الله/,'the spoken transcript is not included in saved tasbih preferences');
+assert.doesNotMatch(JSON.stringify(app.state.tasbih),/transcript|speechText|recognizedWords|audio/i,'the saved tasbih state never contains transcript or audio data');
 
 // A cloud speech initialization failure never disables the manual tasbih.
 const brokenVoice=buildApp({throwRecognition:true});
