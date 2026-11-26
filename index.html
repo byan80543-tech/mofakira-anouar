@@ -3025,7 +3025,14 @@ dialog[open]>.float-head{display:none!important}
  border:1px solid var(--tasbih-border,#d4c49f)!important;border-radius:999px!important;
  background:var(--tasbih-surface,#fffdf7)!important;box-shadow:none!important;
 }
-#rd #tasbihPanel .anwar-tasbih-voice-shield,
+/* Keep the compact voice row clean while exposing its small privacy shield. */
+#rd #tasbihPanel .anwar-tasbih-voice-shield{
+ display:grid!important;place-items:center;flex:0 0 30px;
+ width:30px!important;height:30px!important;min-height:30px!important;
+ margin:0 1px!important;padding:0!important;border:0!important;
+ border-radius:50%!important;background:transparent!important;
+ color:var(--tasbih-accent,#155640)!important;box-shadow:none!important;
+}
 #rd #tasbihPanel .anwar-tasbih-voice-hint{display:none!important}
 #rd #tasbihPanel .anwar-tasbih-voice-head{display:flex!important;align-items:center;gap:6px;flex:1}
 #rd #tasbihPanel .anwar-tasbih-voice-copy{display:flex!important;align-items:center;gap:6px}
