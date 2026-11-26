@@ -9,9 +9,6 @@ let nextTimer=1;
 const instances=[];
 class FakeRecognition{
  constructor(){this.lang='';this.continuous=false;this.interimResults=false;this.maxAlternatives=0;this.started=false;instances.push(this)}
-}
-FakeRecognition.prototype.processLocally=false;
-class RemoteOnlyRecognition{constructor(){this.started=false}start(){this.started=true}stop(){}
  start(){this.started=true;this.onstart?.()}
  stop(){this.stopped=true;this.onend?.()}
  abort(){this.aborted=true;this.onend?.()}
@@ -21,6 +18,12 @@ class RemoteOnlyRecognition{constructor(){this.started=false}start(){this.starte
  }
  error(error){this.onerror?.({error})}
  end(){this.onend?.()}
+}
+FakeRecognition.prototype.processLocally=false;
+class RemoteOnlyRecognition{
+ constructor(){this.started=false}
+ start(){this.started=true}
+ stop(){}
 }
 const browser={
  SpeechRecognition:FakeRecognition,
