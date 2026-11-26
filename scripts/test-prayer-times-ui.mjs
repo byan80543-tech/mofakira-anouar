@@ -27,7 +27,7 @@ assert.match(prayer,/تُحفظ ضمن تفضيلات مفكرة أنوار ال
 assert.doesNotMatch(prayer,/localStorage|sessionStorage/,'the prayer controller does not persist private adhan settings in plaintext browser storage');
 assert.match(prayer,/IndexedDB|LOCAL_AUDIO_DB/,'the local audio storage uses IndexedDB');
 assert.match(prayer,/function updatePrivacyAudioDisclosure\(\)/,'the privacy disclosure reflects whether a local audio file is stored');
-assert.match(prayer,/updatePrivacyAudioDisclosure\(\);/,'changing the adhan voice refreshes the disclosed audio host');
+assert.match(prayer,/updatePrivacyAudioDisclosure\(\);/,'the audio privacy disclosure updates when the stored local file changes');
 assert.match(prayer,/card\.append\(head,nextBox,timesGrid,dateLine,localAccuracyNote,infoDetails,backgroundPermissionWrap,status,details,audio\)/,'the local timing accuracy note is visible beside the prayer times');
 assert.match(prayer,/details\.append\(summary,fields,actions,toggleLabel,volumeWrap\)/,'collapsed settings no longer contain the only permission feedback');
 assert.match(prayer,/\.anwar-prayer-status:not\(:empty\)\{display:block;margin:7px 0 0/,'permission feedback is visibly styled beside the control');
@@ -64,7 +64,7 @@ assert.match(prayer,/engine\.timezoneForCountry\(settings\.country\)/,'the calcu
 assert.doesNotMatch(prayer,/METHOD_OPTIONS|methodSelect/,'technical calculation-method picker is removed');
 assert.match(prayer,/countrySelect\.addEventListener\('change'/,'manual country override remains available');
 assert.match(prayer,/const nativeBridgeReady=syncNativeBackground\(\)/,'native background adhan syncs after refreshed prayer data confirms the timezone');
-assert.match(prayer,/settings\.school='0'/,'refresh preserves the fixed standard Asr calculation for API and Android sync');
+assert.match(prayer,/settings\.school='0'/,'refresh preserves the fixed standard Asr calculation for local timings and the native bridge');
 assert.match(prayer,/settings\.timezone=\(window\.AnwarPrayerEngine&&window\.AnwarPrayerEngine\.timezoneForCountry\(selected\)\)\|\|''/,'country selection updates to the local timezone without a remote lookup');
 assert.match(prayer,/meknes:'مكناس'/,'Meknes is displayed in Arabic');
 assert.match(prayer,/locationLabel\.textContent=cityForDisplay\(settings\.city\)\+' · '\+countryForDisplay\(settings\.country\)/,'location heading displays city before country in Arabic');
