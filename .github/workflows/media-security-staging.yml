@@ -1,11 +1,9 @@
 name: Deploy media security staging preview
 
 on:
-  workflow_run:
-    workflows:
-      - Quality checks
-    types:
-      - completed
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
 permissions:
   contents: read
 concurrency:
@@ -13,14 +11,14 @@ concurrency:
   cancel-in-progress: false
 jobs:
   deploy-and-probe:
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.head_branch == 'security/media-src-audit-2026-11-26' }}
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'security/media-src-audit-2026-11-26' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
       - name: Check out the exact pull request commit that passed quality checks
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Prepare isolated Pages preview
         shell: bash
         run: |
