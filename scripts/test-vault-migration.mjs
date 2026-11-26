@@ -71,7 +71,8 @@ function makeHarness({failVerification=false,failBackupWrite=false,failBackupVer
     VAULT_BACKUP_KEY:'anwar_vault_backup_v1',
     VAULT_MODE_KEY:'anwar_vault_mode_v1',
     $:id=>elements[id]||(elements[id]={value:'',textContent:'',disabled:false,hidden:false}),
-    readStoredState(value){return JSON.parse(value)},\n    noteContentTooLarge(){return false},
+    readStoredState(value){return JSON.parse(value)},
+    noteContentTooLarge(){return false},
     finishVaultOpen(){calls.finished=true;sandbox.vaultReady=true},
     toast(message){calls.toasts.push(String(message))},
     console:{warn(){}}
