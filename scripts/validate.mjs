@@ -347,7 +347,7 @@ ok(deployWorkflow.includes('github.event.workflow_run.head_sha'),'Cloudflare dep
 ok(securityHeaders.includes("frame-ancestors 'none'") && securityHeaders.includes('X-Frame-Options: DENY'),'HTTP headers prevent cross-origin framing');
 ok(securityHeaders.includes('X-Content-Type-Options: nosniff') && securityHeaders.includes('Referrer-Policy: strict-origin-when-cross-origin'),'HTTP headers set MIME-sniffing and referrer protections');
 ok(securityHeaders.includes('Permissions-Policy: camera=(), geolocation=(), microphone=(self)'),'HTTP Permissions-Policy disables unused camera and location access');
-ok(securityHeaders.includes("Content-Security-Policy:") && securityHeaders.includes("script-src 'self' https://cdnjs.cloudflare.com") && securityHeaders.includes('upgrade-insecure-requests'),'HTTP CSP response header is present and retains the secure resource policy; exact inline hashes are checked by test-csp.mjs');
+ok(securityHeaders.includes("Content-Security-Policy:") && securityHeaders.includes("script-src 'self' 'sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA=='") && !securityHeaders.includes("script-src 'self' https://cdnjs.cloudflare.com") && securityHeaders.includes('upgrade-insecure-requests'),'HTTP CSP response header pins the only required external script by exact SRI hash; detailed parity is checked by test-csp.mjs');
 
 if(failures.length){
   console.error('\nValidation failed:');
