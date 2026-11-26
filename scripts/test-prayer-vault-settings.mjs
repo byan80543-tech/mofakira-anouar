@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 const root=new URL('../',import.meta.url);
 const prayer=fs.readFileSync(new URL('prayer-times.js',root),'utf8');
 const core=fs.readFileSync(new URL('app-core.js',root),'utf8');
+const adhkarTheme=fs.readFileSync(new URL('adhkar-page-theme.js',root),'utf8');
 
 assert.doesNotMatch(prayer,/localStorage|sessionStorage/,'prayer settings and last-played markers must not use plaintext browser storage');
 assert.match(prayer,/function readSettings\(\)[\s\S]{0,360}AnwarPrivatePreferences[\s\S]{0,180}normalizeSavedSettings/,'prayer settings are loaded from the encrypted private-preference adapter');
@@ -29,6 +30,11 @@ assert.ok(migrationStart>=0&&migrationEnd>migrationStart,'legacy preference migr
 const migration=core.slice(migrationStart,migrationEnd);
 assert.match(migration,/anwar_prayer_settings_v1/,'legacy prayer settings are migrated before enabling mandatory encryption');
 assert.match(migration,/anwar_prayer_last_adhan_v1/,'legacy adhan replay marker is migrated before enabling mandatory encryption');
-assert.match(migration,/for\(const key of \[[\s\S]*anwar_prayer_settings_v1[\s\S]*anwar_prayer_last_adhan_v1/,'legacy prayer plaintext keys are cleaned only after encrypted persistence');
+assert.match(migration,/anwar_adhkar_page_theme/,'the old protective adhkar palette is migrated before enabling mandatory encryption');
+assert.match(migration,/for\(const key of \[[\s\S]*anwar_prayer_settings_v1[\s\S]*anwar_prayer_last_adhan_v1[\s\S]*anwar_adhkar_page_theme/,'legacy prayer and adhkar plaintext keys are cleaned only after encrypted persistence');
+assert.doesNotMatch(adhkarTheme,/localStorage|sessionStorage/,'the protective adhkar palette no longer uses plaintext browser storage');
+assert.match(adhkarTheme,/preferences\.get\(\)\.adhkarPageTheme/,'the protective adhkar palette loads from encrypted preferences');
+assert.match(adhkarTheme,/preferences\.set\('adhkarPageTheme',current\)/,'the protective adhkar palette writes back through the encrypted vault');
+assert.match(adhkarTheme,/preferences\.subscribe\(/,'the protective adhkar palette restores when the encrypted vault unlocks');
 
 console.log('Encrypted prayer settings integration tests passed.');
