@@ -56,7 +56,7 @@
 
   let voiceMatchCount=0,voiceResultSegments=[],lastRecognitionEvent=null,voiceFallbackPending=false;
   let voiceRestartTimer=null,voiceRestartCount=0;
-  const speechLanguages=['ar-MA','ar-SA','ar'];
+  const speechLanguages=['ar-SA','ar-MA','ar'];
   let speechLanguageIndex=0,speechLanguage=speechLanguages[speechLanguageIndex];
 
   const officialAdhkar=Array.isArray(window.ANWAR_OFFICIAL_ADHKAR)?window.ANWAR_OFFICIAL_ADHKAR:[];
@@ -704,10 +704,8 @@
       return;
      }
      if(code==='network'){
-      voiceRequested=false;
-      voiceTargetPhrase='';
-      try{recognition.abort()}catch(error){}
-      setVoiceState('error','تعذر الاتصال بخدمة التعرف الصوتي. يمكنك متابعة العد يدوياً.');
+      voiceActive=false;
+      setVoiceState('starting','انقطع الاتصال بخدمة التعرف الصوتي؛ سنعيد الاستماع تلقائياً.');
       return;
      }
      voiceRequested=false;
