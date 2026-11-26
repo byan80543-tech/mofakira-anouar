@@ -65,3 +65,6 @@ assert.match(worker,/v223/,'the offline shell cache is refreshed after all priva
 assert.match(html,/قد يرسل المتصفح الصوت إلى خدمة التعرف التابعة له/,'tasbih warns that browser recognition may send audio to its provider');
 
 console.log('PASS: writing dictation is removed; tasbih browser recognition is isolated behind explicit privacy consent.');
+
+assert.match(html,/preload[^>]+app-core\.js\?v=20261126-81/,'the preload points to the updated app-core bundle');
+assert.match(html,/script src="\.\/app-core\.js\?v=20261126-81"/,'the executed app-core script uses the same updated version as preload');
