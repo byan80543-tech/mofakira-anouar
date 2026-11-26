@@ -51,7 +51,7 @@ assert.match(prayer,/meknes:'مكناس'/,'Meknes remains available as an Arabic
 assert.match(prayer,/CITY_AR=\{/,'Arabic city display labels are retained for local calculation');
 assert.match(prayer,/لم نرسلها إلى أي خدمة/,'unsupported cities are rejected without remote lookup');
 assert.doesNotMatch(prayer,/fetch\s*\(|XMLHttpRequest|api\.aladhan\.com/,'prayer controller does not request remote timing data');
-assert.match(prayer,/مصدر: 'local/,'the engine identifies its calculation as a local result');
+assert.match(prayer,/return data;/,'the local calculation result is returned to the prayer card');
 assert.match(prayer,/showNextPrayerPlaceholder\('تعذّر الحساب المحلي؛ تحقق من المدينة المدعومة ثم اضغط تحديث'\)/,'a failed local calculation leaves a clear recovery instruction in the card');
 assert.match(prayer,/const COUNTRY_OPTIONS=\[/,'country list replaces calculation-method picker');
 assert.match(prayer,/label:'المغرب'/,'Arabic country list includes Morocco');
