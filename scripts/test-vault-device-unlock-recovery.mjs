@@ -60,7 +60,7 @@ assert.match(html,/app-core\.js\?v=20261126-79/,
 // Keep this in sync with the separately versioned WebAuthn helper loaded by index.html.
 assert.match(html,/vault-device-unlock\.js\?v=20261126-2/,
  'the existing PRF device helper and credential format remain unchanged');
-assert.match(worker,/anwar-shell-2026-11-26-v213/,
+assert.match(worker,/anwar-shell-2026-11-26-v214/,
  'the service-worker shell cache is versioned for the updated bundle');
 assert.match(worker,/'\.\/app-core\.js'/,
  'the offline shell still precaches the main application bundle');
