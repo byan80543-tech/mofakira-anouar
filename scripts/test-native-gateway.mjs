@@ -38,8 +38,8 @@ assert.match(portal, /LegacyWebActivity::class\.java/);
 assert.match(portal, /setOnClickListener \{ finish\(\) \}/, 'Close returns to the notebook.');
 assert.match(manifest, /android:name="\.ReligiousGateActivity"/);
 assert.match(manifest, /android:name="\.NativeAudioWebActivity"[\s\S]*?android:exported="false"/);
-assert.match(gradle, /versionCode = 18/);
-assert.match(gradle, /versionName = "0.9.9"/);
+assert.match(gradle, /versionCode = 19/);
+assert.match(gradle, /versionName = "0.10.0"/);
 assert.match(gradle, /applicationIdSuffix = "\.preview.v18"/);
 assert.match(workflow, /node scripts\/test-native-gateway\.mjs/);
 
