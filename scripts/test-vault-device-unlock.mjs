@@ -75,8 +75,14 @@ assert.equal(await unlock.prfSupportStatus(),false,'client-reported PRF absence 
 advertisedCapabilities['extension:prf']=true;
 advertisedCapabilities.userVerifyingPlatformAuthenticator=false;
 assert.equal(await unlock.prfSupportStatus(),false,'absence of a platform authenticator disables setup');
+advertisedCapabilities.userVerifyingPlatformAuthenticator=true;
+delete advertisedCapabilities['extension:prf'];
+assert.equal(await unlock.prfSupportStatus(),null,'missing PRF capability remains unknown, not supported');
+advertisedCapabilities['extension:prf']=true;
+delete advertisedCapabilities.userVerifyingPlatformAuthenticator;
+assert.equal(await unlock.prfSupportStatus(),null,'missing platform capability remains unknown, not supported');
 advertisedCapabilities={};
-assert.equal(await unlock.prfSupportStatus(),null,'omitted capability remains unknown rather than being treated as unsupported');
+assert.equal(await unlock.prfSupportStatus(),null,'omitted capabilities remain unknown rather than being treated as unsupported');
 advertisedCapabilities={
  'extension:prf':true,
  userVerifyingPlatformAuthenticator:true
