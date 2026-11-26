@@ -64,4 +64,4 @@ assert.match(worker,/\.\/local-speech-privacy\.js/,'the local speech privacy gat
 assert.match(worker,/v223/,'the offline shell cache is refreshed after all privacy assets');
 assert.match(html,/قد يرسل المتصفح الصوت إلى خدمة التعرف التابعة له/,'tasbih warns that browser recognition may send audio to its provider');
 
-console.log('PASS: voice input is fail-closed; microphone recognition requires processLocally=true and never falls back to remote processing.');
+console.log('PASS: writing dictation is removed; tasbih browser recognition is isolated behind explicit privacy consent.');
