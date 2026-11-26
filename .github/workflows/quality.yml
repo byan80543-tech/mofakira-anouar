@@ -96,6 +96,8 @@ jobs:
         run: node scripts/test-tasbih-behavior.mjs
       - name: Test Arabic poetry voice dictation across Android result batches
         run: node scripts/test-poetry-dictation.mjs
+      - name: Test microphone privacy and on-device-only recognition
+        run: node scripts/test-local-speech-privacy.mjs
       - name: Test shared HTML inspector
         run: python3 scripts/test_html_inspector.py
       - name: Test HTML and URL safety regression cases
