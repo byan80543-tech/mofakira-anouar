@@ -70,7 +70,7 @@ assert.match(worker,/v229/,'the offline shell is refreshed for the new tasbih sp
 assert.match(worker,/\.\/tasbih-cloud-speech\.js/,'the new tasbih speech module is available offline');
 assert.match(html,/تُحلل مقاطع صوتية قصيرة مؤقتاً لدى خدمة العد/,'the tasbih panel describes short-lived server-side speech processing');
 
-console.log('PASS: writing dictation is removed; tasbih browser recognition is isolated behind explicit privacy consent.');
+console.log('PASS: writing dictation remains removed; tasbih uses a separate consented short-segment capture path and returns count-only results.');
 
 assert.match(html,/preload[^>]+app-core\.js\?v=20261126-81/,'the preload points to the updated app-core bundle');
 assert.match(html,/script src="\.\/app-core\.js\?v=20261126-81"/,'the executed app-core script uses the same updated version as preload');
