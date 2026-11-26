@@ -95,6 +95,9 @@ const deployedDirectives=new Map(deployedCsp[1].split(';').map(part=>{
  const tokens=part.trim().split(/\s+/);
  return [tokens.shift(),tokens];
 }));
+const deployedMediaSources=deployedDirectives.get('media-src');
+assert.ok(deployedMediaSources,'Cloudflare response CSP includes media-src');
+assert.deepEqual([...deployedMediaSources].sort(),[...mediaSources].sort(),'Cloudflare response media-src must exactly match the page media allowlist');
 const deployedConnectSources=deployedDirectives.get('connect-src');
 assert.ok(deployedConnectSources,'Cloudflare response CSP includes connect-src');
 assert.deepEqual(
