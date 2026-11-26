@@ -12,7 +12,7 @@ const extract=(start,end)=>{
   return html.slice(a,b);
 };
 const preferenceSource=extract('/* Encrypted private settings shared by the notebook modules. */','requestAnimationFrame(()=>setTimeout(()=>{');
-const clearSource=extract('function clearLegacyPlaintext(){','async function persistVaultSnapshot(plaintext){');
+const clearSource=extract('function clearLegacyPlaintext(){','async function persistVaultSnapshot(plaintext,options={}){');
 const persistenceSource=extract('function importLegacyPrivatePreferences(base){','function finishVaultOpen(){');
 const submitSource=extract('async function submitVaultForm(event,suppliedPassword){', "async function lockVault(reason='manual'){");
 
