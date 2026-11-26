@@ -29,9 +29,7 @@ jobs:
       - name: Download and verify the CC0 default adhan audio
         run: |
           mkdir -p assets/adhan
-          curl --fail --location --retry 3 --retry-delay 2 \\
-            'https://upload.wikimedia.org/wikipedia/commons/b/b0/Beautiful_adhan.ogg' \\
-            --output assets/adhan/beautiful-adhan.ogg
+          curl --fail --location --retry 3 --retry-delay 2 'https://upload.wikimedia.org/wikipedia/commons/b/b0/Beautiful_adhan.ogg' --output assets/adhan/beautiful-adhan.ogg
           test "$(wc -c < assets/adhan/beautiful-adhan.ogg | tr -d ' ')" = '1229032'
           echo 'a1fa4fd942401922c5c3301816384aae86956522  assets/adhan/beautiful-adhan.ogg' | sha1sum --check --status
           test "$(head -c 4 assets/adhan/beautiful-adhan.ogg)" = 'OggS'
