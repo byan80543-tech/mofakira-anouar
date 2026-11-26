@@ -163,8 +163,8 @@ assert.doesNotMatch(activity, /innerHTML|loadDataWithBaseURL/,
   'saved content is rendered as ordinary Android text, not interpreted markup');
 
 assert.match(legacy, /WebView/);
-assert.match(gradle, /versionCode = 18/);
-assert.ok(gradle.includes('versionName = "0.9.9"'));
+assert.match(gradle, /versionCode = 19/);
+assert.ok(gradle.includes('versionName = "0.10.0"'));
 assert.match(gradle, /applicationIdSuffix = "\.preview.v18"/,
   'the versioned debug APK installs alongside stable and earlier preview apps without replacing their local vaults');
 assert.match(gradle, /versionNameSuffix = "-preview"/);
