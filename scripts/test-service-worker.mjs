@@ -68,7 +68,7 @@ assert.equal(store.get(absolute('./index.html'))?.body,'cached:./index.html','in
 assert.equal(store.get(absolute('./manifest.webmanifest'))?.body,'cached:./manifest.webmanifest','install precaches the web manifest');
 assert.equal(store.get(absolute('./app-core.js'))?.body,'cached:./app-core.js','install precaches the deferred main application bundle for offline startup');
 assert.equal(store.get(absolute('./poetry-dictation.js'))?.body,'cached:./poetry-dictation.js','install precaches the poetry dictation controller for offline use');
-assert.match(code,/const CACHE_NAME='anwar-shell-2026-11-26-v205'/,'the offline shell cache is versioned for the independent Tasbih security release');
+assert.match(code,/const CACHE_NAME='anwar-shell-2026-11-26-v206'/,'the offline shell cache is versioned for the phone-unlock capability update');
 assert.equal(store.get(absolute('./tasbih-controller.js'))?.body,'cached:./tasbih-controller.js','install precaches the standalone tasbih controller for offline use');
 assert.equal(store.get(absolute('./tasbih-vault.js'))?.body,'cached:./tasbih-vault.js','install precaches the independent encrypted Tasbih vault for offline use');
 assert.equal(store.get(absolute('./protective-adhkar.js'))?.body,'cached:./protective-adhkar.js','install precaches protective adhkar data for offline use');
