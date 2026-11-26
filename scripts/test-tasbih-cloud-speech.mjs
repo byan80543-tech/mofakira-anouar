@@ -33,7 +33,7 @@ class MockAudioContext{
 const track={stop(){trackStopped=true}};
 const stream={getTracks(){return [track]}};
 const sandbox={
- navigator:{mediaDevices:{async getUserMedia(constraints){getUserMediaCalls++;assert.deepEqual(constraints.video,false);return stream}}},
+ navigator:{mediaDevices:{async getUserMedia(constraints){getUserMediaCalls++;assert.equal(constraints.video,false);return stream}}},
  MediaRecorder:MockMediaRecorder,
  AudioContext:MockAudioContext,
  Blob,FormData,Response,URL,performance:{now(){return now}},
@@ -72,8 +72,8 @@ function nextFrameAt(time,amplitude){
  for(const callback of callbacks)callback();
 }
 nextFrameAt(100,0.06);
-nextFrameAt(300,0.06);
-nextFrameAt(1151,0);
+nextFrameAt(400,0.06);
+nextFrameAt(1251,0);
 await Promise.resolve();
 await Promise.resolve();
 await Promise.resolve();
