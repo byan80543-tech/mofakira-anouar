@@ -421,7 +421,7 @@ class NativePrayerActivity : Activity() {
                     statusText.text = "تم تحديث المواقيت وحفظها على الجهاز."
                     renderSchedule()
                 } else {
-                    statusText.text = "تعذّر جلب المواقيت. تحقق من الاتصال واسم المدينة ثم أعد المحاولة."
+                    statusText.text = "تعذّر الحساب المحلي. تحقق من اسم المدينة وأنها ضمن المدن المدعومة ثم أعد المحاولة."
                 }
             }
         }, "Anwar-Native-Prayer-Refresh").start()
