@@ -134,7 +134,8 @@ assert.ok(gradle.includes('versionName = "0.10.0"'));
 assert.ok(oldController.includes("preferences.set('tasbih'"),
   'the existing encrypted web preference adapter remains in place');
 assert.ok(oldBehaviorTests.includes('royal tasbih ring renders exactly 33 beads'));
-assert.ok(oldBehaviorTests.includes('recognition prefers the visitor’s Moroccan Arabic locale'));
+assert.ok(oldBehaviorTests.includes('the client uses the configured exact Anwar gateway'),
+  'the web tasbih uses the dedicated count-only gateway without changing the native Android implementation');
 assert.ok(oldOpenTests.includes('encrypted counter preferences and saved state remain active'));
 
 assert.match(religiousGate, /PortalItem\("📿", "السبحة"/);
