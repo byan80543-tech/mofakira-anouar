@@ -57,12 +57,12 @@ assert.match(tasbih,/window\.confirm\(['\"]تنبيه خصوصية/,'tasbih asks
 assert.match(poetry,/localSpeech\.create\(LANGUAGES\[0\]\)/,'the dormant dictation module remains local-only if ever reused');
 assert.doesNotMatch(html,/id="sp"|poetry-dictation\.js/,'writing tools expose no dictation microphone control or script');
 assert.doesNotMatch(core,/id==='sp'\)togglePoetryDictation/,'the notebook toolbar cannot start microphone dictation');
-assert.ok(html.indexOf('local-speech-privacy.js')<html.indexOf('tasbih-controller.js'),'the privacy gate remains available for local-only features');
-assert.match(html,/tasbih-controller\\.js\\?v=20261126-3/,'the tasbih voice fix receives a fresh browser asset URL');
+assert.ok(html.indexOf('local-speech-privacy.js')<html.indexOf('tasbih-controller.js'),'the tasbih voice code remains separated from local-only writing recognition');
+assert.match(html,/tasbih-controller\.js\?v=20261126-3/,'the tasbih voice fix receives a fresh browser asset URL');
 assert.match(headers,/microphone=\(self\)/,'microphone access is limited to this origin');
 assert.match(headers,/on-device-speech-recognition=\(self\)/,'on-device speech recognition is explicitly permitted for this origin');
 assert.match(worker,/\.\/local-speech-privacy\.js/,'the local speech privacy gate is included in the offline shell');
-assert.match(worker,/v226/,'the offline shell cache is refreshed after all privacy assets');
+assert.match(worker,/v226/,'the offline shell is refreshed for the voice-counting fix');
 assert.match(html,/قد يرسل المتصفح الصوت إلى خدمة التعرف التابعة له/,'tasbih warns that browser recognition may send audio to its provider');
 
 console.log('PASS: writing dictation is removed; tasbih browser recognition is isolated behind explicit privacy consent.');
