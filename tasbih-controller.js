@@ -44,7 +44,10 @@
    if(stored&&stored.tasbih&&typeof stored.tasbih==='object')legacyInitial={...defaultTasbih,...stored.tasbih};
   }catch(error){console.warn('تعذر قراءة الإعدادات القديمة للسبحة؛ لن تُحذف أي بيانات.',error)}
   let vaultUnlocked=!!(tasbihVault&&tasbihVault.isUnlocked()),shieldMode='setup',shieldBusy=false;
-  const initial=vaultUnlocked?legacyInitial:defaultTasbih;
+  let initial=vaultUnlocked?legacyInitial:defaultTasbih;
+  if(initial.designVersion!==DESIGN_VERSION&&initial.dhikr==='أستغفر الله العظيم وأتوب إليه'){
+   initial={...initial,dhikr:select.value,designVersion:DESIGN_VERSION};
+  }
   const MAX_COUNT=1000000000;
   const cleanDhikrList=(items,limit,maxLength=200)=>Array.isArray(items)
    ?[...new Set(items.filter(item=>typeof item==='string').map(item=>item.trim().slice(0,maxLength)).filter(Boolean))].slice(0,limit)
@@ -659,7 +662,8 @@
      const legacy=currentLegacy&&typeof currentLegacy==='object'?currentLegacy:defaultTasbih;
      const migration={
       count:Number.isSafeInteger(legacy.count)?Math.max(0,Math.min(MAX_COUNT,legacy.count)):0,
-      dhikr:typeof legacy.dhikr==='string'&&legacy.dhikr?legacy.dhikr:select.value,
+      dhikr:legacy.designVersion!==DESIGN_VERSION&&legacy.dhikr==='أستغفر الله العظيم وأتوب إليه'
+       ?select.value:(typeof legacy.dhikr==='string'&&legacy.dhikr?legacy.dhikr:select.value),
       customDhikrs:cleanDhikrList(legacy.customDhikrs,30,200),
       removedOfficialDhikrs:cleanDhikrList(legacy.removedOfficialDhikrs,60,4000),
       theme:allowedThemes.has(legacy.theme)?legacy.theme:'emerald',
