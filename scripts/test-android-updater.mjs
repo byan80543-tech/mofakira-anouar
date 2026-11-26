@@ -39,8 +39,8 @@ assert.match(manifest, /androidx\.core\.content\.FileProvider/,
 assert.match(manifest, /android:authorities="\$\{applicationId\}\.updates"/);
 assert.match(providerPaths, /<cache-path[\s\S]*?path="updates\/"/);
 
-assert.match(gradle, /versionCode = 18/);
-assert.match(gradle, /versionName = "0\.9\.9"/);
+assert.match(gradle, /versionCode = 19/);
+assert.match(gradle, /versionName = "0\.10\.0"/);
 assert.match(gradle, /create\("release"\)/,
   'a stable release signing config must be available for upgrade-compatible APKs');
 
