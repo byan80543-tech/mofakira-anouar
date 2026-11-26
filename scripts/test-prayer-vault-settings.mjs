@@ -22,7 +22,8 @@ assert.ok(prefsStart>=0&&prefsEnd>prefsStart,'encrypted preference implementatio
 const prefs=core.slice(prefsStart,prefsEnd);
 assert.match(prefs,/prayer:\{/,'the shared encrypted preference model contains prayer settings');
 assert.match(prefs,/lastPlayedKey:/,'the shared encrypted preference model contains the adhan replay guard');
-assert.match(prefs,/\['radio','readerAdvance','tasbih','prayer'\]/,'prayer preferences are accepted by the persistence adapter');
+assert.match(prefs,/\['radio','readerAdvance','tasbih','prayer','adhkarPageTheme'\]/,'all private preference sections are accepted by the persistence adapter');
+assert.match(prefs,/adhkarPageTheme:\[/,'the protective adhkar palette is part of the encrypted preference model');
 
 const migrationStart=core.indexOf('function importLegacyPrivatePreferences(base){');
 const migrationEnd=core.indexOf('async function persistVaultSnapshot(plaintext){',migrationStart);
