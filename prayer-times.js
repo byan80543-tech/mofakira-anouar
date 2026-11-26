@@ -10,7 +10,6 @@
  if(!panel)return;
  window.__anwarPrayerTimesReady=true;
 
- const API='https://api.aladhan.com/v1';
  const VOICES=[
   {key:'calm',label:'أذان هادئ · الافتراضي',url:'https://upload.wikimedia.org/wikipedia/commons/b/b0/Beautiful_adhan.ogg',page:'https://commons.wikimedia.org/wiki/File:Beautiful_adhan.ogg',credit:'Adam-synagda',license:'CC0 1.0'},
   {key:'aqsa',label:'المسجد الأقصى · ناجي قزاز',url:'https://raw.githubusercontent.com/Kiwifu/adhan-mp3/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/Najee_Qazaz_-_Al_Aqsa_Jerusalem_%28%D9%86%D8%A7%D8%AC%D9%8A_%D9%82%D8%B2%D8%A7%D8%B2_-_%D8%A7%D9%84%D9%85%D8%B3%D8%AC%D8%AF_%D8%A7%D9%84%D8%A3%D9%82%D8%B5%D9%89_%D8%A7%D9%84%D9%82%D8%AF%D8%B3%29.mp3',page:'https://github.com/Kiwifu/adhan-mp3',credit:'ناجي قزاز · المسجد الأقصى',license:'المصدر: مجموعة Kiwifu للأذان',note:'ملف MP3 مباشر · القدس'},
@@ -156,7 +155,7 @@
  }
  let settings=readSettings();
  function validTimeZone(value){try{new Intl.DateTimeFormat('en',{timeZone:value}).format();return value;}catch(_e){return Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';}}
- let todayData=null,tomorrowData=null,timeZone=validTimeZone(settings.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC');
+ let todayData=null,tomorrowData=null,timeZone=validTimeZone((window.AnwarLocalPrayerEngine&&window.AnwarLocalPrayerEngine.getTimezone(settings.country,settings.city))||settings.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC');
  let loading=false,loadToken=0,lastTick=Date.now(),lastDateCheck='';
  let pendingAdhanKey='',lastAutoAttemptAt=0;
  const el=(tag,className,text)=>{
@@ -227,9 +226,9 @@
  const countdown=el('span','','');
  countdownCopy.append(countdownLabel,countdown);
  nextBox.append(nextCopy,countdownCopy);
- showNextPrayerPlaceholder('بانتظار المواقيت');
+ showNextPrayerPlaceholder('بانتظار الحساب المحلي');
  const timesGrid=el('div','anwar-prayer-times');
- const dateLine=el('div','anwar-prayer-date','جارٍ تحميل مواقيت الصلاة…');
+ const dateLine=el('div','anwar-prayer-date','جارٍ حساب مواقيت الصلاة محليًا…');
  const infoDetails=el('details','anwar-prayer-info');
  const infoSummary=el('summary');
  const privacyIcon=el('span','anwar-prayer-privacy-icon');
@@ -247,7 +246,7 @@
   return {row:row,description:copy.lastChild};
  }
  addPrivacyFact('الموقع الدقيق','لا نستخدم GPS ولا نطلب إذن الموقع.','لا يُستخدم','local');
- addPrivacyFact('مواقيت الصلاة','نرسل المدينة والدولة والتاريخ إلى api.aladhan.com؛ ويستطيع المزوّد رؤية عنوان IP.','خدمة خارجية','external');
+ addPrivacyFact('مواقيت الصلاة','نحسب المواقيت داخل الجهاز بإحداثيات المدينة؛ لا نرسل اسم المدينة أو التاريخ إلى خدمة خارجية.','حساب محلي','local');
  const audioPrivacyFact=addPrivacyFact('صوت الأذان','','استضافة صوتية خارجية','external');
  function updatePrivacyAudioDisclosure(){
   const voice=VOICES.find(item=>item.key===settings.voice)||VOICES[0];
@@ -358,20 +357,6 @@
   berkane:'بركان',larache:'العرائش',essaouira:'الصويرة',
   taroudant:'تارودانت',guelmim:'كلميم',dakhla:'الداخلة'
  };
- const CITY_API_AR={
-  'مكناس':'Meknes','فاس':'Fes','الدار البيضاء':'Casablanca','الرباط':'Rabat',
-  'طنجة':'Tangier','مراكش':'Marrakech','اكادير':'Agadir','وجدة':'Oujda',
-  'تطوان':'Tetouan','القنيطرة':'Kenitra','اسفي':'Safi','تازة':'Taza',
-  'الحسيمة':'Al Hoceima','الناظور':'Nador','بني ملال':'Beni Mellal',
-  'خريبكة':'Khouribga','سطات':'Settat','بركان':'Berkane','العرائش':'Larache',
-  'الصويرة':'Essaouira','تارودانت':'Taroudant','كلميم':'Guelmim','الداخلة':'Dakhla'
- };
- function cityForApi(value,country){
-  const city=trimmedCountry(value);
-  if(countryForApi(country)!=='Morocco')return city;
-  const key=city.replace(/[أإآ]/g,'ا').replace(/\s+/g,' ').trim();
-  return CITY_API_AR[key]||city;
- }
  function cityForDisplay(value){
   const city=trimmedCountry(value);
   const key=city.toLowerCase().replace(/[éèê]/g,'e').replace(/[àâ]/g,'a').replace(/[îï]/g,'i').replace(/[ô]/g,'o').replace(/[ùû]/g,'u').replace(/\s+/g,' ').trim();
@@ -412,30 +397,11 @@
   }
   return guess;
  }
- async function fetchDay(dateText,token){
-  const url=new URL(API+'/timingsByCity/'+dateText);
-  url.searchParams.set('city',cityForApi(settings.city,settings.country));
-  url.searchParams.set('country',countryForApi(settings.country));
-  if(settings.method!=='auto')url.searchParams.set('method',settings.method);
-  url.searchParams.set('school',settings.school);
-  const controller=typeof AbortController==='function'?new AbortController():null;
-  const timeoutId=window.setTimeout(()=>{if(controller)controller.abort();},12000);
-  let response;
-  try{
-   const request={method:'GET',headers:{'Accept':'application/json'},cache:'no-store'};
-   if(controller)request.signal=controller.signal;
-   response=await fetch(url.href,request);
-  }catch(error){
-   if(error&&error.name==='AbortError')throw new Error('انتهت مهلة الاتصال. تحقّق من الإنترنت وأعد المحاولة.');
-   throw new Error('تعذّر الاتصال بخدمة المواقيت. تحقّق من الإنترنت.');
-  }finally{
-   window.clearTimeout(timeoutId);
-  }
-  if(!response.ok)throw new Error('تعذّر جلب المواقيت (HTTP '+response.status+').');
-  const json=await response.json();
+ function fetchDay(dateText,token){
   if(token!==loadToken)return null;
-  if(!json||json.code!==200||!json.data||!json.data.timings)throw new Error('لا تتوفر مواقيت لهذه المدينة. تحقّق من المدينة والدولة.');
-  return json.data;
+  const engine=window.AnwarLocalPrayerEngine;
+  if(!engine||typeof engine.calculateDay!=='function')throw new Error('محرك المواقيت المحلي غير متاح. أعد تحميل المفكرة بعد التحديث.');
+  return engine.calculateDay({dateText:dateText,country:settings.country,city:settings.city,method:settings.method,school:settings.school});
  }
  function updateHeader(){
   locationLabel.textContent=cityForDisplay(settings.city)+' · '+countryForDisplay(settings.country);
@@ -503,7 +469,7 @@
   nextBox.hidden=false;
   nextLabel.textContent='الصلاة القادمة';
   nextName.textContent='—';
-  nextWhen.textContent=message||'بانتظار المواقيت';
+  nextWhen.textContent=message||'بانتظار الحساب المحلي';
   countdown.textContent='--:--:--';
  }
  function alreadyPlayed(key){return settings.lastPlayedKey===key}
@@ -550,7 +516,7 @@
    nextWhen.textContent=(next.date===todayDate?'اليوم':'غدًا')+' · '+timeLabel(next.at);
    timesGrid.querySelectorAll('.anwar-prayer-time').forEach(item=>item.classList.toggle('is-next',item.dataset.prayer===next.key&&next.date===(todayData&&todayData.date&&todayData.date.gregorian&&todayData.date.gregorian.date)));
   }else{
-   showNextPrayerPlaceholder(todayData&&tomorrowData?'لا يوجد موعد متاح الآن':'بانتظار المواقيت');
+   showNextPrayerPlaceholder(todayData&&tomorrowData?'لا يوجد موعد متاح الآن':'بانتظار الحساب المحلي');
   }
   if(todayData&&timeZone){
    const todayHere=dateString(new Date(now),timeZone);
@@ -561,13 +527,14 @@
   const token=++loadToken;
   loading=true;
   if(!silent){
-   dateLine.textContent='جارٍ تحميل المواقيت…';dateLine.dataset.state='loading';
+   dateLine.textContent='جارٍ حساب المواقيت محليًا…';dateLine.dataset.state='loading';
    showNextPrayerPlaceholder('جارٍ التحديث…');
   }
   refreshButton.disabled=true;
   try{
    if(!settings.city.trim()||!settings.country.trim())throw new Error('أدخل الدولة والمدينة.');
-   const initialZone=validTimeZone(settings.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC');
+   const localZone=window.AnwarLocalPrayerEngine&&window.AnwarLocalPrayerEngine.getTimezone(settings.country,settings.city);
+   const initialZone=validTimeZone(localZone||settings.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC');
    let requestedDate=dateString(new Date(),initialZone);
    let data=await fetchDay(requestedDate,token);
    if(token!==loadToken)return;
@@ -588,8 +555,8 @@
    persist();renderTimes();lastDateCheck=todayText;
    const nativeBridgeReady=syncNativeBackground();
    if(!silent){
-    if(settings.enabled&&nativeBridgeReady)setStatus('تم تحديث المواقيت ومزامنة الأذان.');
-    else if(settings.enabled)setStatus('تم تحديث المواقيت.');
+    if(settings.enabled&&nativeBridgeReady)setStatus('تم حساب المواقيت محليًا ومزامنة إعدادات الأذان.');
+    else if(settings.enabled)setStatus('تم حساب المواقيت محليًا دون اتصال خارجي.');
     else setStatus('تم تحديث المواقيت.');
    }
    tick();
@@ -598,9 +565,9 @@
     if(!todayData){
      dateLine.textContent=fallbackDateLabel()||'التاريخ المحلي';
      dateLine.dataset.state='fallback';
-     showNextPrayerPlaceholder('تعذّر التحميل؛ تحقق من المدينة والاتصال ثم اضغط تحديث');
+     showNextPrayerPlaceholder('تعذّر الحساب؛ تحقق من اسم المدينة أو اختر مدينة مدعومة ثم اضغط تحديث');
     }
-    setStatus(error&&error.message?error.message:'تعذّر تحديث المواقيت.');
+    setStatus(error&&error.message?error.message:'تعذّر حساب المواقيت محليًا.');
    }
   }finally{
    if(token===loadToken){loading=false;refreshButton.disabled=false;}
@@ -610,10 +577,11 @@
   settings.country=normalizeCountry(countrySelect.value)||detectCountry();
   settings.method=methodForCountry(settings.country);
   settings.city=cityInput.value.trim();settings.school='0';
+  settings.timezone=window.AnwarLocalPrayerEngine&&window.AnwarLocalPrayerEngine.getTimezone(settings.country,settings.city)||'';
   persist();todayData=null;tomorrowData=null;lastDateCheck='';
   timesGrid.replaceChildren(...PRAYERS.map(prayer=>{const item=el('div','anwar-prayer-time');item.append(el('b','',prayer.name),el('strong','','—'));return item;}));
-  showNextPrayerPlaceholder('بانتظار المواقيت');
-  dateLine.textContent='جارٍ تحميل المواقيت…';dateLine.dataset.state='loading';
+  showNextPrayerPlaceholder('بانتظار الحساب المحلي');
+  dateLine.textContent='جارٍ حساب المواقيت محليًا…';dateLine.dataset.state='loading';
   lastTick=Date.now();refreshTimes(false);
  });
  countrySelect.addEventListener('change',()=>{
@@ -623,14 +591,13 @@
   settings.countrySource='manual';
   settings.method=methodForCountry(selected);
   settings.city=defaultCity(selected);
-  settings.timezone='';
+  settings.timezone=window.AnwarLocalPrayerEngine&&window.AnwarLocalPrayerEngine.getTimezone(settings.country,settings.city)||'';
   cityInput.value=settings.city;
-  settings.timezone='';
   persist();updateHeader();
   todayData=null;tomorrowData=null;lastDateCheck='';
-  showNextPrayerPlaceholder('بانتظار المواقيت');
+  showNextPrayerPlaceholder('بانتظار الحساب المحلي');
   timesGrid.replaceChildren(...PRAYERS.map(prayer=>{const item=el('div','anwar-prayer-time');item.append(el('b','',prayer.name),el('strong','','—'));return item;}));
-  dateLine.textContent='جارٍ تحميل المواقيت…';dateLine.dataset.state='loading';
+  dateLine.textContent='جارٍ حساب المواقيت محليًا…';dateLine.dataset.state='loading';
   lastTick=Date.now();refreshTimes(false);
  });
  backgroundPermissionButton.addEventListener('click',()=>{
@@ -702,7 +669,7 @@
   audio.load();
   todayData=null;tomorrowData=null;lastDateCheck='';
   updateHeader();updatePrivacyAudioDisclosure();
-  showNextPrayerPlaceholder('بانتظار المواقيت المحفوظة');
+  showNextPrayerPlaceholder('بانتظار الحساب المحلي المحفوظة');
   refreshTimes(false);
   if(settings.enabled)syncNativeBackground();
  }
