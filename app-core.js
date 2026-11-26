@@ -935,10 +935,12 @@ async function restoreRescueBackup(){
     localStorage.setItem(VAULT_MODE_KEY,'encrypted');
     if(localStorage.getItem(VAULT_MODE_KEY)!=='encrypted')throw new Error('تعذّر تثبيت وضع الخزنة المشفرة على هذا الجهاز.');
    }catch(storageError){
-    vaultKey=null;vaultTemplate=null;vaultHasEncryptedData=false;
+    vaultUnlocked=false;vaultKey=null;vaultTemplate=null;vaultReady=false;vaultHasEncryptedData=false;
+    S=emptyStorageState();globalThis.AnwarPrivatePreferences.load(S.preferences);
+    showVaultGate('setup','تعذّر إتمام حفظ نسخة الإنقاذ المشفرة. بقي ملف النسخة الأصلي دون تغيير؛ أعد المحاولة بعد معالجة التخزين.');
     throw storageError;
    }
-   legacyCleared=clearLegacyPlaintext();
+   legacyCleared=clearLegacyPlaintext()&&clearLegacyPrivatePreferences();
    if(!legacyCleared){
     vaultUnlocked=false;vaultKey=null;vaultTemplate=null;vaultHasEncryptedData=true;S=emptyStorageState();
     globalThis.AnwarPrivatePreferences.load(S.preferences);
