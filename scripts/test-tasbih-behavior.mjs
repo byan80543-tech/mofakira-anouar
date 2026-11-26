@@ -535,9 +535,10 @@ assert.equal(count(brokenVoice),1,'the manual counter still works when voice rec
 
 const unsupportedVoice=buildApp({noRecognition:true});
 assert.equal(unsupportedVoice.nodes.tasbihVoice.disabled,true,'unsupported browsers get a clear disabled voice control');
-const remoteOnlyVoice=buildApp({noLocalRecognition:true});
-assert.equal(remoteOnlyVoice.nodes.tasbihVoice.disabled,true,'a remote-only speech recognizer is rejected before microphone capture');
-remoteOnlyVoice.nodes.tasbihTap.click();
-assert.equal(count(remoteOnlyVoice),1,'manual tasbih remains usable when local speech recognition is unavailable');
+const browserRecognition=buildApp();
+browserRecognition.nodes.tasbihVoice.click();
+assert.equal(browserRecognition.recognitions[0].started,1,'the tasbih recognizer starts only after the explicit privacy confirmation');
+browserRecognition.nodes.tasbihTap.click();
+assert.equal(count(browserRecognition),1,'manual tasbih remains usable alongside browser speech recognition');
 
 console.log('Tasbih behavior tests passed: 33-bead ring, official dhikr data, themes, counter, custom dhikr management, count-only speech matching and microphone fallback.');
