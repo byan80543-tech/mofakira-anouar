@@ -49,7 +49,7 @@ assert.match(prayer,/function fetchDay\(dateText,token\)[\s\S]{0,700}engine\.cal
 assert.doesNotMatch(prayer,/function cityForApi|CITY_API_AR/,'obsolete remote city-name translation helpers are removed');
 assert.match(prayer,/meknes:'مكناس'/,'Meknes remains available as an Arabic display name');
 assert.match(prayer,/CITY_AR=\{/,'Arabic city display labels are retained for local calculation');
-assert.match(prayer,/لم نرسلها إلى أي خدمة/,'unsupported cities are rejected without remote lookup');
+assert.match(prayer,/تعذّر الحساب المحلي/,'unsupported city calculation shows a clear local-only error');
 assert.doesNotMatch(prayer,/fetch\s*\(|XMLHttpRequest|api\.aladhan\.com/,'prayer controller does not request remote timing data');
 assert.match(prayer,/return data;/,'the local calculation result is returned to the prayer card');
 assert.match(prayer,/showNextPrayerPlaceholder\('تعذّر الحساب المحلي؛ تحقق من المدينة المدعومة ثم اضغط تحديث'\)/,'a failed local calculation leaves a clear recovery instruction in the card');
