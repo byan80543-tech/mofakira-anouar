@@ -72,9 +72,12 @@ assert.match(activity, /permissionPromptDeferred/);
 assert.match(activity, /lastAdhanEnabled/);
 assert.match(activity, /hasExactAlarmAccess\(\)/);
 assert.match(prayer, /لا يضمن استمرار الصوت بعد إغلاق الصفحة/);
+assert.match(prayer,/const VOICES=\[\s*\{key:'calm',[^}]*assets\/adhan\/beautiful-adhan\.ogg[^}]*local:true\}\s*\]/,
+  'the browser playback route is restricted to its bundled local voice');
+assert.doesNotMatch(prayer,/key:'aqsa'|key:'haram_makki'|key:'morocco_kamal'|key:'madina'/,
+  'the browser route cannot select remote audio sources');
 for (const key of ['aqsa', 'haram_makki', 'morocco_kamal']) {
-    assert.ok(prayer.includes("key:'" + key + "'"), 'PWA exposes direct voice ' + key);
-    assert.ok(voiceCatalog.includes('"' + key + '" to AdhanVoice'), 'Android exposes matching voice ' + key);
+    assert.ok(voiceCatalog.includes('"' + key + '" to AdhanVoice'), 'the separately scoped Android catalog still contains ' + key);
 }
 assert.doesNotMatch(prayer, /youtube\.com|morocco_old|الحاج محمد العمري/);
 assert.doesNotMatch(voiceCatalog, /youtube\.com|morocco_old|الحاج محمد العمري/);

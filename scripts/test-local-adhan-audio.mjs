@@ -12,10 +12,15 @@ assert.equal(crypto.createHash('sha1').update(bytes).digest('hex'),'a1fa4fd94240
 const prayer=fs.readFileSync(path.join(root,'prayer-times.js'),'utf8');
 assert.match(prayer,/key:'calm',label:'أذان هادئ · محلي',url:'\.\/assets\/adhan\/beautiful-adhan\.ogg'/);
 assert.match(prayer,/audio\.preload='none'/);assert.match(prayer,/audio\.src=initialVoice\.url/);
+const voiceCatalog=prayer.match(/const VOICES=\[([\s\S]*?)\];/)?.[1]||'';
+assert.ok(voiceCatalog,'browser adhan voice catalog exists');
+assert.equal((voiceCatalog.match(/key:/g)||[]).length,1,'browser exposes one approved local adhan voice');
+assert.doesNotMatch(voiceCatalog,/https?:\/\//,'browser voice catalog cannot direct audio to an external host');
+assert.doesNotMatch(prayer,/raw\.githubusercontent\.com\/Kiwifu\/adhan-mp3|upload\.wikimedia\.org\/wikipedia\/commons\/7\/7c\/33937/,'no remote alternative adhan source remains in the browser controller');
 assert.match(prayer,/يُشغّل التسجيل من ملف محلي داخل المفكرة/);assert.match(prayer,/ملف محلي/);
 const worker=fs.readFileSync(path.join(root,'service-worker.js'),'utf8');
 assert.match(worker,/'\.\/assets\/adhan\/beautiful-adhan\.ogg'/);
 const license=fs.readFileSync(path.join(root,'assets/adhan/README.md'),'utf8');
 assert.match(license,/CC0 1\.0/);assert.match(license,/Adam-synagda/);assert.match(license,/commons\.wikimedia\.org\/wiki\/File:Beautiful_adhan\.ogg/);
-const html=fs.readFileSync(path.join(root,'index.html'),'utf8');assert.match(html,/prayer-times\.js\?v=20261126-3/);
+const html=fs.readFileSync(path.join(root,'index.html'),'utf8');assert.match(html,/prayer-times\.js\?v=20261126-4/);
 console.log('Bundled adhan tests passed: SHA-1, CC0 provenance, local player path and service-worker precache.');

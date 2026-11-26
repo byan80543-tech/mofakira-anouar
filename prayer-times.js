@@ -11,11 +11,7 @@
  window.__anwarPrayerTimesReady=true;
 
  const VOICES=[
-  {key:'calm',label:'أذان هادئ · محلي',url:'./assets/adhan/beautiful-adhan.ogg',page:'https://commons.wikimedia.org/wiki/File:Beautiful_adhan.ogg',credit:'Adam-synagda',license:'CC0 1.0',local:true},
-  {key:'aqsa',label:'المسجد الأقصى · ناجي قزاز',url:'https://raw.githubusercontent.com/Kiwifu/adhan-mp3/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/Najee_Qazaz_-_Al_Aqsa_Jerusalem_%28%D9%86%D8%A7%D8%AC%D9%8A_%D9%82%D8%B2%D8%A7%D8%B2_-_%D8%A7%D9%84%D9%85%D8%B3%D8%AC%D8%AF_%D8%A7%D9%84%D8%A3%D9%82%D8%B5%D9%89_%D8%A7%D9%84%D9%82%D8%AF%D8%B3%29.mp3',page:'https://github.com/Kiwifu/adhan-mp3',credit:'ناجي قزاز · المسجد الأقصى',license:'المصدر: مجموعة Kiwifu للأذان',note:'ملف MP3 مباشر · القدس'},
-  {key:'haram_makki',label:'الحرم المكي · علي بن أحمد ملا',url:'https://raw.githubusercontent.com/Kiwifu/adhan-mp3/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/Ali_Ibn_Ahmad_Mala_1_-_Al_Haram_Al_Maki_%28%D8%B9%D9%84%D9%8A_%D8%A8%D9%86_%D8%A3%D8%AD%D9%85%D8%AF_%D9%85%D9%84%D8%A7_-_%D8%A7%D9%84%D8%AD%D8%B1%D9%85_%D8%A7%D9%84%D9%85%D9%83%D9%8A%29.mp3',page:'https://github.com/Kiwifu/adhan-mp3',credit:'علي بن أحمد ملا · الحرم المكي',license:'المصدر: مجموعة Kiwifu للأذان',note:'ملف MP3 مباشر · مكة المكرمة'},
-  {key:'morocco_kamal',label:'أذان مغربي · كمال محمد المروش',url:'https://raw.githubusercontent.com/Kiwifu/adhan-mp3/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/Kamal_Muhammad_Al_Marush_2_-_Morocco_%28%D9%83%D9%85%D8%A7%D9%84_%D9%85%D8%AD%D9%85%D8%AF_%D8%A7%D9%84%D9%85%D8%B1%D8%B9%D9%88%D8%B4_-_%D8%A7%D9%84%D9%85%D8%BA%D8%B1%D8%A8%29.mp3',page:'https://github.com/Kiwifu/adhan-mp3',credit:'كمال محمد المروش · المغرب',license:'المصدر: مجموعة Kiwifu للأذان',note:'ملف MP3 مباشر · أذان مغربي'},
-  {key:'madina',label:'المسجد النبوي · تسجيل ميداني',url:'https://upload.wikimedia.org/wikipedia/commons/7/7c/33937_ejaz215_call-to-prayer-from-the-prophet-s-mo.ogg',page:'https://commons.wikimedia.org/wiki/File:33937_ejaz215_call-to-prayer-from-the-prophet-s-mo.ogg',credit:'ejaz215',license:'CC BY 3.0'}
+  {key:'calm',label:'أذان هادئ · محلي',url:'./assets/adhan/beautiful-adhan.ogg',credit:'Adam-synagda',license:'CC0 1.0',local:true}
  ];
  const DEFAULT_VOICE='calm';
  const PRAYERS=[
@@ -249,20 +245,14 @@
  addPrivacyFact('مواقيت الصلاة','نحسب المواقيت داخل الجهاز بإحداثيات المدينة؛ لا نرسل اسم المدينة أو التاريخ إلى خدمة خارجية.','حساب محلي','local');
  const audioPrivacyFact=addPrivacyFact('صوت الأذان','','استضافة صوتية خارجية','external');
  function updatePrivacyAudioDisclosure(){
-  const voice=VOICES.find(item=>item.key===settings.voice)||VOICES[0];
-  if(voice.local===true||String(voice.url||'').startsWith('./')){
-   audioPrivacyFact.description.textContent='يُشغّل التسجيل من ملف محلي داخل المفكرة؛ لا يُرسل طلب إلى مضيف صوت خارجي.';
-   audioPrivacyFact.state.textContent='ملف محلي';
-   audioPrivacyFact.state.className='anwar-prayer-privacy-state local';
-   return;
-  }
-  let host='مضيف التسجيل الخارجي';
-  try{host=new URL(voice.url,location.href).hostname}catch(_e){}
-  audioPrivacyFact.description.textContent='يُحمّل التسجيل من '+host+' عبر HTTPS؛ ويمكن للمضيف رؤية عنوان IP.';
-  audioPrivacyFact.state.textContent='استضافة خارجية';
-  audioPrivacyFact.state.className='anwar-prayer-privacy-state external';
+  audioPrivacyFact.description.textContent='يُشغّل التسجيل من ملف محلي داخل المفكرة؛ ولا يتيح هذا المشغّل اختيار مضيف صوت خارجي.';
+  audioPrivacyFact.state.textContent='ملف محلي فقط';
+  audioPrivacyFact.state.className='anwar-prayer-privacy-state local';
  }
  updatePrivacyAudioDisclosure();
+ if(window.AnwarAdhanBridge){
+  addPrivacyFact('الجدولة والتشغيل بالخلفية في Android','عند تفعيل الجدولة الخلفية، يتصل تطبيق Android بخدمة AlAdhan ويرسل اسم المدينة والدولة لجلب التقويم؛ وقد ينزّل ملف الأذان من مضيف صوت خارجي إذا لم تكن له نسخة محلية. ترى الجهات الخارجية عنوان IP عند الاتصال.','اتصال خارجي عند التفعيل','external');
+ }
  addPrivacyFact('الإعدادات','تُحفظ ضمن تفضيلات مفكرة أنوار المشفرة على هذا الجهاز.','داخل الخزنة المشفرة','secure');
  addPrivacyFact('الحساب','لا يلزم حساب أو بريد إلكتروني.','دون حساب','local');
  addPrivacyFact('الاتصال','HTTPS يشفّر الاتصال أثناء النقل فقط.','تشفير أثناء النقل','secure');
