@@ -55,7 +55,7 @@ assert.doesNotMatch(submit,/AnwarVaultStorage\.remove\(|localStorage\.removeItem
 
 assert.match(html,/id="vaultDeviceUnlock"[^>]*hidden/,
  'the original device-unlock control remains in the vault gate');
-assert.match(html,/app-core\.js\?v=20261126-79/,
+assert.match(html,/app-core\.js\?v=20261126-80/,
  'the PWA shell requests the new recovery-enabled application bundle');
 assert.match(html,/vault-device-unlock\.js\?v=20261126-1/,
  'the existing PRF device helper and credential format remain unchanged');
