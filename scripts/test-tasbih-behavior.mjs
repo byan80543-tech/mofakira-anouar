@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 
 const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const controller=fs.readFileSync(new URL('../tasbih-controller.js',import.meta.url),'utf8');
+const localSpeech=fs.readFileSync(new URL('../local-speech-privacy.js',import.meta.url),'utf8');
 const appCore=fs.readFileSync(new URL('../app-core.js',import.meta.url),'utf8');
 const officialAdhkar=fs.readFileSync(new URL('../official-adhkar.js',import.meta.url),'utf8');
 
@@ -130,6 +131,8 @@ function buildApp(options={}){
   start(){this.started=(this.started||0)+1}
   stop(){this.stopped=(this.stopped||0)+1}
  }
+ if(options.noLocalRecognition)delete MockSpeechRecognition.prototype.processLocally;
+ else MockSpeechRecognition.prototype.processLocally=false;
  const sandbox={
   document,window:null,globalThis:null,Date:MockDate,AnwarPrivatePreferences:preferences,
   requestAnimationFrame(callback){const id=++timerSequence;frames.set(id,callback);return id},
@@ -144,6 +147,7 @@ function buildApp(options={}){
   SpeechRecognition:options.noRecognition?undefined:MockSpeechRecognition
  };
  sandbox.window=sandbox;sandbox.globalThis=sandbox;
+ vm.runInNewContext(localSpeech,sandbox,{timeout:3000});
  vm.runInNewContext(officialAdhkar,sandbox,{timeout:3000});
  vm.runInNewContext(controller,sandbox,{timeout:3000});
  return {nodes,preferences,get state(){return clone(state)},recognitions,sandbox,flushTimers,advanceTime,advanceFrames,setVisibility,fireWindowEvent,get pendingFrames(){return frames.size},get pendingTimers(){return [...timers.values()]}};
@@ -422,6 +426,7 @@ assert.ok(!fontLayer.includes('#rd #tasbihPanel{'),'the stable tasbih frame geom
 
 const recognition=app.recognitions[0];
 assert.equal(recognition.lang,'ar-MA','speech recognition prefers the visitor’s Moroccan Arabic locale');
+assert.equal(recognition.processLocally,true,'the microphone recognizer must require on-device processing before it can start');
 app.nodes.tasbihDhikr.value='سبحان الله';
 app.nodes.tasbihDhikr.dispatch('change');
 app.nodes.tasbihVoice.click();
@@ -529,5 +534,9 @@ assert.equal(count(brokenVoice),1,'the manual counter still works when voice rec
 
 const unsupportedVoice=buildApp({noRecognition:true});
 assert.equal(unsupportedVoice.nodes.tasbihVoice.disabled,true,'unsupported browsers get a clear disabled voice control');
+const remoteOnlyVoice=buildApp({noLocalRecognition:true});
+assert.equal(remoteOnlyVoice.nodes.tasbihVoice.disabled,true,'a remote-only speech recognizer is rejected before microphone capture');
+remoteOnlyVoice.nodes.tasbihTap.click();
+assert.equal(count(remoteOnlyVoice),1,'manual tasbih remains usable when local speech recognition is unavailable');
 
 console.log('Tasbih behavior tests passed: 33-bead ring, official dhikr data, themes, counter, custom dhikr management, count-only speech matching and microphone fallback.');
