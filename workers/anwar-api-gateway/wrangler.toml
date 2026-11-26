@@ -30,3 +30,6 @@ class_name = "AdhkarStore"
 [exports.AdhkarStore]
 type = "durable-object"
 storage = "sqlite"
+
+[ai]
+binding = "AI"
