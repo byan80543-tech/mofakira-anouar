@@ -189,7 +189,7 @@ ok(paletteCycleStart>=0 && paletteCycleCode.includes("S.palette=palettes[(index+
 ok(appSource.includes('src="toolbar-back-navigation.js"'),'contextual back-navigation helper is loaded by the notebook');
 ok(appSource.includes('<script src="api-gateway-config.js"></script>'),'optional API gateway configuration loads before app interaction');
 ok(apiGatewayConfig.includes('ANWAR_API_GATEWAY_BASE') && apiGatewayConfig.includes('= \"\";'),'API gateway endpoint defaults to disabled until its deployed URL is configured');
-ok(appSource.includes('https://*.workers.dev') && apiGatewayWorker.includes('export class IpRateLimiter'),'CSP permits the future Worker endpoint and the gateway exports its Durable Object limiter');
+ok(!appSource.includes('https://*.workers.dev') && apiGatewayWorker.includes('export class IpRateLimiter'),'the optional API gateway retains its rate-limited implementation without a broad wildcard CSP exception');
 ok(apiGatewayWorker.includes('CF-Connecting-IP') && apiGatewayWorker.includes('idFromName("anwar-api-gateway-global-rate-limiter")') && apiGatewayWorker.includes('Retry-After'),'API gateway applies global and per-IP limits in one Durable Object call');
 ok(apiGatewayWorker.includes('IP_HASH_SECRET') && apiGatewayWorker.includes('name: "HMAC"'),'IP rate-limit keys use a Cloudflare-only HMAC secret instead of storing raw IP addresses');
 ok(apiGatewayWorker.includes('total: { limit: 50') && apiGatewayWorker.includes('client: { limit: 30'),'gateway stays within its daily free-tier accepted-request budget and per-IP ceiling');
@@ -328,7 +328,7 @@ ok(prayerTimes.includes("launcher.setAttribute('aria-expanded',String(details.op
 const deployWorkflow=fs.readFileSync(path.join(root,'.github/workflows/deploy-cloudflare-pages.yml'),'utf8');
 const securityHeaders=fs.readFileSync(path.join(root,'_headers'),'utf8');
 ok(deployWorkflow.includes('cp _headers dist/_headers'),'Cloudflare Pages receives _headers at the deployment output root');
-ok(deployWorkflow.includes('test -s dist/_headers') && deployWorkflow.includes("grep -q \"frame-ancestors 'none'\" dist/_headers"),'deployment fails closed if the root security header file is missing or incomplete');
+ok(deployWorkflow.includes('test -s dist/_headers') && deployWorkflow.includes("grep -q \"frame-ancestors 'none'\" dist/_headers") && deployWorkflow.includes('grep -q "Strict-Transport-Security: max-age=31536000" dist/_headers'),'deployment fails closed if the root security headers or scoped HSTS setting are missing');
 ok(!deployWorkflow.includes('cp _headers dist/mofakira-anouar/_headers'),'security headers are not misplaced inside the nested PWA directory');
 ok(deployWorkflow.includes('workflow_run:') && deployWorkflow.includes('Quality checks') && deployWorkflow.includes("github.event.workflow_run.conclusion == 'success'"),'automatic Cloudflare production deployment waits for a successful Quality checks run');
 ok(deployWorkflow.includes('github.event.workflow_run.head_sha'),'Cloudflare deployment checks out the exact commit that CI validated');
@@ -336,6 +336,7 @@ ok(deployWorkflow.includes('github.event.workflow_run.head_sha'),'Cloudflare dep
 ok(securityHeaders.includes("frame-ancestors 'none'") && securityHeaders.includes('X-Frame-Options: DENY'),'HTTP headers prevent cross-origin framing');
 ok(securityHeaders.includes('X-Content-Type-Options: nosniff') && securityHeaders.includes('Referrer-Policy: strict-origin-when-cross-origin'),'HTTP headers set MIME-sniffing and referrer protections');
 ok(securityHeaders.includes('Permissions-Policy: camera=(), geolocation=(), microphone=(self)'),'HTTP Permissions-Policy disables unused camera and location access');
+ok(securityHeaders.includes('Strict-Transport-Security: max-age=31536000') && !securityHeaders.includes('includeSubDomains') && !securityHeaders.includes('preload'),'HTTP headers enable host-scoped HSTS without imposing it on unreviewed subdomains');
 const expectedScriptSrc="'self' 'sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==' 'sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA=='";
 const scriptSrcHeader=securityHeaders.match(/(?:^|\s)script-src ([^;]+)/);
 ok(securityHeaders.includes("Content-Security-Policy:") && scriptSrcHeader?.[1]===expectedScriptSrc && securityHeaders.includes('upgrade-insecure-requests'),'HTTP CSP response header pins both required external scripts by exact SRI hashes; detailed parity is checked by test-csp.mjs');
