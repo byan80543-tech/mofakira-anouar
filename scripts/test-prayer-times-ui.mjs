@@ -41,7 +41,7 @@ assert.match(prayer,/countdown\.textContent='--:--:--'/,'the pending state uses 
 
 assert.match(prayer,/nextBox\.hidden=false/,'countdown appears when a next prayer event is calculated');
 
-assert.match(prayer,/جارٍ تحميل مواقيت الصلاة…/,'initial loading state is clear and visible');
+assert.match(prayer,/جارٍ حساب مواقيت الصلاة محليًا…/,'initial loading state is clear and visible during local calculation');
 assert.match(prayer,/function fallbackDateLabel\(\)/,'local Gregorian and Hijri dates remain available without a successful timings response');
 assert.match(prayer,/dateLine\.textContent=fallbackDateLabel\(\)\|\|'التاريخ المحلي'/,'failed timing requests preserve the date row instead of replacing it with an error message');
 assert.match(prayer,/dateLine\.dataset\.state='fallback'/,'fallback date has a distinct non-error state');
