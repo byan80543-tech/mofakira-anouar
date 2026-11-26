@@ -57,6 +57,7 @@ assert.match(html,/id="vaultDeviceUnlock"[^>]*hidden/,
  'the original device-unlock control remains in the vault gate');
 assert.match(html,/app-core\.js\?v=20261126-79/,
  'the PWA shell requests the new recovery-enabled application bundle');
+// Keep this in sync with the separately versioned WebAuthn helper loaded by index.html.
 assert.match(html,/vault-device-unlock\.js\?v=20261126-2/,
  'the existing PRF device helper and credential format remain unchanged');
 assert.match(worker,/anwar-shell-2026-11-26-v213/,
