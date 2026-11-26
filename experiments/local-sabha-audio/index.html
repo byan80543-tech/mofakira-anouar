@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; worker-src 'self' blob:; media-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>تجربة السبحة الصوتية المحلية</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#101a17;color:#f4f0e6}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px}.panel{width:min(100%,520px);background:#182722;border:1px solid #456052;border-radius:22px;padding:24px;box-shadow:0 12px 40px #0005}h1{font-size:1.35rem;margin:0 0 8px;color:#e5c98b}.lead{color:#c5d0c8;line-height:1.7}.count{font-size:4rem;text-align:center;font-variant-numeric:tabular-nums;margin:20px 0;color:#e5c98b}.actions{display:flex;gap:10px;flex-wrap:wrap}button{border:0;border-radius:12px;padding:13px 18px;font:inherit;font-weight:700;background:#d4b778;color:#18221d}button.secondary{background:#31483d;color:#fff}button:disabled{opacity:.45}#status{padding:12px;background:#101a17;border-radius:10px;margin-top:16px;line-height:1.6}.meter{height:10px;background:#0c1311;border-radius:9px;overflow:hidden;margin-top:12px}.meter span{display:block;height:100%;width:0;background:#d4b778;transition:width .08s}small{display:block;color:#aebdb4;line-height:1.7;margin-top:14px}.warning{color:#f0ce8c}
+</style>
+</head>
+<body>
+<main class="panel">
+<h1>مختبر السبحة الصوتية المحلية</h1>
+<p class="lead">مرحلة التقاط وقياس الإشارة فقط. هذه النسخة لا تتعرف على كلمات التسبيح ولا تزيد العداد تلقائياً.</p>
+<div class="count" id="count" aria-live="polite">0</div>
+<div class="actions">
+<button id="start">بدء اختبار الميكروفون</button>
+<button id="stop" class="secondary" disabled>إيقاف</button>
+<button id="manual" class="secondary">زيادة يدوية للاختبار</button>
+</div>
+<div id="status" role="status">الحالة: متوقف. لا يُطلب إذن الميكروفون إلا بعد الضغط على بدء الاختبار.</div>
+<div class="meter" aria-label="مستوى الإشارة"><span id="meter"></span></div>
+<small class="warning">تنبيه: ظهور مستوى الصوت هنا يثبت التقاط الإشارة وقياس شدتها محلياً في هذه الشيفرة، ولا يثبت وحده انعدام كل حركة الشبكة على مستوى الجهاز أو نظام التشغيل.</small>
+<small>لا توجد مكتبات أو نماذج خارجية في هذه التجربة. لا يُحفظ الصوت ولا يُرسل إلى خادم بواسطة هذه الصفحة. اختبرها على HTTPS، ثم أعد التجربة في وضع الطيران بعد تحميل الصفحة.</small>
+</main>
+<script src="./main.js" defer></script>
+</body>
+</html>
