@@ -36,7 +36,6 @@ ok(iconTouchStyleStart>=0 && iconTouchStyle.includes('-webkit-tap-highlight-colo
 try{new vm.Script(tasbihController,{filename:'tasbih-controller.js'});ok(true,'standalone tasbih controller JavaScript syntax is valid')}catch(error){failures.push('tasbih-controller.js: '+error.message)}
 try{new vm.Script(protectiveAdhkar,{filename:'protective-adhkar.js'});ok(true,'protective adhkar data JavaScript syntax is valid')}catch(error){failures.push('protective-adhkar.js: '+error.message)}
 try{new vm.Script(floatingPanels,{filename:'floating-panels.js'});ok(true,'floating panel controller JavaScript syntax is valid')}catch(error){failures.push('floating-panels.js: '+error.message)}
-ok(html.includes('id="sp"')&&html.includes('id="speakRead"'),'poetry dictation and spoken reading have separate toolbar controls');
 ok(!html.includes('id="sp"')&&html.includes('id="speakRead"'),'writing tools retain spoken reading and expose no microphone dictation control');
 ok(!html.includes('./poetry-dictation.js')&&!serviceWorker.includes("'./poetry-dictation.js'")&&!appCore.includes("else if(id==='sp')togglePoetryDictation()"),'the microphone dictation controller is not loaded, precached or reachable from the writing toolbar');
 ok(appCore.includes("else if(id==='speakRead')speakText()")&&appCore.includes('function speakText()'),'spoken reading remains available as output-only speech without microphone capture');
