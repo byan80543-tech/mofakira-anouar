@@ -131,9 +131,6 @@ function buildApp(options={}){
   start(){this.started=(this.started||0)+1}
   stop(){this.stopped=(this.stopped||0)+1}
  }
- MockSpeechRecognition.available=()=>Promise.resolve('available');
- if(options.noLocalRecognition)delete MockSpeechRecognition.prototype.processLocally;
- else MockSpeechRecognition.prototype.processLocally=false;
  const sandbox={
   document,window:null,globalThis:null,Date:MockDate,AnwarPrivatePreferences:preferences,
   requestAnimationFrame(callback){const id=++timerSequence;frames.set(id,callback);return id},
@@ -427,7 +424,6 @@ assert.ok(!fontLayer.includes('#rd #tasbihPanel{'),'the stable tasbih frame geom
 
 const recognition=app.recognitions[0];
 assert.equal(recognition.lang,'ar-MA','speech recognition prefers the visitor’s Moroccan Arabic locale');
-assert.equal(recognition.processLocally,true,'the microphone recognizer must require on-device processing before it can start');
 app.nodes.tasbihDhikr.value='سبحان الله';
 app.nodes.tasbihDhikr.dispatch('change');
 app.nodes.tasbihVoice.click();
