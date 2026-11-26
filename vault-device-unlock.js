@@ -72,6 +72,7 @@
   if(typeof credentialApi.getClientCapabilities!=='function')return null;
   try{
    const capabilities=await credentialApi.getClientCapabilities();
+   if(capabilities&&capabilities.userVerifyingPlatformAuthenticator===false)return false;
    if(capabilities&&Object.prototype.hasOwnProperty.call(capabilities,'extension:prf')){
     return capabilities['extension:prf']===true;
    }
