@@ -22,5 +22,5 @@ const worker=fs.readFileSync(path.join(root,'service-worker.js'),'utf8');
 assert.match(worker,/'\.\/assets\/adhan\/beautiful-adhan\.ogg'/);
 const license=fs.readFileSync(path.join(root,'assets/adhan/README.md'),'utf8');
 assert.match(license,/CC0 1\.0/);assert.match(license,/Adam-synagda/);assert.match(license,/commons\.wikimedia\.org\/wiki\/File:Beautiful_adhan\.ogg/);
-const html=fs.readFileSync(path.join(root,'index.html'),'utf8');assert.match(html,/prayer-times\.js\?v=20261126-4/);
+const html=fs.readFileSync(path.join(root,'index.html'),'utf8');assert.match(html,/prayer-times\.js\?v=20261126-5/);
 console.log('Bundled adhan tests passed: SHA-1, CC0 provenance, local player path and service-worker precache.');
