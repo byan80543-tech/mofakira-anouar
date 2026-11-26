@@ -17,7 +17,12 @@ globalThis.localStorage={
 };
 globalThis.location={hostname:'mofakira-anouar.pages.dev',protocol:'https:',origin:'https://mofakira-anouar.pages.dev'};
 globalThis.isSecureContext=true;
+let advertisedCapabilities={
+ 'extension:prf':true,
+ userVerifyingPlatformAuthenticator:true
+};
 globalThis.PublicKeyCredential=function(){};
+globalThis.PublicKeyCredential.getClientCapabilities=async()=>({...advertisedCapabilities});
 
 let prfOutput=new Uint8Array(32).fill(23);
 let prfEnabled=true;
@@ -64,6 +69,24 @@ await import('../vault-device-unlock.js');
 const unlock=globalThis.AnwarDeviceUnlock;
 assert.ok(unlock,'device unlock helper installs');
 assert.equal(unlock.supported(),true,'secure WebAuthn environment is accepted');
+assert.equal(await unlock.prfSupportStatus(),true,'client reports PRF and platform verification support');
+advertisedCapabilities['extension:prf']=false;
+assert.equal(await unlock.prfSupportStatus(),false,'client-reported PRF absence disables setup');
+advertisedCapabilities['extension:prf']=true;
+advertisedCapabilities.userVerifyingPlatformAuthenticator=false;
+assert.equal(await unlock.prfSupportStatus(),false,'absence of a platform authenticator disables setup');
+advertisedCapabilities.userVerifyingPlatformAuthenticator=true;
+delete advertisedCapabilities['extension:prf'];
+assert.equal(await unlock.prfSupportStatus(),null,'missing PRF capability remains unknown, not supported');
+advertisedCapabilities['extension:prf']=true;
+delete advertisedCapabilities.userVerifyingPlatformAuthenticator;
+assert.equal(await unlock.prfSupportStatus(),null,'missing platform capability remains unknown, not supported');
+advertisedCapabilities={};
+assert.equal(await unlock.prfSupportStatus(),null,'omitted capabilities remain unknown rather than being treated as unsupported');
+advertisedCapabilities={
+ 'extension:prf':true,
+ userVerifyingPlatformAuthenticator:true
+};
 
 const password='Unique-vault-secret-2026!';
 await unlock.protectPassword(password);
@@ -88,7 +111,7 @@ unlock.disable();
 assert.equal(unlock.isConfigured(),false,'disabling removes the local wrapper');
 
 prfEnabled=false;
-await assert.rejects(()=>unlock.protectPassword(password),/لا يدعم ميزة PRF/,'unsupported PRF registration fails safely');
+await assert.rejects(()=>unlock.protectPassword(password),/لا يدعم هذا الاعتماد ميزة PRF/,'unsupported PRF registration fails safely');
 assert.equal(localStorage.getItem(unlock.storageKey),null,'unsupported registration does not save a wrapper');
 
 console.log('All device-unlock PRF and password-wrapping tests passed.');

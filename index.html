@@ -5,7 +5,7 @@
 <meta name="google-site-verification" content="HbzspyjaTnE2NqMGXkROH28NC0EpouKzGyZZBzopH_k" />
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.aladhan.com https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="preload" href="./app-core.js?v=20261126-77" as="script">
+<link rel="preload" href="./app-core.js?v=20261126-78" as="script">
 <script src="api-gateway-config.js"></script>
 <script src="./origin-shield.js?v=20261125-1" defer></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -3891,7 +3891,7 @@ dialog[open]>.float-head{display:none!important}
   </button>
   <h1 id="vaultTitle">خزنة مفكرة أنوار</h1>
   <p id="vaultDescription">أنشئ عبارة مرور قوية، ثم اضغط الدرع لتشفير أعمالك وإعداداتك المحفوظة على هذا الجهاز.</p>
-  <button id="vaultDeviceUnlock" class="vault-device-action" type="button" hidden>فتح بقفل الهاتف</button>
+  <button id="vaultDeviceUnlock" class="vault-device-action" type="button" hidden>فتح بقفل الهاتف أو البصمة</button>
   <button id="vaultPasswordFallbackToggle" class="vault-password-fallback" type="button" hidden>استخدام كلمة المرور الأساسية</button>
   <button id="vaultDeviceManage" class="vault-device-manage" type="button" hidden>إعداد فتح الهاتف</button>
   <form id="vaultForm">
@@ -3911,7 +3911,7 @@ dialog[open]>.float-head{display:none!important}
 </div>
 <dialog id="vaultDeviceSetupDialog" aria-labelledby="vaultDeviceSetupTitle">
  <h2 id="vaultDeviceSetupTitle">فتح مفكرة أنوار بقفل الهاتف</h2>
- <p class="vault-device-explanation">سيطلب المتصفح تحقق الهاتف الآمن، مثل قفل الشاشة أو البصمة بحسب إعداد جهازك. لا يقرأ الموقع رسم القفل ولا يخزنه.</p>
+ <p class="vault-device-explanation">يعرض المتصفح تحقق النظام نفسه: قفل الشاشة (النمط أو PIN أو كلمة المرور) أو البصمة بحسب ما يدعمه هاتفك وإعداداته. لا يرسم الموقع نمطًا ولا يقرأه أو يخزنه؛ وتبقى كلمة المرور الأساسية وسيلة الاسترداد.</p>
  <form id="vaultDeviceSetupForm">
   <label for="vaultDeviceSetupPassword">أعد إدخال كلمة المرور الأساسية للتأكيد</label>
   <input id="vaultDeviceSetupPassword" type="password" autocomplete="current-password" minlength="12" maxlength="2048" required>
@@ -3924,10 +3924,10 @@ dialog[open]>.float-head{display:none!important}
 <div id="toast"></div>
 <script src="./vault-crypto.js?v=20261121-1"></script>
 <script src="./vault-storage.js?v=20261120-1"></script>
-<script src="./vault-device-unlock.js?v=20261125-2"></script>
+<script src="./vault-device-unlock.js?v=20261126-4"></script>
 <script src="./poetry-dictation.js?v=20261119-1" defer></script>
 <script src="./protective-adhkar.js?v=20261121-1" defer></script>
-<script src="./app-core.js?v=20261126-77" defer></script>
+<script src="./app-core.js?v=20261126-78" defer></script>
 <script src="./adhkar-page-theme.js?v=20261121-2" defer></script>
 <script src="./ibtihalat-radio.js?v=20261121-1" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
