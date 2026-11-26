@@ -126,13 +126,22 @@ function buildApp(options={}){
    timer.callback();
   }
  }
- class MockSpeechRecognition {
-  constructor(){if(options.throwRecognition)throw new Error('mock constructor failure');recognitions.push(this)}
-  start(){this.started=(this.started||0)+1}
-  stop(){this.stopped=(this.stopped||0)+1}
- }
+ const cloudSpeech={
+  supported(){return !options.noRecognition},
+  create(settings){
+   if(options.throwRecognition)throw new Error('mock cloud speech initialization failure');
+   const session={settings,started:0,stopped:0,
+    start(){this.started++;return Promise.resolve(true)},
+    stop(){this.stopped++}
+   };
+   recognitions.push(session);
+   return session;
+  }
+ };
  const sandbox={
   document,window:null,globalThis:null,Date:MockDate,AnwarPrivatePreferences:preferences,
+  ANWAR_API_GATEWAY_BASE:'https://anwar-api-gateway.test-account.workers.dev',
+  AnwarTasbihCloudSpeech:cloudSpeech,
   requestAnimationFrame(callback){const id=++timerSequence;frames.set(id,callback);return id},
   cancelAnimationFrame(id){frames.delete(id)},
   confirm(){return true},
@@ -141,8 +150,7 @@ function buildApp(options={}){
   clearTimeout(id){timers.delete(id)},
   setInterval(callback,delay){const id=++timerSequence;intervals.set(id,{callback,delay});return id},
   clearInterval(id){intervals.delete(id)},
-  addEventListener(type,handler){const list=windowListeners.get(type)||[];list.push(handler);windowListeners.set(type,list)},
-  SpeechRecognition:options.noRecognition?undefined:MockSpeechRecognition
+  addEventListener(type,handler){const list=windowListeners.get(type)||[];list.push(handler);windowListeners.set(type,list)}
  };
  sandbox.window=sandbox;sandbox.globalThis=sandbox;
  vm.runInNewContext(localSpeech,sandbox,{timeout:3000});
@@ -422,134 +430,70 @@ assert.ok(fontLayerStart>=0&&fontLayerEnd>fontLayerStart,'the dedicated typograp
 const fontLayer=html.slice(fontLayerStart,fontLayerEnd);
 assert.ok(!fontLayer.includes('#rd #tasbihPanel{'),'the stable tasbih frame geometry is not overridden by the typography layer');
 
-const recognition=app.recognitions[0];
-assert.equal(recognition.lang,'ar-SA','speech recognition prefers the visitor’s Moroccan Arabic locale');
 app.nodes.tasbihDhikr.value='سبحان الله';
 app.nodes.tasbihDhikr.dispatch('change');
 app.nodes.tasbihVoice.click();
-assert.equal(recognition.started,1,'the voice-count button starts speech recognition');
-recognition.onstart();
-recognition.onspeechstart();
-const incompleteInterim={0:{transcript:'سُبْحَانَ'},length:1,isFinal:false};
-recognition.onresult({resultIndex:0,results:[incompleteInterim]});
-assert.equal(count(app),0,'an incomplete interim phrase does not increment the counter');
-const interim={0:{transcript:'سُبْحَانَ الله'},length:1,isFinal:false};
-recognition.onresult({resultIndex:0,results:[interim]});
-assert.equal(count(app),1,'a complete spoken dhikr increments the counter immediately');
-assert.doesNotMatch(app.nodes.tasbihVoiceStatus.textContent,/سبحان الله/,'the status never displays recognized speech');
-const spoken={0:{transcript:'سُبْحَانَ الله، سبحان الله'},length:1,isFinal:true};
-recognition.onresult({resultIndex:0,results:[spoken]});
-assert.equal(count(app),2,'a finalized result counts only the additional repetition');
-assert.equal(app.pendingTimers.length,0,'speech matching creates no transcript timers');
-const duplicateFinalEvent={resultIndex:0,results:[spoken]};
-recognition.onresult(duplicateFinalEvent);
-recognition.onresult(duplicateFinalEvent);
-assert.equal(count(app),2,'duplicate recognition events are not counted twice');
-const punctuated={0:{transcript:'سبحان الله؛'},length:1,isFinal:true};
-recognition.onresult({resultIndex:1,results:[spoken,punctuated]});
-assert.equal(count(app),3,'Arabic punctuation and cumulative final results are counted correctly');
-assert.doesNotMatch(app.nodes.tasbihVoiceStatus.textContent,/سبحان الله/,'recognized text remains absent from the status');
-recognition.onspeechend();
-assert.equal(app.pendingTimers.length,0,'speech-end does not schedule transcript removal');
-recognition.onspeechstart();
-assert.equal(app.pendingTimers.length,0,'resuming speech needs no transcript cleanup');
-assert.equal(app.state.tasbih.count,3,'only the numeric count is retained in private tasbih preferences');
+const recognition=app.recognitions[0];
+assert.ok(recognition,'the voice-count button creates one short-segment recognition session');
+assert.equal(recognition.started,1,'the engine starts once after explicit privacy consent');
+assert.equal(recognition.settings.phrase,'سبحان الله','the selected dhikr phrase is sent only as a matching target');
+assert.equal(recognition.settings.baseUrl,'https://anwar-api-gateway.test-account.workers.dev','the client uses the configured exact Anwar gateway');
+recognition.settings.onStatus('listening','قل الذكر بصورة طبيعية.');
+recognition.settings.onCount(1);
+assert.equal(count(app),1,'one recognized dhikr increments the counter automatically');
+recognition.settings.onCount(2);
+assert.equal(count(app),3,'the server can return multiple exact repetitions from one natural speech segment');
+assert.doesNotMatch(app.nodes.tasbihVoiceStatus.textContent,/سبحان الله/,'the UI never displays recognized words');
+assert.equal(app.state.tasbih.count,3,'only the numeric count is persisted in the encrypted preferences');
 assert.ok(!Object.keys(app.state.tasbih).some(key=>/transcript|speechText|audio/i.test(key)),'recognized words and audio are absent from saved tasbih preferences');
+app.nodes.tasbihVoice.click();
+assert.equal(recognition.stopped,1,'the same voice button stops the microphone session');
 
 const alternativeApp=buildApp();
 alternativeApp.nodes.tasbihDhikr.value='أستغفر الله';
 alternativeApp.nodes.tasbihDhikr.dispatch('change');
 alternativeApp.nodes.tasbihVoice.click();
 const alternativeRecognition=alternativeApp.recognitions[0];
-alternativeRecognition.onstart();
-const alternatives={0:{transcript:'استغفر بالله'},1:{transcript:'أستغفر الله'},length:2,isFinal:true};
-alternativeRecognition.onresult({resultIndex:0,results:[alternatives]});
-assert.doesNotMatch(alternativeApp.nodes.tasbihVoiceStatus.textContent,/أستغفر الله/,'the best matching recognition alternative is never displayed as text');
-assert.equal(count(alternativeApp),1,'the matching second Arabic recognition alternative increments the counter');
+assert.equal(alternativeRecognition.settings.phrase,'أستغفر الله','custom and official dhikr phrases use the selected text as a matching target');
+alternativeRecognition.settings.onCount(1);
+assert.equal(count(alternativeApp),1,'one exact match returned by the server increments the alternative dhikr counter');
 
 const splitApp=buildApp();
 splitApp.nodes.tasbihDhikr.value='أستغفر الله العظيم وأتوب إليه';
 splitApp.nodes.tasbihDhikr.dispatch('change');
 splitApp.nodes.tasbihVoice.click();
 const splitRecognition=splitApp.recognitions[0];
-splitRecognition.onstart();
-const firstPart={0:{transcript:'أستغفر الله العظيم'},length:1,isFinal:true};
-splitRecognition.onresult({resultIndex:0,results:[firstPart]});
-assert.equal(count(splitApp),0,'a partial final segment is not counted as a complete long dhikr');
-const secondPart={0:{transcript:'وأتوب إليه'},length:1,isFinal:true};
-splitRecognition.onresult({resultIndex:1,results:[firstPart,secondPart]});
-assert.equal(count(splitApp),1,'the controller joins multiple final segments before matching a complete dhikr');
-assert.doesNotMatch(splitApp.nodes.tasbihVoiceStatus.textContent,/أستغفر الله/,'joined speech segments are matched internally without displaying the words');
+splitRecognition.settings.onCount(0);
+assert.equal(count(splitApp),0,'an incomplete phrase is not counted by the client');
+splitRecognition.settings.onCount(1);
+assert.equal(count(splitApp),1,'a completed multiword phrase is counted after server-side matching');
+assert.doesNotMatch(splitApp.nodes.tasbihVoiceStatus.textContent,/أستغفر الله/,'long spoken phrases are never displayed in the UI');
 
-// Some Android speech services send a new one-result batch for each spoken phrase
-// instead of keeping the full cumulative result list for the whole session.
-const resetBatchApp=buildApp();
-resetBatchApp.nodes.tasbihDhikr.value='سبحان الله';
-resetBatchApp.nodes.tasbihDhikr.dispatch('change');
-resetBatchApp.nodes.tasbihVoice.click();
-const resetBatchRecognition=resetBatchApp.recognitions[0];
-resetBatchRecognition.onstart();
-const firstRepeatedResult={0:{transcript:'سبحان الله'},length:1,isFinal:true};
-resetBatchRecognition.onresult({resultIndex:0,results:[firstRepeatedResult]});
-assert.equal(count(resetBatchApp),1,'the first final phrase in a one-result batch is counted');
-const secondRepeatedResult={0:{transcript:'سبحان الله'},length:1,isFinal:true};
-resetBatchRecognition.onresult({resultIndex:0,results:[secondRepeatedResult]});
-assert.equal(count(resetBatchApp),2,'a fresh one-result batch after a finalized phrase counts the next repetition');
+// Automatic uploads are segment-scoped. The client has no browser SpeechRecognition
+// constructor, transcript field, or browser-side text-matching path.
+assert.doesNotMatch(controller,/SpeechRecognition|webkitSpeechRecognition|onresult/,'tasbih no longer depends on the browser speech-recognition service');
+assert.match(controller,/engine\.start\(\)/,'the tasbih starts the automatic capture engine');
+assert.match(controller,/engine\.stop\(\)/,'the same control stops automatic capture');
+assert.match(html,/tasbih-cloud-speech\.js/,'the tasbih speech engine is a separate local asset');
+assert.doesNotMatch(app.state.tasbih&&JSON.stringify(app.state.tasbih),/سبحان الله|أستغفر الله/,'the spoken transcript is not included in saved tasbih preferences');
 
-const fallbackApp=buildApp();
-fallbackApp.nodes.tasbihDhikr.value='سبحان الله';
-fallbackApp.nodes.tasbihDhikr.dispatch('change');
-fallbackApp.nodes.tasbihVoice.click();
-const fallbackRecognition=fallbackApp.recognitions[0];
-fallbackRecognition.onstart();
-fallbackRecognition.onerror({error:'language-not-supported'});
-assert.equal(fallbackRecognition.lang,'ar-MA','an unsupported Moroccan locale automatically falls back to Arabic Saudi');
-assert.equal(fallbackApp.nodes.tasbihVoiceState.textContent,'جارٍ تشغيل الميكروفون','language fallback keeps the voice control in a starting state');
-fallbackRecognition.onend();
-assert.equal(fallbackApp.pendingTimers.length,1,'the fallback waits for the previous recognition session to end');
-fallbackApp.flushTimers();
-assert.equal(fallbackRecognition.started,2,'the recognizer restarts automatically with the fallback language');
-fallbackRecognition.onstart();
-assert.equal(fallbackApp.nodes.tasbihVoiceState.textContent,'الميكروفون نشط','the fallback session becomes active after it starts');
-
-const restartApp=buildApp();
-restartApp.nodes.tasbihDhikr.value='سبحان الله';
-restartApp.nodes.tasbihDhikr.dispatch('change');
-restartApp.nodes.tasbihVoice.click();
-const restartRecognition=restartApp.recognitions[0];
-restartRecognition.onstart();
-restartRecognition.onend();
-assert.equal(restartApp.nodes.tasbihVoiceState.textContent,'جارٍ تشغيل الميكروفون','an unexpected mobile recognition end schedules a recovery session');
-restartApp.flushTimers();
-assert.equal(restartRecognition.started,2,'the same voice session automatically restarts after an unexpected end');
-
-const networkApp=buildApp();
-networkApp.nodes.tasbihDhikr.value='سبحان الله';
-networkApp.nodes.tasbihDhikr.dispatch('change');
-networkApp.nodes.tasbihVoice.click();
-const networkRecognition=networkApp.recognitions[0];
-networkRecognition.onerror({error:'network'});
-assert.equal(networkApp.nodes.tasbihVoiceState.textContent,'جارٍ تشغيل الميكروفون','a temporary speech-service network error keeps voice counting recoverable');
-networkRecognition.onend();
-networkApp.flushTimers();
-assert.equal(networkRecognition.started,2,'the voice counter automatically starts a new session after a network interruption');
-networkRecognition.onstart();
-const recoveredPhrase={0:{transcript:'سبحان الله'},length:1,isFinal:true};
-networkRecognition.onresult({resultIndex:0,results:[recoveredPhrase]});
-assert.equal(count(networkApp),1,'voice counting resumes after the automatic network recovery');
-
-// A broken speech-recognition constructor must not disable the manual tasbih.
+// A cloud speech initialization failure never disables the manual tasbih.
 const brokenVoice=buildApp({throwRecognition:true});
-assert.equal(brokenVoice.nodes.tasbihVoice.disabled,true,'a constructor failure disables only the unavailable voice control');
+brokenVoice.nodes.tasbihVoice.click();
+assert.equal(brokenVoice.nodes.tasbihVoiceLabel.textContent,'إعادة المحاولة','a failed voice engine reports a retryable error');
 brokenVoice.nodes.tasbihTap.click();
-assert.equal(count(brokenVoice),1,'the manual counter still works when voice recognition cannot initialize');
+assert.equal(count(brokenVoice),1,'the manual counter remains usable when voice initialization fails');
 
 const unsupportedVoice=buildApp({noRecognition:true});
-assert.equal(unsupportedVoice.nodes.tasbihVoice.disabled,true,'unsupported browsers get a clear disabled voice control');
-const browserRecognition=buildApp();
-browserRecognition.nodes.tasbihVoice.click();
-assert.equal(browserRecognition.recognitions[0].started,1,'the tasbih recognizer starts only after the explicit privacy confirmation');
-browserRecognition.nodes.tasbihTap.click();
-assert.equal(count(browserRecognition),1,'manual tasbih remains usable alongside browser speech recognition');
+assert.equal(unsupportedVoice.nodes.tasbihVoice.disabled,true,'browsers without MediaRecorder and Web Audio get a disabled voice control');
+unsupportedVoice.nodes.tasbihTap.click();
+assert.equal(count(unsupportedVoice),1,'manual counting remains available when automatic voice capture is unsupported');
+
+const noGatewayVoice=buildApp();
+noGatewayVoice.sandbox.ANWAR_API_GATEWAY_BASE='';
+noGatewayVoice.nodes.tasbihVoice.click();
+assert.equal(noGatewayVoice.recognitions.length,0,'the microphone is not requested when the cloud gateway is not configured');
+noGatewayVoice.nodes.tasbihTap.click();
+assert.equal(count(noGatewayVoice),1,'manual counting remains available when the gateway is not deployed');
 
 console.log('Tasbih behavior tests passed: 33-bead ring, official dhikr data, themes, counter, custom dhikr management, count-only speech matching and microphone fallback.');
