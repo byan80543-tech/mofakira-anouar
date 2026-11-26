@@ -47,6 +47,8 @@ function calculateDay(o){
  const m=M[String(o.method||'')]||{base:'MWL',label:'MWL (default)'},calc=new root.PrayTime(m.base);
  calc.location([p[3],p[4]]).timezone(p[5]).format('24h').round('nearest');
  calc.adjust(Object.assign({asr:o.school==='1'?'Hanafi':'Standard',highLats:'NightMiddle'},m.adjust||{}));
+ // Moroccan Habous timetable calibration: keep the city's IANA timezone and apply the published solar-event offsets.
+ if(String(o.method)==='21')calc.tune({sunrise:-5,dhuhr:5,maghrib:5});
  const t=calc.times([a[2],a[1],a[0]]),timings={Fajr:t.fajr,Sunrise:t.sunrise,Dhuhr:t.dhuhr,Asr:t.asr,Sunset:t.sunset,Maghrib:t.maghrib,Isha:t.isha};
  for(const k of ['Fajr','Dhuhr','Asr','Maghrib','Isha'])if(!/^\d{2}:\d{2}$/.test(String(timings[k]||'')))throw Error('تعذّر حساب '+k+' لهذه المدينة والتاريخ محليًا.');
  return {timings,date:{gregorian:{date:date},hijri:{date:hijri(date,p[5])}},meta:{timezone:p[5],source:'local',method:m.label,city:p[1]}};

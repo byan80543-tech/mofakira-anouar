@@ -116,6 +116,11 @@ assert.equal(store.get(onlineRoute)?.body,'network:'+onlineRoute+':'+fetchSequen
 
 const callsBeforeOffline=networkCalls;
 online=false;
+const audioNetworkCalls=networkCalls;
+const localAdhan=makeFetchEvent({url:new URL('assets/adhan/beautiful-adhan.ogg',scopeUrl).href,method:'GET',mode:'cors'});
+listeners.get('fetch')(localAdhan);
+assert.equal(await (await localAdhan.response).text(),'cached:./assets/adhan/beautiful-adhan.ogg','local adhan audio is served from precache without a network connection');
+assert.equal(networkCalls,audioNetworkCalls,'offline local adhan playback does not initiate a network request');
 const offlineNavigation=makeFetchEvent({url:onlineRoute,method:'GET',mode:'navigate'});
 listeners.get('fetch')(offlineNavigation);
 const offlineResponse=await offlineNavigation.response;
