@@ -109,7 +109,20 @@ function trustedAnwarGatewayBase(){
   return base.origin;
  }catch(_error){return ''}
 }
-function safeHttpsURL(value){try{const u=new URL(String(value));return u.protocol==='https:'?u.href:''}catch(e){return ''}}
+function safeHttpsURL(value){
+ try{
+  const u=new URL(String(value));
+  if(u.protocol!=='https:'||u.username||u.password)return '';
+  const host=u.hostname.toLowerCase();
+  const approved=host==='mp3quran.net'||host.endsWith('.mp3quran.net')||
+   host==='media.way2quran.com'||host==='archive.org'||host.endsWith('.archive.org')||
+   host==='d1.islamhouse.com'||host==='al-badr.net'||host.endsWith('.al-badr.net')||
+   host==='sabil-alrashad.com'||(host==='asmaki.ma'&&u.port==='8000');
+  if(!approved)return '';
+  if(host!=='asmaki.ma'&&u.port)return '';
+  return u.href;
+ }catch(e){return ''}
+}
 function safeFontName(value){return typeof value==='string'&&FONTS.includes(value)?value:'Amiri'}
 function san(h){
  const t=document.createElement('template');t.innerHTML=String(h||'');
