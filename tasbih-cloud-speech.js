@@ -12,11 +12,12 @@
   const onCount=typeof settings.onCount==='function'?settings.onCount:()=>{};
   const onStatus=typeof settings.onStatus==='function'?settings.onStatus:()=>{};
   let running=false,stream=null,audioContext=null,analyser=null,source=null;
-  let frameId=null,recorderState=null,uploadQueue=[],uploading=false;
+  let frameId=null,recorderState=null,uploadQueue=[],uploading=false,activeAbortController=null;
   let mimeType='',sessionNumber=0;
 
   const SILENCE_MS=850;
   const MAX_SEGMENT_MS=9000;
+  const MAX_IDLE_RECORDING_MS=12000;
   const MIN_SPEECH_MS=280;
   const RMS_THRESHOLD=0.018;
   const MAX_QUEUED_SEGMENTS=2;
@@ -74,6 +75,8 @@
    while(uploadQueue.length){
     const item=uploadQueue.shift();
     let form=null,heldBlob=item.blob;
+    const abortController=typeof root.AbortController==='function'?new root.AbortController():null;
+    activeAbortController=abortController;
     try{
      status(running?'listening':'idle','جارٍ التحقق من الذكر المنطوق...');
      form=new root.FormData();
@@ -85,7 +88,8 @@
       body:form,
       credentials:'omit',
       cache:'no-store',
-      referrerPolicy:'no-referrer'
+      referrerPolicy:'no-referrer',
+      ...(abortController?{signal:abortController.signal}:{})
      });
      let payload=null;
      try{payload=await response.json()}catch(error){}
@@ -103,6 +107,7 @@
     }finally{
      if(form){try{form.delete('audio');form.delete('phrase');form.delete('consent')}catch(error){}}
      form=null;
+     if(activeAbortController===abortController)activeAbortController=null;
      heldBlob=null;
      item.blob=null;
     }
@@ -135,7 +140,7 @@
     state.chunks.length=0;
     if(recorderState===state)recorderState=null;
     const speechLength=state.hasSpeech?Math.max(0,state.lastSpeechAt-state.speechStartedAt):0;
-    if(state.hasSpeech&&speechLength>=MIN_SPEECH_MS)enqueue(blob,state.number);
+    if(state.hasSpeech&&speechLength>=MIN_SPEECH_MS&&!state.discard)enqueue(blob,state.number);
     if(running){
      try{startRecorder()}catch(error){
       status('error','تعذر استئناف التقاط الصوت. أوقف العد الصوتي وأعد المحاولة.');
@@ -165,6 +170,8 @@
     if(current.hasSpeech&&now-current.lastSpeechAt>=SILENCE_MS){
      flushRecorder();
     }else if(current.hasSpeech&&now-current.startedAt>=MAX_SEGMENT_MS){
+     flushRecorder();
+    }else if(!current.hasSpeech&&now-current.startedAt>=MAX_IDLE_RECORDING_MS){
      flushRecorder();
     }
    }
@@ -218,12 +225,17 @@
    }
   }
 
-  function stop(){
+  function stop(discardPending){
    if(!running&&!stream)return;
    running=false;
+   if(discardPending){
+    uploadQueue.length=0;
+    if(activeAbortController){try{activeAbortController.abort()}catch(error){}}
+   }
    if(frameId!==null){root.cancelAnimationFrame(frameId);frameId=null}
    const current=recorderState;
    recorderState=null;
+   if(current&&discardPending)current.discard=true;
    if(current&&current.recorder.state==='recording'){
     try{current.recorder.stop()}catch(error){current.chunks.length=0;cleanup()}
    }else{
