@@ -1071,8 +1071,14 @@ async function restoreStorageBackup(){
   cur=null;draftNote=null;saved=null;
   globalThis.AnwarPrivatePreferences.load(emptyStorageState().preferences);
   showVaultGate('setup','استعدنا النسخة الاحتياطية في الذاكرة دون إنشاء نسخة نصية جديدة. أنشئ عبارة المرور لتشفيرها والتحقق من الخزنة قبل فتح المفكرة.');
-  syncVaultLockButton();theme();chips();openNote(null);renderList();
-  toast('تمت استعادة النسخة إلى الذاكرة. أكمل إعداد التشفير الشامل لحفظها بأمان.',5000);
+  syncVaultLockButton();theme();chips();
+  if($('pg')){$('pg').innerHTML='';$('pg').style.display='none'}
+  if($('em'))$('em').style.display='';
+  if($('t'))$('t').value='';
+  if($('cards'))$('cards').innerHTML='';
+  if($('listMore'))$('listMore').hidden=true;
+  if($('app'))$('app').classList.remove('ed');
+  toast('تمت استعادة النسخة إلى الذاكرة دون عرض محتواها. أكمل إعداد التشفير الشامل لفتحها.',5000);
  }catch(error){toast('تعذّرت استعادة النسخة الاحتياطية؛ بقي السجل الخام دون تغيير.',5000);console.warn('تعذّرت استعادة النسخة الاحتياطية',error)}
 }
 async function startFreshNotebook(){
@@ -1086,7 +1092,13 @@ async function startFreshNotebook(){
   vaultKey=null;vaultTemplate=null;vaultUnlocked=false;vaultReady=false;vaultHasEncryptedData=false;
   globalThis.AnwarPrivatePreferences.load(S.preferences);
   showVaultGate('setup','بدأت مفكرة جديدة في الذاكرة فقط. أنشئ عبارة المرور لتشفيرها قبل فتحها أو حفظ أي بيانات.');
-  syncVaultLockButton();theme();chips();openNote(null);renderList();
+  syncVaultLockButton();theme();chips();
+  if($('pg')){$('pg').innerHTML='';$('pg').style.display='none'}
+  if($('em'))$('em').style.display='';
+  if($('t'))$('t').value='';
+  if($('cards'))$('cards').innerHTML='';
+  if($('listMore'))$('listMore').hidden=true;
+  if($('app'))$('app').classList.remove('ed');
   toast('بدأت مفكرة أنوار ببيانات نظيفة. أكمل إعداد التشفير الشامل للمتابعة.',4500);
  }catch(error){console.warn('تعذّر بدء مفكرة نظيفة',error);toast('تعذّر تهيئة المفكرة؛ لم يتم تغيير بيانات المكتبة أو الإذاعة.',5000)}
 }
