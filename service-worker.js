@@ -3,7 +3,7 @@
  * the matching HTML, update checker and local assets before activation.
  */
 'use strict';
-const CACHE_NAME='anwar-shell-2026-11-26-v221';
+const CACHE_NAME='anwar-shell-2026-11-26-v223';
 const APP_BASE=new URL('./',self.registration.scope);
 const SHELL_ASSETS=[
  './index.html',
@@ -19,6 +19,7 @@ const SHELL_ASSETS=[
  './assets/adhan/beautiful-adhan.ogg',
  './prayer-times.js',
  './prayer-card-design.css',
+ './local-speech-privacy.js',
  './poetry-dictation.js',
  './protective-adhkar.js',
  './tasbih-controller.js',

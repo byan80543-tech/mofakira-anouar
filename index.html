@@ -5,7 +5,7 @@
 <meta name="google-site-verification" content="HbzspyjaTnE2NqMGXkROH28NC0EpouKzGyZZBzopH_k" />
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' 'sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==' 'sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA=='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://upload.wikimedia.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.mp3quran.net https://api.allorigins.win https://corsproxy.io https://*.workers.dev; media-src 'self' https: blob:; frame-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="preload" href="./app-core.js?v=20261126-79" as="script">
+<link rel="preload" href="./app-core.js?v=20261126-80" as="script">
 <script src="api-gateway-config.js"></script>
 <script src="./origin-shield.js?v=20261125-1" defer></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -3675,7 +3675,7 @@ dialog[open]>.float-head{display:none!important}
       <div class="anwar-tasbih-voice-copy"><span class="anwar-tasbih-voice-dot" aria-hidden="true"></span><div class="anwar-tasbih-voice-label"><strong id="tasbihVoiceState" aria-live="polite">العد الصوتي</strong><small id="tasbihVoiceStatus" role="status" aria-live="polite"></small></div></div>
       <button type="button" id="tasbihVoice" aria-label="ابدأ العد الصوتي" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3.5M8.5 21.5h7"/></svg><span id="tasbihVoiceButtonLabel">ابدأ العد الصوتي</span></button>
      </div>
-     <small class="anwar-tasbih-voice-hint">انطق الذكر المختار كاملاً ليزيد العداد تلقائياً. يظهر العدد فقط دون كتابة النص المنطوق.</small>
+     <small class="anwar-tasbih-voice-hint">لا يعمل الميكروفون إلا مع تعرف محلي مؤكد على الجهاز؛ لا تُرسل العبارات إلى خدمة تعرف خارجية.</small>
     </section>
    </div>
    <footer class="anwar-tasbih-footer"><div class="anwar-tasbih-footer-ornament"><span></span><img src="assets/tulip-cutout.svg" alt=""><span></span></div><strong>سبحان الله · الحمد لله · الله أكبر</strong></footer>
@@ -3868,13 +3868,14 @@ dialog[open]>.float-head{display:none!important}
 <script src="./vault-crypto.js?v=20261121-1"></script>
 <script src="./vault-storage.js?v=20261120-1"></script>
 <script src="./vault-device-unlock.js?v=20261126-2"></script>
-<script src="./poetry-dictation.js?v=20261119-1" defer></script>
+<script src="./local-speech-privacy.js?v=20261126-1"></script>
+<script src="./poetry-dictation.js?v=20261126-1" defer></script>
 <script src="./protective-adhkar.js?v=20261121-1" defer></script>
-<script src="./app-core.js?v=20261126-79" defer></script>
+<script src="./app-core.js?v=20261126-80" defer></script>
 <script src="./adhkar-page-theme.js?v=20261126-1" defer></script>
 <script src="./ibtihalat-radio.js?v=20261121-1" defer></script>
 <script src="./official-adhkar.js?v=20261119-2" defer></script>
-<script src="./tasbih-controller.js?v=20261126-1" defer></script>
+<script src="./tasbih-controller.js?v=20261126-2" defer></script>
 <script src="./vendor/praytime.js?v=20261126-1" defer></script>
 <script src="./local-prayer-engine.js?v=20261126-1" defer></script>
 <script src="./prayer-times.js?v=20261126-5" defer></script>

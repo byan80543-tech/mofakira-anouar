@@ -2687,7 +2687,7 @@ function togglePoetryDictation(){
   updatePoetryDictationButton('stopped');
   return;
  }
- toast('ألقِ الشطر الأول، ثم توقف ثانية لينتقل المؤشر إلى الشطر الثاني تلقائيًا. قد يعالج المتصفح الصوت عبر خدمة التعرف لديه.',5000);
+ toast('ألقِ الشطر الأول، ثم توقف ثانية لينتقل المؤشر إلى الشطر الثاني تلقائيًا. لا يبدأ الميكروفون إلا مع تعرف محلي مؤكد على الجهاز؛ وإلا يبقى الإلقاء الصوتي متوقفًا.',5000);
 }
 window.addEventListener('pagehide',()=>stopPoetryDictation(false));
 function speakText(){

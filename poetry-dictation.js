@@ -11,7 +11,7 @@
    set:typeof config.setTimeout==='function'?config.setTimeout:(fn,delay)=>root.setTimeout(fn,delay),
    clear:typeof config.clearTimeout==='function'?config.clearTimeout:id=>root.clearTimeout(id)
   };
-  const Recognition=root.SpeechRecognition||root.webkitSpeechRecognition;
+  const localSpeech=root.AnwarLocalSpeech;
   let recognition=null,requested=false,active=false;
   let restarts=0,restartTimer=null,generation=0;
   let committed=[];
@@ -40,7 +40,7 @@
     return;
    }
    restarts++;
-   status('restarting','انقطع الاتصال الصوتي مؤقتًا؛ نحاول استعادته.');
+   status('restarting','انقطعت جلسة التعرف المحلي مؤقتًا؛ نحاول استعادتها على الجهاز.');
    const delay=Math.min(1200,300*restarts);
    restartTimer=timers.set(()=>{
     restartTimer=null;
@@ -88,13 +88,16 @@
    }
   }
   function startSession(){
-   if(!requested||!Recognition)return;
+   if(!requested)return;
    clearRestart();
    committed=[];
    const currentGeneration=++generation;
    let session;
-   try{session=new Recognition()}
-   catch(error){fail('تعذّر تهيئة خدمة التعرف الصوتي في هذا المتصفح.');return;}
+   try{
+    if(!localSpeech||!localSpeech.supported())throw new Error('هذا المتصفح لا يوفّر تعرفًا صوتيًا محليًا مؤكّدًا. لم نبدأ الميكروفون.');
+    session=localSpeech.create(LANGUAGES[0]);
+   }catch(error){fail(error&&error.message?error.message:'تعذّر تهيئة التعرف الصوتي المحلي. لم نبدأ الميكروفون.');return;}
+   if(!requested||generation!==currentGeneration)return;
    recognition=session;
    try{
     session.lang=LANGUAGES[0];
@@ -105,7 +108,7 @@
 
    session.onstart=()=>{
     if(!requested||recognition!==session||generation!==currentGeneration)return;
-    active=true;status('listening','الميكروفون يعمل؛ ألقِ أبياتك بوضوح.');
+    active=true;status('listening','التعرف الصوتي محلي على هذا الجهاز؛ ألقِ أبياتك بوضوح.');
    };
    session.onresult=event=>{
     if(!requested||recognition!==session||generation!==currentGeneration)return;
@@ -118,17 +121,19 @@
      fail('هذا المتصفح لا يدعم التعرف الصوتي باللغة العربية. جرّب Chrome محدّثًا.');
      return;
     }
-    if(reason==='not-allowed'||reason==='service-not-allowed'){
+    if(reason==='not-allowed'){
      fail('لم يُسمح باستخدام الميكروفون. راجع إذن الميكروفون في المتصفح.');
+     return;
+    }
+    if(reason==='service-not-allowed'||reason==='network'){
+     fail('تعذّر التعرف المحلي على هذا الجهاز؛ أوقفنا الميكروفون ولم نستخدم خدمة خارجية.');
      return;
     }
     if(reason==='audio-capture'){
      fail('تعذّر الوصول إلى الميكروفون. تحقق من أنه غير مستخدم من تطبيق آخر.');
      return;
     }
-    if(reason==='network'){
-     status('restarting','تعذّر الاتصال بخدمة التعرف الصوتي؛ نحاول إعادة الاتصال.');
-    }else if(reason!=='no-speech'&&reason!=='aborted'){
+    if(reason!=='no-speech'&&reason!=='aborted'){
      status('warning','حدث انقطاع في التعرف الصوتي؛ سنحاول المتابعة.');
     }
    };
@@ -147,7 +152,10 @@
 
   function start(){
    if(requested)return true;
-   if(!Recognition){status('error','هذا المتصفح لا يدعم التعرف الصوتي. جرّب Chrome محدّثًا.');return false;}
+   if(!localSpeech||!localSpeech.supported()){
+    status('error','حمايةً لخصوصيتك، لا نبدأ الإلقاء إلا مع تعرف محلي مؤكد. هذا المتصفح لا يثبت المعالجة المحلية؛ يمكنك الكتابة يدويًا.');
+    return false;
+   }
    requested=true;active=false;restarts=0;committed=[];
    status('requesting','نطلب تشغيل الميكروفون من المتصفح.');
    startSession();
