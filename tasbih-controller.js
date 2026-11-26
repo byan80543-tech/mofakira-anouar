@@ -610,6 +610,8 @@
     voiceRestartTimer=null;
     if(!voiceRequested)return;
     try{
+     recognition.processLocally=true;
+     if(recognition.processLocally!==true)throw new Error('تعذّر فرض المعالجة الصوتية المحلية.');
      voiceActive=true;
      recognition.start();
     }catch(error){
@@ -619,16 +621,16 @@
    },delay);
   }
 
-  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(typeof SpeechRecognition!=='function'){
+  const LocalSpeech=window.AnwarLocalSpeech;
+  if(!LocalSpeech||!LocalSpeech.supported()){
    voiceButton.disabled=true;
-   voiceButtonLabel.textContent='غير مدعوم';
-   setVoiceState('error','التعرف الصوتي غير متاح في هذا المتصفح. استخدم Chrome واسمح بالميكروفون.');
+   voiceButtonLabel.textContent='غير متاح محلياً';
+   setVoiceState('error','حمايةً لخصوصيتك، لم نبدأ الميكروفون لأن هذا المتصفح لا يضمن التعرف على الجهاز نفسه. استخدم العداد اليدوي.');
   }else{
    try{
-    recognition=new SpeechRecognition();
-    if(!recognition||typeof recognition.start!=='function'||typeof recognition.stop!=='function'){
-     throw new Error('واجهة التعرف الصوتي غير مكتملة.');
+    recognition=LocalSpeech.create(speechLanguage);
+    if(!recognition||typeof recognition.start!=='function'||typeof recognition.stop!=='function'||recognition.processLocally!==true){
+     throw new Error('واجهة التعرف الصوتي المحلي غير مكتملة. لم نبدأ الميكروفون.');
     }
     recognition.lang=speechLanguage;
     recognition.continuous=true;
@@ -703,17 +705,19 @@
       return;
      }
      if(code==='network'){
-      setVoiceState('starting','انقطع اتصال خدمة التعرف الصوتي؛ سنحاول مجدداً.');
+      voiceRequested=false;
+      voiceTargetPhrase='';
+      setVoiceState('error','توقف التعرف المحلي؛ لم نستخدم خدمة خارجية. يمكنك متابعة العد يدوياً.');
       return;
      }
      voiceRequested=false;
      voiceTargetPhrase='';
      const messages={
       'not-allowed':'لم يُسمح بالميكروفون. افتح إعدادات الموقع واسمح باستخدامه.',
-      'service-not-allowed':'خدمة التعرف الصوتي محجوبة من المتصفح أو الجهاز.',
+      'service-not-allowed':'لا يتوفر محرك التعرف المحلي على هذا الجهاز؛ لم نلجأ إلى خدمة خارجية.',
       'audio-capture':'لم يتم العثور على ميكروفون صالح.',
       'no-speech':'لم نلتقط الذكر. تحقق من إذن الميكروفون ثم حاول مجدداً.',
-      'network':'تعذر الاتصال بخدمة التعرف الصوتي. تحقق من اتصال الإنترنت.',
+      'network':'توقف التعرف المحلي؛ لم نستخدم خدمة خارجية. تابع العد يدوياً.',
       'aborted':'أُوقف العد الصوتي.',
       'language-not-supported':'العربية غير مدعومة من خدمة التعرف الصوتي على هذا الجهاز.',
       'bad-grammar':'تعذر تحليل الذكر المنطوق؛ حاول مرة أخرى.'
@@ -742,6 +746,8 @@
       voiceMatchCount=0;
       voiceResultSegments=[];lastRecognitionEvent=null;voiceFallbackPending=false;voiceRestartCount=0;
       speechLanguageIndex=0;speechLanguage=speechLanguages[speechLanguageIndex];recognition.lang=speechLanguage;
+      recognition.processLocally=true;
+      if(recognition.processLocally!==true)throw new Error('هذا المتصفح لا يضمن المعالجة الصوتية المحلية.');
       voiceTargetPhrase=String(optionText(Array.from(select.options).find(option=>option.value===select.value))||'').trim();
       if(!voiceTargetPhrase){
        setVoiceState('error','اختر ذكراً قبل بدء التسجيل.');
