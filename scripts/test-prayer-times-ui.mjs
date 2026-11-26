@@ -23,7 +23,8 @@ assert.match(prayer,/infoSummary\.append\(privacyIcon,el\('span','','الخصو�
 assert.match(prayer,/لا نستخدم GPS ولا نطلب إذن الموقع/,'the disclosure accurately states that adhan does not request precise location permission');
 assert.match(prayer,/api\.aladhan\.com/,'the disclosure names the external prayer-times provider');
 assert.match(prayer,/المزوّد رؤية عنوان IP/,'the disclosure explains that the external provider can see the network address');
-assert.match(prayer,/تُحفظ على جهازك في localStorage، من دون تشفير إضافي/,'the disclosure does not misrepresent local adhan settings as encrypted');
+assert.match(prayer,/تُحفظ ضمن تفضيلات مفكرة أنوار المشفرة على هذا الجهاز/,'the disclosure accurately states that adhan settings are stored in the encrypted vault');
+assert.doesNotMatch(prayer,/localStorage|sessionStorage/,'the prayer controller does not persist private adhan settings in plaintext browser storage');
 assert.match(prayer,/HTTPS يشفّر الاتصال أثناء النقل فقط/,'the disclosure describes transport encryption concisely');
 assert.match(prayer,/function updatePrivacyAudioDisclosure\(\)/,'the disclosed audio host follows the selected adhan voice');
 assert.match(prayer,/updatePrivacyAudioDisclosure\(\);/,'changing the adhan voice refreshes the disclosed audio host');
@@ -110,7 +111,7 @@ assert.match(html,/<small>الأذان<\/small><strong>المواقيت والت
 assert.match(html,/#rd \.curtain-head #ownerBtn\.radio-owner-pen[\s\S]*?width:34px!important;height:34px!important/,'ownership button matches the close button dimensions');
 assert.match(html,/<div class="curtain-head"><button type="button" id="ownerBtn"/,'purple radio header contains only its functional controls');
 assert.doesNotMatch(html,/<div class="curtain-head"><b>الخدمات القرآنية والدينية<\/b>/,'duplicate services title is removed from purple radio header');
-assert.match(html,/prayer-times\.js\?v=20261125-1/,'HTML loads the updated prayer controller after radio header title removal');
+assert.match(html,/prayer-times\.js\?v=20261126-1/,'HTML loads the encrypted prayer-settings controller bundle');
 const cacheVersion=worker.match(/const CACHE_NAME='anwar-shell-\d{4}-\d{2}-\d{2}-v(\d+)';/);
 assert.ok(cacheVersion&&Number(cacheVersion[1])>=157,'the updated prayer controller has a refreshed offline shell version');
 assert.match(worker,/\.\/prayer-card-design\.css/,'service worker precaches the canonical prayer card stylesheet');

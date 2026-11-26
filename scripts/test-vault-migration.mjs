@@ -12,11 +12,12 @@ const extract=(start,end)=>{
   return html.slice(a,b);
 };
 const preferenceSource=extract('/* Encrypted private settings shared by the notebook modules. */','requestAnimationFrame(()=>setTimeout(()=>{');
-const clearSource=extract('function clearLegacyPlaintext(){','async function persistVaultSnapshot(plaintext){');
+const clearSource=extract('function clearLegacyPlaintext(){','async function persistVaultSnapshot(plaintext,options={}){');
 const persistenceSource=extract('function importLegacyPrivatePreferences(base){','function finishVaultOpen(){');
 const submitSource=extract('async function submitVaultForm(event,suppliedPassword){', "async function lockVault(reason='manual'){");
 
-function makeHarness({failVerification=false}={}){
+function makeHarness({failVerification=false,failBackupWrite=false,failBackupVerification=false}={}){
+  let backupWriteBlocked=failBackupWrite;
   const initialState={
     notes:[{id:'migration-note-1',title:'قصيدة خاصة',html:'<div>محتوى لا يجب كشفه</div>',ts:1763400000000,history:[]}],
     theme:'dark',palette:'blue',days:['2026-11-17']
@@ -27,7 +28,10 @@ function makeHarness({failVerification=false}={}){
     ['anwar_rd',JSON.stringify({r:'قارئ قديم',n:55,m:'c'})],
     ['anwar_reader_advance','s'],
     ['anwar_tasbih_count_v1','144'],
-    ['anwar_tasbih_dhikr_v1','الحمد لله']
+    ['anwar_tasbih_dhikr_v1','الحمد لله'],
+    ['anwar_prayer_settings_v1',JSON.stringify({country:'Morocco',city:'Meknes',method:'21',school:'0',enabled:true,volume:0.7,timezone:'Africa/Casablanca',voice:'morocco_kamal',countrySource:'manual'})],
+    ['anwar_prayer_last_adhan_v1','2026-11-26|Fajr|Meknes|Morocco'],
+    ['anwar_adhkar_page_theme','gold']
   ]);
   const operations=[];
   const vaultRecords=new Map();
@@ -48,7 +52,11 @@ function makeHarness({failVerification=false}={}){
     },
     AnwarVaultStorage:{
       async get(key){operations.push('vault:get:'+key);return vaultRecords.has(key)?vaultRecords.get(key):null},
-      async set(key,value){operations.push('vault:set:'+key);vaultRecords.set(key,String(value));return true},
+      async set(key,value){
+        operations.push('vault:set:'+key);
+        if(backupWriteBlocked&&key==='anwar_vault_backup_v1')throw new Error('simulated backup write failure');
+        vaultRecords.set(key,String(value));return true
+      },
       async remove(key){operations.push('vault:remove:'+key);vaultRecords.delete(key);return true}
     },
     S:initialState,
@@ -58,27 +66,35 @@ function makeHarness({failVerification=false}={}){
     vaultTemplate:null,
     vaultReady:false,
     vaultDisableAfterUnlock:false,
-    vaultBackupWarningShown:false,
+    vaultBackupWarningShown:false,vaultLegacyCleanupWarningShown:false,
     VAULT_STORAGE_KEY:'anwar_vault_v1',
     VAULT_BACKUP_KEY:'anwar_vault_backup_v1',
     VAULT_MODE_KEY:'anwar_vault_mode_v1',
     $:id=>elements[id]||(elements[id]={value:'',textContent:'',disabled:false,hidden:false}),
     readStoredState(value){return JSON.parse(value)},
+    noteContentTooLarge(){return false},
     finishVaultOpen(){calls.finished=true;sandbox.vaultReady=true},
     toast(message){calls.toasts.push(String(message))},
     console:{warn(){}}
   };
   vm.runInNewContext(preferenceSource,sandbox,{timeout:3000});
   vm.runInNewContext(cryptoSource,sandbox,{timeout:3000});
-  if(failVerification){
+  if(failVerification||failBackupVerification){
     const real=sandbox.AnwarVaultCrypto;
+    let decryptCalls=0;
     sandbox.AnwarVaultCrypto=Object.freeze({
       ...real,
-      async decryptWithKey(){throw new Error('simulated read-back verification failure')}
+      async decryptWithKey(...args){
+        decryptCalls++;
+        if(failVerification||(failBackupVerification&&decryptCalls===2)){
+          throw new Error('simulated read-back verification failure');
+        }
+        return real.decryptWithKey(...args);
+      }
     });
   }
-  vm.runInNewContext(clearSource+'\n'+persistenceSource+'\n'+submitSource+'\nthis.run=submitVaultForm;',sandbox,{timeout:3000});
-  return {sandbox,elements,data,vaultRecords,operations,calls,run:sandbox.run,initialState};
+  vm.runInNewContext(clearSource+'\n'+persistenceSource+'\n'+submitSource+'\nthis.run=submitVaultForm;this.persist=persistVaultSnapshot;',sandbox,{timeout:3000});
+  return {sandbox,elements,data,vaultRecords,operations,calls,run:sandbox.run,persist:sandbox.persist,initialState,setBackupWriteBlocked(value){backupWriteBlocked=!!value}};
 }
 
 const successful=makeHarness();
@@ -101,7 +117,11 @@ assert.equal(data.has('anwar_rd'),false,'legacy radio preference is removed afte
 assert.equal(data.has('anwar_reader_advance'),false,'legacy reader preference is removed after encrypted verification');
 assert.equal(data.has('anwar_tasbih_count_v1'),false,'legacy tasbih count is removed after encrypted verification');
 assert.equal(data.has('anwar_tasbih_dhikr_v1'),false,'legacy tasbih choice is removed after encrypted verification');
-assert.deepEqual(JSON.parse(await sandbox.AnwarVaultCrypto.decryptWithKey(sandbox.vaultKey,primary)).preferences,{radio:{reciter:'قارئ قديم',surah:55},readerAdvance:'s',tasbih:{count:144,dhikr:'الحمد لله',customDhikrs:[],removedOfficialDhikrs:[],theme:'emerald',designVersion:''}},'legacy settings and the empty custom dhikr list are included in the encrypted snapshot');
+assert.equal(data.has('anwar_prayer_settings_v1'),false,'legacy prayer settings are removed after encrypted verification');
+assert.equal(data.has('anwar_prayer_last_adhan_v1'),false,'legacy last-played prayer marker is removed after encrypted verification');
+assert.equal(data.has('anwar_adhkar_page_theme'),false,'legacy protective adhkar palette is removed after encrypted verification');
+const encryptedPreferences=JSON.parse(await sandbox.AnwarVaultCrypto.decryptWithKey(sandbox.vaultKey,primary)).preferences;
+assert.deepEqual(encryptedPreferences,{radio:{reciter:'قارئ قديم',surah:55},readerAdvance:'s',adhkarPageTheme:'gold',prayer:{country:'Morocco',city:'Meknes',method:'21',school:'0',enabled:true,volume:0.7,timezone:'Africa/Casablanca',voice:'morocco_kamal',countrySource:'manual',lastPlayedKey:'2026-11-26|Fajr|Meknes|Morocco'},tasbih:{count:144,elapsedMs:0,dhikr:'الحمد لله',customDhikrs:[],removedOfficialDhikrs:[],theme:'emerald',designVersion:''}},'legacy prayer, tasbih, adhkar palette and reader settings are included in the encrypted snapshot');
 assert.equal(elements.vaultPassword.value,'','password field is cleared after success');
 assert.equal(elements.vaultPasswordConfirm.value,'','password confirmation field is cleared after success');
 assert.ok(operations.indexOf('remove:anwar_v1')>operations.indexOf('vault:get:anwar_vault_backup_v1'),'legacy cleanup occurs after the encrypted backup has been written and read back');
@@ -116,9 +136,52 @@ assert.ok(failed.data.has('anwar_rd'),'legacy radio preference is retained after
 assert.ok(failed.data.has('anwar_reader_advance'),'legacy reader preference is retained after failed verification');
 assert.ok(failed.data.has('anwar_tasbih_count_v1'),'legacy tasbih count is retained after failed verification');
 assert.ok(failed.data.has('anwar_tasbih_dhikr_v1'),'legacy tasbih choice is retained after failed verification');
+assert.ok(failed.data.has('anwar_prayer_settings_v1'),'legacy prayer settings are retained after failed verification');
+assert.ok(failed.data.has('anwar_prayer_last_adhan_v1'),'legacy last-played prayer marker is retained after failed verification');
+assert.ok(failed.data.has('anwar_adhkar_page_theme'),'legacy protective adhkar theme is retained after failed verification');
 assert.equal(failed.vaultRecords.has('anwar_vault_v1'),false,'unverified encrypted primary envelope is rolled back');
 assert.equal(failed.vaultRecords.has('anwar_vault_backup_v1'),false,'no secondary backup is written before primary verification');
 assert.equal(failed.data.has('anwar_vault_mode_v1'),false,'failed encrypted setup rolls back the mode marker and remains recoverable as plaintext');
-assert.match(failed.elements.vaultError.textContent,/simulated read-back verification failure/,'the failure is surfaced to the user');
+assert.match(failed.elements.vaultError.textContent,/simulated read-back verification failure/,'the primary verification failure is surfaced to the user');
+
+for(const scenario of [
+  {name:'backup write failure',options:{failBackupWrite:true}},
+  {name:'backup verification failure',options:{failBackupVerification:true}}
+]){
+  const interrupted=makeHarness(scenario.options);
+  await interrupted.run({preventDefault(){}});
+  assert.equal(interrupted.calls.finished,false,scenario.name+' never opens the private notebook');
+  assert.equal(interrupted.sandbox.vaultUnlocked,false,scenario.name+' leaves the vault locked');
+  for(const key of [
+    'anwar_v1','anwar_v1_backup_v2','anwar_rd','anwar_reader_advance',
+    'anwar_tasbih_count_v1','anwar_tasbih_dhikr_v1',
+    'anwar_prayer_settings_v1','anwar_prayer_last_adhan_v1','anwar_adhkar_page_theme'
+  ]){
+    assert.ok(interrupted.data.has(key),scenario.name+' retains legacy recovery key '+key);
+  }
+  assert.equal(interrupted.vaultRecords.has('anwar_vault_v1'),false,scenario.name+' rolls back the uncommitted primary envelope');
+  assert.equal(interrupted.vaultRecords.has('anwar_vault_backup_v1'),false,scenario.name+' leaves no unverified backup envelope');
+  assert.equal(interrupted.data.has('anwar_vault_mode_v1'),false,scenario.name+' never marks encryption as committed');
+  assert.match(interrupted.elements.vaultError.textContent,/النسخة الاحتياطية المشفرة والتحقق منها/,scenario.name+' explains that verified backup creation failed');
+}
+
+// A legacy-preference migration must not replace the old primary or erase
+// plaintext recovery keys unless the encrypted backup is verified first.
+const migration=makeHarness();
+await migration.run({preventDefault(){}});
+const oldPrimary=migration.vaultRecords.get('anwar_vault_v1');
+const oldBackup=migration.vaultRecords.get('anwar_vault_backup_v1');
+migration.data.set('anwar_prayer_settings_v1',JSON.stringify({city:'Meknes',enabled:true}));
+migration.setBackupWriteBlocked(true);
+const nextState=JSON.parse(JSON.stringify(migration.sandbox.S));
+nextState.preferences.prayer={...nextState.preferences.prayer,city:'Meknes',enabled:true};
+await assert.rejects(
+  ()=>migration.persist(JSON.stringify(nextState),{requireVerifiedBackup:true}),
+  /simulated backup write failure/,
+  'failed backup write aborts legacy settings migration'
+);
+assert.equal(migration.vaultRecords.get('anwar_vault_v1'),oldPrimary,'failed migration keeps the previous encrypted primary');
+assert.equal(migration.vaultRecords.get('anwar_vault_backup_v1'),oldBackup,'failed migration keeps the previous encrypted backup');
+assert.equal(migration.data.has('anwar_prayer_settings_v1'),true,'failed migration retains the legacy plaintext setting for recovery');
 
 console.log('All initial vault migration and rollback tests passed.');

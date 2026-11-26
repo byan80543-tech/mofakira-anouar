@@ -7,7 +7,7 @@ const guardStart=html.indexOf('function noteContentTooLarge(note){');
 const guardEnd=html.indexOf('function readStoredState(raw){',guardStart);
 assert.ok(guardStart>=0&&guardEnd>guardStart,'shared note-size guard is present');
 const guardSource=html.slice(guardStart,guardEnd);
-const start=html.indexOf('async function persistVaultSnapshot(plaintext){');
+const start=html.indexOf('async function persistVaultSnapshot(plaintext,options={}){');
 const end=html.indexOf('function finishVaultOpen(){',start);
 assert.ok(start>=0&&end>start,'encrypted persistence function is present');
 const source=guardSource+'\n'+html.slice(start,end);

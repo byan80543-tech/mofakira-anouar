@@ -90,14 +90,17 @@ assert.equal(h.calls.syncCount,1,'primary startup synchronizes the shield');
 
 h=makeHarness();
 await h.api.bootVault();
-assert.equal(h.calls.finished,true,'first launch opens directly in free mode without requiring a password');
-assert.equal(h.calls.mode,null,'first launch does not display the encryption setup gate');
-assert.equal(h.calls.legacyPrepared,true,'first launch checks and preserves legacy plaintext before opening');
+assert.equal(h.calls.finished,false,'first launch must not open the private notebook before encryption');
+assert.equal(h.calls.mode,'setup','first launch requires mandatory encryption setup');
+assert.equal(h.calls.legacyPrepared,true,'first launch checks and preserves legacy data before encryption');
+assert.equal(h.sandbox.vaultUnlocked,false,'first launch remains locked until the encrypted vault is created');
 
 h=makeHarness({'anwar_vault_mode_v1':'plain','anwar_vault_v1':'stale-encrypted-copy'});
 await h.api.bootVault();
-assert.equal(h.calls.finished,true,'explicit free mode opens without asking for an old encryption password');
-assert.equal(h.calls.mode,null,'free mode bypasses stale encrypted copies after a verified plaintext switch');
+assert.equal(h.calls.finished,false,'a legacy plaintext-mode marker cannot bypass an existing encrypted vault');
+assert.equal(h.sandbox.vaultHasEncryptedData,true,'existing encrypted records are detected even when local mode metadata says plain');
+assert.equal(h.sandbox.vaultGateMode,'unlock','an existing encrypted vault remains locked and requires its original passphrase');
+assert.equal(h.calls.legacyPrepared,false,'the app does not overwrite an existing encrypted vault by starting a new plaintext migration');
 
 h=makeHarness({},true);
 await h.api.bootVault();
@@ -111,7 +114,8 @@ assert.match(h.calls.message,/نسخة احتياطية مشفرة/,'post-recove
 
 h=makeHarness();
 await h.api.continueVaultAfterRecovery();
-assert.equal(h.calls.finished,true,'post-recovery continuation returns to free mode when no encrypted vault exists');
+assert.equal(h.calls.finished,false,'post-recovery continuation must not open plaintext without encryption');
+assert.equal(h.calls.mode,'setup','post-recovery continuation requires encryption setup');
 
 h=makeHarness({'anwar_vault_backup_v1':'encrypted-backup'});
 assert.equal(await h.api.retryStorageAccess(),true,'retry succeeds when access to backup-only vault returns');

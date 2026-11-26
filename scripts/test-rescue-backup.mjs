@@ -37,12 +37,14 @@ assert.ok(restoreFn.includes('readStoredState(decrypted.plaintext)'),'restored c
 assert.ok(restoreFn.includes('if(!confirm('),'replacement requires explicit user confirmation');
 assert.ok(restoreFn.includes('await persistVaultSnapshot(plaintext)'),'restored content is saved through the existing encrypted vault path');
 assert.ok(restoreFn.includes('S=next'),'live state is replaced only after verified encrypted persistence');
-assert.ok(core.includes('const freshDevice=vaultUnlocked&&!vaultKey&&!vaultHasEncryptedData;'),'a new device with no local vault is recognized');
+assert.ok(core.includes("const freshDevice=!vaultKey&&!vaultHasEncryptedData&&vaultGateMode==='setup';"),'a new device can restore an encrypted archive only while mandatory vault setup is active');
 assert.ok(restoreFn.includes('if(freshDevice){'),'fresh-device restore uses a dedicated initialization path');
 assert.ok(restoreFn.includes('vaultKey=decrypted.key;')&&restoreFn.includes('vaultTemplate=decrypted.envelope;'),'fresh-device restore adopts the verified backup key and template');
 assert.ok(restoreFn.includes("localStorage.setItem(VAULT_MODE_KEY,'encrypted')"),'fresh-device restore enables encrypted vault mode only after saving the restored state');
 assert.ok(restoreFn.includes('finishVaultOpen()'),'fresh-device restore opens the newly initialized vault without a separate empty-vault setup');
-assert.ok(restoreFn.includes('clearLegacyPlaintext()'),'legacy plaintext is cleared only after the encrypted snapshot is persisted');
+assert.ok(restoreFn.includes('clearLegacyPlaintext()'),'legacy notebook plaintext is cleared only after the encrypted snapshot is persisted');
+assert.ok(restoreFn.includes('clearLegacyPrivatePreferences()'),'legacy tasbih, prayer and adhkar preference plaintext is also cleared after encrypted restore');
+assert.match(restoreFn,/catch\(storageError\)[\s\S]{0,500}vaultUnlocked=false[\s\S]{0,240}showVaultGate\('setup'/,'a failed first-device restore clears in-memory access and leaves setup locked');
 
 assert.ok(core.includes("else if(id==='bkp'){downloadRescueBackup()}"),'backup action routes directly to file generation');
 assert.ok(core.includes("else if(id==='restoreRescueBtn'){openRescueRestorePicker()}"),'restore action opens the local file picker');

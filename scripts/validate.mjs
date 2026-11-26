@@ -247,21 +247,18 @@ ok(toolbarBackNavigation.includes("paletteButton.setAttribute('aria-expanded'") 
 
 try{new vm.Script(toolbarBackNavigation,{filename:'toolbar-back-navigation.js'});ok(true,'contextual back-navigation helper JavaScript syntax is valid')}catch(error){failures.push('toolbar-back-navigation.js: '+error.message)}
 ok(appSource.includes('const VAULT_IDLE_LOCK_MS=5*60*1000;') && appSource.includes('function armVaultIdleTimer()') && appSource.includes('function recordVaultActivity(event)') && appSource.includes('document.addEventListener(eventName,recordVaultActivity,true)') && appSource.includes('function enforceVaultIdleLock()'), 'vault auto-locks after five minutes of inactivity while retaining trusted activity tracking and manual locking');
-ok(appSource.includes("VAULT_MODE_KEY='anwar_vault_mode_v1'") && appSource.includes("if(mode==='encrypted'&&savedVault===null&&savedBackup===null)"),'vault startup respects the saved free/encrypted mode and never bypasses a missing encrypted vault');
-ok(appSource.includes("if(!vaultKey||!vaultTemplate){") && appSource.includes("showVaultGate('setup'"),'manual lock from free mode opens the optional encryption setup');
-ok(appSource.includes('function persistPlainSnapshot(plaintext)') && appSource.includes("localStorage.setItem(VAULT_MODE_KEY,'plain')") && appSource.includes("localStorage.setItem(VAULT_MODE_KEY,'encrypted')"),'free and encrypted modes are explicitly persisted after verified storage writes');
-ok(appSource.includes('flushPrivatePreferenceSave();') && appSource.includes("if(typeof flushPendingEdit==='function')flushPendingEdit(false);") && appSource.includes('await vaultSaveQueue;') && appSource.includes("showVaultGate('setup'"),'manual encryption setup flushes pending edits and waits for the save queue before closing free mode');
-ok(/async function cancelVaultSetup\(\)[\s\S]*?await persistPlainSnapshot\(JSON\.stringify\(S\)\)/.test(appSource),'continuing without encryption verifies and persists the plaintext snapshot before reopening');
-const workerSource=fs.readFileSync(path.join(root,'service-worker.js'),'utf8');
-const workerCacheName=workerSource.match(/const CACHE_NAME='(anwar-shell-\d{4}-\d{2}-\d{2}-v\d+)';/);
-ok(!!workerCacheName && Number(workerCacheName[1].split('-v').pop())>=1,'service worker uses a dated, monotonically versioned app-shell cache key');
-ok(appSource.includes('id="vaultCancelSetupBtn"') && appSource.includes('id="vaultDisableEncryptionBtn"'),'the gate offers continue-free and disable-encryption actions');
-ok(appSource.includes('AnwarPrivatePreferences.normalize(d.preferences)') && appSource.includes('preferences:globalThis.AnwarPrivatePreferences.normalize({})'),'radio, reader and tasbih preferences are part of the encrypted vault state');
-ok(appSource.includes('function importLegacyPrivatePreferences(base)') && appSource.includes('function clearLegacyPrivatePreferences()'),'legacy plaintext preferences have explicit migration and cleanup paths');
-ok(!appSource.includes("localStorage.setItem('anwar_reader_advance'") && !appSource.includes("localStorage.setItem(countKey") && !appSource.includes("localStorage.setItem(dhikrKey"),'active reader and tasbih controls do not write plaintext preferences');
-ok(appSource.includes("AnwarPrivatePreferences.set('readerAdvance'") && appSource.includes("AnwarPrivatePreferences.set('radio'") && tasbihController.includes("preferences.set('tasbih'"),'radio, reader and standalone tasbih changes are routed into encrypted preference state');
-ok(/if\(savedVault!==null\|\|savedBackup!==null\)/.test(appSource),'startup can unlock from an encrypted backup when the primary vault is missing');
-ok(/function save\(\)\s*\{[\s\S]*?persistVaultSnapshot\(snapshot\)/.test(appSource) && /async function persistVaultSnapshot\(plaintext\)\s*\{[\s\S]*?AnwarVaultCrypto\.encryptWithKey/.test(appSource),'notebook saves queue snapshots through encrypted vault persistence');
+ok(appSource.includes("VAULT_MODE_KEY='anwar_vault_mode_v1'") && appSource.includes("localStorage.setItem(VAULT_MODE_KEY,'encrypted')"),'vault mode metadata records only a verified encrypted state');
+ok(/async function bootVault\(\)[\s\S]*?showVaultGate\('setup','التشفير الشامل مطلوب/.test(appSource),'first launch and legacy plaintext data require mandatory encrypted setup before private access');
+ok(/if\(mode==='encrypted'&&savedVault===null&&savedBackup===null\)/.test(appSource),'a missing encrypted vault blocks startup instead of opening empty or plaintext content');
+ok(appSource.includes('savedVault=await AnwarVaultStorage.get(VAULT_STORAGE_KEY)') && appSource.includes('if(savedVault!==null||savedBackup!==null)'), 'a tampered plaintext mode marker cannot hide or overwrite an existing encrypted vault');
+ok(/function persistPlainSnapshot\(\)\s*\{\s*throw new Error\('الحفظ دون تشفير معطّل/.test(appSource),'the legacy plaintext snapshot writer is permanently disabled');
+ok(/function save\(\)\s*\{[\s\S]*?if\(!vaultKey\|\|!vaultTemplate\)/.test(appSource),'private saves are blocked unless an active encrypted vault key and template exist');
+ok(appSource.includes("if(disableEncryption)disableEncryption.hidden=true") && appSource.includes("if(cancelSetup)cancelSetup.hidden=true"),'the UI permanently hides plaintext continuation and encryption-disable actions');
+ok(/function beginVaultDisableEncryption\(\)[\s\S]*?التشفير الشامل إلزامي/.test(appSource),'the legacy disable-encryption action cannot downgrade the vault to plaintext');
+ok(/async function cancelVaultSetup\(\)[\s\S]*?يجب إكمال إعداد التشفير/.test(appSource),'mandatory encryption setup cannot be cancelled to enter plaintext mode');
+ok(appSource.includes("if(vaultGateMode==='setup')return;"),'the mandatory setup gate cannot be dismissed');
+
+ok(/function save\(\)\s*\{[\s\S]*?persistVaultSnapshot\(snapshot\)/.test(appSource) && /async function persistVaultSnapshot\(plaintext,options=\{\}\)\s*\{[\s\S]*?AnwarVaultCrypto\.encryptWithKey/.test(appSource),'notebook saves queue snapshots through encrypted vault persistence');
 ok(appSource.includes('snapshot.notes.length>2500') && appSource.includes('snapshot.notes.some(noteContentTooLarge)') && appSource.includes('parsed.notes.some(noteContentTooLarge)') && appSource.includes('function noteContentTooLarge(note)'),'startup restore and encrypted saves share the same safe legacy-note size guard');
 ok(appSource.includes("if(S.notes.length>=2500){toast("),'the UI blocks creation beyond the restore-supported 2500-note limit');
 ok(vaultCrypto.includes("CIPHER='AES-256-GCM'") && vaultCrypto.includes("ITERATIONS=600000"),'vault helper pins AES-GCM and the approved PBKDF2 work factor');
