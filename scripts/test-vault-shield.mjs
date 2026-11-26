@@ -56,4 +56,16 @@ assert.match(core,/async function bootVault\(\)[\s\S]{0,2400}showVaultGate\('set
 assert.match(core,/if\(vaultGateMode==='setup'\)return;[\s\S]{0,120}vaultGate'\)\.hidden=true/,'the setup gate cannot be dismissed to bypass mandatory encryption');
 assert.match(core,/if\(!removedLegacy\|\|!removedPreferences\)[\s\S]{0,300}لم نفتح المحتوى/,'legacy plaintext cleanup failure keeps private content locked');
 
+
+const rescueStart=core.indexOf('async function restoreStorageBackup(){');
+const rescueEnd=core.indexOf('function exportStorageRecovery(){',rescueStart);
+assert.ok(rescueStart>=0&&rescueEnd>rescueStart,'legacy recovery source exists');
+const rescue=core.slice(rescueStart,rescueEnd);
+assert.match(rescue,/استعدنا النسخة الاحتياطية في الذاكرة دون إنشاء نسخة نصية جديدة/,'legacy backup recovery stages data in memory');
+assert.doesNotMatch(rescue,/openNote\(|renderList\(/,'legacy recovery does not render private notes before encryption');
+assert.match(rescue,/\$\('cards'\)\)\$\('cards'\)\.innerHTML=''/,'legacy recovery clears any stale private note cards before setup');
+assert.doesNotMatch(rescue,/localStorage\.setItem\('anwar_v1'/,'legacy recovery does not create new plaintext notebook files');
+const freshStart=core.slice(core.indexOf('async function startFreshNotebook(){'),rescueEnd);
+assert.doesNotMatch(freshStart,/localStorage\.setItem\('anwar_v1'/,'fresh notebook setup does not store plaintext starter data');
+
 console.log('Vault shield control tests passed.');
