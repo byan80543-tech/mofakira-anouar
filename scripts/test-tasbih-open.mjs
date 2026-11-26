@@ -59,4 +59,11 @@ assert.ok(html.includes('tasbih-vault.js')&&controller.includes('tasbihVault.isU
 assert.ok(controller.includes('recognition.processLocally=true')&&controller.includes('SpeechRecognition.available'),'browser speech recognition is constrained to on-device processing');
 assert.ok(controller.includes('voiceButton.addEventListener')&&controller.includes('recognition.lang=speechLanguage'),'voice recognition remains wired after moving the markup');
 
+assert.match(html,/#rd #tasbihPanel \.anwar-tasbih-voice-shield\{\s*display:grid!important;[^}]*width:30px!important;[^}]*\}/,
+  'the compact voice counter keeps its small privacy shield visible');
+assert.match(html,/#rd #tasbihPanel \.anwar-tasbih-voice-hint\{display:none!important\}/,
+  'the compact voice counter keeps its explanatory hint hidden to avoid visual clutter');
+assert.doesNotMatch(html,/#rd #tasbihPanel \.anwar-tasbih-voice-shield,\s*#rd #tasbihPanel \.anwar-tasbih-voice-hint\{display:none!important\}/,
+  'the privacy shield is not hidden with the compact voice hint');
+
 console.log('Dedicated adhkar and tasbih service pages, owner separation and preserved counter-controller tests passed.');
