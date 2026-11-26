@@ -53,7 +53,8 @@ const styleSources=requireDirective('style-src',"'self'","'unsafe-inline'",'http
 assert.ok(styleSources.includes("'unsafe-inline'"),'inline styles remain supported intentionally');
 requireDirective('img-src',"'self'",'data:','blob:','https://upload.wikimedia.org');
 requireDirective('font-src',"'self'",'data:','https://fonts.gstatic.com');
-const pageConnectSources=requireDirective('connect-src',"'self'",'https://www.mp3quran.net','https://api.aladhan.com','https://api.allorigins.win','https://corsproxy.io');
+const pageConnectSources=requireDirective('connect-src',"'self'",'https://www.mp3quran.net','https://api.allorigins.win','https://corsproxy.io');
+assert.ok(!cspContent.includes('api.aladhan.com')&&!deployedHeaders.includes('api.aladhan.com'),'the external prayer-times API is removed from both CSP policies');
 requireDirective('media-src',"'self'",'https:','blob:');
 requireDirective('frame-src',"'self'",'blob:');
 requireDirective('worker-src',"'self'",'blob:');
