@@ -11,6 +11,8 @@ const RATE_POLICIES = Object.freeze({
   catalog: { limit: 20, windowMs: 60_000 },
   "country-list": { limit: 8, windowMs: 60_000 },
   "country-profile": { limit: 12, windowMs: 60_000 },
+  // A short-lived Arabic dhikr recognizer; per-client rate is bounded independently.
+  tasbih: { limit: 25, windowMs: 60_000 },
   "admin-login": { limit: 5, windowMs: 60 * 60_000 },
   // Bound authenticated owner actions as well, including after a token leak.
   "admin-api": { limit: 20, windowMs: 60_000 }
@@ -24,6 +26,13 @@ const CACHE_TTLS = Object.freeze({
 });
 
 const MAX_UPSTREAM_BYTES = 4 * 1024 * 1024;
+const MAX_TASBIH_AUDIO_BYTES = 384 * 1024;
+const MAX_TASBIH_MULTIPART_BYTES = 400 * 1024;
+const TASBIH_TRANSCRIPTION_MODEL = "@cf/openai/whisper-large-v3-turbo";
+const TASBIH_AUDIO_MIME_TYPES = new Set([
+  "audio/webm", "audio/ogg", "audio/mp4", "audio/mpeg",
+  "audio/wav", "audio/x-wav", "audio/aac", "audio/flac"
+]);
 const UPSTREAM_TIMEOUT_MS = 7_000;
 
 function json(data, status = 200, extraHeaders = {}) {
@@ -55,6 +64,215 @@ function withCors(response, origin, extraHeaders = {}) {
 
 function errorResponse(message, status, origin, headers = {}) {
   return withCors(json({ error: message }, status, headers), origin);
+}
+
+async function readBodyBytesLimited(request, maxBytes) {
+  const advertised = request.headers.get("Content-Length");
+  const advertisedLength = advertised === null ? 0 : Number(advertised);
+  if (Number.isFinite(advertisedLength) && advertisedLength > maxBytes) {
+    try { await request.body?.cancel(); } catch {}
+    return { bytes: null, tooLarge: true };
+  }
+  if (!request.body || !Number.isSafeInteger(maxBytes) || maxBytes < 1) {
+    return { bytes: null, tooLarge: false };
+  }
+  const reader = request.body.getReader();
+  const chunks = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!value || !Number.isSafeInteger(value.byteLength)) {
+        try { await reader.cancel(); } catch {}
+        return { bytes: null, tooLarge: false };
+      }
+      total += value.byteLength;
+      if (total > maxBytes) {
+        try { await reader.cancel("Tasbih audio request exceeds the configured limit"); } catch {}
+        return { bytes: null, tooLarge: true };
+      }
+      chunks.push(value);
+    }
+    const bytes = new Uint8Array(total);
+    let offset = 0;
+    for (const chunk of chunks) {
+      bytes.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+    return { bytes, tooLarge: false };
+  } catch {
+    return { bytes: null, tooLarge: false };
+  } finally {
+    try { reader.releaseLock(); } catch {}
+  }
+}
+
+function bytesToBase64(bytes) {
+  let binary = "";
+  for (let index = 0; index < bytes.length; index += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(index, index + 0x8000));
+  }
+  return btoa(binary);
+}
+
+function normalizeTasbihSpeech(value) {
+  return String(value || "").toLocaleLowerCase("ar").normalize("NFD")
+    .replace(/[\\u064B-\\u065F\\u0670\\u06D6-\\u06ED\\uFE00-\\uFE0F]/g, "")
+    .replace(/[،؛؟٪٫٬۔,:;.!؟]+/g, " ")
+    .replace(/[أإآٱ]/g, "ا").replace(/ى/g, "ي").replace(/ة/g, "ه").replace(/ـ/g, "")
+    .replace(/[^\\u0600-\\u06FFa-z0-9\\s]/gi, " ").replace(/\\s+/g, " ").trim();
+}
+
+function countTasbihPhraseMatches(transcript, phrase) {
+  const heard = normalizeTasbihSpeech(transcript).split(" ").filter(Boolean);
+  const target = normalizeTasbihSpeech(phrase).split(" ").filter(Boolean);
+  if (!target.length || heard.length < target.length) return 0;
+  let matches = 0;
+  for (let index = 0; index <= heard.length - target.length; index += 1) {
+    let same = true;
+    for (let offset = 0; offset < target.length; offset += 1) {
+      if (heard[index + offset] !== target[offset]) {
+        same = false;
+        break;
+      }
+    }
+    if (same) {
+      matches += 1;
+      index += target.length - 1;
+    }
+  }
+  return matches;
+}
+
+async function handleTasbihCount(request, env, origin) {
+  if (request.method !== "POST") {
+    return errorResponse("طريقة الطلب غير مسموحة.", 405, origin, { Allow: "POST, OPTIONS" });
+  }
+  if (new URL(request.url).search) return errorResponse("معاملات الطلب غير مسموحة.", 400, origin);
+  if (!env.AI || typeof env.AI.run !== "function") {
+    return errorResponse("خدمة العد الصوتي الآمن غير مهيأة حالياً.", 503, origin);
+  }
+
+  const contentType = String(request.headers.get("Content-Type") || "").toLowerCase();
+  if (!contentType.startsWith("multipart/form-data;") || !contentType.includes("boundary=")) {
+    return errorResponse("صيغة طلب الصوت غير صالحة.", 415, origin);
+  }
+
+  let edgeDecision;
+  try {
+    if (!env.EDGE_LIMITER) throw new Error("Edge rate limiter binding missing");
+    edgeDecision = await env.EDGE_LIMITER.limit({ key: "anwar-api-gateway-tasbih" });
+  } catch {
+    return errorResponse("بوابة حماية العد الصوتي غير متاحة مؤقتاً.", 503, origin);
+  }
+  if (!edgeDecision.success) {
+    return errorResponse("تجاوزت طلبات العد الصوتي الحد المؤقت. انتظر قليلاً.", 429, origin, {
+      "Retry-After": "60"
+    });
+  }
+
+  let decision;
+  try {
+    decision = await applyRateLimits(request, env, "tasbih");
+  } catch {
+    return errorResponse("بوابة حماية العد الصوتي غير متاحة مؤقتاً.", 503, origin);
+  }
+  if (decision.blocked) {
+    return errorResponse("تجاوزت طلبات العد الصوتي الحد المسموح. انتظر قليلاً.", 429, origin, {
+      "Retry-After": String(decision.retryAfter)
+    });
+  }
+
+  const bounded = await readBodyBytesLimited(request, MAX_TASBIH_MULTIPART_BYTES);
+  if (bounded.tooLarge) {
+    return errorResponse("مقطع الصوت أطول من الحد المسموح.", 413, origin);
+  }
+  if (!bounded.bytes || !bounded.bytes.length) {
+    return errorResponse("تعذّر قراءة مقطع الصوت.", 400, origin);
+  }
+
+  let bodyBytes = bounded.bytes;
+  let audioBytes = null;
+  let base64Audio = "";
+  let transcript = "";
+  let aiResult = null;
+  let form = null;
+  try {
+    try {
+      form = await new Response(bodyBytes, {
+        headers: { "Content-Type": contentType }
+      }).formData();
+    } catch {
+      return errorResponse("بيانات مقطع الصوت غير صالحة.", 400, origin);
+    }
+
+    const allowedFields = new Set(["audio", "phrase", "consent"]);
+    const keys = [...form.keys()];
+    if (keys.length !== 3 || keys.some(key => !allowedFields.has(key)) ||
+        form.getAll("audio").length !== 1 ||
+        form.getAll("phrase").length !== 1 ||
+        form.getAll("consent").length !== 1) {
+      return errorResponse("حقول طلب العد الصوتي غير صالحة.", 400, origin);
+    }
+    if (form.get("consent") !== "true") {
+      return errorResponse("لم تُسجّل موافقة إرسال المقطع للمعالجة المؤقتة.", 403, origin);
+    }
+
+    const phrase = form.get("phrase");
+    if (typeof phrase !== "string" || phrase.length > 160 ||
+        !normalizeTasbihSpeech(phrase)) {
+      return errorResponse("الذكر المختار غير صالح.", 400, origin);
+    }
+
+    const file = form.get("audio");
+    if (!file || typeof file.arrayBuffer !== "function" ||
+        !Number.isSafeInteger(file.size) || file.size < 1) {
+      return errorResponse("أرفق مقطعاً صوتياً واحداً فقط.", 400, origin);
+    }
+    if (file.size > MAX_TASBIH_AUDIO_BYTES) {
+      return errorResponse("حجم مقطع الصوت يتجاوز الحد المسموح.", 413, origin);
+    }
+    const mime = String(file.type || "").split(";")[0].trim().toLowerCase();
+    if (!TASBIH_AUDIO_MIME_TYPES.has(mime)) {
+      return errorResponse("صيغة المقطع الصوتي غير مدعومة.", 415, origin);
+    }
+
+    audioBytes = new Uint8Array(await file.arrayBuffer());
+    if (!audioBytes.length || audioBytes.length > MAX_TASBIH_AUDIO_BYTES) {
+      return errorResponse("تعذّر التحقق من مقطع الصوت.", 413, origin);
+    }
+
+    base64Audio = bytesToBase64(audioBytes);
+    aiResult = await env.AI.run(TASBIH_TRANSCRIPTION_MODEL, {
+      audio: base64Audio,
+      task: "transcribe",
+      language: "ar",
+      vad_filter: true,
+      condition_on_previous_text: false,
+      beam_size: 3
+    });
+
+    const candidate = aiResult?.transcription_info?.text ?? aiResult?.text ?? "";
+    transcript = typeof candidate === "string" ? candidate : "";
+    const matches = countTasbihPhraseMatches(transcript, phrase);
+    // Only the count leaves this Worker. Neither transcript nor audio is returned.
+    return withCors(json({ matches }), origin, {
+      "Cache-Control": "no-store, private, max-age=0"
+    });
+  } catch {
+    // Never log audio bytes, recognition text, model output, or provider errors.
+    return errorResponse("تعذّر التعرف على الذكر في هذه المحاولة.", 502, origin);
+  } finally {
+    // Best-effort clearing of application-owned copies; the provider's processing
+    // and retention commitments are governed by its documented Workers AI policy.
+    if (audioBytes) audioBytes.fill(0);
+    if (bodyBytes) bodyBytes.fill(0);
+    base64Audio = "";
+    transcript = "";
+    aiResult = null;
+    form = null;
+  }
 }
 
 function resolveRoute(url) {
@@ -310,7 +528,7 @@ export class IpRateLimiter {
 
     const clientKey = payload && payload.clientKey;
     const buckets = payload && payload.buckets;
-    const validRouteBuckets = new Set(["catalog", "country-list", "country-profile", "admin-login", "admin-api"]);
+    const validRouteBuckets = new Set(["catalog", "country-list", "country-profile", "tasbih", "admin-login", "admin-api"]);
     const validShape = Array.isArray(buckets) &&
       buckets.length === 3 &&
       buckets[0] === "total" &&
@@ -354,7 +572,7 @@ export class IpRateLimiter {
       // Purge legacy adhkar visitor counters; public reads no longer use per-visitor identifiers.
       delete value["adhkar-read"];
       delete value["adhkar-suggestions"];
-      for (const bucket of ["client", "catalog", "country-list", "country-profile", "admin-login", "admin-api"]) {
+      for (const bucket of ["client", "catalog", "country-list", "country-profile", "tasbih", "admin-login", "admin-api"]) {
         const windowMs = RATE_POLICIES[bucket]?.windowMs || 60_000;
         const bucketCutoff = now - windowMs;
         value[bucket] = Array.isArray(value[bucket])
@@ -371,6 +589,7 @@ export class IpRateLimiter {
       catalog: [],
       "country-list": [],
       "country-profile": [],
+      tasbih: [],
       "admin-login": [],
       "admin-api": [],
     };
@@ -808,6 +1027,10 @@ export default {
     const url = new URL(request.url);
     const adhkarResponse = await handleAdhkarApi(request, url, env, origin);
     if (adhkarResponse) return adhkarResponse;
+
+    if (url.pathname === "/v1/tasbih/count") {
+      return handleTasbihCount(request, env, origin);
+    }
 
     if (request.method === "POST") {
       if (!url.search && resolveRoute(url)) {
