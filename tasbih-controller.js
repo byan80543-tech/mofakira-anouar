@@ -251,22 +251,36 @@
    customStatus.textContent='';
   }
   async function clearLegacyTasbihCopies(){
-   if(preferences&&typeof preferences.set==='function'){
-    preferences.set('tasbih',defaultTasbih);
-    if(typeof preferences.flush!=='function')throw new Error('تعذّر التحقق من إزالة الإعدادات القديمة من مخزن المفكرة.');
-    const flushed=await preferences.flush();
-    if(!flushed)throw new Error('لم يؤكد مخزن المفكرة إزالة الإعدادات القديمة.');
-    const remaining=preferences.get().tasbih||{};
-    if((Number(remaining.count)||0)!==0||remaining.dhikr!==defaultTasbih.dhikr||
-       Array.isArray(remaining.customDhikrs)&&remaining.customDhikrs.length||
-       Array.isArray(remaining.removedOfficialDhikrs)&&remaining.removedOfficialDhikrs.length||
-       remaining.theme!=='emerald'){
-     throw new Error('بقيت إعدادات قديمة في مخزن المفكرة. لم نكمل فتح درع السبحة.');
-    }
+   if(!preferences||typeof preferences.get!=='function'||
+      typeof preferences.set!=='function'||typeof preferences.flush!=='function'){
+    throw new Error('تعذّر تأكيد فصل الإعدادات القديمة عن خزنة السبحة. احتفظنا بالنسخ القديمة ولم نعلن اكتمال العزل.');
    }
-   for(const name of ['anwar_tasbih_count_v1','anwar_tasbih_dhikr_v1']){
-    try{localStorage.removeItem(name);if(localStorage.getItem(name)!==null)throw new Error('legacy value remains')}
-    catch(error){throw new Error('تعذّر إزالة نسخة قديمة من إعدادات السبحة. احتفظنا بها ولم نعلن اكتمال العزل.')}
+   preferences.set('tasbih',defaultTasbih);
+   const flushed=await preferences.flush();
+   if(!flushed)throw new Error('لم يؤكد مخزن المفكرة إزالة الإعدادات القديمة.');
+   const remaining=preferences.get().tasbih||{};
+   if((Number(remaining.count)||0)!==0||remaining.dhikr!==defaultTasbih.dhikr||
+      Array.isArray(remaining.customDhikrs)&&remaining.customDhikrs.length||
+      Array.isArray(remaining.removedOfficialDhikrs)&&remaining.removedOfficialDhikrs.length||
+      remaining.theme!=='emerald'||Number(remaining.elapsedMs||0)!==0){
+    throw new Error('بقيت إعدادات قديمة في مخزن المفكرة. احتفظنا بالنسخ ولم نكمل فتح الدرع.');
+   }
+   const oldKeys=['anwar_tasbih_count_v1','anwar_tasbih_dhikr_v1'];
+   const oldValues=[];
+   for(const name of oldKeys){
+    try{oldValues.push([name,localStorage.getItem(name)])}
+    catch(error){throw new Error('تعذّر فحص النسخ القديمة. لم نحذف أي بيانات.')}
+   }
+   try{
+    for(const [name] of oldValues){
+     localStorage.removeItem(name);
+     if(localStorage.getItem(name)!==null)throw new Error('legacy value remains');
+    }
+   }catch(error){
+    for(const [name,value] of oldValues){
+     if(value!==null&&!localStorage.getItem(name))try{localStorage.setItem(name,value)}catch(restoreError){}
+    }
+    throw new Error('تعذّر إزالة النسخ القديمة؛ حاولنا إعادتها كما كانت، ولم نعلن اكتمال العزل.');
    }
    legacyInitial=defaultTasbih;
   }
@@ -314,7 +328,7 @@
     await tasbihVault.lock();
     vaultUnlocked=false;
     resetLockedMemory();
-    setShieldVisual('locked');
+    setShieldVisual(vaultUnlocked?'unlocked':'locked');
     return true;
    }catch(error){
     customStatus.textContent='تعذّر التحقق من آخر حفظ؛ بقيت الخزنة مفتوحة ولم نمسح بياناتها. '+(error.message||'');
