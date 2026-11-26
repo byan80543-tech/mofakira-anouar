@@ -210,8 +210,10 @@
     const fajrH = hourAngle(-fajrAngle, latitude, solar.declination);
     const ishaH = method.isha ? hourAngle(-method.isha, latitude, solar.declination) : null;
     const asrFactor = source.school === '1' ? 2 : 1;
-    const noonAltitude = 90 - Math.abs(latitude - deg(solar.declination));
-    const asrAltitude = deg(Math.atan(1 / (asrFactor + Math.tan(rad(noonAltitude)))));
+    // At solar noon, the sun's zenith angle determines the object's shadow.
+    // Asr begins when shadow length reaches the noon shadow plus the madhab factor.
+    const noonZenithAngle = Math.abs(latitude - deg(solar.declination));
+    const asrAltitude = deg(Math.atan(1 / (asrFactor + Math.tan(rad(noonZenithAngle)))));
     const asrH = hourAngle(asrAltitude, latitude, solar.declination);
 
     if (sunsetAngle === null || asrH === null) {
