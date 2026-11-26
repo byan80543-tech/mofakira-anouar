@@ -75,15 +75,18 @@ function buildApp(options={}){
   'tasbihReset','tasbihDhikrCards','tasbihCustomDhikrInput','tasbihAddCustomDhikr','tasbihCustomDhikrStatus',
   'tasbihRemoveDhikr','tasbihRestoreOfficial','tasbihVoicePanel','tasbihVoice','tasbihVoiceState',
   'tasbihVoiceStatus','tasbihVoiceButtonLabel','tasbihBeads','morningTab','eveningTab',
-  'tasbihCounterControl','tasbihClockDial','tasbihClockTicks','tasbihClockNumbers','tasbihHourHand','tasbihMinuteHand','tasbihSecondHand','tasbihElapsedTime','tasbihThemeToggle','tasbihThemePicker','tasbihThemeEmerald','tasbihThemeDark','tasbihThemePink','tasbihThemeNight','tasbihThemeHeritage','tasbihThemeGlass'
+  'tasbihCounterControl','tasbihClockDial','tasbihClockTicks','tasbihClockNumbers','tasbihHourHand','tasbihMinuteHand','tasbihSecondHand','tasbihElapsedTime','tasbihThemeToggle','tasbihThemePicker','tasbihThemeEmerald','tasbihThemeDark','tasbihThemePink','tasbihThemeNight','tasbihThemeHeritage','tasbihThemeGlass',
+  'tasbihShieldButton','tasbihShieldDialog','tasbihShieldForm','tasbihShieldPassword','tasbihShieldConfirm','tasbihShieldConfirmWrap','tasbihShieldStatus','tasbihShieldSubmit','tasbihShieldLock','tasbihShieldClose'
  ];
- for(const id of ids)nodes[id]=id==='tasbihDhikr'?new FakeSelect(id):new FakeElement(id,id==='ownerDialog'?'DIALOG':'DIV');
+ for(const id of ids)nodes[id]=id==='tasbihDhikr'?new FakeSelect(id):new FakeElement(id,(['ownerDialog','tasbihShieldDialog'].includes(id)?'DIALOG':(['tasbihShieldForm'].includes(id)?'FORM':'DIV'));
  const themeNames=['emerald','dark','pink','night','heritage','glass'];
  themeNames.forEach(name=>{nodes['tasbihTheme'+name[0].toUpperCase()+name.slice(1)].dataset.tasbihThemeOption=name});
  nodes.tasbihThemePicker.hidden=true;
  nodes.tasbihPanel.hidden=true;
  const counter=new FakeElement('tasbihCounterControl','DIV');nodes.tasbihPanel.counter=counter;nodes.tasbihCounterControl=counter;
  nodes.ownerDialog.showModal=function(){this.open=true};
+ nodes.tasbihShieldDialog.showModal=function(){this.open=true};
+ nodes.tasbihShieldDialog.close=function(){this.open=false};
  const groupPattern=/<optgroup label="([^"]*)">([\s\S]*?)<\/optgroup>/g;
  for(const groupMatch of selectMatch[1].matchAll(groupPattern)){
   const group=new FakeElement('', 'OPTGROUP');group.label=groupMatch[1];
@@ -99,7 +102,16 @@ function buildApp(options={}){
  const preferences={
   get(){return clone(state)},
   set(section,value){state={...state,[section]:clone(value)};for(const listener of listeners)listener(clone(state));return clone(state)},
+  flush(){return Promise.resolve(true)},
   subscribe(listener){listeners.add(listener);listener(clone(state));return ()=>listeners.delete(listener)}
+ };
+ const tasbihVault={
+  isUnlocked(){return true},
+  status(){return Promise.resolve({exists:true,primaryAvailable:true,backupAvailable:true,unlocked:true})},
+  save(value){state.tasbih=clone(value);return Promise.resolve(true)},
+  lock(){return Promise.resolve(true)},
+  create(password,value){state.tasbih=clone(value);return Promise.resolve(clone(value))},
+  unlock(){return Promise.resolve({data:clone(state.tasbih),recoveredFromBackup:false})}
  };
  const documentListeners=new Map(),windowListeners=new Map();
  const document={
@@ -126,12 +138,14 @@ function buildApp(options={}){
   }
  }
  class MockSpeechRecognition {
-  constructor(){if(options.throwRecognition)throw new Error('mock constructor failure');recognitions.push(this)}
+  constructor(){if(options.throwRecognition)throw new Error('mock constructor failure');this.processLocally=false;recognitions.push(this)}
+  static available(){return Promise.resolve('available')}
+  static install(){return Promise.resolve(true)}
   start(){this.started=(this.started||0)+1}
   stop(){this.stopped=(this.stopped||0)+1}
  }
  const sandbox={
-  document,window:null,globalThis:null,Date:MockDate,AnwarPrivatePreferences:preferences,
+  document,window:null,globalThis:null,Date:MockDate,AnwarPrivatePreferences:preferences,AnwarTasbihVault:tasbihVault,
   requestAnimationFrame(callback){const id=++timerSequence;frames.set(id,callback);return id},
   cancelAnimationFrame(id){frames.delete(id)},
   confirm(){return true},
