@@ -741,7 +741,6 @@
     voiceButton.addEventListener('click',()=>{
      if(voiceRequested){stopVoice('تم إيقاف التسجيل.');return}
      try{
-      if(!window.confirm('تنبيه خصوصية: قد يرسل المتصفح الصوت إلى خدمة التعرف التابعة له لمعالجة الكلام. لن يحفظ التطبيق التسجيل أو الكلمات. هل تريد تشغيل العد الصوتي للسبحة؟'))return;
       voiceMatchCount=0;
       voiceResultSegments=[];lastRecognitionEvent=null;voiceFallbackPending=false;voiceRestartCount=0;
       speechLanguageIndex=0;speechLanguage=speechLanguages[speechLanguageIndex];recognition.lang=speechLanguage;
