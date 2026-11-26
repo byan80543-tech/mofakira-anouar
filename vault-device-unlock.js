@@ -103,7 +103,7 @@
     publicKey:{
      challenge,
      rpId:root.location.hostname,
-     allowCredentials:[{type:'public-key',id:credentialId}],
+     allowCredentials:[{type:'public-key',id:credentialId,transports:['internal']}],
      userVerification:'required',
      timeout:60000,
      extensions:{prf:{eval:{first:salt}}}

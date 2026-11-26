@@ -49,6 +49,7 @@ Object.defineProperty(globalThis,'navigator',{
     assert.equal(options.publicKey.rpId,'mofakira-anouar.pages.dev');
     assert.equal(options.publicKey.userVerification,'required');
     assert.equal(options.publicKey.allowCredentials[0].type,'public-key');
+    assert.deepEqual(options.publicKey.allowCredentials[0].transports,['internal'],'registered platform credentials are routed to the internal authenticator in Android standalone contexts');
     assert.ok(options.publicKey.extensions.prf.eval.first,'unlock requests the saved PRF salt');
     return {
      getClientExtensionResults(){
