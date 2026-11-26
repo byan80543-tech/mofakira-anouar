@@ -131,6 +131,7 @@ function buildApp(options={}){
   start(){this.started=(this.started||0)+1}
   stop(){this.stopped=(this.stopped||0)+1}
  }
+ MockSpeechRecognition.available=()=>Promise.resolve('available');
  if(options.noLocalRecognition)delete MockSpeechRecognition.prototype.processLocally;
  else MockSpeechRecognition.prototype.processLocally=false;
  const sandbox={
