@@ -61,7 +61,7 @@ assert.ok(html.indexOf('local-speech-privacy.js')<html.indexOf('tasbih-controlle
 assert.match(headers,/microphone=\(self\)/,'microphone access is limited to this origin');
 assert.match(headers,/on-device-speech-recognition=\(self\)/,'on-device speech recognition is explicitly permitted for this origin');
 assert.match(worker,/\.\/local-speech-privacy\.js/,'the local speech privacy gate is included in the offline shell');
-assert.match(worker,/v222/,'the offline shell cache is refreshed for the privacy gate');
+assert.match(worker,/v223/,'the offline shell cache is refreshed after all privacy assets');
 assert.match(core,/لا يبدأ الميكروفون إلا مع تعرف محلي مؤكد/,'the user-facing dictation notice describes the local-only boundary');
 
 console.log('PASS: voice input is fail-closed; microphone recognition requires processLocally=true and never falls back to remote processing.');
