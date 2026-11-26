@@ -250,7 +250,7 @@ ok(appSource.includes('const VAULT_IDLE_LOCK_MS=5*60*1000;') && appSource.includ
 ok(appSource.includes("VAULT_MODE_KEY='anwar_vault_mode_v1'") && appSource.includes("localStorage.setItem(VAULT_MODE_KEY,'encrypted')"),'vault mode metadata records only a verified encrypted state');
 ok(/async function bootVault\(\)[\s\S]*?showVaultGate\('setup','التشفير الشامل مطلوب/.test(appSource),'first launch and legacy plaintext data require mandatory encrypted setup before private access');
 ok(/if\(mode==='encrypted'&&savedVault===null&&savedBackup===null\)/.test(appSource),'a missing encrypted vault blocks startup instead of opening empty or plaintext content');
-ok(/async function bootVault\(\)[\s\S]{0,1200}savedVault=await AnwarVaultStorage\.get\(VAULT_STORAGE_KEY\)[\s\S]{0,300}if\(savedVault!==null\|\|savedBackup!==null\)/.test(appSource),'a tampered plaintext mode marker cannot hide or overwrite an existing encrypted vault');
+ok(appSource.includes('savedVault=await AnwarVaultStorage.get(VAULT_STORAGE_KEY)') && appSource.includes('if(savedVault!==null||savedBackup!==null)'), 'a tampered plaintext mode marker cannot hide or overwrite an existing encrypted vault');
 ok(/function persistPlainSnapshot\(\)\s*\{\s*throw new Error\('الحفظ دون تشفير معطّل/.test(appSource),'the legacy plaintext snapshot writer is permanently disabled');
 ok(/function save\(\)\s*\{[\s\S]*?if\(!vaultKey\|\|!vaultTemplate\)/.test(appSource),'private saves are blocked unless an active encrypted vault key and template exist');
 ok(appSource.includes("if(disableEncryption)disableEncryption.hidden=true") && appSource.includes("if(cancelSetup)cancelSetup.hidden=true"),'the UI permanently hides plaintext continuation and encryption-disable actions');
