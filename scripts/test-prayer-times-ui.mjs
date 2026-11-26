@@ -33,6 +33,7 @@ assert.doesNotMatch(prayer,/localStorage|sessionStorage/,'the prayer controller 
 assert.match(prayer,/HTTPS يشفّر الاتصال أثناء النقل فقط/,'the disclosure describes transport encryption concisely');
 assert.match(prayer,/function updatePrivacyAudioDisclosure\(\)/,'the disclosed audio host follows the selected adhan voice');
 assert.match(prayer,/updatePrivacyAudioDisclosure\(\);/,'changing the adhan voice refreshes the disclosed audio host');
+assert.match(prayer,/if\(window\.AnwarAdhanBridge\)\{[\s\S]*?AlAdhan[\s\S]*?عنوان IP/,'Android WebView discloses its separate external calendar and background audio path');
 assert.match(prayer,/card\.append\(head,nextBox,timesGrid,dateLine,infoDetails,backgroundPermissionWrap,status,details,audio\)/,'status feedback sits immediately after the permission control and outside the collapsed settings panel');
 assert.match(prayer,/details\.append\(summary,fields,actions,toggleLabel,volumeWrap\)/,'collapsed settings no longer contain the only permission feedback');
 assert.match(prayer,/\.anwar-prayer-status:not\(:empty\)\{display:block;margin:7px 0 0/,'permission feedback is visibly styled beside the control');
