@@ -7,6 +7,7 @@ const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const htmlAudit=JSON.parse(execFileSync('python3',[new URL('./html_inspector.py',import.meta.url).pathname,new URL('../index.html',import.meta.url).pathname],{encoding:'utf8'}));
 const securityHeaders=fs.readFileSync(new URL('../SECURITY-HEADERS.md',import.meta.url),'utf8');
 const deployedHeaders=fs.readFileSync(new URL('../_headers',import.meta.url),'utf8');
+const core=fs.readFileSync(new URL('../app-core.js',import.meta.url),'utf8');
 const cspContent=htmlAudit.csp_meta;
 assert.ok(cspContent,'an enforced document CSP meta policy is present');
 const directives=new Map(cspContent.split(';').map(part=>{
@@ -23,7 +24,19 @@ requireDirective('default-src',"'none'");
 requireDirective('base-uri',"'self'");
 requireDirective('object-src',"'none'");
 requireDirective('form-action',"'self'");
-const scriptSources=requireDirective('script-src',"'self'",'https://cdnjs.cloudflare.com');
+const html2canvasIntegrity='sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==';
+const qrcodeIntegrity='sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==';
+const html2canvasHash="'"+html2canvasIntegrity+"'";
+const qrcodeHash="'"+qrcodeIntegrity+"'";
+const scriptSources=requireDirective('script-src',"'self'",html2canvasHash,qrcodeHash);
+assert.ok(!scriptSources.includes('https://cdnjs.cloudflare.com'),'script-src does not trust the entire CDN host');
+assert.deepEqual([...scriptSources].sort(),["'self'",html2canvasHash,qrcodeHash].sort(),'only local scripts and the two exact pinned CDN artifacts are permitted');
+assert.match(core,/script\.integrity=integrity;script\.crossOrigin='anonymous';script\.referrerPolicy='no-referrer'/,
+ 'dynamically loaded third-party scripts set SRI before insertion');
+assert.match(core,/loadScriptOnce\('https:\/\/cdnjs\.cloudflare\.com\/ajax\/libs\/html2canvas\/1\.4\.1\/html2canvas\.min\.js','sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu\+Wgds8Gp\/gU33kqBtgNS4tSPHuGibyoeqMV\/TJlSKda6FXzoEyYGjTe\+vXA=='\)/,
+ 'the only external script is loaded with the hash trusted by CSP');
+assert.match(core,/loadScriptOnce\('https:\/\/cdnjs\.cloudflare\.com\/ajax\/libs\/qrcodejs\/1\.0\.0\/qrcode\.min\.js','sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA=='\)/,
+ 'the QR helper is loaded with its own hash trusted by CSP');
 assert.ok(!scriptSources.includes("'unsafe-inline'"),'script-src does not allow arbitrary inline JavaScript');
 assert.ok(!scriptSources.includes("'unsafe-eval'"),'script-src does not allow eval');
 const inlineScripts=htmlAudit.inline_scripts;
@@ -69,5 +82,10 @@ assert.deepEqual(
  [...pageConnectSources].sort(),
  'Cloudflare response connect-src must match the page policy so the HTTP header does not silently block required APIs'
 );
+const deployedScriptSources=deployedDirectives.get('script-src');
+assert.ok(deployedScriptSources,'Cloudflare response CSP includes script-src');
+assert.deepEqual([...deployedScriptSources].sort(),[...scriptSources].sort(),'Cloudflare response script-src must exactly match the page allowlist');
 for(const item of hashSources)assert.ok(deployedCsp[1].includes(item),'Cloudflare response CSP includes '+item);
+assert.ok(deployedCsp[1].includes(html2canvasHash),'Cloudflare response CSP includes the exact html2canvas SRI hash');
+assert.ok(deployedCsp[1].includes(qrcodeHash),'Cloudflare response CSP includes the exact qrcodejs SRI hash');
 console.log('CSP checks passed: required network origins match across page and Cloudflare response policies; inline scripts and eval remain blocked.');
