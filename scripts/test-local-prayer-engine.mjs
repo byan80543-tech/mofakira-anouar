@@ -19,7 +19,7 @@ const calculator = new PrayTime()
 
 const result = calculator.times([2026, 11, 26]);
 for (const key of ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha']) {
-  assert.match(result[key], /^([01]\\d|2[0-3]):[0-5]\\d$/, key + ' must be a valid local clock time');
+  assert.match(result[key], /^([01]\d|2[0-3]):[0-5]\d$/, key + ' must be a valid local clock time');
 }
 assert.ok(result.fajr < result.sunrise, 'Fajr must precede sunrise');
 assert.ok(result.sunrise < result.dhuhr, 'Sunrise must precede Dhuhr');
