@@ -8,6 +8,7 @@ const htmlAudit=JSON.parse(execFileSync('python3',[new URL('./html_inspector.py'
 const securityHeaders=fs.readFileSync(new URL('../SECURITY-HEADERS.md',import.meta.url),'utf8');
 const deployedHeaders=fs.readFileSync(new URL('../_headers',import.meta.url),'utf8');
 const core=fs.readFileSync(new URL('../app-core.js',import.meta.url),'utf8');
+const gatewayConfig=fs.readFileSync(new URL('../api-gateway-config.js',import.meta.url),'utf8');
 const cspContent=htmlAudit.csp_meta;
 assert.ok(cspContent,'an enforced document CSP meta policy is present');
 const directives=new Map(cspContent.split(';').map(part=>{
@@ -53,7 +54,22 @@ const styleSources=requireDirective('style-src',"'self'","'unsafe-inline'",'http
 assert.ok(styleSources.includes("'unsafe-inline'"),'inline styles remain supported intentionally');
 requireDirective('img-src',"'self'",'data:','blob:','https://upload.wikimedia.org');
 requireDirective('font-src',"'self'",'data:','https://fonts.gstatic.com');
-const pageConnectSources=requireDirective('connect-src',"'self'",'https://www.mp3quran.net','https://api.allorigins.win','https://corsproxy.io');
+const gatewayMatch=gatewayConfig.match(/globalThis[.]ANWAR_API_GATEWAY_BASE[ ]*=[ ]*["']([^"']*)["'][ ]*;/);
+assert.ok(gatewayMatch,'the API gateway configuration is explicit');
+const gatewayBase=gatewayMatch[1].trim();
+const gatewaySources=[];
+if(gatewayBase){
+ const gatewayUrl=new URL(gatewayBase);
+ assert.equal(gatewayUrl.protocol,'https:','the optional API gateway must use HTTPS');
+ assert.match(gatewayUrl.hostname,/^anwar-api-gateway[.][a-z0-9-]+[.]workers[.]dev$/,'the optional API gateway must use its exact approved Worker host');
+ assert.equal(gatewayUrl.pathname,'/','the API gateway origin must not include a path');
+ assert.equal(gatewayUrl.search,'','the API gateway origin must not include a query');
+ assert.equal(gatewayUrl.hash,'','the API gateway origin must not include a fragment');
+ gatewaySources.push(gatewayUrl.origin);
+}
+const expectedConnectSources=["'self'",'https://www.mp3quran.net',...gatewaySources];
+const pageConnectSources=requireDirective('connect-src',...expectedConnectSources);
+assert.deepEqual([...pageConnectSources].sort(),[...expectedConnectSources].sort(),'connect-src permits only the same origin, the Quran catalogue API, and an explicitly configured exact gateway origin');
 requireDirective('media-src',"'self'",'https:','blob:');
 requireDirective('frame-src',"'self'",'blob:');
 requireDirective('worker-src',"'self'",'blob:');
@@ -87,4 +103,6 @@ assert.deepEqual([...deployedScriptSources].sort(),[...scriptSources].sort(),'Cl
 for(const item of hashSources)assert.ok(deployedCsp[1].includes(item),'Cloudflare response CSP includes '+item);
 assert.ok(deployedCsp[1].includes(html2canvasHash),'Cloudflare response CSP includes the exact html2canvas SRI hash');
 assert.ok(deployedCsp[1].includes(qrcodeHash),'Cloudflare response CSP includes the exact qrcodejs SRI hash');
+const hstsHeader=deployedHeaders.split('\n').find(line=>line.trim().startsWith('Strict-Transport-Security:'));
+assert.equal(hstsHeader?.trim(),'Strict-Transport-Security: max-age=31536000','Cloudflare response headers enable one-year HSTS for this host only, without includeSubDomains or preload');
 console.log('CSP checks passed: required network origins match across page and Cloudflare response policies; inline scripts and eval remain blocked.');
