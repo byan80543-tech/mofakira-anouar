@@ -343,8 +343,10 @@ assert.ok(/\.tasbih-count-tap\s*\{[^}]*top:50%[^}]*z-index:8/s.test(html),'the c
 assert.ok(/\.tasbih-selected-phrase\s*\{[\s\S]*?clip:rect\(0,0,0,0\)!important;/.test(html),'the floating selected-dhikr line is visually hidden while its controller node remains available');
 assert.equal(app.nodes.tasbihBeads.children.filter(bead=>bead.classList.contains('is-counted')).length,0,'the bead ring begins uncounted');
 assert.equal(app.nodes.ownerDialog.open,false,'opening the tasbih no longer opens the ownership dialog');
-assert.equal(app.sandbox.AnwarTasbihController.close(),true,'the public tasbih controller closes the panel');
-assert.equal(app.nodes.tasbihPanel.hidden,true,'the tasbih panel hides when closed');
+const closeApp=buildApp();
+closeApp.sandbox.AnwarTasbihController.open();
+assert.equal(closeApp.sandbox.AnwarTasbihController.close(),true,'the public tasbih controller closes the panel');
+assert.equal(closeApp.nodes.tasbihPanel.hidden,true,'the tasbih panel hides when closed without locking the separate voice-recognition test session');
 assert.match(appCore,/if\(name==='tasbih'\)[\s\S]*?controller\.open\(\)/,'the dedicated tasbih service card opens the same standalone counter controller');
 assert.doesNotMatch(appCore,/toggleTasbihFromToolbar|adhkarTasbihToggle/,'the obsolete dialog launcher is removed from the notebook delegate');
 assert.equal(app.nodes.tasbihPanel.dataset.tasbihTheme,'emerald','the classic emerald theme is the safe default');
