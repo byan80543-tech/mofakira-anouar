@@ -90,6 +90,8 @@ async function readBodyBytesLimited(request, maxBytes) {
       total += value.byteLength;
       if (total > maxBytes) {
         try { await reader.cancel("Tasbih audio request exceeds the configured limit"); } catch {}
+        for (const chunk of chunks) chunk.fill(0);
+        chunks.length = 0;
         return { bytes: null, tooLarge: true };
       }
       chunks.push(value);
@@ -256,8 +258,8 @@ async function handleTasbihCount(request, env, origin) {
     });
 
     const candidate = aiResult?.transcription_info?.text ?? aiResult?.text ?? "";
-    transcript = typeof candidate === "string" ? candidate : "";
-    const matches = countTasbihPhraseMatches(transcript, phrase);
+    transcript = typeof candidate === "string" && candidate.length <= 12_000 ? candidate : "";
+    const matches = Math.min(100, countTasbihPhraseMatches(transcript, phrase));
     // Only the count leaves this Worker. Neither transcript nor audio is returned.
     return withCors(json({ matches }), origin, {
       "Cache-Control": "no-store, private, max-age=0"
