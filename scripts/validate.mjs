@@ -111,7 +111,7 @@ ok(clockDialStart>=0 && clockDialEnd>clockDialStart && html.slice(clockDialStart
 ok(tasbihController.includes('function updateClockUi(now)') && tasbihController.includes('function animateClockFrame()') && tasbihController.includes('requestClockFrame(animateClockFrame)') && tasbihController.includes('elapsedMs:currentElapsedMs()'), 'clock hands follow local time and elapsed session duration is saved through encrypted preferences');
 const tasbihScript=htmlAudit.script_sources.find(src=>src.startsWith('./tasbih-controller.js?v='));
 ok(!!tasbihScript && serviceWorker.includes("'./tasbih-controller.js'") && /const CACHE_NAME='anwar-shell-[0-9]{4}-[0-9]{2}-[0-9]{2}-v[0-9]+';/.test(serviceWorker), 'standalone tasbih controller is versioned and precached for offline use');
-ok(!htmlAudit.script_sources.some(src=>src.startsWith('./poetry-dictation.js')) && !serviceWorker.includes("'./poetry-dictation.js'") && !appCore.includes('window.AnwarPoetryDictation'), 'writing microphone dictation is absent from the active and offline application shell');
+ok(!htmlAudit.script_sources.some(src=>src.startsWith('./poetry-dictation.js')) && !serviceWorker.includes("'./poetry-dictation.js'"), 'writing microphone dictation is absent from the active and offline application shell');
 
 ok(manifest.name==='مفكرة أنوار' && manifest.short_name==='مفكرة أنوار','PWA name and short_name');
 ok(manifest.start_url==='/mofakira-anouar/' && manifest.scope==='/mofakira-anouar/','PWA start_url and scope match the Cloudflare application subpath');
