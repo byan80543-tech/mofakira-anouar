@@ -250,6 +250,9 @@
   audioPrivacyFact.state.className='anwar-prayer-privacy-state local';
  }
  updatePrivacyAudioDisclosure();
+ if(window.AnwarAdhanBridge){
+  addPrivacyFact('الجدولة والتشغيل بالخلفية في Android','عند تفعيل الأذان بالخلفية، يجلب تطبيق Android جدول الصلاة من خدمة AlAdhan ويرتبط بمصدر صوت خارجي؛ قد يرى المزوّد عنوان IP وبيانات المدينة والدولة المرسلة للجدولة.','اتصال خارجي عند التفعيل','external');
+ }
  addPrivacyFact('الإعدادات','تُحفظ ضمن تفضيلات مفكرة أنوار المشفرة على هذا الجهاز.','داخل الخزنة المشفرة','secure');
  addPrivacyFact('الحساب','لا يلزم حساب أو بريد إلكتروني.','دون حساب','local');
  addPrivacyFact('الاتصال','HTTPS يشفّر الاتصال أثناء النقل فقط.','تشفير أثناء النقل','secure');
