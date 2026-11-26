@@ -1021,8 +1021,7 @@ function load(){
   if(backupRaw!==null){
    try{
     S=readStoredState(backupRaw);
-    try{localStorage.setItem('anwar_v1',JSON.stringify(S))}catch(repairError){console.warn('تعذّر إنشاء السجل الأساسي من النسخة الاحتياطية',repairError)}
-    toast('استعدنا نسخة سليمة من الحفظ الاحتياطي.',4500);
+    toast('استعدنا النسخة الاحتياطية في الذاكرة. يجب تشفيرها قبل فتح المفكرة.');
     return;
    }catch(backupError){
     showStorageRecoveryNotice('تعذّر فتح النسخة الاحتياطية','النسخة الاحتياطية غير قابلة للتحليل. نزّل سجلها الخام قبل بدء مفكرة جديدة.',backupRaw);
@@ -1061,24 +1060,32 @@ async function restoreStorageBackup(){
  try{
   const backupRaw=localStorage.getItem('anwar_v1_backup_v2');
   if(!backupRaw)throw new Error('لا توجد نسخة احتياطية');
-  const restored=readStoredState(backupRaw),serialized=JSON.stringify(restored);
-  localStorage.setItem('anwar_v1',serialized);
-  try{localStorage.setItem('anwar_v1_backup_v2',serialized)}catch(backupError){console.warn('تعذّر تحديث النسخة الاحتياطية الثانوية',backupError)}
-  S=restored;clearStorageRecovery();theme();chips();
-  await continueVaultAfterRecovery();toast('تمت استعادة النسخة الاحتياطية. أكمل إعداد التشفير الشامل لفتحها.',4500);
+  // Keep the recovered record in memory only. It is encrypted before any
+  // private content becomes available; the original legacy files stay intact
+  // until encrypted primary + backup verification completes.
+  S=readStoredState(backupRaw);
+  clearStorageRecovery();
+  vaultKey=null;vaultTemplate=null;vaultUnlocked=false;vaultReady=false;vaultHasEncryptedData=false;
+  cur=null;draftNote=null;saved=null;
+  globalThis.AnwarPrivatePreferences.load(emptyStorageState().preferences);
+  showVaultGate('setup','استعدنا النسخة الاحتياطية في الذاكرة دون إنشاء نسخة نصية جديدة. أنشئ عبارة المرور لتشفيرها والتحقق من الخزنة قبل فتح المفكرة.');
+  syncVaultLockButton();theme();chips();openNote(null);renderList();
+  toast('تمت استعادة النسخة إلى الذاكرة. أكمل إعداد التشفير الشامل لحفظها بأمان.',5000);
  }catch(error){toast('تعذّرت استعادة النسخة الاحتياطية؛ بقي السجل الخام دون تغيير.',5000);console.warn('تعذّرت استعادة النسخة الاحتياطية',error)}
 }
 async function startFreshNotebook(){
  if(!storageRecoveryBlocked)return;
  if(storageRecoveryMode==='corrupt'&&storageRecoveryRaw!==null&&!storageRecoveryExported){toast('نزّل ملف الاسترداد الخام أولاً قبل بدء مفكرة جديدة.',6000);return}
  if(!confirm('سيتم استبدال بيانات المفكرة التجريبية فقط والبدء بصفحة فارغة. لن تتأثر المكتبة أو الإذاعة. هل تتابع؟'))return;
- const fresh=emptyStorageState();
  try{
-  const serialized=JSON.stringify(fresh);
-  localStorage.setItem('anwar_v1',serialized);
-  try{localStorage.setItem('anwar_v1_backup_v2',serialized)}catch(backupError){console.warn('تعذّر إنشاء نسخة احتياطية أولية',backupError)}
-  S=fresh;cur=null;clearStorageRecovery();theme();chips();
-  await continueVaultAfterRecovery();toast('بدأت مفكرة أنوار ببيانات نظيفة. أكمل إعداد التشفير الشامل للمتابعة.',3500);
+  S=emptyStorageState();
+  cur=null;draftNote=null;saved=null;
+  clearStorageRecovery();
+  vaultKey=null;vaultTemplate=null;vaultUnlocked=false;vaultReady=false;vaultHasEncryptedData=false;
+  globalThis.AnwarPrivatePreferences.load(S.preferences);
+  showVaultGate('setup','بدأت مفكرة جديدة في الذاكرة فقط. أنشئ عبارة المرور لتشفيرها قبل فتحها أو حفظ أي بيانات.');
+  syncVaultLockButton();theme();chips();openNote(null);renderList();
+  toast('بدأت مفكرة أنوار ببيانات نظيفة. أكمل إعداد التشفير الشامل للمتابعة.',4500);
  }catch(error){console.warn('تعذّر بدء مفكرة نظيفة',error);toast('تعذّر تهيئة المفكرة؛ لم يتم تغيير بيانات المكتبة أو الإذاعة.',5000)}
 }
 function exportStorageRecovery(){if(storageRecoveryMode!=='corrupt'||storageRecoveryRaw===null){toast('لا تتوفر قيمة خام قابلة للتنزيل. أعد فحص وصول المتصفح إلى التخزين أولاً.',5000);return}try{const blob=new Blob([storageRecoveryRaw],{type:'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='anwar-storage-recovery-raw.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);storageRecoveryExported=true;toast('تم تجهيز ملف الاسترداد الخام. احتفظ به قبل الاستعادة.',5000)}catch(e){toast('تعذّر تنزيل ملف الاسترداد الخام؛ لا تحذف بيانات المتصفح.',5000)}}
