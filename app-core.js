@@ -15,6 +15,7 @@
     surah:Number.isSafeInteger(surah)&&surah>=1&&surah<=114?surah:1
    },
    readerAdvance:source.readerAdvance==='s'?'s':'c',
+   adhkarPageTheme:['white','rose','blue','yellow','purple','gold'].includes(source.adhkarPageTheme)?source.adhkarPageTheme:'white',
    prayer:{
     country:typeof prayer.country==='string'?prayer.country.trim().slice(0,90):'',
     city:typeof prayer.city==='string'?prayer.city.trim().slice(0,90):'',
@@ -51,7 +52,7 @@
  }
  function load(value){state=normalize(value);notify();return copy()}
  function set(section,value){
-  if(!['radio','readerAdvance','tasbih','prayer'].includes(section))throw new Error('إعداد خاص غير معروف.');
+  if(!['radio','readerAdvance','tasbih','prayer','adhkarPageTheme'].includes(section))throw new Error('إعداد خاص غير معروف.');
   const next=copy();next[section]=value;state=normalize(next);
   const snapshot=copy();
   if(persistHandler){
@@ -398,6 +399,8 @@ function importLegacyPrivatePreferences(base){
   }
   const lastPlayed=localStorage.getItem('anwar_prayer_last_adhan_v1');
   if(typeof lastPlayed==='string')preferences.prayer.lastPlayedKey=lastPlayed.slice(0,180);
+  const adhkarTheme=localStorage.getItem('anwar_adhkar_page_theme');
+  if(['white','rose','blue','yellow','purple','gold'].includes(adhkarTheme))preferences.adhkarPageTheme=adhkarTheme;
  }catch(error){
   throw new Error('تعذّرت قراءة إعداداتك القديمة. لم نحذفها؛ أعد المحاولة بعد التأكد من إتاحة تخزين الموقع.');
  }
@@ -405,7 +408,7 @@ function importLegacyPrivatePreferences(base){
 }
 function clearLegacyPrivatePreferences(){
  let cleared=true;
- for(const key of ['anwar_rd','anwar_reader_advance','anwar_tasbih_count_v1','anwar_tasbih_dhikr_v1','anwar_prayer_settings_v1','anwar_prayer_last_adhan_v1']){
+ for(const key of ['anwar_rd','anwar_reader_advance','anwar_tasbih_count_v1','anwar_tasbih_dhikr_v1','anwar_prayer_settings_v1','anwar_prayer_last_adhan_v1','anwar_adhkar_page_theme']){
   try{localStorage.removeItem(key);if(localStorage.getItem(key)!==null)cleared=false}
   catch(error){cleared=false;console.warn('تعذّر حذف إعداد خاص قديم',key,error)}
  }
