@@ -12,7 +12,7 @@ const design=fs.readFileSync(path.join(root,'prayer-card-design.css'),'utf8');
 assert.doesNotThrow(()=>new vm.Script(prayer,{filename:'prayer-times.js'}),'prayer controller syntax');
 assert.match(prayer,/const infoDetails=el\('details','anwar-prayer-info'\)/,'privacy explanation has a details disclosure');
 assert.doesNotMatch(prayer,/morocco_old|الحاج محمد العمري|youtube\.com|استماع خارجي للأذان/,'the old YouTube-only Moroccan recording is completely removed');
-assert.match(prayer,/audioFileInput\.type='file'/,'adhan audio is selected locally from the user's device');
+assert.match(prayer,/audioFileInput\.type='file'/,"adhan audio is selected locally from the user's device");
 assert.match(prayer,/audioFileInput\.accept=.*audio\//,'the local audio picker accepts common audio formats');
 assert.match(prayer,/file\.size>20\*1024\*1024/,'local adhan audio is limited to 20 MB');
 assert.match(prayer,/async function saveLocalAdhan\(file\)/,'the selected adhan file is saved in local IndexedDB');
