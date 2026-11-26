@@ -63,7 +63,7 @@ const oldController = read('tasbih-controller.js');
 const oldBehaviorTests = read('scripts/test-tasbih-behavior.mjs');
 const oldOpenTests = read('scripts/test-tasbih-open.mjs');
 
-assert.match(activity, /class NativeTasbihActivity\s*:\s*Activity\(\)/);
+assert.match(activity, /class NativeTasbihActivity\s*:\s*FragmentActivity\(\)/);
 assert.match(activity, /private const val BEAD_COUNT = 33/);
 assert.match(activity, /private fun completedBeads\(\)/);
 assert.match(activity, /private fun addCount\(amount: Int\)/);
@@ -105,13 +105,29 @@ assert.match(activity, /AndroidKeyStore/);
 assert.match(activity, /AES\/GCM\/NoPadding/);
 assert.match(activity, /KeyGenParameterSpec/);
 assert.match(activity, /setRandomizedEncryptionRequired\(true\)/);
-assert.match(activity, /verified\.contentEquals\(plain\)/);
+assert.match(activity, /setUserAuthenticationRequired\(true\)/);
+assert.match(activity, /setUserAuthenticationParameters\(/);
+assert.match(activity, /BiometricPrompt/);
+assert.match(activity, /AUTH_BIOMETRIC_STRONG/);
+assert.match(activity, /LEGACY_KEY_ALIAS/);
+assert.match(activity, /legacyMigrationPending/);
+assert.match(activity, /BACKUP_STATE_KEY/);
+assert.match(activity, /FLAG_SECURE/);
+assert.match(activity, /override fun onStop\(\)/);
+assert.match(activity, /authenticateBeforeOpening\(\)/);
+assert.match(activity, /decryptState\(saved\)\.contentEquals\(plain\)/);
+assert.match(activity, /decryptState\(savedBackup\)\.contentEquals\(plain\)/);
 assert.match(activity, /لم نكتب فوقه|لم نحذف السجل السابق/);
 assert.match(activity, /getSharedPreferences\(PREFS_NAME, MODE_PRIVATE\)/);
 assert.doesNotMatch(activity, /http:\/\/|https:\/\//,
   'the native tasbih does not use the old web screen as its interface');
 
 assert.match(activity, /SpeechRecognizer/);
+assert.match(activity, /isOnDeviceRecognitionAvailable/);
+assert.match(activity, /createOnDeviceSpeechRecognizer/);
+assert.match(activity, /EXTRA_PREFER_OFFLINE/);
+assert.doesNotMatch(activity, /SpeechRecognizer\.createSpeechRecognizer\(this\)/,
+  'the native counter never falls back to a potentially remote speech recognizer');
 assert.match(activity, /listOf\("ar-MA", "ar-SA", "ar"\)/);
 assert.match(activity, /private fun normalizeSpeech/);
 assert.match(activity, /private fun countPhraseMatches/);
@@ -131,11 +147,11 @@ assert.match(legacy, /WebView/);
 assert.match(gradle, /versionCode = 18/);
 assert.ok(gradle.includes('versionName = "0.9.9"'));
 
-assert.ok(oldController.includes("preferences.set('tasbih'"),
-  'the existing encrypted web preference adapter remains in place');
+assert.ok(oldController.includes('tasbihVault.save(snapshot)')&&!oldController.includes("preferences.set('tasbih'"),
+  'the web Tasbih data is isolated from notebook-wide preferences');
 assert.ok(oldBehaviorTests.includes('royal tasbih ring renders exactly 33 beads'));
 assert.ok(oldBehaviorTests.includes('recognition prefers the visitor’s Moroccan Arabic locale'));
-assert.ok(oldOpenTests.includes('encrypted counter preferences and saved state remain active'));
+assert.ok(oldOpenTests.includes('the live tasbih state no longer uses the notebook-wide preferences adapter'));
 
 assert.match(religiousGate, /PortalItem\("📿", "السبحة"/);
 assert.match(religiousGate, /NativeTasbihActivity::class\.java/);
