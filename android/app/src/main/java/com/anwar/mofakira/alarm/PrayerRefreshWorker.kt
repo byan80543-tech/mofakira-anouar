@@ -40,7 +40,7 @@ class PrayerRefreshWorker(
         fun ensurePeriodic(context: Context) {
             val request = PeriodicWorkRequestBuilder<PrayerRefreshWorker>(24, TimeUnit.HOURS).build()
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-                PERIODIC_WORK, ExistingPeriodicWorkPolicy.KEEP, request
+                PERIODIC_WORK, ExistingPeriodicWorkPolicy.UPDATE, request
             )
         }
     }
