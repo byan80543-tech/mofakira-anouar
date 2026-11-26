@@ -102,6 +102,10 @@ assert.match(voiceCatalog, /total != EXPECTED_BYTES/);
 assert.match(nativePrayer, /NativePrayerVoice\("calm"/);
 assert.doesNotMatch(nativePrayer, /NativePrayerVoice\("(?:aqsa|haram_makki|morocco_kamal|madina)"/);
 assert.doesNotMatch(read('android/app/src/main/java/com/anwar/mofakira/alarm/PrayerRefreshWorker.kt'), /NetworkType|Constraints|CONNECTED/);
+assert.match(read('android/app/src/main/java/com/anwar/mofakira/alarm/PrayerRefreshWorker.kt'), /ExistingPeriodicWorkPolicy\.UPDATE/,
+  'existing periodic work is updated to remove any previous network constraint');
+assert.equal((prayerSettings.match(/voiceKey = "calm"/g)||[]).length,3,
+  'legacy and new preference paths normalize every adhan choice to the bundled local voice');
 assert.doesNotMatch(prayer, /youtube\.com|morocco_old|الحاج محمد العمري/);
 assert.doesNotMatch(voiceCatalog, /youtube\.com|morocco_old|الحاج محمد العمري/);
 assert.match(manifest, /android:name="\.NativePrayerActivity"[\s\S]*?android:exported="false"/,
