@@ -1,7 +1,8 @@
-/* Prayer times and adhan for Anwar notebook.
- * Prayer data: AlAdhan API. Default adhan recording: Wikimedia Commons, CC0 1.0.
- * No GPS permission is requested; the chosen city, country and calculation settings are sent to the timings API.
- * نسخة Chrome/PWA لا يضمن استمرار الصوت بعد إغلاق الصفحة؛ يعتمد ذلك على دعم Android الأصلي وإعداداته.
+/* Local prayer times and locally stored adhan for Anwar notebook.
+ * Prayer times are calculated on-device from a bundled city-coordinate table.
+ * The adhan recording is imported by the user and stored in this origin's IndexedDB.
+ * No prayer API, remote audio host, GPS permission, or location upload is used.
+ * Chrome/PWA background playback and closed-app alarms are not guaranteed.
  */
 (function(){
  'use strict';
@@ -10,15 +11,10 @@
  if(!panel)return;
  window.__anwarPrayerTimesReady=true;
 
- const API='https://api.aladhan.com/v1';
- const VOICES=[
-  {key:'calm',label:'أذان هادئ · الافتراضي',url:'https://upload.wikimedia.org/wikipedia/commons/b/b0/Beautiful_adhan.ogg',page:'https://commons.wikimedia.org/wiki/File:Beautiful_adhan.ogg',credit:'Adam-synagda',license:'CC0 1.0'},
-  {key:'aqsa',label:'المسجد الأقصى · ناجي قزاز',url:'https://raw.githubusercontent.com/Kiwifu/adhan-mp3/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/Najee_Qazaz_-_Al_Aqsa_Jerusalem_%28%D9%86%D8%A7%D8%AC%D9%8A_%D9%82%D8%B2%D8%A7%D8%B2_-_%D8%A7%D9%84%D9%85%D8%B3%D8%AC%D8%AF_%D8%A7%D9%84%D8%A3%D9%82%D8%B5%D9%89_%D8%A7%D9%84%D9%82%D8%AF%D8%B3%29.mp3',page:'https://github.com/Kiwifu/adhan-mp3',credit:'ناجي قزاز · المسجد الأقصى',license:'المصدر: مجموعة Kiwifu للأذان',note:'ملف MP3 مباشر · القدس'},
-  {key:'haram_makki',label:'الحرم المكي · علي بن أحمد ملا',url:'https://raw.githubusercontent.com/Kiwifu/adhan-mp3/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/Ali_Ibn_Ahmad_Mala_1_-_Al_Haram_Al_Maki_%28%D8%B9%D9%84%D9%8A_%D8%A8%D9%86_%D8%A3%D8%AD%D9%85%D8%AF_%D9%85%D9%84%D8%A7_-_%D8%A7%D9%84%D8%AD%D8%B1%D9%85_%D8%A7%D9%84%D9%85%D9%83%D9%8A%29.mp3',page:'https://github.com/Kiwifu/adhan-mp3',credit:'علي بن أحمد ملا · الحرم المكي',license:'المصدر: مجموعة Kiwifu للأذان',note:'ملف MP3 مباشر · مكة المكرمة'},
-  {key:'morocco_kamal',label:'أذان مغربي · كمال محمد المروش',url:'https://raw.githubusercontent.com/Kiwifu/adhan-mp3/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/Kamal_Muhammad_Al_Marush_2_-_Morocco_%28%D9%83%D9%85%D8%A7%D9%84_%D9%85%D8%AD%D9%85%D8%AF_%D8%A7%D9%84%D9%85%D8%B1%D8%B9%D9%88%D8%B4_-_%D8%A7%D9%84%D9%85%D8%BA%D8%B1%D8%A8%29.mp3',page:'https://github.com/Kiwifu/adhan-mp3',credit:'كمال محمد المروش · المغرب',license:'المصدر: مجموعة Kiwifu للأذان',note:'ملف MP3 مباشر · أذان مغربي'},
-  {key:'madina',label:'المسجد النبوي · تسجيل ميداني',url:'https://upload.wikimedia.org/wikipedia/commons/7/7c/33937_ejaz215_call-to-prayer-from-the-prophet-s-mo.ogg',page:'https://commons.wikimedia.org/wiki/File:33937_ejaz215_call-to-prayer-from-the-prophet-s-mo.ogg',credit:'ejaz215',license:'CC BY 3.0'}
- ];
+ const VOICES=[{key:'calm',label:'ملف الأذان المحلي'}];
  const DEFAULT_VOICE='calm';
+ let localAudioObjectUrl='';
+ let localAdhanBlob=null;
  const PRAYERS=[
   {key:'Fajr',name:'الفجر'},
   {key:'Dhuhr',name:'الظهر'},
@@ -156,7 +152,7 @@
  }
  let settings=readSettings();
  function validTimeZone(value){try{new Intl.DateTimeFormat('en',{timeZone:value}).format();return value;}catch(_e){return Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';}}
- let todayData=null,tomorrowData=null,timeZone=validTimeZone(settings.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC');
+ let todayData=null,tomorrowData=null,timeZone=validTimeZone(settings.timezone||(window.AnwarPrayerEngine&&window.AnwarPrayerEngine.timezoneForCountry(settings.country))||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC');
  let loading=false,loadToken=0,lastTick=Date.now(),lastDateCheck='';
  let pendingAdhanKey='',lastAutoAttemptAt=0;
  const el=(tag,className,text)=>{
@@ -247,13 +243,17 @@
   return {row:row,description:copy.lastChild};
  }
  addPrivacyFact('الموقع الدقيق','لا نستخدم GPS ولا نطلب إذن الموقع.','لا يُستخدم','local');
- addPrivacyFact('مواقيت الصلاة','نرسل المدينة والدولة والتاريخ إلى api.aladhan.com؛ ويستطيع المزوّد رؤية عنوان IP.','خدمة خارجية','external');
- const audioPrivacyFact=addPrivacyFact('صوت الأذان','','استضافة صوتية خارجية','external');
+ addPrivacyFact('مواقيت الصلاة','تُحسب داخل الجهاز من إحداثيات المدينة المحفوظة، دون إرسال المدينة أو التاريخ إلى خادم.','حساب محلي','local');
+ const audioPrivacyFact=addPrivacyFact('صوت الأذان','','ملف محلي','local');
  function updatePrivacyAudioDisclosure(){
-  const voice=VOICES.find(item=>item.key===settings.voice)||VOICES[0];
-  let host='مضيف التسجيل الخارجي';
-  try{host=new URL(voice.url).hostname}catch(_e){}
-  audioPrivacyFact.description.textContent='يُحمّل التسجيل من '+host+' عبر HTTPS؛ ويمكن للمضيف رؤية عنوان IP.';
+  audioPrivacyFact.description.textContent=localAudioObjectUrl
+   ?'ملف الأذان محفوظ على هذا الجهاز داخل مساحة تخزين المفكرة. لا يُحمّل من مضيف صوتي خارجي.'
+   :'لم يُستورد ملف أذان بعد. اختر ملف MP3 أو OGG من جهازك ليُحفظ محلياً.';
+  const state=audioPrivacyFact.row.querySelector('.anwar-prayer-privacy-state');
+  if(state){
+   state.textContent=localAudioObjectUrl?'محفوظ محلياً':'بانتظار ملف محلي';
+   state.className='anwar-prayer-privacy-state local';
+  }
  }
  updatePrivacyAudioDisclosure();
  addPrivacyFact('الإعدادات','تُحفظ ضمن تفضيلات مفكرة أنوار المشفرة على هذا الجهاز.','داخل الخزنة المشفرة','secure');
@@ -268,10 +268,14 @@
  COUNTRY_OPTIONS.forEach(item=>{const option=el('option','',item.label);option.value=item.api;countrySelect.append(option)});
  countrySelect.value=settings.country;
  const cityInput=el('input');cityInput.id='anwarPrayerCity';cityInput.type='text';cityInput.setAttribute('aria-label','المدينة');cityInput.autocomplete='address-level2';cityInput.maxLength=90;cityInput.value=settings.city;cityInput.placeholder='المدينة';
- const voiceSelect=el('select');voiceSelect.id='anwarPrayerVoice';voiceSelect.setAttribute('aria-label','صوت الأذان');
- VOICES.forEach(voice=>{const option=el('option','',voice.label);option.value=voice.key;voiceSelect.append(option)});
- voiceSelect.value=settings.voice;
- fields.append(countrySelect,cityInput,voiceSelect);
+ const audioFileField=el('label','anwar-prayer-field');
+ audioFileField.append(el('span','','ملف الأذان من جهازك'));
+ const audioFileInput=el('input');
+ audioFileInput.type='file';
+ audioFileInput.accept='.mp3,.ogg,.oga,.wav,.m4a,.aac,audio/*';
+ audioFileInput.setAttribute('aria-label','استيراد ملف الأذان محلياً');
+ audioFileField.append(audioFileInput);
+ fields.append(countrySelect,cityInput,audioFileField);
  const refreshButton=el('button','primary','تحديث');
  refreshButton.type='button';refreshButton.setAttribute('aria-label','تحديث مواقيت الصلاة');
  const testButton=el('button','','تجربة الأذان');
@@ -306,13 +310,93 @@
  });
  const audio=document.createElement('audio');
  audio.id='anwarPrayerAdhanAudio';audio.preload='none';audio.hidden=true;audio.controls=false;audio.setAttribute('playsinline','');audio.setAttribute('aria-label','صوت الأذان');
- const initialVoice=VOICES.find(item=>item.key===settings.voice)||VOICES[0];
- audio.src=initialVoice.url;
  audio.volume=settings.volume;
  card.append(head,nextBox,timesGrid,dateLine,infoDetails,backgroundPermissionWrap,status,details,audio);
  const prayerMount=document.getElementById('anwarPrayerMount');
  if(prayerMount)prayerMount.append(card);
  else{const insertBefore=panel.querySelector('.radio-section-title');if(insertBefore)panel.insertBefore(card,insertBefore);else panel.append(card);}
+
+ const LOCAL_AUDIO_DB='anwar-prayer-audio-v1';
+ function openLocalAudioDatabase(){
+  return new Promise((resolve,reject)=>{
+   if(!('indexedDB' in window)){reject(new Error('التخزين المحلي للملف الصوتي غير متاح في هذا المتصفح.'));return;}
+   const request=indexedDB.open(LOCAL_AUDIO_DB,1);
+   request.onupgradeneeded=()=>{
+    const db=request.result;
+    if(!db.objectStoreNames.contains('files'))db.createObjectStore('files');
+   };
+   request.onsuccess=()=>resolve(request.result);
+   request.onerror=()=>reject(request.error||new Error('تعذّر فتح تخزين الأذان المحلي.'));
+   request.onblocked=()=>reject(new Error('تخزين الأذان مشغول بتبويب آخر. أغلق النسخ الأخرى ثم أعد المحاولة.'));
+  });
+ }
+ function applyLocalAdhan(blob){
+  if(!(blob instanceof Blob)||!blob.size)throw new Error('ملف الأذان المحلي غير صالح.');
+  if(localAudioObjectUrl)URL.revokeObjectURL(localAudioObjectUrl);
+  localAdhanBlob=blob;
+  localAudioObjectUrl=URL.createObjectURL(blob);
+  audio.pause();
+  audio.src=localAudioObjectUrl;
+  audio.load();
+  updatePrivacyAudioDisclosure();
+ }
+ async function saveLocalAdhan(file){
+  const db=await openLocalAudioDatabase();
+  try{
+   await new Promise((resolve,reject)=>{
+    const transaction=db.transaction('files','readwrite');
+    transaction.objectStore('files').put({
+     blob:file,
+     name:String(file.name||'adhan-audio').slice(0,180),
+     type:String(file.type||'').slice(0,100),
+     savedAt:Date.now()
+    },'adhan');
+    transaction.oncomplete=resolve;
+    transaction.onerror=()=>reject(transaction.error||new Error('تعذّر حفظ ملف الأذان.'));
+    transaction.onabort=()=>reject(transaction.error||new Error('أُلغِي حفظ ملف الأذان.'));
+   });
+  }finally{db.close();}
+ }
+ async function loadLocalAdhan(){
+  const db=await openLocalAudioDatabase();
+  let record;
+  try{
+   record=await new Promise((resolve,reject)=>{
+    const transaction=db.transaction('files','readonly');
+    const request=transaction.objectStore('files').get('adhan');
+    request.onsuccess=()=>resolve(request.result||null);
+    request.onerror=()=>reject(request.error||new Error('تعذّرت قراءة ملف الأذان المحلي.'));
+   });
+  }finally{db.close();}
+  if(record&&record.blob instanceof Blob&&record.blob.size){
+   applyLocalAdhan(record.blob);
+   return true;
+  }
+  updatePrivacyAudioDisclosure();
+  return false;
+ }
+ audioFileInput.addEventListener('change',async()=>{
+  const file=audioFileInput.files&&audioFileInput.files[0];
+  if(!file)return;
+  const extension=(String(file.name||'').split('.').pop()||'').toLowerCase();
+  const accepted=['mp3','ogg','oga','wav','m4a','aac','mp4'].includes(extension)||String(file.type||'').toLowerCase().startsWith('audio/');
+  if(!accepted){setStatus('اختر ملفاً صوتياً بصيغة MP3 أو OGG أو WAV أو M4A أو AAC.');audioFileInput.value='';return;}
+  if(file.size>20*1024*1024){setStatus('حجم ملف الأذان يتجاوز الحد المحلي البالغ 20 ميغابايت.');audioFileInput.value='';return;}
+  try{
+   await saveLocalAdhan(file);
+   applyLocalAdhan(file);
+   settings.voice=DEFAULT_VOICE;
+   persist();
+   syncNativeBackground();
+   setStatus('حُفظ ملف الأذان على هذا الجهاز، وسيعمل دون تحميل من الإنترنت.');
+  }catch(error){
+   setStatus(error&&error.message?error.message:'تعذّر حفظ ملف الأذان محلياً.');
+  }finally{audioFileInput.value='';}
+ });
+ loadLocalAdhan().catch(error=>{
+  updatePrivacyAudioDisclosure();
+  setStatus(error&&error.message?error.message:'تعذّرت قراءة ملف الأذان المحلي.');
+ });
 
  function persist(){
   const privatePrefs=window.AnwarPrivatePreferences;
@@ -324,6 +408,7 @@
   catch(error){setStatus('تعذّر حفظ إعدادات الأذان داخل الخزنة المشفرة.');return false}
  }
  testButton.textContent='تجربة الأذان';
+ function currentVoice(){return VOICES[0];}
  function syncNativeBackground(requestPermissions){
   const bridge=window.AnwarAdhanBridge;
   if(!bridge||typeof bridge.postMessage!=='function')return false;
@@ -413,29 +498,20 @@
   return guess;
  }
  async function fetchDay(dateText,token){
-  const url=new URL(API+'/timingsByCity/'+dateText);
-  url.searchParams.set('city',cityForApi(settings.city,settings.country));
-  url.searchParams.set('country',countryForApi(settings.country));
-  if(settings.method!=='auto')url.searchParams.set('method',settings.method);
-  url.searchParams.set('school',settings.school);
-  const controller=typeof AbortController==='function'?new AbortController():null;
-  const timeoutId=window.setTimeout(()=>{if(controller)controller.abort();},12000);
-  let response;
-  try{
-   const request={method:'GET',headers:{'Accept':'application/json'},cache:'no-store'};
-   if(controller)request.signal=controller.signal;
-   response=await fetch(url.href,request);
-  }catch(error){
-   if(error&&error.name==='AbortError')throw new Error('انتهت مهلة الاتصال. تحقّق من الإنترنت وأعد المحاولة.');
-   throw new Error('تعذّر الاتصال بخدمة المواقيت. تحقّق من الإنترنت.');
-  }finally{
-   window.clearTimeout(timeoutId);
-  }
-  if(!response.ok)throw new Error('تعذّر جلب المواقيت (HTTP '+response.status+').');
-  const json=await response.json();
   if(token!==loadToken)return null;
-  if(!json||json.code!==200||!json.data||!json.data.timings)throw new Error('لا تتوفر مواقيت لهذه المدينة. تحقّق من المدينة والدولة.');
-  return json.data;
+  const engine=window.AnwarPrayerEngine;
+  if(!engine||typeof engine.calculate!=='function'){
+   throw new Error('محرك المواقيت المحلي غير جاهز. حدّث المفكرة وأعد فتحها.');
+  }
+  const data=engine.calculate({
+   date:dateText,
+   city:settings.city,
+   country:settings.country,
+   timezone:settings.timezone||engine.timezoneForCountry(settings.country)||timeZone,
+   school:settings.school
+  });
+  if(token!==loadToken)return null;
+  return data;
  }
  function updateHeader(){
   locationLabel.textContent=cityForDisplay(settings.city)+' · '+countryForDisplay(settings.country);
@@ -510,6 +586,10 @@
  function markPlayed(key){settings.lastPlayedKey=String(key||'').slice(0,180);persist()}
  async function playAdhan(prayer,isTest){
   if(!isTest&&!settings.enabled)return false;
+  if(!localAudioObjectUrl){
+   setStatus('استورد ملف الأذان المحلي من إعدادات الأذان أولاً.');
+   return false;
+  }
   if(!audio.paused&&!audio.ended){if(isTest)setStatus('الأذان يعمل بالفعل.');return false;}
   audio.volume=settings.volume;
   try{audio.currentTime=0}catch(_e){}
@@ -610,6 +690,8 @@
   settings.country=normalizeCountry(countrySelect.value)||detectCountry();
   settings.method=methodForCountry(settings.country);
   settings.city=cityInput.value.trim();settings.school='0';
+  settings.timezone=(window.AnwarPrayerEngine&&window.AnwarPrayerEngine.timezoneForCountry(settings.country))||settings.timezone;
+  timeZone=validTimeZone(settings.timezone||timeZone);
   persist();todayData=null;tomorrowData=null;lastDateCheck='';
   timesGrid.replaceChildren(...PRAYERS.map(prayer=>{const item=el('div','anwar-prayer-time');item.append(el('b','',prayer.name),el('strong','','—'));return item;}));
   showNextPrayerPlaceholder('بانتظار المواقيت');
@@ -623,9 +705,9 @@
   settings.countrySource='manual';
   settings.method=methodForCountry(selected);
   settings.city=defaultCity(selected);
-  settings.timezone='';
+  settings.timezone=(window.AnwarPrayerEngine&&window.AnwarPrayerEngine.timezoneForCountry(selected))||'';
+  timeZone=validTimeZone(settings.timezone||timeZone);
   cityInput.value=settings.city;
-  settings.timezone='';
   persist();updateHeader();
   todayData=null;tomorrowData=null;lastDateCheck='';
   showNextPrayerPlaceholder('بانتظار المواقيت');
@@ -663,15 +745,6 @@
   settings.volume=Math.max(0,Math.min(1,Number(volumeInput.value)||0));audio.volume=settings.volume;persist();
  });
  volumeInput.addEventListener('change',syncNativeBackground);
- voiceSelect.addEventListener('change',()=>{
-  const next=VOICES.find(item=>item.key===voiceSelect.value);
-  if(!next)return;
-  settings.voice=next.key;audio.pause();
-  audio.src=next.url;
-  audio.load();persist();syncNativeBackground();
-  updatePrivacyAudioDisclosure();
-  setStatus('تم اختيار '+next.label+'.');
- });
  testButton.addEventListener('click',()=>playAdhan('اختبار',true));
  if(todayData)renderTimes();else timesGrid.replaceChildren(...PRAYERS.map(prayer=>{
   const item=el('div','anwar-prayer-time');item.append(el('b','',prayer.name),el('strong','','—'));return item;
@@ -692,14 +765,9 @@
   timeZone=validTimeZone(settings.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC');
   countrySelect.value=settings.country;
   cityInput.value=settings.city;
-  voiceSelect.value=settings.voice;
   enabledInput.checked=settings.enabled;
   volumeInput.value=String(settings.volume);
   audio.volume=settings.volume;
-  audio.pause();
-  const restoredVoice=VOICES.find(item=>item.key===settings.voice)||VOICES[0];
-  audio.src=restoredVoice.url;
-  audio.load();
   todayData=null;tomorrowData=null;lastDateCheck='';
   updateHeader();updatePrivacyAudioDisclosure();
   showNextPrayerPlaceholder('بانتظار المواقيت المحفوظة');
