@@ -16,7 +16,7 @@ const clearSource=extract('function clearLegacyPlaintext(){','async function per
 const persistenceSource=extract('function importLegacyPrivatePreferences(base){','function finishVaultOpen(){');
 const submitSource=extract('async function submitVaultForm(event,suppliedPassword){', "async function lockVault(reason='manual'){");
 
-function makeHarness({failVerification=false}={}){
+function makeHarness({failVerification=false,failBackupWrite=false,failBackupVerification=false}={}){
   const initialState={
     notes:[{id:'migration-note-1',title:'قصيدة خاصة',html:'<div>محتوى لا يجب كشفه</div>',ts:1763400000000,history:[]}],
     theme:'dark',palette:'blue',days:['2026-11-17']
@@ -51,7 +51,11 @@ function makeHarness({failVerification=false}={}){
     },
     AnwarVaultStorage:{
       async get(key){operations.push('vault:get:'+key);return vaultRecords.has(key)?vaultRecords.get(key):null},
-      async set(key,value){operations.push('vault:set:'+key);vaultRecords.set(key,String(value));return true},
+      async set(key,value){
+        operations.push('vault:set:'+key);
+        if(failBackupWrite&&key==='anwar_vault_backup_v1')throw new Error('simulated backup write failure');
+        vaultRecords.set(key,String(value));return true
+      },
       async remove(key){operations.push('vault:remove:'+key);vaultRecords.delete(key);return true}
     },
     S:initialState,
@@ -73,11 +77,18 @@ function makeHarness({failVerification=false}={}){
   };
   vm.runInNewContext(preferenceSource,sandbox,{timeout:3000});
   vm.runInNewContext(cryptoSource,sandbox,{timeout:3000});
-  if(failVerification){
+  if(failVerification||failBackupVerification){
     const real=sandbox.AnwarVaultCrypto;
+    let decryptCalls=0;
     sandbox.AnwarVaultCrypto=Object.freeze({
       ...real,
-      async decryptWithKey(){throw new Error('simulated read-back verification failure')}
+      async decryptWithKey(...args){
+        decryptCalls++;
+        if(failVerification||(failBackupVerification&&decryptCalls===2)){
+          throw new Error('simulated read-back verification failure');
+        }
+        return real.decryptWithKey(...args);
+      }
     });
   }
   vm.runInNewContext(clearSource+'\n'+persistenceSource+'\n'+submitSource+'\nthis.run=submitVaultForm;',sandbox,{timeout:3000});
@@ -129,6 +140,27 @@ assert.ok(failed.data.has('anwar_adhkar_page_theme'),'legacy protective adhkar t
 assert.equal(failed.vaultRecords.has('anwar_vault_v1'),false,'unverified encrypted primary envelope is rolled back');
 assert.equal(failed.vaultRecords.has('anwar_vault_backup_v1'),false,'no secondary backup is written before primary verification');
 assert.equal(failed.data.has('anwar_vault_mode_v1'),false,'failed encrypted setup rolls back the mode marker and remains recoverable as plaintext');
-assert.match(failed.elements.vaultError.textContent,/simulated read-back verification failure/,'the failure is surfaced to the user');
+assert.match(failed.elements.vaultError.textContent,/simulated read-back verification failure/,'the primary verification failure is surfaced to the user');
+
+for(const scenario of [
+  {name:'backup write failure',options:{failBackupWrite:true}},
+  {name:'backup verification failure',options:{failBackupVerification:true}}
+]){
+  const interrupted=makeHarness(scenario.options);
+  await interrupted.run({preventDefault(){}});
+  assert.equal(interrupted.calls.finished,false,scenario.name+' never opens the private notebook');
+  assert.equal(interrupted.sandbox.vaultUnlocked,false,scenario.name+' leaves the vault locked');
+  for(const key of [
+    'anwar_v1','anwar_v1_backup_v2','anwar_rd','anwar_reader_advance',
+    'anwar_tasbih_count_v1','anwar_tasbih_dhikr_v1',
+    'anwar_prayer_settings_v1','anwar_prayer_last_adhan_v1','anwar_adhkar_page_theme'
+  ]){
+    assert.ok(interrupted.data.has(key),scenario.name+' retains legacy recovery key '+key);
+  }
+  assert.equal(interrupted.vaultRecords.has('anwar_vault_v1'),false,scenario.name+' rolls back the uncommitted primary envelope');
+  assert.equal(interrupted.vaultRecords.has('anwar_vault_backup_v1'),false,scenario.name+' leaves no unverified backup envelope');
+  assert.equal(interrupted.data.has('anwar_vault_mode_v1'),false,scenario.name+' never marks encryption as committed');
+  assert.match(interrupted.elements.vaultError.textContent,/النسخة الاحتياطية المشفرة والتحقق منها/,scenario.name+' explains that verified backup creation failed');
+}
 
 console.log('All initial vault migration and rollback tests passed.');
