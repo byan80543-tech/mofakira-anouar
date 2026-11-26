@@ -7,7 +7,7 @@
  const page=document.getElementById('anwarAdhkarPage');
  const button=document.getElementById('adhkarPageThemeToggle');
  if(!page||!button)return;
- const STORAGE_KEY='anwar_adhkar_page_theme';
+ const preferences=window.AnwarPrivatePreferences;
  const THEMES=[
   {id:'white',label:'الأبيض'},
   {id:'rose',label:'الوردي'},
@@ -18,10 +18,10 @@
  ];
  let current='white';
  try{
-  const stored=localStorage.getItem(STORAGE_KEY);
+  const stored=preferences&&typeof preferences.get==='function'?preferences.get().adhkarPageTheme:'';
   if(THEMES.some(theme=>theme.id===stored))current=stored;
  }catch(error){
-  console.warn('تعذّر استرجاع لون صفحة الأذكار',error);
+  console.warn('تعذّر استرجاع لون صفحة الأذكار من الخزنة المشفرة',error);
  }
  const apply=()=>{
   const theme=THEMES.find(item=>item.id===current)||THEMES[0];
@@ -30,6 +30,11 @@
   button.title='تغيير لون صفحة الأذكار — الحالي: '+theme.label;
  };
  apply();
+ if(preferences&&typeof preferences.subscribe==='function')preferences.subscribe(snapshot=>{
+  const stored=snapshot&&snapshot.adhkarPageTheme;
+  if(!THEMES.some(theme=>theme.id===stored)||stored===current)return;
+  current=stored;apply();
+ });
  const editorHost=page.querySelector('#adhkarContent');
  let renderRetryTimer=0;
  let renderAttempts=0;
@@ -69,7 +74,9 @@
   const index=THEMES.findIndex(theme=>theme.id===current);
   current=THEMES[(index+1)%THEMES.length].id;
   apply();
-  try{localStorage.setItem(STORAGE_KEY,current)}
-  catch(error){console.warn('تعذّر حفظ لون صفحة الأذكار',error);}
+  if(preferences&&typeof preferences.set==='function'){
+   try{preferences.set('adhkarPageTheme',current)}
+   catch(error){console.warn('تعذّر حفظ لون صفحة الأذكار داخل الخزنة المشفرة',error)}
+  }
  });
 })();
