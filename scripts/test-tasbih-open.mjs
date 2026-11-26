@@ -50,6 +50,6 @@ assert.ok(!appCore.includes("else if(id==='adhkarTab')")&&!appCore.includes('tog
 assert.ok(controller.includes('window.AnwarTasbihController=Object.freeze({')&&controller.includes('open(){'),'the independent controller exposes its direct open action');
 assert.ok(!controller.includes('ownerDialog')&&!controller.includes('ownerPanel')&&!controller.includes('switchOwnerView'),'the counter controller no longer depends on ownership navigation');
 assert.ok(controller.includes("preferences.set('tasbih'")&&controller.includes('preferences.subscribe(saved=>'),'encrypted counter preferences and saved state remain active');
-assert.ok(controller.includes('voiceButton.addEventListener')&&controller.includes('recognition.lang=speechLanguage'),'voice recognition remains wired after moving the markup');
+assert.ok(controller.includes('voiceButton.addEventListener')&&controller.includes('CloudSpeech.create(')&&controller.includes('engine.start()'),'automatic short-segment voice counting remains wired after moving the markup');
 
 console.log('Dedicated adhkar and tasbih service pages, owner separation and preserved counter-controller tests passed.');
