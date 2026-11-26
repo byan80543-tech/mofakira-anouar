@@ -325,7 +325,7 @@ try {
   assert.equal(tasbihAiCalls.length, callsBeforeRateLimit, "rate-limited audio never reaches the model");
 
   const oversizedForm = new FormData();
-  oversizedForm.append("audio", new Blob([new Uint8Array(390 * 1024)], { type: "audio/webm" }), "oversized.webm");
+  oversizedForm.append("audio", new Blob([new Uint8Array(405 * 1024)], { type: "audio/webm" }), "oversized.webm");
   oversizedForm.append("phrase", "سبحان الله");
   oversizedForm.append("consent", "true");
   response = await worker.fetch(new Request("https://gateway.example.workers.dev/v1/tasbih/count", {
