@@ -39,22 +39,24 @@
   const DESIGN_VERSION='royal-reference-1';
   const defaultTasbih={count:0,dhikr:select.value,customDhikrs:[],removedOfficialDhikrs:[],theme:'emerald',elapsedMs:0,designVersion:DESIGN_VERSION};
   let legacyInitial=defaultTasbih;
-  let initial=defaultTasbih;
   try{
    const stored=preferences&&typeof preferences.get==='function'?preferences.get():null;
    if(stored&&stored.tasbih&&typeof stored.tasbih==='object')legacyInitial={...defaultTasbih,...stored.tasbih};
   }catch(error){console.warn('تعذر قراءة الإعدادات القديمة للسبحة؛ لن تُحذف أي بيانات.',error)}
-  let vaultUnlocked=false,shieldMode='setup',shieldBusy=false;
+  let vaultUnlocked=!!(tasbihVault&&tasbihVault.isUnlocked()),shieldMode='setup',shieldBusy=false;
+  const initial=vaultUnlocked?legacyInitial:defaultTasbih;
   const MAX_COUNT=1000000000;
   const cleanDhikrList=(items,limit,maxLength=200)=>Array.isArray(items)
    ?[...new Set(items.filter(item=>typeof item==='string').map(item=>item.trim().slice(0,maxLength)).filter(Boolean))].slice(0,limit)
    :[];
-  let count=0;
+  let count=vaultUnlocked&&Number.isSafeInteger(initial.count)?Math.max(0,Math.min(MAX_COUNT,initial.count)):0;
   const MAX_ELAPSED_MS=10*365*24*60*60*1000;
-  let elapsedMs=0,sessionStartedAt=null,lastPersistedElapsed=0;
+  let elapsedMs=vaultUnlocked&&Number.isFinite(initial.elapsedMs)?Math.max(0,Math.min(MAX_ELAPSED_MS,initial.elapsedMs)):0;
+  let sessionStartedAt=null,lastPersistedElapsed=elapsedMs;
   const allowedThemes=new Set(themeIds);
-  let theme='emerald';
-  let customDhikrs=[],removedOfficialDhikrs=[];
+  let theme=vaultUnlocked&&initial.designVersion===DESIGN_VERSION&&allowedThemes.has(initial.theme)?initial.theme:'emerald';
+  let customDhikrs=vaultUnlocked?cleanDhikrList(initial.customDhikrs,30,200):[];
+  let removedOfficialDhikrs=vaultUnlocked?cleanDhikrList(initial.removedOfficialDhikrs,60,4000):[];
   let recognition=null,voiceActive=false,voiceRequested=false,voiceTargetPhrase='';
 
   let voiceMatchCount=0,voiceResultSegments=[],lastRecognitionEvent=null,voiceFallbackPending=false;
