@@ -610,8 +610,7 @@
     voiceRestartTimer=null;
     if(!voiceRequested)return;
     try{
-     recognition.processLocally=true;
-     if(recognition.processLocally!==true)throw new Error('تعذّر فرض المعالجة الصوتية المحلية.');
+
      voiceActive=true;
      recognition.start();
     }catch(error){
