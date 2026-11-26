@@ -65,7 +65,7 @@ assert.ok(methodIndex>=0 && methodIndex<engineIndex && engineIndex<controllerInd
 assert.ok(worker.includes("'./prayer-morocco-method.js'"),'service worker precaches Morocco method');
 assert.ok(worker.includes("'./prayer-engine.js'"),'service worker precaches local engine');
 assert.ok(worker.includes("'./prayer-times.js'"),'service worker precaches the UI controller');
-assert.match(worker,/anwar-shell-2026-11-26-v216/,'service worker cache is version-bumped');
+assert.match(worker,/anwar-shell-2026-11-26-v217/,'service worker cache is version-bumped');
 assert.ok(!html.includes('api.aladhan.com')&&!headers.includes('api.aladhan.com'),'AlAdhan is removed from both page and response CSP');
 assert.ok(!/https:\/\/(?:upload\.wikimedia\.org|raw\.githubusercontent\.com)/.test(prayer),'no third-party Adhan audio URL remains in the prayer module');
 
