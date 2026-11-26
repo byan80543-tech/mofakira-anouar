@@ -649,7 +649,7 @@
   refreshButton.disabled=true;
   try{
    if(!settings.city.trim()||!settings.country.trim())throw new Error('أدخل الدولة والمدينة.');
-   const initialZone=validTimeZone(settings.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC');
+   const initialZone=validTimeZone((window.AnwarPrayerEngine&&window.AnwarPrayerEngine.timezoneForCountry(settings.country))||settings.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC');
    let requestedDate=dateString(new Date(),initialZone);
    let data=await fetchDay(requestedDate,token);
    if(token!==loadToken)return;
