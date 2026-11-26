@@ -271,13 +271,20 @@ function showVaultGate(mode,message){
  passwordInput.placeholder=mode==='unlock'?'عبارة المرور التي اخترتها':'12 محرفًا على الأقل';
  submit.textContent=mode==='unlock'?'فتح الخزنة':'تشفير المفكرة وفتحها';
  const deviceApi=globalThis.AnwarDeviceUnlock;
- const deviceConfigured=mode==='unlock'&&!!(deviceApi&&deviceApi.isConfigured());
- deviceUnlock.hidden=!deviceConfigured;
- fallbackToggle.hidden=!deviceConfigured;
- passwordFields.hidden=deviceConfigured;
- deviceManage.hidden=mode!=='unlock'||!deviceApi;
  const trustedDeviceOrigin=!!(deviceApi&&deviceApi.isTrustedOrigin());
- deviceManage.textContent=deviceConfigured?'إدارة فتح الهاتف':trustedDeviceOrigin?'إعداد فتح الهاتف':'سبب تعطيل فتح الهاتف';
+ const deviceConfigured=mode==='unlock'&&!!(deviceApi&&deviceApi.isConfigured());
+ const deviceSupported=mode==='unlock'&&!!(deviceApi&&trustedDeviceOrigin&&deviceApi.supported());
+ // Keep a direct recovery action visible when this trusted app context has lost
+ // its local device wrapper. Rebinding verifies the master password first.
+ deviceUnlock.hidden=!deviceSupported;
+ deviceUnlock.textContent=deviceConfigured?'فتح بقفل الهاتف':'إعداد قفل الهاتف';
+ deviceUnlock.setAttribute('aria-label',deviceConfigured?'فتح الخزنة بقفل الهاتف':'إعادة إعداد فتح الخزنة بقفل الهاتف');
+ fallbackToggle.hidden=!(deviceConfigured&&deviceSupported);
+ passwordFields.hidden=deviceConfigured&&deviceSupported;
+ deviceManage.hidden=mode!=='unlock'||!deviceApi||(deviceSupported&&!deviceConfigured);
+ deviceManage.textContent=deviceConfigured
+  ?deviceSupported?'إدارة فتح الهاتف':'سبب تعذر فتح الهاتف'
+  :trustedDeviceOrigin?'إعداد فتح الهاتف':'سبب تعطيل فتح الهاتف';
  if(disableEncryption)disableEncryption.hidden=true;
  if(cancelSetup)cancelSetup.hidden=true;
  $('vaultError').textContent='';
@@ -663,19 +670,27 @@ async function cancelVaultSetup(){
 }
 async function unlockVaultWithDevice(){
  const button=$('vaultDeviceUnlock');
- if(!globalThis.AnwarDeviceUnlock||!AnwarDeviceUnlock.isConfigured()){
-  $('vaultError').textContent='لم يُعثر على إعداد صالح لفتح الهاتف. استخدم كلمة المرور الأساسية.';
-  showVaultGate('unlock','استخدم كلمة المرور الأساسية لفتح الخزنة.');
+ const deviceApi=globalThis.AnwarDeviceUnlock;
+ if(!deviceApi){
+  $('vaultError').textContent='تعذّر تحميل وحدة فتح الهاتف. استخدم كلمة المرور الأساسية.';
+  return;
+ }
+ if(!deviceApi.isConfigured()){
+  if(deviceApi.isTrustedOrigin()&&deviceApi.supported()){
+   openVaultDeviceSetupDialog();
+   return;
+  }
+  $('vaultError').textContent='لا يوجد اعتماد صالح لفتح الهاتف في هذه البيئة. استخدم كلمة المرور الأساسية ثم راجع إعداد فتح الهاتف.';
   return;
  }
  button.disabled=true;
  $('vaultError').textContent='تحقق من قفل الهاتف في نافذة النظام…';
  let password='';
  try{
-  password=await AnwarDeviceUnlock.unlockPassword();
+  password=await deviceApi.unlockPassword();
   await submitVaultForm({preventDefault(){}},password);
  }catch(error){
-  $('vaultError').textContent=error&&error.message?error.message:'تعذّر فتح الخزنة بقفل الهاتف. استخدم كلمة المرور الأساسية.';
+  $('vaultError').textContent=error&&error.message?error.message:'تعذّر فتح الخزنة بقفل الهاتف. استخدم كلمة المرور الأساسية أو أعد ربط قفل الهاتف من الإدارة.';
  }finally{
   password='';
   button.disabled=false;
@@ -686,18 +701,23 @@ function openVaultDeviceSetupDialog(){
  const configured=AnwarDeviceUnlock.isConfigured();
  const supported=AnwarDeviceUnlock.supported();
  $('vaultDeviceSetupPassword').value='';
- $('vaultDeviceSetupForm').hidden=configured||!supported;
+ // Permit re-binding without first deleting the old wrapper. A failed new
+ // registration leaves the existing device-unlock record and vault untouched.
+ $('vaultDeviceSetupForm').hidden=!supported;
  $('vaultDeviceDisableBtn').hidden=!configured;
+ $('vaultDeviceSetupSubmit').textContent=configured?'إعادة ربط قفل الهاتف':'تفعيل قفل الهاتف';
  const sharedOrigin=AnwarDeviceUnlock.isSharedGitHubPagesOrigin();
  const trustedOrigin=AnwarDeviceUnlock.isTrustedOrigin();
  $('vaultDeviceSetupStatus').textContent=configured
-  ?'الفتح السريع مفعّل لهذا المتصفح. يمكنك تعطيله من هنا.'
+  ?supported
+   ?'الفتح بقفل الهاتف مفعّل. لإصلاحه أو ربطه مجددًا، أدخل عبارة المرور الأساسية الحالية. لن تتغير الخزنة أو الملاحظات؛ سيُستبدل سجل فتح الهاتف فقط بعد نجاح التحقق.'
+   :'يوجد إعداد سابق لفتح الهاتف، لكن هذه البيئة لا تتيح اعتماد الجهاز حاليًا. استخدم عبارة المرور الأساسية.'
   :sharedOrigin
    ?'حمايةً لخصوصيتك، عُطّل الفتح بقفل الهاتف على GitHub Pages المشترك. استخدم عبارة المرور الأساسية؛ أعمالك المشفرة لم تُحذف.'
    :!trustedOrigin
     ?'حمايةً للخزنة، لا يُتاح فتحها بالبصمة أو قفل الجهاز إلا على نطاق مفكرة أنوار المستقل المعتمد. افتح https://mofakira-anouar.pages.dev/؛ ستبقى كلمة المرور الأساسية متاحة.'
     :supported
-     ?'عند التفعيل سيُطلب تحقق الهاتف الآمن. ستبقى كلمة المرور الأساسية وسيلة الاسترداد.'
+     ?'أعد ربط قفل الهاتف بإدخال عبارة المرور الأساسية الحالية. لن تتغير الخزنة أو الملاحظات؛ يُحفظ اعتماد الجهاز بعد نجاح التحقق فقط.'
      :'هذا المتصفح أو الجهاز لا يدعم ميزة الاعتماد الآمن المطلوبة. يمكنك متابعة استخدام كلمة المرور الأساسية.';
  if(dialog&&!dialog.open)dialog.showModal();
 }
