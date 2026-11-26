@@ -51,19 +51,24 @@ vm.runInNewContext(helper,{window:absentWindow,globalThis:absentWindow});
 assert.equal(absentWindow.AnwarLocalSpeech.supported(),false,'a browser without speech recognition fails closed');
 
 assert.doesNotMatch(helper,/\.install\s*\(/,'the app never downloads speech models automatically');
-assert.match(tasbih,/new\s+SpeechRecognition\(\)/,'tasbih alone has a dedicated browser speech recognizer');
+assert.match(tasbih,/AnwarTasbihCloudSpeech\.create\(/,'tasbih uses the focused ephemeral audio-count module');
+assert.doesNotMatch(tasbih,/SpeechRecognition|webkitSpeechRecognition/,'tasbih no longer delegates clean speech to the browser speech service');
 assert.doesNotMatch(tasbih,/AnwarLocalSpeech|processLocally/,'tasbih does not inherit the writing tools local-only restriction');
-assert.match(tasbih,/window\.confirm\(['\"]تنبيه خصوصية/,'tasbih asks consent before activating potentially remote speech recognition');
+assert.match(tasbih,/window\.confirm\(['\"]تنبيه خصوصية: عند المتابعة/,'tasbih obtains explicit consent before uploading short audio segments');
+assert.match(tasbih,/Cloudflare للتعرف عليها/,'tasbih explains that the short audio segments are processed by Cloudflare');
 assert.match(poetry,/localSpeech\.create\(LANGUAGES\[0\]\)/,'the dormant dictation module remains local-only if ever reused');
 assert.doesNotMatch(html,/id="sp"|poetry-dictation\.js/,'writing tools expose no dictation microphone control or script');
 assert.doesNotMatch(core,/id==='sp'\)togglePoetryDictation/,'the notebook toolbar cannot start microphone dictation');
-assert.ok(html.indexOf('local-speech-privacy.js')<html.indexOf('tasbih-controller.js'),'the tasbih voice code remains separated from local-only writing recognition');
-assert.match(html,/tasbih-controller\.js\?v=20261126-3/,'the tasbih voice fix receives a fresh browser asset URL');
+assert.ok(html.indexOf('local-speech-privacy.js')<html.indexOf('tasbih-controller.js'),'the local speech privacy helper remains available before tasbih');
+assert.ok(html.indexOf('tasbih-cloud-speech.js')<html.indexOf('tasbih-controller.js'),'the short-segment speech module loads before the tasbih controller');
+assert.match(html,/tasbih-cloud-speech\.js\?v=20261126-1/,'the new speech module has an explicit cache version');
+assert.match(html,/tasbih-controller\.js\?v=20261126-4/,'the tasbih controller receives a fresh browser asset URL');
 assert.match(headers,/microphone=\(self\)/,'microphone access is limited to this origin');
 assert.match(headers,/on-device-speech-recognition=\(self\)/,'on-device speech recognition is explicitly permitted for this origin');
 assert.match(worker,/\.\/local-speech-privacy\.js/,'the local speech privacy gate is included in the offline shell');
-assert.match(worker,/v228/,'the offline shell is refreshed for the voice-counting fix and latest media security policy');
-assert.match(html,/قد يرسل المتصفح الصوت إلى خدمة التعرف التابعة له/,'tasbih warns that browser recognition may send audio to its provider');
+assert.match(worker,/v229/,'the offline shell is refreshed for the new tasbih speech module');
+assert.match(worker,/\.\/tasbih-cloud-speech\.js/,'the new tasbih speech module is available offline');
+assert.match(html,/تُحلل مقاطع صوتية قصيرة مؤقتاً لدى خدمة العد/,'the tasbih panel describes short-lived server-side speech processing');
 
 console.log('PASS: writing dictation is removed; tasbih browser recognition is isolated behind explicit privacy consent.');
 
