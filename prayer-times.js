@@ -669,7 +669,7 @@
   audio.load();
   todayData=null;tomorrowData=null;lastDateCheck='';
   updateHeader();updatePrivacyAudioDisclosure();
-  showNextPrayerPlaceholder('بانتظار الحساب المحلي المحفوظة');
+  showNextPrayerPlaceholder('بانتظار الحساب المحلي بعد استعادة الإعدادات');
   refreshTimes(false);
   if(settings.enabled)syncNativeBackground();
  }
