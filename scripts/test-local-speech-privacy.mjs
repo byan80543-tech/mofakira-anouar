@@ -66,7 +66,7 @@ assert.match(html,/tasbih-controller\.js\?v=20261126-4/,'the tasbih controller r
 assert.match(headers,/microphone=\(self\)/,'microphone access is limited to this origin');
 assert.match(headers,/on-device-speech-recognition=\(self\)/,'on-device speech recognition is explicitly permitted for this origin');
 assert.match(worker,/\.\/local-speech-privacy\.js/,'the local speech privacy gate is included in the offline shell');
-assert.match(worker,/v229/,'the offline shell is refreshed for the new tasbih speech module');
+assert.match(worker,/v230/,'the offline shell is refreshed for the new tasbih speech module');
 assert.match(worker,/\.\/tasbih-cloud-speech\.js/,'the new tasbih speech module is available offline');
 assert.match(html,/تُحلل مقاطع صوتية قصيرة مؤقتاً لدى خدمة العد/,'the tasbih panel describes short-lived server-side speech processing');
 
