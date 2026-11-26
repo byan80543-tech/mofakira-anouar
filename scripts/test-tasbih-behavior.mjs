@@ -539,6 +539,7 @@ assert.equal(fallbackApp.nodes.tasbihVoiceState.textContent,'جارٍ تشغيل
 fallbackRecognition.onend();
 assert.equal(fallbackApp.pendingTimers.length,1,'the fallback waits for the previous recognition session to end');
 fallbackApp.flushTimers();
+await new Promise(resolve=>setImmediate(resolve));
 assert.equal(fallbackRecognition.started,2,'the recognizer restarts automatically with the fallback language');
 fallbackRecognition.onstart();
 assert.equal(fallbackApp.nodes.tasbihVoiceState.textContent,'الميكروفون نشط','the fallback session becomes active after it starts');
@@ -553,6 +554,7 @@ restartRecognition.onstart();
 restartRecognition.onend();
 assert.equal(restartApp.nodes.tasbihVoiceState.textContent,'جارٍ تشغيل الميكروفون','an unexpected mobile recognition end schedules a recovery session');
 restartApp.flushTimers();
+await new Promise(resolve=>setImmediate(resolve));
 assert.equal(restartRecognition.started,2,'the same voice session automatically restarts after an unexpected end');
 
 // A broken speech-recognition constructor must not disable the manual tasbih.
