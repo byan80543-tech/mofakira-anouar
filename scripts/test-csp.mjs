@@ -29,7 +29,6 @@ const qrcodeIntegrity='sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSH
 const html2canvasHash="'"+html2canvasIntegrity+"'";
 const qrcodeHash="'"+qrcodeIntegrity+"'";
 const scriptSources=requireDirective('script-src',"'self'",html2canvasHash,qrcodeHash);
-assert.ok(!scriptSources.includes('https://cdnjs.cloudflare.com'),'script-src does not trust the entire CDN host');
 assert.deepEqual([...scriptSources].sort(),["'self'",html2canvasHash,qrcodeHash].sort(),'only local scripts and the two exact pinned CDN artifacts are permitted');
 assert.match(core,/script\.integrity=integrity;script\.crossOrigin='anonymous';script\.referrerPolicy='no-referrer'/,
  'dynamically loaded third-party scripts set SRI before insertion');
