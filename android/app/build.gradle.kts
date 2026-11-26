@@ -9,8 +9,8 @@ android {
         applicationId = "com.anwar.mofakira"
         minSdk = 23
         targetSdk = 35
-        versionCode = 18
-        versionName = "0.9.9"
+        versionCode = 19
+        versionName = "0.10.0"
     }
     signingConfigs {
         create("release") {
@@ -26,7 +26,7 @@ android {
     buildTypes {
         getByName("debug") {
             // Previews are kept apart from the production app and earlier previews.
-            applicationIdSuffix = ".preview.v18"
+            applicationIdSuffix = ".preview.v19"
             versionNameSuffix = "-preview"
         }
         getByName("release") {
