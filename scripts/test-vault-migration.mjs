@@ -17,6 +17,7 @@ const persistenceSource=extract('function importLegacyPrivatePreferences(base){'
 const submitSource=extract('async function submitVaultForm(event,suppliedPassword){', "async function lockVault(reason='manual'){");
 
 function makeHarness({failVerification=false,failBackupWrite=false,failBackupVerification=false}={}){
+  let backupWriteBlocked=failBackupWrite;
   const initialState={
     notes:[{id:'migration-note-1',title:'قصيدة خاصة',html:'<div>محتوى لا يجب كشفه</div>',ts:1763400000000,history:[]}],
     theme:'dark',palette:'blue',days:['2026-11-17']
@@ -53,7 +54,7 @@ function makeHarness({failVerification=false,failBackupWrite=false,failBackupVer
       async get(key){operations.push('vault:get:'+key);return vaultRecords.has(key)?vaultRecords.get(key):null},
       async set(key,value){
         operations.push('vault:set:'+key);
-        if(failBackupWrite&&key==='anwar_vault_backup_v1')throw new Error('simulated backup write failure');
+        if(backupWriteBlocked&&key==='anwar_vault_backup_v1')throw new Error('simulated backup write failure');
         vaultRecords.set(key,String(value));return true
       },
       async remove(key){operations.push('vault:remove:'+key);vaultRecords.delete(key);return true}
@@ -65,12 +66,12 @@ function makeHarness({failVerification=false,failBackupWrite=false,failBackupVer
     vaultTemplate:null,
     vaultReady:false,
     vaultDisableAfterUnlock:false,
-    vaultBackupWarningShown:false,
+    vaultBackupWarningShown:false,vaultLegacyCleanupWarningShown:false,
     VAULT_STORAGE_KEY:'anwar_vault_v1',
     VAULT_BACKUP_KEY:'anwar_vault_backup_v1',
     VAULT_MODE_KEY:'anwar_vault_mode_v1',
     $:id=>elements[id]||(elements[id]={value:'',textContent:'',disabled:false,hidden:false}),
-    readStoredState(value){return JSON.parse(value)},
+    readStoredState(value){return JSON.parse(value)},\n    noteContentTooLarge(){return false},
     finishVaultOpen(){calls.finished=true;sandbox.vaultReady=true},
     toast(message){calls.toasts.push(String(message))},
     console:{warn(){}}
@@ -91,8 +92,8 @@ function makeHarness({failVerification=false,failBackupWrite=false,failBackupVer
       }
     });
   }
-  vm.runInNewContext(clearSource+'\n'+persistenceSource+'\n'+submitSource+'\nthis.run=submitVaultForm;',sandbox,{timeout:3000});
-  return {sandbox,elements,data,vaultRecords,operations,calls,run:sandbox.run,initialState};
+  vm.runInNewContext(clearSource+'\n'+persistenceSource+'\n'+submitSource+'\nthis.run=submitVaultForm;this.persist=persistVaultSnapshot;',sandbox,{timeout:3000});
+  return {sandbox,elements,data,vaultRecords,operations,calls,run:sandbox.run,persist:sandbox.persist,initialState,setBackupWriteBlocked(value){backupWriteBlocked=!!value}};
 }
 
 const successful=makeHarness();
@@ -162,5 +163,24 @@ for(const scenario of [
   assert.equal(interrupted.data.has('anwar_vault_mode_v1'),false,scenario.name+' never marks encryption as committed');
   assert.match(interrupted.elements.vaultError.textContent,/النسخة الاحتياطية المشفرة والتحقق منها/,scenario.name+' explains that verified backup creation failed');
 }
+
+// A legacy-preference migration must not replace the old primary or erase
+// plaintext recovery keys unless the encrypted backup is verified first.
+const migration=makeHarness();
+await migration.run({preventDefault(){}});
+const oldPrimary=migration.vaultRecords.get('anwar_vault_v1');
+const oldBackup=migration.vaultRecords.get('anwar_vault_backup_v1');
+migration.data.set('anwar_prayer_settings_v1',JSON.stringify({city:'Meknes',enabled:true}));
+migration.setBackupWriteBlocked(true);
+const nextState=JSON.parse(JSON.stringify(migration.sandbox.S));
+nextState.preferences.prayer={...nextState.preferences.prayer,city:'Meknes',enabled:true};
+await assert.rejects(
+  ()=>migration.persist(JSON.stringify(nextState),{requireVerifiedBackup:true}),
+  /simulated backup write failure/,
+  'failed backup write aborts legacy settings migration'
+);
+assert.equal(migration.vaultRecords.get('anwar_vault_v1'),oldPrimary,'failed migration keeps the previous encrypted primary');
+assert.equal(migration.vaultRecords.get('anwar_vault_backup_v1'),oldBackup,'failed migration keeps the previous encrypted backup');
+assert.equal(migration.data.has('anwar_prayer_settings_v1'),true,'failed migration retains the legacy plaintext setting for recovery');
 
 console.log('All initial vault migration and rollback tests passed.');
