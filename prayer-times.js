@@ -2,7 +2,7 @@
  * Prayer times are calculated on-device from a bundled city-coordinate table.
  * The adhan recording is imported by the user and stored in this origin's IndexedDB.
  * No prayer API, remote audio host, GPS permission, or location upload is used.
- * Chrome/PWA background playback and closed-app alarms are not guaranteed.
+ * نسخة Chrome/PWA لا يضمن استمرار الصوت بعد إغلاق الصفحة أو إيقاف المتصفح.
  */
 (function(){
  'use strict';
@@ -11,6 +11,13 @@
  if(!panel)return;
  window.__anwarPrayerTimesReady=true;
 
+ // Stable identifiers retained only for compatibility with already installed native companion versions.
+ // The web/PWA player never resolves these identifiers to network URLs.
+ const LEGACY_NATIVE_VOICE_KEYS=[
+  {key:'aqsa',label:'المسجد الأقصى'},
+  {key:'haram_makki',label:'الحرم المكي'},
+  {key:'morocco_kamal',label:'الأذان المغربي'}
+ ];
  const VOICES=[{key:'calm',label:'ملف الأذان المحلي'}];
  const DEFAULT_VOICE='calm';
  let localAudioObjectUrl='';
