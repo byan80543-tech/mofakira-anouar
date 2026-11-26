@@ -147,8 +147,11 @@ assert.match(legacy, /WebView/);
 assert.match(gradle, /versionCode = 18/);
 assert.ok(gradle.includes('versionName = "0.9.9"'));
 
-assert.ok(oldController.includes('tasbihVault.save(snapshot)')&&!oldController.includes("preferences.set('tasbih'"),
-  'the web Tasbih data is isolated from notebook-wide preferences');
+const tasbihPersistStart = oldController.indexOf('function persist()');
+const tasbihPersistEnd = oldController.indexOf('function applyVaultState', tasbihPersistStart);
+const tasbihPersistBlock = oldController.slice(tasbihPersistStart, tasbihPersistEnd);
+assert.ok(tasbihPersistBlock.includes('tasbihVault.save(snapshot)')&&!tasbihPersistBlock.includes("preferences.set('tasbih'"),
+  'active web Tasbih persistence is isolated; the notebook adapter is used only to clear verified legacy copies');
 assert.ok(oldBehaviorTests.includes('royal tasbih ring renders exactly 33 beads'));
 assert.ok(oldBehaviorTests.includes('recognition prefers the visitor’s Moroccan Arabic locale'));
 assert.ok(oldOpenTests.includes('the live tasbih state no longer uses the notebook-wide preferences adapter'));
