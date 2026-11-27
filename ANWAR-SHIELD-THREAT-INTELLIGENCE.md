@@ -64,3 +64,48 @@
 - Verizon 2025 DBIR: https://www.verizon.com/business/resources/T80a/reports/2025-dbir-data-breach-investigations-report.pdf
 
 **ملاحظة:** هذا سجل بحث دفاعي متجدد، وليس قاعدة بيانات كاملة لجميع الحوادث. تاريخ كل إضافة ومصدرها يجب أن يبقيا موثقين، ويجب مراجعة المصادر قبل تحويل أي خبر إلى قاعدة حظر.
+
+
+## 8. موجز الأخبار والتحويل إلى ضوابط (مراجعة 27 نوفمبر 2026)
+
+### استغلال مؤكد أو نشاط رُصد ميدانياً
+- **CISA KEV — 23 نوفمبر 2026:** أضيفت ثغرتا Path Traversal في Project MONAI (CVE-2026-133968) وSSRF في N-able Mail Assure (CVE-2026-134624) إلى سجل الثغرات المستغلة فعلياً. القرار الدفاعي: تثبيت الإصدارات المتأثرة والتحقق الخادمي من المسارات ووجهات الشبكة؛ لا تُحظر أسماء المنتجات أو CVE في المفكرة.
+- **CISA KEV — 9 نوفمبر 2026:** شمل التحديث عيوب مصادقة/صلاحيات وحقن شيفرة في منتجات متعددة، منها GPUStack وFreeSWITCH وAspera. القرار: تحديث الأنظمة، مراجعة الهوية والصلاحيات وسجلات الوصول؛ مؤشرات أسماء CVE معلومات وليست نصوصاً ضارة.
+- **Microsoft — 5 نوفمبر 2026:** رُصد استخدام وكلاء AI للبحث عن أسرار مكشوفة في GitHub ثم إساءة استخدامها في بيئات سحابية. القرار: فحص الأسرار في المستودع وسجلات CI، تدوير المفتاح فور كشفه، تقليل صلاحياته، وعدم طباعته في logs.
+- **Microsoft — 9 سبتمبر 2026:** رُصدت حملات هندسة اجتماعية مرتبطة بموضوع Passkeys، أعقبها تسجيل وسائل مصادقة إضافية واستكشاف بيانات عبر Graph وSharePoint وOneDrive. القرار: إشعارات تغيير وسائل المصادقة، إبطال الجلسات، مراجعة الأجهزة، ومقاومة التصيد؛ أي نص عنها في المحرر يبقى إشارة مراجعة فقط.
+- **Google Threat Intelligence Group — 16 نوفمبر 2026، وMandiant:** رُصد استخدام وكلاء وأطر متعددة الوكلاء، وسرقة جلسات واعتمادات، وإنشاء حسابات IAM غير مصرّح بها، وإساءة استخدام موارد النماذج السحابية (LLMjacking). القرار: ضبط صلاحيات الوكلاء، حصر أدواتهم ووجهاتهم، تسجيل tool calls، وحدود الإنفاق ومراقبة IAM وإبطال الاعتمادات.
+
+### بحث مختبري منشور — لا دليل على استهداف المفكرة
+- **PortSwigger — 4 نوفمبر 2026، تحديث 11 نوفمبر:** بحث تقني حول تصعيد حقن ترويسات HTTP إلى CRLF-powered desync. يعامل كمعلومة بحثية لا كحادثة ضد هذا الموقع. القرار: اختبار parser consistency في reverse proxy والخادم، وفحص الرؤوس بعد التطبيع على مستوى الخادم.
+- **HTTP Request Smuggling / Desync:** اختلاف تفسير Content-Length وTransfer-Encoding بين طبقات HTTP موضوع اختبار خادمي/شبكي، وليس شيئاً تستطيع قائمة كلمات المتصفح منعه.
+
+### أطر مرجعية واتجاهات عامة
+- **ENISA Threat Landscape 2026:** تحليل للفترة من يناير إلى ديسمبر 2025؛ يفيد في ترتيب المخاطر وسلاسل الاعتماد، ولا يعني أن كل صنف حدث في مفكرة أنوار.
+- **OWASP Top 10:2025 وOWASP API Security Top 10:** مرجعان لتغطية التحكم بالوصول، التهيئة، سلسلة توريد البرمجيات، الحقن، المصادقة واستهلاك الموارد؛ يستخدمان كأساس مراجعة وضوابط وليس قائمة كلمات.
+
+## 9. مصفوفة الضوابط المطلوبة خارج مرشح النص
+| المجال | مؤشر محلي مسموح | الضابط الحقيقي المطلوب |
+|---|---|---|
+| الأسرار والرموز | صيغ مفتاح خاص/رمز محتمل — مراجعة دون حفظ القيمة | secret scanning على Git، تدوير فوري، تخزين vault، منع الأسرار في logs |
+| الهوية والجلسات | عبارات طلب الموافقة أو إضافة جهاز — مراجعة | MFA مقاومة للتصيد، إشعار تغييرات عوامل المصادقة، تدوير وإبطال الجلسات |
+| API | ألفاظ BOLA/IDOR — مراجعة | تحقق تفويض على كل مورد وفعل وملكية على الخادم |
+| السحابة وSSRF | بعض عناوين metadata الواضحة في النص — حظر محلي محدود | egress allowlist، منع private/link-local والـ metadata، DNS/IP pinning وفحص التحويلات |
+| CI/CD | OIDC tokens وworkflow triggers ومراجع Actions المتحركة — مراجعة | صلاحيات قصيرة العمر، تثبيت actions على commit SHA، عزل forks، حماية cache وOIDC trust policy |
+| الذكاء الاصطناعي | مؤشرات prompt injection وLLMjacking — مراجعة | فصل التعليمات عن البيانات، موافقة بشرية للأدوات الحساسة، allowlist للأدوات والوجهات، حدود tokens والإنفاق |
+| HTTP/CDN | CRLF/desync/cache poisoning — مراجعة/خارج النطاق | توحيد parsing، ضبط cache keys، اختبار reverse proxy وWAF وإعدادات CDN |
+| سلسلة التوريد | أسماء الحزم/الموردين ليست سبباً للحظر | lockfiles، provenance، التحقق من التواقيع، SCA/SBOM ومراجعة maintainer |
+
+## 10. سجل مصادر مؤرخ
+- CISA KEV، 23 نوفمبر 2026: https://www.cisa.gov/news-events/alerts/2026/11/23/cisa-adds-two-known-exploited-vulnerabilities-catalog
+- CISA KEV، 9 نوفمبر 2026: https://content.govdelivery.com/accounts/USDHSCISA/bulletins/4323900
+- Microsoft، 5 نوفمبر 2026: https://www.microsoft.com/en-us/security/blog/2026/11/05/threat-actors-use-agentic-ai-tooling-to-find-and-abuse-exposed-secrets/
+- Microsoft، 9 سبتمبر 2026: https://www.microsoft.com/en-us/security/blog/2026/09/09/passkey-themed-social-engineering-leads-identity-cloud-compromise/
+- Google Threat Intelligence Group، 16 نوفمبر 2026: https://cloud.google.com/blog/topics/threat-intelligence/agentic-threat-activity-crosses-a-significant-threshold
+- Google Cloud / Mandiant، 2 نوفمبر 2026: https://cloud.google.com/blog/topics/threat-intelligence/llmjacking-monetizing-compromised-cloud-models
+- Mandiant، 24 سبتمبر 2026: https://cloud.google.com/blog/topics/threat-intelligence/hardening-code-pipelines-and-ci-cd-infrastructure
+- PortSwigger Research، 4 نوفمبر 2026 (تحديث 11 نوفمبر): https://portswigger.net/research/making-http-header-injection-critical-with-one-prompt
+- ENISA Threat Landscape 2026: https://www.enisa.europa.eu/publications/enisa-threat-landscape-2026
+- OWASP Top 10:2025: https://top10.owasp.org/2025/
+- OWASP API Security Project: https://owasp.org/projects/api-security-project
+
+**تمييز الدليل:** إدخالات CISA KEV تعني أن الثغرة أُدرجت ضمن ثغرات مستغلة فعلياً؛ تقارير Microsoft وGTIG تصف نشاطاً مرصوداً؛ PortSwigger يصف بحثاً تقنياً منشوراً؛ OWASP وENISA مرجعان للمخاطر والضوابط. لا يثبت أي مما سبق أن مفكرة أنوار نفسها تعرضت لهذه الهجمات.
