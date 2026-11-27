@@ -1,10 +1,10 @@
 /* Fast local app-shell delivery with background navigation refresh.
  * Bump CACHE_NAME for each published release so the approved worker precaches
  * the matching HTML, update checker and local assets before activation.
- * v252 adds immediate live-DOM sanitization for the rich-text editor.
+ * v253 refreshes the cache after all live editor hardening assets.
  */
 'use strict';
-const CACHE_NAME='anwar-shell-2026-11-27-v252';
+const CACHE_NAME='anwar-shell-2026-11-27-v253';
 const APP_BASE=new URL('./',self.registration.scope);
 const SHELL_ASSETS=[
  './index.html',
