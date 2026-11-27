@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 
 const source=fs.readFileSync(new URL('../vault-storage.js',import.meta.url),'utf8');
 
-function makeHarness(){
+function makeHarness({supportsIndexedDB=true}={}){
  const records=new Map();
  const localValues=new Map();
  const state={failNextReadback:false,failNextPut:false};
@@ -77,7 +77,7 @@ function makeHarness(){
    return request;
   }
  };
- const sandbox={indexedDB,localStorage,console,Promise,Map,Set,Error};
+ const sandbox={...(supportsIndexedDB?{indexedDB}:{}),localStorage,console,Promise,Map,Set,Error};
  vm.runInNewContext(source,sandbox,{timeout:3000});
  return {api:sandbox.AnwarVaultStorage,records,localValues,state};
 }
@@ -91,22 +91,23 @@ h.localValues.set(backupKey,legacyBackup);
 
 assert.equal(await h.api.get(mainKey),legacyPrimary,'legacy primary envelope is returned unchanged');
 assert.equal(h.records.get(mainKey),legacyPrimary,'legacy primary is committed to IndexedDB');
-assert.equal(h.localValues.has(mainKey),false,'legacy primary is removed only after IndexedDB read-back verification');
+assert.equal(h.localValues.get(mainKey),legacyPrimary,'legacy primary remains as an encrypted recovery mirror after IndexedDB verification');
 
 assert.equal(await h.api.get(backupKey),legacyBackup,'legacy backup envelope is returned unchanged');
 assert.equal(h.records.get(backupKey),legacyBackup,'legacy backup is committed to IndexedDB');
-assert.equal(h.localValues.has(backupKey),false,'legacy backup is removed only after IndexedDB read-back verification');
+assert.equal(h.localValues.get(backupKey),legacyBackup,'legacy backup remains as an encrypted recovery mirror after IndexedDB verification');
 
 const updated=JSON.stringify({format:'anwar-vault',ciphertext:'new-primary'});
 h.localValues.set(mainKey,legacyPrimary);
 await h.api.set(mainKey,updated);
 assert.equal(h.records.get(mainKey),updated,'new encrypted primary is committed to IndexedDB');
 assert.equal(await h.api.get(mainKey),updated,'new encrypted primary can be read back');
-assert.equal(h.localValues.has(mainKey),false,'stale localStorage copy is cleaned after verified write');
+assert.equal(h.localValues.get(mainKey),updated,'the local recovery mirror matches the latest verified encrypted write');
 
 await h.api.remove(mainKey);
 assert.equal(h.records.has(mainKey),false,'remove deletes the IndexedDB primary');
 assert.equal(await h.api.get(mainKey),null,'removed primary is reported as absent');
+assert.equal(h.localValues.has(mainKey),false,'verified removal clears the encrypted local mirror before removing the IndexedDB record');
 
 h.localValues.set(mainKey,legacyPrimary);
 h.state.failNextReadback=true;
@@ -115,7 +116,7 @@ await assert.rejects(
  /لم تتطابق مراجعة التخزين الآمن/,
  'a mismatched IndexedDB read-back rejects the write'
 );
-assert.equal(h.localValues.get(mainKey),legacyPrimary,'legacy copy is preserved when IndexedDB verification fails');
+assert.equal(h.localValues.get(mainKey),updated,'the locally verified encrypted mirror remains recoverable when IndexedDB verification fails');
 
 const damagedRecord=makeHarness();
 damagedRecord.records.set(mainKey,{unexpected:'non-string'});
@@ -133,6 +134,22 @@ differingRecord.records.set(mainKey,damagedEnvelope);
 differingRecord.localValues.set(mainKey,legacyPrimary);
 assert.equal(await differingRecord.api.get(mainKey),damagedEnvelope,'a string IndexedDB record remains the primary read result');
 assert.equal(differingRecord.localValues.get(mainKey),legacyPrimary,'a differing legacy envelope is preserved until the IndexedDB record is independently trusted');
+
+
+const fallback=makeHarness({supportsIndexedDB:false});
+fallback.localValues.set(mainKey,legacyPrimary);
+assert.equal(await fallback.api.get(mainKey),legacyPrimary,'an encrypted local mirror opens the vault when IndexedDB is unavailable');
+const fallbackUpdated=JSON.stringify({format:'anwar-vault',ciphertext:'fallback-updated'});
+await fallback.api.set(mainKey,fallbackUpdated);
+assert.equal(fallback.localValues.get(mainKey),fallbackUpdated,'encrypted local fallback is updated and read-back verified without IndexedDB');
+assert.equal(fallback.records.size,0,'the fallback path does not pretend IndexedDB writes succeeded');
+
+const firstRunFallback=makeHarness({supportsIndexedDB:false});
+assert.equal(await firstRunFallback.api.get(mainKey),null,'a first launch can detect an absent encrypted record in local fallback mode');
+await firstRunFallback.api.set(mainKey,legacyPrimary);
+assert.equal(firstRunFallback.localValues.get(mainKey),legacyPrimary,'a new encrypted vault can be stored through the verified local fallback');
+await assert.rejects(()=>firstRunFallback.api.remove(mainKey),/IndexedDB غير متاح/,'vault deletion is not claimed while the primary database cannot be reached');
+assert.equal(firstRunFallback.localValues.get(mainKey),legacyPrimary,'failed deletion preserves the only encrypted fallback copy');
 
 await assert.rejects(()=>h.api.get('anwar_v1'),/مفتاح خزنة غير معروف/,'unrecognized storage keys are rejected');
 console.log('All verified IndexedDB vault storage tests passed.');
