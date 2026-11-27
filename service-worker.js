@@ -4,7 +4,7 @@
  * v243 aligns the app-shell cache with the current verified assets and input-guard release.
  */
 'use strict';
-const CACHE_NAME='anwar-shell-2026-11-27-v242';
+const CACHE_NAME='anwar-shell-2026-11-27-v243';
 const APP_BASE=new URL('./',self.registration.scope);
 const SHELL_ASSETS=[
  './index.html',
