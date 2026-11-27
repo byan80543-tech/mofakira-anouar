@@ -200,6 +200,11 @@ jobs:
           ANWAR_TARGET_URL: https://mofakira-anouar.pages.dev/mofakira-anouar/
         run: node scripts/test-live-input-bypass.mjs
 
+      - name: Verify live editor blocks real keyboard and paste XSS probes
+        env:
+          ANWAR_TARGET_URL: https://mofakira-anouar.pages.dev/mofakira-anouar/
+        run: node scripts/test-live-xss-smoke.mjs
+
       - name: Probe published security headers, PWA boundary, exposed files and CORS
         env:
           ANWAR_TARGET_URL: https://mofakira-anouar.pages.dev/mofakira-anouar/
