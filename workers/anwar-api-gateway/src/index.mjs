@@ -595,7 +595,7 @@ function isAdhkarApiPath(pathname) {
     pathname === "/v1/admin/session" ||
     pathname === "/v1/admin/adhkar" ||
     pathname === "/v1/admin/adhkar/initialize" ||
-    /^\\/v1\\/admin\\/adhkar\\/[a-z0-9-]{1,80}$/i.test(pathname);
+    /^\/v1\/admin\/adhkar\/[a-z0-9-]{1,80}$/i.test(pathname);
 }
 
 /**
@@ -617,7 +617,7 @@ function resolveGatewayAccess(pathname) {
   if (Object.hasOwn(routes, pathname)) {
     return { methods: routes[pathname], access: pathname.startsWith("/v1/admin/") ? "owner" : "public" };
   }
-  if (/^\\/v1\\/admin\\/adhkar\\/[a-z0-9-]{1,80}$/i.test(pathname)) {
+  if (/^\/v1\/admin\/adhkar\/[a-z0-9-]{1,80}$/i.test(pathname)) {
     return { methods: ["DELETE"], access: "owner" };
   }
   return null;
