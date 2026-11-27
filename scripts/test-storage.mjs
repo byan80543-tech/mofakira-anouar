@@ -202,6 +202,7 @@ h.storage.failGetKey='anwar_v1';
 h.api.load();
 assert(!h.api.snapshot().storageRecoveryBlocked&&h.api.snapshot().storageRecoveryMode==='unavailable','unavailable localStorage access does not trigger a persistent recovery lockout');
 assert(h.api.snapshot().vaultStorageUnavailable,'unavailable localStorage access remains retryable from the shield control');
+assert(h.elements.storageRecoveryNotice.hidden,'unavailable storage does not show the blocking recovery panel');
 h.storage.failGetKey=null;
 h.sandbox.vaultUnlocked=false;
 assert(await h.api.retryStorageAccess()===true&&!h.api.snapshot().storageRecoveryBlocked,'retry succeeds when browser storage access returns');
