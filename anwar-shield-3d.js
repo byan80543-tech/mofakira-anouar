@@ -461,6 +461,42 @@
   announce(result,source);
   notify(result);
  }
+ const snapshotTimers=new WeakMap();
+ function scheduleRemember(target,source){
+  if(!target)return;
+  if(!isEditable(target)){
+   remember(target);
+   return;
+  }
+  const previous=snapshotTimers.get(target);
+  if(previous)root.clearTimeout(previous);
+  const timer=root.setTimeout(function(){
+   snapshotTimers.delete(target);
+   const result=inspect(read(target));
+   if(result.status==='blocked'){
+    reject(target,result,source||'idle-input');
+    return;
+   }
+   if(result.status==='review')recordReview(result,source||'idle-input');
+   remember(target);
+  },650);
+  snapshotTimers.set(target,timer);
+ }
+ function commitRemember(target,source){
+  if(!target)return;
+  const timer=snapshotTimers.get(target);
+  if(timer){
+   root.clearTimeout(timer);
+   snapshotTimers.delete(target);
+  }
+  const result=inspect(read(target));
+  if(result.status==='blocked'){
+   reject(target,result,source||'change');
+   return;
+  }
+  if(result.status==='review')recordReview(result,source||'change');
+  remember(target);
+ }
  function before(event){
   const target=field(event.target);
   if(!target)return;
@@ -521,7 +557,7 @@
    pendingInputs.delete(target);
    if(current===expected){
     prevalidatedInsertions.delete(target);
-    remember(target);
+    scheduleRemember(target,'input');
     return;
    }
   }
@@ -529,7 +565,7 @@
    const expected=prevalidatedInsertions.get(target);
    prevalidatedInsertions.delete(target);
    if(current===expected){
-    remember(target);
+    scheduleRemember(target,'input');
     return;
    }
   }
@@ -539,22 +575,20 @@
    reject(target,result,'input');
   }else{
    if(result.status==='review')recordReview(result,'input');
-   remember(target);
+   scheduleRemember(target,'input');
   }
  }
  function change(event){
   const target=field(event.target);
-  if(!target)return;
-  const result=inspect(read(target));
-  if(result.status==='blocked')reject(target,result,'change');
-  else{
-   if(result.status==='review')recordReview(result,'change');
-   remember(target);
-  }
+  if(target)commitRemember(target,'change');
  }
  function focus(event){
   const target=field(event.target);
   if(target)remember(target);
+ }
+ function blur(event){
+  const target=field(event.target);
+  if(target)commitRemember(target,'blur');
  }
  function submit(event){
   const formElement=event.target;
@@ -574,6 +608,7 @@
  }
  if(root.document&&root.document.addEventListener){
   root.document.addEventListener('focusin',focus,true);
+  root.document.addEventListener('focusout',blur,true);
   root.document.addEventListener('beforeinput',before,true);
   root.document.addEventListener('paste',paste,true);
   root.document.addEventListener('drop',drop,true);
