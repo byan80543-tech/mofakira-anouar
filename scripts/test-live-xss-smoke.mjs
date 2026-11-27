@@ -143,7 +143,7 @@ try {
   }
 
   const benign = 'هذه ملاحظة أدبية عادية عن المطر والقصيدة.';
-  await editor.click();
+  await focusEditor();
   await page.keyboard.insertText(benign);
   await page.waitForTimeout(80);
   const benignText = await editor.textContent();
