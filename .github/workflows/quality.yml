@@ -152,3 +152,31 @@ jobs:
         run: node scripts/test-asset-version-freshness.mjs
       - name: Test API gateway allowlist, cache and IP rate limiting
         run: node scripts/test-api-gateway.mjs
+
+  live-xss-smoke:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'security-review-2026-11-27'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out pull request source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pinned Playwright
+        run: |
+          npm init -y
+          npm install --no-save playwright@1.56.1
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run all-field attack matrix with test-only client-shield bypass
+        env:
+          ANWAR_TARGET_URL: https://mofakira-anouar.pages.dev/mofakira-anouar/
+        run: node scripts/test-live-input-bypass.mjs
