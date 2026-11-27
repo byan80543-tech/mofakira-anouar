@@ -168,7 +168,7 @@
    'к':'k','м':'m','т':'t','у':'y','в':'b','һ':'h','н':'h','ӏ':'l','ԁ':'d','ԛ':'q','ԝ':'w',
    'α':'a','ο':'o','ρ':'p','χ':'x','ι':'i','κ':'k','τ':'t','ν':'v','ϲ':'c','ϳ':'j','ϱ':'p','ϵ':'e','ϰ':'k'
   };
-  text=text.replace(/[аерсхіјѕкмтувһнӏԁԛԝαορχικτνϲϳϱϵϰ]/g,ch=>confusables[ch]||ch);
+  text=text.replace(/[аеорсхіјѕкмтувһнӏԁԛԝαορχικτνϲϳϱϵϰ]/g,ch=>confusables[ch]||ch);
   return text.replace(/[^\p{L}\p{N}]+/gu,' ').trim();
  }
  function escapeRegExp(value){
