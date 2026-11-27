@@ -19,6 +19,7 @@ APP_CORE = ROOT / "app-core.js"
 FLOATING_PANELS = ROOT / "floating-panels.js"
 FLOATING_PANELS_CSS = ROOT / "floating-panels.css"
 PROTECTIVE_ADHKAR = ROOT / "protective-adhkar.js"
+EDITOR_DOM_SANITIZER = ROOT / "editor-dom-sanitizer.js"
 MANIFEST = ROOT / "manifest.webmanifest"
 SERVICE_WORKER = ROOT / "service-worker.js"
 errors: list[str] = []
@@ -67,7 +68,7 @@ def png_dimensions(path: Path) -> tuple[int, int] | None:
 
 
 def main() -> int:
-    for path in (INDEX, APP_CORE, FLOATING_PANELS, FLOATING_PANELS_CSS, PROTECTIVE_ADHKAR, MANIFEST, SERVICE_WORKER):
+    for path in (INDEX, APP_CORE, FLOATING_PANELS, FLOATING_PANELS_CSS, PROTECTIVE_ADHKAR, EDITOR_DOM_SANITIZER, MANIFEST, SERVICE_WORKER):
         if not path.is_file():
             fail(f"Required file is missing: {path.relative_to(ROOT)}")
     if errors:
@@ -150,6 +151,7 @@ def main() -> int:
     check_js_syntax(app_core, "app-core.js")
     check_js_syntax(FLOATING_PANELS.read_text(encoding="utf-8"), "floating-panels.js")
     check_js_syntax(PROTECTIVE_ADHKAR.read_text(encoding="utf-8"), "protective-adhkar.js")
+    check_js_syntax(EDITOR_DOM_SANITIZER.read_text(encoding="utf-8"), "editor-dom-sanitizer.js")
 
     sw_text = SERVICE_WORKER.read_text(encoding="utf-8")
     check_js_syntax(sw_text, "service-worker.js")
