@@ -74,7 +74,7 @@ test("API gateway deployment is manual and production-main only", () => {
 
 test("API gateway deployment keeps GitHub permissions read-only and checkout credentials disabled", () => {
   assert.match(gatewayDeployment, /permissions:\s*\n\s+contents:\s*read/);
-  assert.doesNotMatch(gatewayDeployment, /permissions:\s*\n(?:\s+[^\n]+\n)*?\s+contents:\s*write/);
+  assert.equal(gatewayDeployment.includes("contents: write"), false, "GitHub token permissions must never grant contents: write");
   assert.ok(
     gatewayDeployment.includes("uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683"),
     "checkout must use a reviewed immutable commit"
