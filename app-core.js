@@ -1164,7 +1164,8 @@ function save(){
  if(!vaultKey||!vaultTemplate){toast('الحفظ متوقف حتى اكتمال التشفير الشامل. لم تُحفظ بيانات مكشوفة.',5000);return false}
  const oversizedTitle=(S.notes||[]).some(note=>Array.from(String(note&&note.title||'')).length>200);
  const oversizedBody=(S.notes||[]).some(note=>Array.from(htmlToPlainText(note&&note.html||'')).length>50000);
- if(oversizedTitle||oversizedBody){toast(oversizedTitle?'عنوان العمل يتجاوز الحد الأقصى البالغ 200 محرف.':'نص العمل يتجاوز الحد الأقصى البالغ 50,000 محرف. احذف جزءًا من النص قبل الحفظ.',5500);return false}
+ const oversizedLiveBody=!!(pg&&Array.from(pg.innerText||pg.textContent||'').length>50000);
+ if(oversizedTitle||oversizedBody||oversizedLiveBody){toast(oversizedTitle?'عنوان العمل يتجاوز الحد الأقصى البالغ 200 محرف.':'نص العمل يتجاوز الحد الأقصى البالغ 50,000 محرف. احذف جزءًا من النص قبل الحفظ.',5500);return false}
  const snapshot=JSON.stringify(S);
  vaultSaveQueue=vaultSaveQueue.then(async()=>{
   await persistVaultSnapshot(snapshot);
@@ -1209,7 +1210,7 @@ function installNotebookInputLimits(){
   pg.addEventListener('beforeinput',event=>{
    if(!String(event.inputType||'').startsWith('insert'))return;
    let inserted=event.data??event.dataTransfer?.getData('text/plain')??'';
-   if(event.inputType==='insertParagraph'||event.inputType==='insertLineBreak')inserted+='\\n';
+   if(event.inputType==='insertParagraph'||event.inputType==='insertLineBreak')inserted+='\n';
    if(wouldExceed(inserted)){event.preventDefault();toast('نص العمل بلغ الحد الأقصى 50,000 محرف. لن نقبل نصًا إضافيًا.',4500)}
   });
   pg.addEventListener('paste',event=>{
