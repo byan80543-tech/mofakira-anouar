@@ -14,6 +14,7 @@
     'color', 'background-color', 'font-size', 'font-family', 'font-weight',
     'font-style', 'text-decoration', 'text-align', 'line-height'
   ]);
+  const observedEditors = new WeakMap();
   const UNSAFE_STYLE_VALUE =
     /(url\s*\(|expression|javascript:|@import|behavior|-moz-binding|\\|[{}<>])/i;
 
@@ -75,11 +76,37 @@
     return template.innerHTML;
   }
 
+  function patchHtmlSinks(editor) {
+    const descriptor = root.Element &&
+      Object.getOwnPropertyDescriptor(root.Element.prototype, 'innerHTML');
+    if (descriptor && descriptor.get && descriptor.set) {
+      Object.defineProperty(editor, 'innerHTML', {
+        configurable: true,
+        enumerable: descriptor.enumerable,
+        get() { return descriptor.get.call(this); },
+        set(value) { descriptor.set.call(this, sanitizeHtml(value)); }
+      });
+    }
+
+    const nativeInsertAdjacentHTML = editor.insertAdjacentHTML;
+    if (typeof nativeInsertAdjacentHTML === 'function') {
+      Object.defineProperty(editor, 'insertAdjacentHTML', {
+        configurable: true,
+        writable: true,
+        value(position, markup) {
+          return nativeInsertAdjacentHTML.call(this, position, sanitizeHtml(markup));
+        }
+      });
+    }
+  }
+
   function observe(editor) {
     if (!editor || editor.nodeType !== 1 || typeof root.MutationObserver !== 'function') {
       return Object.freeze({ disconnect() {} });
     }
+    if (observedEditors.has(editor)) return observedEditors.get(editor);
 
+    patchHtmlSinks(editor);
     let cleaning = false;
     const clean = records => {
       if (cleaning) return;
@@ -105,8 +132,11 @@
     for (const child of Array.from(editor.childNodes || [])) sanitizeNode(child);
     const observer = new root.MutationObserver(clean);
     observer.observe(editor, { childList: true, subtree: true, attributes: true });
+    observedEditors.set(editor, observer);
     return observer;
   }
 
   root.AnwarEditorDomSanitizer = Object.freeze({ sanitizeHtml, observe });
+  const initialEditor = root.document && root.document.getElementById('pg');
+  if (initialEditor) observe(initialEditor);
 })(globalThis);
