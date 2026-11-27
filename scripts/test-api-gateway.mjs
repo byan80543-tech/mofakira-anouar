@@ -124,6 +124,22 @@ try {
   // Arbitrary URLs, unknown routes, duplicate parameters and invalid slugs are rejected.
   response = await worker.fetch(request("/proxy?url=https://evil.example"), env, context);
   assert.equal(response.status, 404);
+
+  // Default-deny route policy rejects unknown paths and method substitutions
+  // before authentication, storage access, or upstream work.
+  response = await worker.fetch(request("/v1/admin/users"), env, context);
+  assert.equal(response.status, 404, "unregistered admin paths are denied by default");
+  response = await worker.fetch(request("/v1/admin/session", { method: "GET" }), env, context);
+  assert.equal(response.status, 405, "the owner-session endpoint only accepts POST");
+  assert.equal(response.headers.get("Allow"), "POST, OPTIONS");
+  response = await worker.fetch(request("/v1/adhkar", { method: "POST" }), env, context);
+  assert.equal(response.status, 405, "public adhkar is read-only");
+  assert.equal(response.headers.get("Allow"), "GET, OPTIONS");
+  response = await worker.fetch(request("/v1/admin/adhkar/not-valid!"), env, context);
+  assert.equal(response.status, 404, "malformed object identifiers do not match an owner route");
+  response = await worker.fetch(request("/v1/admin/adhkar", { method: "OPTIONS" }), env, context);
+  assert.equal(response.status, 204);
+  assert.equal(response.headers.get("Access-Control-Allow-Methods"), "GET, POST, PUT, OPTIONS");
   response = await worker.fetch(request("/v1/country/list?nationality=MA&page=1&url=https://evil.example"), env, context);
   assert.equal(response.status, 400);
   response = await worker.fetch(request("/v1/country/list?nationality=ZZ&page=1"), env, context);
@@ -341,6 +357,13 @@ try {
   }), adminEnv, context);
   assert.equal(forgedOwnerRead.status, 401, "a forged bearer token cannot reach the management store");
   assert.equal(adminStoreCalls.length, callsBeforeDeniedAdmin, "invalid owner tokens are rejected before store access");
+
+  const originOnlyAdmin = await worker.fetch(request("/v1/admin/adhkar", {
+    method: "GET",
+    headers: { Origin: "https://byan80543-tech.github.io" }
+  }), adminEnv, context);
+  assert.equal(originOnlyAdmin.status, 401, "an allowed Origin without a signed owner session has no admin authority");
+  assert.equal(adminStoreCalls.length, callsBeforeDeniedAdmin, "Origin alone never reaches the private store");
 
   // Chunked/streamed bodies without Content-Length are bounded while reading.
   let oversizedBodyCancelled = false;
