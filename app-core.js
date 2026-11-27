@@ -79,7 +79,7 @@ let S={notes:[],customAdhkar:[],theme:'',palette:'blue',wallColor:'mist',paperCo
 const $=id=>document.getElementById(id),pg=$('pg');
 const VAULT_STORAGE_KEY='anwar_vault_v1',VAULT_BACKUP_KEY='anwar_vault_backup_v1',VAULT_MODE_KEY='anwar_vault_mode_v1';
 let adhkarFontTarget=null;
-let vaultKey=null,vaultTemplate=null,vaultUnlocked=false,vaultGateMode='setup',vaultReady=false,vaultDisableAfterUnlock=false,vaultHasEncryptedData=false,vaultLockInProgress=false;
+let vaultKey=null,vaultTemplate=null,vaultUnlocked=false,vaultGateMode='setup',vaultReady=false,vaultDisableAfterUnlock=false,vaultHasEncryptedData=false,vaultLockInProgress=false,vaultStorageUnavailable=false;
 let vaultSaveQueue=Promise.resolve(),vaultLastWriteError=null,vaultBackupWarningShown=false,vaultLegacyCleanupWarningShown=false;
 let rescuePendingEnvelope=null;
 const RESCUE_REMINDER_ENABLED_KEY='anwar_rescue_reminder_enabled_v1';
@@ -201,13 +201,23 @@ function createNoteId(){
  return id;
 }
 function showStorageRecoveryNotice(title,message,raw){
- storageRecoveryBlocked=true;
  storageRecoveryMode=raw===null?'unavailable':'corrupt';
  storageRecoveryRaw=typeof raw==='string'?raw:null;
  storageRecoveryExported=false;
  storageRecoveryBackupAvailable=false;
  S=emptyStorageState();
  const panel=$('storageRecoveryNotice'),heading=$('storageRecoveryTitle'),description=$('storageRecoveryMessage');
+ if(raw===null){
+  // A storage API failure is not evidence of damaged data. Keep the app shell
+  // available and the private vault locked; retry through the shield control.
+  storageRecoveryBlocked=false;
+  vaultStorageUnavailable=true;
+  if(panel)panel.hidden=true;
+  toast('تعذّر الوصول إلى التخزين الآن. لم تتغير بياناتك؛ المس أيقونة القفل لإعادة المحاولة.',6000);
+  return;
+ }
+ storageRecoveryBlocked=true;
+ vaultStorageUnavailable=false;
  if(heading)heading.textContent=title;
  if(description)description.textContent=message;
  if(panel)panel.hidden=false;
@@ -317,11 +327,16 @@ async function continueVaultAfterRecovery(){
   stored=await AnwarVaultStorage.get(VAULT_STORAGE_KEY);
   if(stored===null)backup=await AnwarVaultStorage.get(VAULT_BACKUP_KEY);
  }catch(error){
-  showStorageRecoveryNotice('تعذّر الوصول إلى مخزن الخزنة الآمن','تعذّر فتح مخزن المفكرة الآمن. لا تمسح بيانات الموقع؛ أعد المحاولة بعد السماح بالتخزين في المتصفح.',null);
+  vaultHasEncryptedData=true;vaultGateMode='unlock';
+  showStorageRecoveryNotice('تعذّر الوصول إلى مخزن الخزنة الآمن','تعذّر فتح مخزن المفكرة الآمن. لم تتغير بياناتك؛ أعد المحاولة من أيقونة القفل.',null);
+  syncVaultLockButton();
   return;
  }
+ vaultStorageUnavailable=false;
  if(mode==='encrypted'&&stored===null&&backup===null){
+  vaultHasEncryptedData=true;vaultGateMode='unlock';
   showStorageRecoveryNotice('تعذّر العثور على الخزنة المشفّرة','علامة التشفير موجودة لكن ملفات الخزنة غير متاحة. لم نفتح المفكرة دون تحقق، ولم نحذف أي بيانات.',null);
+  syncVaultLockButton();
   return;
  }
  if(stored!==null||backup!==null){
@@ -331,9 +346,17 @@ async function continueVaultAfterRecovery(){
    :'تعذّر العثور على السجل الأساسي، لكن توجد نسخة احتياطية مشفرة. أدخل عبارة المرور لاستعادتها.');
   return;
  }
- if(!prepareLegacyStateForVault())return;
+ if(!prepareLegacyStateForVault()){
+  if(vaultStorageUnavailable){vaultHasEncryptedData=true;vaultGateMode='unlock';syncVaultLockButton()}
+  return;
+ }
  try{S.preferences=importLegacyPrivatePreferences(S.preferences)}
- catch(error){showStorageRecoveryNotice('تعذّر استعادة الإعدادات الخاصة','لم نتمكن من قراءة إعداداتك القديمة بأمان. لم نحذفها؛ أعد المحاولة بعد إتاحة تخزين الموقع.',null);return}
+ catch(error){
+  vaultHasEncryptedData=true;vaultGateMode='unlock';
+  showStorageRecoveryNotice('تعذّر استعادة الإعدادات الخاصة','لم نتمكن من قراءة إعداداتك القديمة بأمان. لم نحذفها؛ أعد المحاولة بعد إتاحة تخزين الموقع.',null);
+  syncVaultLockButton();
+  return;
+ }
  vaultKey=null;vaultTemplate=null;vaultUnlocked=false;vaultReady=false;vaultHasEncryptedData=false;
  globalThis.AnwarPrivatePreferences.load(emptyStorageState().preferences);
  showVaultGate('setup','التشفير الشامل إلزامي. استعدنا بياناتك القديمة دون حذفها؛ أنشئ عبارة المرور الآن لتشفيرها والتحقق من النسخة الاحتياطية قبل فتح المفكرة.');
@@ -525,12 +548,22 @@ async function bootVault(){
   savedVault=await AnwarVaultStorage.get(VAULT_STORAGE_KEY);
   if(savedVault===null)savedBackup=await AnwarVaultStorage.get(VAULT_BACKUP_KEY);
  }catch(error){
-  showStorageRecoveryNotice('المتصفح لا يتيح الوصول إلى الخزنة','تعذّر الوصول إلى مخزن المفكرة الآمن. لا تحذف بيانات الموقع؛ أعد المحاولة بعد السماح بالتخزين.',null);
-  theme();chips();openNote(null);return;
+  // We cannot prove that no vault exists. Keep private content locked, but do
+  // not cover the notebook with a persistent blocking recovery panel.
+  vaultKey=null;vaultTemplate=null;vaultUnlocked=false;vaultReady=false;
+  vaultHasEncryptedData=true;vaultGateMode='unlock';
+  showStorageRecoveryNotice('تعذّر الوصول إلى التخزين','تعذّر الوصول إلى مخزن المفكرة الآن. لم تتغير بياناتك؛ المس أيقونة القفل لإعادة المحاولة.',null);
+  const gate=$('vaultGate');if(gate)gate.hidden=true;
+  syncVaultLockButton();
+  theme();chips();openNote(null);renderList();return;
  }
+ vaultStorageUnavailable=false;
  if(mode==='encrypted'&&savedVault===null&&savedBackup===null){
+  vaultHasEncryptedData=true;vaultGateMode='unlock';
   showStorageRecoveryNotice('تعذّر العثور على الخزنة المشفّرة','علامة التشفير موجودة لكن ملفات الخزنة غير متاحة. لم نفتح المفكرة دون تحقق، ولم نحذف أي بيانات.',null);
-  theme();chips();openNote(null);return;
+  const gate=$('vaultGate');if(gate)gate.hidden=true;
+  syncVaultLockButton();
+  theme();chips();openNote(null);renderList();return;
  }
  if(savedVault!==null||savedBackup!==null){
   S=emptyStorageState();
@@ -542,10 +575,15 @@ async function bootVault(){
   theme();chips();openNote(null);renderList();return;
  }
  vaultHasEncryptedData=false;
- if(!prepareLegacyStateForVault()){theme();chips();openNote(null);return}
+ if(!prepareLegacyStateForVault()){
+  if(vaultStorageUnavailable){vaultHasEncryptedData=true;vaultGateMode='unlock';syncVaultLockButton()}
+  theme();chips();openNote(null);return;
+ }
  try{S.preferences=importLegacyPrivatePreferences(S.preferences)}
  catch(error){
+  vaultHasEncryptedData=true;vaultGateMode='unlock';
   showStorageRecoveryNotice('تعذّر استعادة الإعدادات الخاصة','لم نتمكن من قراءة إعداداتك القديمة بأمان. لم نحذفها؛ أعد المحاولة بعد إتاحة تخزين الموقع.',null);
+  syncVaultLockButton();
   theme();chips();openNote(null);return;
  }
  vaultKey=null;vaultTemplate=null;vaultUnlocked=false;vaultReady=false;
@@ -1042,7 +1080,7 @@ function updateStorageRecoveryNotice(){
  if(retryButton)retryButton.hidden=false;
 }
 function clearStorageRecovery(){
- storageRecoveryBlocked=false;storageRecoveryRaw=null;storageRecoveryExported=false;storageRecoveryMode='none';storageRecoveryBackupAvailable=false;
+ storageRecoveryBlocked=false;storageRecoveryRaw=null;storageRecoveryExported=false;storageRecoveryMode='none';storageRecoveryBackupAvailable=false;vaultStorageUnavailable=false;
  const panel=$('storageRecoveryNotice');if(panel)panel.hidden=true;
 }
 function load(){
@@ -1089,17 +1127,26 @@ function load(){
  }
 }
 async function retryStorageAccess(){
- if(!storageRecoveryBlocked)return false;
+ if(!storageRecoveryBlocked&&!vaultStorageUnavailable)return false;
  let mode=null,existingVault=null,existingBackup=null;
  try{
   mode=localStorage.getItem(VAULT_MODE_KEY);
   existingVault=await AnwarVaultStorage.get(VAULT_STORAGE_KEY);
   if(existingVault===null)existingBackup=await AnwarVaultStorage.get(VAULT_BACKUP_KEY);
- }catch(error){toast('لا يزال المتصفح يمنع الوصول إلى مخزن الخزنة الآمن؛ لم تتغير أي بيانات.',5000);return false}
- if(mode==='encrypted'&&existingVault===null&&existingBackup===null){toast('لا تزال ملفات الخزنة المشفّرة غير متاحة؛ لم نفتح المفكرة دون تحقق.',5000);return false}
+ }catch(error){
+  vaultStorageUnavailable=true;
+  toast('لا يزال التخزين غير متاح. لم تتغير بياناتك؛ حاول مرة أخرى بعد تحديث الصفحة.',5000);
+  return false;
+ }
+ if(mode==='encrypted'&&existingVault===null&&existingBackup===null){
+  vaultStorageUnavailable=true;
+  toast('تعذّر العثور على سجل الخزنة المشفّرة. لم نفتح مفكرة فارغة مكان بياناتك.',5000);
+  return false;
+ }
  clearStorageRecovery();
+ vaultStorageUnavailable=false;
  await continueVaultAfterRecovery();
- if(storageRecoveryBlocked)return false;
+ if(storageRecoveryBlocked||vaultStorageUnavailable)return false;
  if(vaultGateMode==='unlock'||vaultGateMode==='setup'||vaultUnlocked){
   theme();chips();
   if(vaultUnlocked){openNote(null);renderList()}
@@ -2903,6 +2950,7 @@ document.addEventListener('click',e=>{
  }
  else if(id==='vaultLockBtn'){
   if(vaultUnlocked)lockVault('manual');
+  else if(vaultStorageUnavailable)retryStorageAccess();
   else if(vaultHasEncryptedData)showVaultGate('unlock','المساحات الخاصة مقفلة. تحقّق للمتابعة.');
   else showVaultGate('setup','أنشئ عبارة مرور لتفعيل حماية كتاباتك.');
  }
