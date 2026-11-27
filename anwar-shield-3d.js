@@ -1,8 +1,8 @@
-/* ANWAR SHIELD 3D v0.6.0 — normalized intent-aware editor input gate; local rules only. */
+/* ANWAR SHIELD 3D v0.7.0 — normalized intent-aware editor input gate; local rules only. */
 (function(root){
  'use strict';
- if(root.AnwarShield3D&&root.AnwarShield3D.version==='0.6.0')return;
- const VERSION='0.6.0',MAX=200000;
+ if(root.AnwarShield3D&&root.AnwarShield3D.version==='0.7.0')return;
+ const VERSION='0.7.0',MAX=200000;
  const SEMANTIC_BLOCK_FAMILIES=[
   {id:'semantic-xss-variants',phrases:['xss','cross site scripting','cross-site scripting','crosssitescripting']},
   {id:'semantic-sql-injection',phrases:['sql injection','s q l injection','sqli','sql command injection','nosql injection','حقن sql','حقن اس كيو ال','حقن قواعد البيانات']},
@@ -124,6 +124,21 @@
   {id:'web-cache-poisoning-indicator',status:'review',re:/\bx-forwarded-host\s*:[^\r\n]{1,200}/i},
   {id:'jwt-none-algorithm-indicator',status:'review',re:/["']alg["']\s*:\s*["']none["']/i},
   {id:'prompt-injection-indicator',status:'review',re:/\b(?:ignore|disregard|override)\s+(?:all\s+)?(?:previous|prior|system)\s+instructions\b|\b(?:reveal|print|show|expose)\s+(?:the\s+)?(?:system|developer)\s+prompt\b/i},
+  {id:'ssrf-ipv6-and-secondary-metadata-target',status:'blocked',re:/https?:\/\/(?:\[::1\]|\[::ffff:127\.0\.0\.1\]|100\.100\.100\.200|fd00:ec2::254)(?::\d+)?(?:[/?#]|$)/i},
+  {id:'path-traversal-overencoded-separators',status:'blocked',re:/(?:\.\.%2f|\.\.%5c|%2e%2e(?:%2f|%5c)|%252e%252e(?:%252f|%255c)|%c0%af|%c1%9c)/i},
+  {id:'exposed-private-key-marker',status:'review',re:/-----BEGIN (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----/i},
+  {id:'exposed-provider-token-pattern',status:'review',re:/\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|AIza[0-9A-Za-z_-]{35}|xox[baprs]-[0-9A-Za-z-]{10,})\b/i},
+  {id:'exposed-secret-environment-assignment',status:'review',re:/\b(?:AWS_SECRET_ACCESS_KEY|AWS_SESSION_TOKEN|OPENAI_API_KEY|ANTHROPIC_API_KEY|GEMINI_API_KEY|GOOGLE_API_KEY|SLACK_BOT_TOKEN|GITHUB_TOKEN|GH_TOKEN)\s*[:=]\s*['\x22]?[A-Za-z0-9_+/=-]{20,}/i},
+  {id:'exposed-bearer-token',status:'review',re:/\bBearer\s+[A-Za-z0-9._~+/-]{24,}={0,2}\b/i},
+  {id:'exposed-jwt-token-shape',status:'review',re:/\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b/i},
+  {id:'identity-mfa-push-and-passkey-social-engineering',status:'review',re:/\b(?:approve|accept|confirm)\s+(?:the\s+)?(?:mfa|multi[- ]factor|sign[- ]in|login)\s+(?:push|request|prompt|notification)\b|\b(?:add|register|enroll)\s+(?:a\s+)?new\s+(?:passkey|authenticator|security key|trusted device)\b|(?:وافق على|اقبل|أكد)\s+(?:طلب|إشعار|اشعار)\s+(?:تسجيل الدخول|الدخول|المصادقة)|(?:إضافة|اضف|سجل)\s+(?:مفتاح مرور|جهاز مصادقة|وسيلة مصادقة)\s+جديد/i},
+  {id:'ci-cd-oidc-and-workflow-token-exposure',status:'review',re:/\b(?:ACTIONS_ID_TOKEN_REQUEST_TOKEN|ACTIONS_ID_TOKEN_REQUEST_URL|ACTIONS_RUNTIME_TOKEN)\b/i},
+  {id:'ci-cd-untrusted-workflow-trigger',status:'review',re:/\b(?:pull_request_target|workflow_run)\b/i},
+  {id:'ci-cd-floating-action-reference',status:'review',re:/\buses\s*:\s*[\w./-]+@(?:main|master|latest)\b/i},
+  {id:'api-object-authorization-risk-indicator',status:'review',re:/\b(?:BOLA|IDOR|broken object[- ]level authorization|broken function[- ]level authorization|object property[- ]level authorization)\b/i},
+  {id:'identity-cloud-privilege-abuse-indicator',status:'review',re:/\b(?:create|add|grant)\s+(?:an?\s+)?(?:unauthorized\s+)?(?:iam user|service principal|access key)\b|\b(?:disable|bypass)\s+(?:mfa|multi[- ]factor authentication|audit logging|conditional access)\b/i},
+  {id:'multilingual-prompt-injection-indicator',status:'review',re:/\b(?:ignore|disregard|override)\s+(?:all\s+)?(?:previous|prior|system)\s+instructions\b|\b(?:reveal|print|show|expose)\s+(?:the\s+)?(?:system|developer)\s+prompt\b|ignora\s+(?:todas?\s+las\s+)?instrucciones\s+anteriores|ignorer\s+(?:toutes?\s+les\s+)?instructions\s+précédentes|ignoriere\s+(?:alle\s+)?vorherigen\s+anweisungen|忽略(?:所有)?(?:之前|先前)的指令|以前の指示を無視|이전 지침을 무시|تمام سابقہ ہدایات کو نظر انداز کریں|تمام دستورهای قبلی را نادیده بگیر/i},
+  {id:'agentic-ai-tool-and-secret-abuse-indicator',status:'review',re:/\b(?:ai agent|agentic tool|mcp server|tool call)\b[\s\S]{0,140}\b(?:exfiltrat\w*|steal\w*|unauthorized|secret|credential|execute arbitrary)\b|\b(?:llmjacking|llm jacking|cloud model hijacking)\b/i},
   {id:'struts-ognl-indicator',status:'review',re:/%\{\s*#(?:context|_memberaccess|dm|cmd)\b/i}
  ];
 
