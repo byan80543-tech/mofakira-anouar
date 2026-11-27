@@ -6,11 +6,11 @@
     "privacy_profile_url": "https://mofakira-anouar.pages.dev/privacy-security.html",
     "machine_readable_profile_url": "https://mofakira-anouar.pages.dev/privacy-security.json",
     "source_repository": "https://github.com/byan80543-tech/mofakira-anouar",
-    "reviewed_application_source_revision": "810c1ff2e214459af4829b3025a691bde3c69500"
+    "reviewed_application_source_revision": "ab07c48a0bd83468ee02c7d4ca302889e414fd55"
   },
   "review": {
-    "date": "2026-11-26",
-    "method": "static source and configuration review",
+    "date": "2026-11-27",
+    "method": "static source and configuration review; CI validation and deployment workflow evidence inspected",
     "scope": [
       "web app source",
       "local vault cryptography",
