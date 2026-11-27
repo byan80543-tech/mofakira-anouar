@@ -166,15 +166,14 @@ test("live production security runs only after a successful first-party Pages de
     assert.ok(liveProduction.includes(condition), `Missing live production verification safeguard: ${condition}`);
   }
 
-  assert.match(
-    liveProduction,
-    /ref: \\$\\{\\{ github\\.event_name == 'workflow_run' && github\\.event\\.workflow_run\\.head_sha \\|\\| github\\.sha \\}\\}/,
+  assert.ok(
+    liveProduction.includes("ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}"),
     "the live tests must check out the exact deployed commit"
   );
 });
 
 test("live production security workflow uses read-only repository access and no deployment secrets", () => {
-  assert.match(liveProduction, /permissions:\\s*\\n\\s+contents:\\s*read/);
+  assert.ok(liveProduction.includes("permissions:\n  contents: read"));
   assert.equal(liveProduction.includes("contents: write"), false);
   assert.equal(liveProduction.includes("secrets."), false, "live browser probes must not receive repository secrets");
   assert.ok(
