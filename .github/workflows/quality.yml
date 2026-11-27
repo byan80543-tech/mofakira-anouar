@@ -176,7 +176,7 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Run non-persistent XSS probes against the live editor
+      - name: Run all-field attack matrix with test-only client-shield bypass
         env:
           ANWAR_TARGET_URL: https://mofakira-anouar.pages.dev/mofakira-anouar/
-        run: node scripts/test-live-xss-smoke.mjs
+        run: node scripts/test-live-input-bypass.mjs
