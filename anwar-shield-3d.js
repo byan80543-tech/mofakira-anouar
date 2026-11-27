@@ -156,10 +156,15 @@
  function normalize(value){return normalizeForms(value).join('\n');}
  function inspect(value){
   const forms=normalizeForms(value);
+  let reviewMatch=null;
   for(const rule of RULES){
    for(const form of forms){
     rule.re.lastIndex=0;
-    if(rule.re.test(form))return Object.freeze({blocked:rule.status==='blocked',status:rule.status,id:rule.id,version:VERSION});
+    if(!rule.re.test(form))continue;
+    if(rule.status==='blocked'){
+     return Object.freeze({blocked:true,status:'blocked',id:rule.id,version:VERSION});
+    }
+    if(!reviewMatch)reviewMatch=rule.id;
    }
   }
   for(const family of SEMANTIC_BLOCK_FAMILIES){
@@ -171,6 +176,7 @@
     }
    }
   }
+  if(reviewMatch)return Object.freeze({blocked:false,status:'review',id:reviewMatch,version:VERSION});
   return Object.freeze({blocked:false,status:'clean',id:null,version:VERSION});
  }
 
