@@ -285,24 +285,6 @@ test('contenteditable: restores the last clean DOM snapshot if beforeinput is by
  handlers.input({target:editor,inputType:'insertText'});
  assert.equal(editor.textContent,'السطر السليم','the editor is rolled back to its last clean DOM snapshot');
 });
-+'{constructor.constructor("return process")()} XSS').status,'blocked','a confirmed attack takes priority over review-only syntax');
- const result=shield.inspect('
- assert.equal(result.blocked,false);
- const handlers={};
- const document={addEventListener(type,callback){handlers[type]=callback;},body:{appendChild(){}},getElementById(){return null;},createElement(){return{style:{},setAttribute(){}};}};
- const sandbox={document,CustomEvent:class{constructor(type,options){this.type=type;this.detail=options.detail;}},dispatchEvent(){},decodeURIComponent,setTimeout(){return 1;},clearTimeout(){},WeakMap,Object,String,Array,RegExp};
- sandbox.globalThis=sandbox;
- vm.runInNewContext(source,sandbox,{filename:'anwar-shield-review.js'});
- const target={nodeType:1,tagName:'INPUT',type:'text',value:'$'+'{constructor.constructor("return process")()}',disabled:false,readOnly:false};
- const inputEvent={target,defaultPrevented:false,preventDefault(){this.defaultPrevented=true;}};
- handlers.input(inputEvent);
- assert.equal(inputEvent.defaultPrevented,false,'review does not cancel normal typing');
- const records=sandbox.AnwarShield3D.getReviewLog();
- assert.equal(records.length,1);
- assert.equal(records[0].id,'template-injection');
- assert.equal(Object.hasOwn(records[0],'text'),false,'review log contains metadata only');
-});
-
 /* Exercise the actual capture-phase event handlers, including contenteditable.
    This catches the regression where the browser warning appeared but the editor
    still retained the text because contenteditable has no .value property. */
