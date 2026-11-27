@@ -10,7 +10,7 @@
   },
   "review": {
     "date": "2026-11-27",
-    "method": "static source and configuration review; CI validation and deployment workflow evidence inspected",
+    "method": "static source and configuration review; CI validation; published-site Chromium/Playwright live editor XSS smoke test",
     "scope": [
       "web app source",
       "local vault cryptography",
@@ -21,13 +21,13 @@
       "external resource allowlists",
       "Tasbih voice recognition path"
     ],
-    "status": "source_review_plus_owner_reported_manual_xss_test",
+    "status": "source_ci_and_live_editor_xss_smoke_passed",
     "numeric_privacy_score": null,
     "certification_claimed": false,
     "independent_penetration_test": false,
     "live_mobile_browser_test_completed": false,
     "live_http_response_headers_verified": false,
-    "limitations": "The source review and CI evidence were inspected. The project owner additionally reported a limited live manual XSS test on the published site, with no successful payload execution in the attempts tested and suspicious terms/URLs blocked before paste and during typing. The reviewer did not independently reproduce that test; complete payloads, per-case logs, exhaustive browser/device coverage, live HTTP header verification, and an independent penetration test remain outstanding. Source inspection and input filtering do not prove that all XSS paths are eliminated.",
+    "limitations": "Source review and CI evidence were inspected. A live Chromium/Playwright smoke test reached the published site (HTTP 200; CSP header present) and passed 13 suspicious input samples through both paste and typing (26/26 blocked, no XSS canary execution, benign Arabic text accepted) in the #pg editor. This test is limited to that editor and probe set; it does not cover every form, rendering sink, import/export path, mobile browser, or independent comprehensive penetration testing. Full HTTP header verification and broad runtime coverage remain outstanding.",
     "owner_reported_manual_xss_test": {
       "target": "https://mofakira-anouar.pages.dev/mofakira-anouar/",
       "reported_date": "2026-11-27",
@@ -36,6 +36,36 @@
       "result": "No successful XSS execution was reported in the tested attempts. The input protection reportedly blocked suspicious terms and URLs before paste into fields and during typing.",
       "evidence_status": "owner_reported_not_independently_reproduced",
       "scope_limit": "This is a limited reported manual test, not a comprehensive penetration test or proof that all input, import, export, stored, reflected, and DOM XSS paths are safe."
+    },
+    "live_http_smoke": {
+      "target": "https://mofakira-anouar.pages.dev/mofakira-anouar/",
+      "http_status": 200,
+      "content_security_policy_header_present": true,
+      "full_header_set_verified": false,
+      "workflow_run_id": 46021247674,
+      "workflow_url": "https://github.com/byan80543-tech/mofakira-anouar/actions/runs/46021247674"
+    },
+    "live_editor_xss_smoke_test": {
+      "date": "2026-11-27",
+      "target": "https://mofakira-anouar.pages.dev/mofakira-anouar/",
+      "environment": "Chromium headless; Playwright 1.56.1; GitHub Actions Ubuntu 24.04",
+      "workflow_run_id": 46021247674,
+      "workflow_url": "https://github.com/byan80543-tech/mofakira-anouar/actions/runs/46021247674",
+      "input_samples": 13,
+      "methods": [
+        "paste",
+        "typing"
+      ],
+      "suspicious_input_attempts": 26,
+      "suspicious_input_attempts_blocked": 26,
+      "successful_xss_canary_executions": 0,
+      "active_html_elements_remaining_after_typing_probes": 0,
+      "benign_arabic_typing_control": "passed",
+      "isolated_temporary_browser_profile": true,
+      "temporary_vault_and_test_note": true,
+      "save_or_export_performed": false,
+      "result": "PASS: all 26 suspicious input attempts (13 samples via paste and typing) were blocked; no XSS canary fired and the benign Arabic writing control was accepted.",
+      "scope_limit": "Limited to the published editor element #pg and the 13 listed probes. Does not prove all site inputs, stored/reflected/DOM rendering paths, file import/export, third-party content, or mobile browsers are safe. Not an independent comprehensive penetration test."
     }
   },
   "local_data_protection": {
