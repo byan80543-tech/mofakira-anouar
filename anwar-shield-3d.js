@@ -34,8 +34,7 @@
   {id:'semantic-log-tampering',phrases:[
    'اخفاء اثار الاختراق','محو اثار الاختراق','محو سجلات الدخول','حذف سجلات النظام','تعطيل سجلات المراقبة','اخفاء النشاط الضار','التلاعب بسجلات النظام',
    'erase audit logs','delete security logs','hide attack traces','tamper with logs'
-  ]}
-
+  ]},
   {id:'semantic-multilingual-injection',phrases:[
    "injection de commandes","injection de commande","inyeccion de comandos","inyección de comandos","befehlsinjektion","befehle einschleusen","iniezione di comandi","injeção de comandos","injecao de comandos","инъекция команд","внедрение команд","命令注入","コマンドインジェクション","명령어 삽입","komut enjeksiyonu","कमांड इंजेक्शन",
    "injection sql","inyeccion sql","inyección sql","iniezione sql","injeção sql","инъекция sql","внедрение sql","sql注入","sqlインジェクション","sql 인젝션","sql enjeksiyonu","sql इंजेक्शन"
