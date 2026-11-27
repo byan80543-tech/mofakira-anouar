@@ -1,7 +1,7 @@
 /* Fast local app-shell delivery with background navigation refresh.
  * Bump CACHE_NAME for each published release so the approved worker precaches
  * the matching HTML, update checker and local assets before activation.
- * v249 aligns the app-shell cache with the subtle background-only contrast refinement.
+ * v250 aligns the app-shell cache with the subtle background-only contrast refinement.
  */
 'use strict';
 const CACHE_NAME='anwar-shell-2026-11-27-v249';
