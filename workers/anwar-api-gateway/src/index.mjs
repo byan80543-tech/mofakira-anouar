@@ -152,14 +152,14 @@ async function hmacClientKey(ip, secret) {
   return Array.from(new Uint8Array(signature), byte => byte.toString(16).padStart(2, "0")).join("");
 }
 
-async function checkLimits(namespace, clientKey, routeBucket) {
+async function checkLimits(namespace, clientKey, routeBucket, extra = {}) {
   const id = namespace.idFromName("anwar-api-gateway-global-rate-limiter");
   const stub = namespace.get(id);
   const buckets = ["total", "client", routeBucket];
   const response = await stub.fetch("https://rate-limit.internal/check", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ clientKey, buckets })
+    body: JSON.stringify({ clientKey, buckets, ...extra })
   });
   if (!response.ok && response.status !== 429) {
     throw new Error("Rate limiter unavailable");
@@ -267,12 +267,12 @@ async function readClientIpHash(request, env) {
   return hmacClientKey(ip, String(env.IP_HASH_SECRET || ""));
 }
 
-async function applyRateLimits(request, env, routeBucket) {
+async function applyRateLimits(request, env, routeBucket, extra = {}) {
   if (!env.IP_LIMITER) throw new Error("IP limiter binding missing");
   const clientKey = await readClientIpHash(request, env);
   if (!clientKey) throw new Error("Client IP unavailable");
 
-  const result = await checkLimits(env.IP_LIMITER, clientKey, routeBucket);
+  const result = await checkLimits(env.IP_LIMITER, clientKey, routeBucket, extra);
   if (!result.allowed) {
     return {
       blocked: true,
@@ -310,13 +310,19 @@ export class IpRateLimiter {
 
     const clientKey = payload && payload.clientKey;
     const buckets = payload && payload.buckets;
+    const failureOnly = payload && payload.failureOnly === true;
+    const failed = payload && payload.failed === true;
     const validRouteBuckets = new Set(["catalog", "country-list", "country-profile", "admin-login", "admin-api"]);
     const validShape = Array.isArray(buckets) &&
       buckets.length === 3 &&
       buckets[0] === "total" &&
       buckets[1] === "client" &&
       validRouteBuckets.has(buckets[2]);
-    if (typeof clientKey !== "string" || !/^[a-f0-9]{64}$/.test(clientKey) || !validShape) {
+    if (typeof clientKey !== "string" || !/^[a-f0-9]{64}$/.test(clientKey) || !validShape ||
+        (failureOnly && buckets[2] !== "admin-login") ||
+        (payload.failureOnly !== undefined && typeof payload.failureOnly !== "boolean") ||
+        (payload.failed !== undefined && typeof payload.failed !== "boolean") ||
+        (failureOnly && payload.failed === undefined)) {
       return json({ error: "Invalid rate-limit request" }, 400);
     }
 
@@ -395,7 +401,11 @@ export class IpRateLimiter {
 
     state.global.push(now);
     client.client.push(now);
-    client[routeBucket].push(now);
+    // Count only failed owner-login attempts in the 20-attempt security window.
+    // Successful logins still consume the general client/global request budgets.
+    if (routeBucket !== "admin-login" || !failureOnly || failed) {
+      client[routeBucket].push(now);
+    }
     state.clients[clientKey] = client;
     this.ctx.storage.sql.exec(
       "UPDATE rate_state SET data = ? WHERE id = 1",
@@ -624,16 +634,25 @@ async function handleAdhkarApi(request, url, env, origin) {
   }
 
   if (path === "/v1/admin/session" && method === "POST") {
-    const limited = await rateLimitedAdhkar(request, env, "admin-login", origin);
-    if (limited) return limited;
     if (adminSecret.length < 32) return errorResponse("دخول الإدارة غير مهيأ على الخادم.", 503, origin);
     const body = await readJsonBody(request, 4096);
-    if (!body || typeof body.password !== "string" ||
-        Array.from(body.password).length > 128 ||
-        new TextEncoder().encode(body.password).byteLength > 512 ||
-        !constantTimeEqual(body.password, adminSecret)) {
-      return errorResponse("تعذر التحقق من رمز الإدارة.", 401, origin);
+    const validPassword = !!(body && typeof body.password === "string" &&
+      Array.from(body.password).length <= 128 &&
+      new TextEncoder().encode(body.password).byteLength <= 512 &&
+      constantTimeEqual(body.password, adminSecret));
+    let loginDecision;
+    try {
+      loginDecision = await applyRateLimits(request, env, "admin-login", {
+        failureOnly: true,
+        failed: !validPassword
+      });
+    } catch {
+      return errorResponse("خدمة الحماية غير متاحة مؤقتًا.", 503, origin);
     }
+    if (loginDecision.blocked) return errorResponse("تم تجاوز 20 محاولة دخول فاشلة خلال 15 دقيقة من هذا الاتصال. حاول بعد انتهاء المهلة.", 429, origin, {
+      "Retry-After": String(loginDecision.retryAfter)
+    });
+    if (!validPassword) return errorResponse("تعذر التحقق من رمز الإدارة.", 401, origin);
     try {
       const token = await issueAdminSession(adminSecret);
       return withCors(json({ token, expiresIn: ADHKAR_SESSION_SECONDS }), origin, { "Cache-Control": "no-store" });
