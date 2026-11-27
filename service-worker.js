@@ -1,10 +1,10 @@
 /* Fast local app-shell delivery with background navigation refresh.
  * Bump CACHE_NAME for each published release so the approved worker precaches
  * the matching HTML, update checker and local assets before activation.
- * v231 includes the refreshed ANWAR SHIELD 3D v0.3.0 engine.
+ * v232 includes the v0.4.0 editor input gate for typing, paste and drag-drop.
  */
 'use strict';
-const CACHE_NAME='anwar-shell-2026-11-26-v231';
+const CACHE_NAME='anwar-shell-2026-11-27-v232';
 const APP_BASE=new URL('./',self.registration.scope);
 const SHELL_ASSETS=[
  './index.html',
