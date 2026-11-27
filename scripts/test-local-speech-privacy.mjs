@@ -67,5 +67,6 @@ assert.match(html,/قد يرسل المتصفح الصوت إلى خدمة ال�
 
 console.log('PASS: writing dictation is removed; tasbih voice starts from its button and the interface discloses possible browser-provider audio processing.');
 
-assert.match(html,/preload[^>]+app-core\.js\?v=20261127-84/,'the preload points to the updated app-core bundle');
-assert.match(html,/script src="\.\/app-core\.js\?v=20261127-84"/,'the executed app-core script uses the same updated version as preload');
+const appCorePreload=html.match(/<link rel="preload" href="([^"]*app-core[.]js[?]v=[^"]+)" as="script">/);
+const appCoreScript=html.match(/<script src="([^"]*app-core[.]js[?]v=[^"]+)" defer><\/script>/);
+assert.ok(appCorePreload&&appCoreScript&&appCorePreload[1]===appCoreScript[1],'the app-core preload and executed script always use the same cache-busted URL');

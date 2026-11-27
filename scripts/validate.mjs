@@ -6,6 +6,7 @@ import { execFileSync } from 'node:child_process';
 const root=process.cwd();
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const anwarShieldSource=fs.readFileSync(path.join(root,'anwar-shield-3d.js'),'utf8');
+const editorDomSanitizer=fs.readFileSync(path.join(root,'editor-dom-sanitizer.js'),'utf8');
 const htmlAudit=JSON.parse(execFileSync('python3',[path.join(root,'scripts/html_inspector.py'),path.join(root,'index.html')],{encoding:'utf8'}));
 const appCore=fs.readFileSync(path.join(root,'app-core.js'),'utf8');
 const prayerTimes=fs.readFileSync(path.join(root,'prayer-times.js'),'utf8');
@@ -27,6 +28,11 @@ const floatingPanels=fs.readFileSync(path.join(root,'floating-panels.js'),'utf8'
 const floatingPanelsCss=fs.readFileSync(path.join(root,'floating-panels.css'),'utf8');
 const iconGenerator=fs.readFileSync(path.join(root,'scripts/generate-pwa-icons.py'),'utf8');
 const failures=[];
+try{new vm.Script(editorDomSanitizer,{filename:'editor-dom-sanitizer.js'});console.log('PASS live editor DOM sanitizer JavaScript syntax is valid')}catch(error){failures.push('editor-dom-sanitizer.js: '+error.message)}
+const sanitizerScriptIndex=html.indexOf('editor-dom-sanitizer.js');
+const appCoreScriptIndex=html.indexOf('<script src="./app-core.js');
+if(!(sanitizerScriptIndex>=0&&appCoreScriptIndex>sanitizerScriptIndex&&appCore.includes('globalThis.AnwarEditorDomSanitizer')&&appCore.includes('liveEditorSanitizer.observe(pg)')&&serviceWorker.includes("'./editor-dom-sanitizer.js'")))failures.push('Live editor DOM sanitizer must load before app-core and be included in the offline shell');
+else console.log('PASS live editor DOM sanitizer loads before app-core and is included in the offline shell');
 const ok=(condition,message)=>{if(!condition)failures.push(message);else console.log('PASS',message)};
 
 try{

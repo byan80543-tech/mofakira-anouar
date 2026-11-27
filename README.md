@@ -32,6 +32,7 @@
 - [ملف الخصوصية والأمان العام](https://mofakira-anouar.pages.dev/privacy-security.html): ملخص عربي وإنجليزي لمعالجة البيانات والتشفير والأذونات والخدمات الخارجية وحدود المراجعة.
 - [ملف الخصوصية المنظّم](https://mofakira-anouar.pages.dev/privacy-security.json): بيانات قابلة للقراءة آلياً لمساعدة أدوات الفحص والتقييم.
 - [SECURITY-HEADERS.md](SECURITY-HEADERS.md): سياسة CSP ورؤوس HTTP المطبقة عبر Cloudflare Pages.
+- [SECURITY-EDGE-PROTECTION.md](SECURITY-EDGE-PROTECTION.md): دليل ربط نطاق مخصص وتفعيل سياسات حجب وكلاء الفحص وWAF على حافة Cloudflare.
 - [SECURITY-AUDIT.md](SECURITY-AUDIT.md): نتائج المراجعة الأمنية وحدودها.
 - [TEST-PLAN.md](TEST-PLAN.md): اختبارات القبول والجودة المطلوبة.
 - [ARCHITECTURE.md](ARCHITECTURE.md): البنية التقنية وحدودها.

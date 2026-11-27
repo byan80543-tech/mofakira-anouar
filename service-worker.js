@@ -1,10 +1,10 @@
 /* Fast local app-shell delivery with background navigation refresh.
  * Bump CACHE_NAME for each published release so the approved worker precaches
  * the matching HTML, update checker and local assets before activation.
- * v251 refreshes the offline shell after the optimized input guard and notebook editor assets.
+ * v253 refreshes the cache after all live editor hardening assets.
  */
 'use strict';
-const CACHE_NAME='anwar-shell-2026-11-27-v251';
+const CACHE_NAME='anwar-shell-2026-11-27-v253';
 const APP_BASE=new URL('./',self.registration.scope);
 const SHELL_ASSETS=[
  './index.html',
@@ -24,6 +24,7 @@ const SHELL_ASSETS=[
  './local-speech-privacy.js',
  './protective-adhkar.js',
  './anwar-shield-3d.js',
+ './editor-dom-sanitizer.js',
  './tasbih-controller.js',
  './official-adhkar.js',
  './vault-crypto.js',

@@ -125,6 +125,8 @@ function safeHttpsURL(value){
 }
 function safeFontName(value){return typeof value==='string'&&FONTS.includes(value)?value:'Amiri'}
 function san(h){
+ const liveSanitizer=globalThis.AnwarEditorDomSanitizer;
+ if(liveSanitizer&&typeof liveSanitizer.sanitizeHtml==='function')return liveSanitizer.sanitizeHtml(h);
  const t=document.createElement('template');t.innerHTML=String(h||'');
  const allowed=new Set(['DIV','P','BR','SPAN','B','STRONG','I','EM','U','UL','OL','LI','BLOCKQUOTE','FONT','H1','H2','H3','H4','HR']);
  const safeStyle=new Set(['color','background-color','font-size','font-family','font-weight','font-style','text-decoration','text-align','line-height']);
@@ -3240,6 +3242,8 @@ pg.addEventListener('keydown',e=>{
  }
 });
 pg.addEventListener('input',touch);
+const liveEditorSanitizer=globalThis.AnwarEditorDomSanitizer;
+if(liveEditorSanitizer&&typeof liveEditorSanitizer.observe==='function')liveEditorSanitizer.observe(pg);
 pg.addEventListener('paste',e=>{e.preventDefault();document.execCommand('insertText',false,e.clipboardData.getData('text/plain'))});
 pg.addEventListener('dragover',e=>e.preventDefault());
 pg.addEventListener('drop',e=>{e.preventDefault();const text=e.dataTransfer?.getData('text/plain')||'';if(text)document.execCommand('insertText',false,text);touch()});
