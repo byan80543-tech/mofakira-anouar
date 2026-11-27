@@ -5,6 +5,7 @@ import { execFileSync } from 'node:child_process';
 
 const root=process.cwd();
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+const anwarShieldSource=fs.readFileSync(path.join(root,'anwar-shield-3d.js'),'utf8');
 const htmlAudit=JSON.parse(execFileSync('python3',[path.join(root,'scripts/html_inspector.py'),path.join(root,'index.html')],{encoding:'utf8'}));
 const appCore=fs.readFileSync(path.join(root,'app-core.js'),'utf8');
 const prayerTimes=fs.readFileSync(path.join(root,'prayer-times.js'),'utf8');
@@ -27,7 +28,36 @@ const floatingPanelsCss=fs.readFileSync(path.join(root,'floating-panels.css'),'u
 const iconGenerator=fs.readFileSync(path.join(root,'scripts/generate-pwa-icons.py'),'utf8');
 const failures=[];
 const ok=(condition,message)=>{if(!condition)failures.push(message);else console.log('PASS',message)};
-ok(appCore.includes('const oversizedTitle=') && appCore.includes('Array.from(htmlToPlainText(') && appCore.includes('length>50000') && appCore.includes('oversizedLiveBody') && appCore.includes('installNotebookInputLimits') && appCore.includes("['t',200,'عنوان العمل']") && appCore.includes("['q',300,'البحث']"), 'notebook title, search and 50,000-character body limits are enforced before insertion and encrypted save');
+
+try{
+ const shieldSandbox={document:{addEventListener(){}}};
+ vm.runInNewContext(anwarShieldSource,shieldSandbox,{timeout:3000});
+ const shield=shieldSandbox.AnwarShield3D;
+ ok(!!shield&&shield.version==='0.9.0','Anwar Shield loads the optimized 0.9.0 input gate');
+ const blockedSamples=[
+  '<script>alert(1)</script>',
+  "' OR 1=1 --",
+  'تجاوز الحماية',
+  'تـجـاوز الحماية',
+  's q l i n j e c t i o n',
+  'سرقة كلمات المرور'
+ ];
+ ok(blockedSamples.every(value=>shield.inspect(value).status==='blocked'),'optimized matcher still blocks executable payloads and Arabic, spaced and multilingual attack phrases');
+ const safeSamples=[
+  'أكتب قصيدة عن الربيع والحنين',
+  'أحب قراءة الشعر والتأمل في الحكمة',
+  'كتبت عن تجاوز صعوبات الحياة وبناء مستقبل أفضل',
+  'An ordinary note about literature and daily life'
+ ];
+ ok(safeSamples.every(value=>shield.inspect(value).status==='clean'),'optimized matcher leaves ordinary Arabic and English writing available');
+ const longBenignText='نص أدبي جميل عن القراءة والشعر والحكمة والتأمل في الحياة. '.repeat(900);
+ const started=Date.now();
+ const longResult=shield.inspect(longBenignText);
+ const elapsed=Date.now()-started;
+ ok(longResult.status==='clean'&&elapsed<2000,'50k-character benign editor input is inspected without excessive synchronous delay ('+elapsed+' ms)');
+}catch(error){failures.push('Anwar Shield runtime/performance checks: '+error.message)}
+
+ok(appCore.includes('function countUnicodeCharacters(value)') && appCore.includes('countUnicodeCharacters(htmlToPlainText(') && appCore.includes('oversizedLiveBody') && appCore.includes('getLiveBodyCharacterCount') && appCore.includes('installNotebookInputLimits') && appCore.includes("['t',200,'عنوان العمل']") && appCore.includes("['q',300,'البحث']"), 'notebook title, search and 50,000-character body limits use allocation-light counting and a cached live editor count');
 ok(html.includes('id="t" maxlength="200"') && html.includes('id="q" type="search" maxlength="300"') && html.includes('id="vaultPassword" type="password" required minlength="12" maxlength="256"') && html.includes('id="vaultPasswordConfirm" type="password" required minlength="12" maxlength="256"'), 'visible title, search and password fields advertise matching input ceilings');
 ok(vaultCrypto.includes('characters>128') && vaultCrypto.includes('bytes>512') && /const CACHE_NAME='anwar-shell-[0-9]{4}-[0-9]{2}-[0-9]{2}-v[0-9]+';/.test(serviceWorker), 'vault password policy is 128 Unicode characters / 512 UTF-8 bytes and offline shell cache is versioned');
 
