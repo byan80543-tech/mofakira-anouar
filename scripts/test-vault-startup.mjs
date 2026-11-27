@@ -112,6 +112,7 @@ assert.equal(h.sandbox.vaultHasEncryptedData,true,'unknown storage state is cons
 assert.equal(h.sandbox.vaultGateMode,'unlock','unknown storage state never offers a blank first-time setup');
 assert.equal(h.sandbox.$('vaultGate').hidden,true,'the public app shell remains available');
 assert.equal(h.calls.syncCount,1,'the shield control reflects the locked private area');
+assert.equal(h.calls.toasts.length,0,'startup storage failure does not interrupt the owner with a toast');
 
 h=makeHarness({'anwar_vault_backup_v1':'encrypted-backup'});
 await h.api.continueVaultAfterRecovery();
