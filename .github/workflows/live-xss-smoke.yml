@@ -18,7 +18,7 @@ concurrency:
 jobs:
   live-xss-smoke:
     name: Non-persistent XSS probes against published editor
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - name: Check out test revision
