@@ -64,7 +64,7 @@ test('keeps ordinary Arabic creative text and remembrance clean',()=>{
  }
 });
 test('normalizes invisible characters and mixed encodings',()=>{
- assert.equal(shield.inspect('java\\u200Bscript:alert(1)').status,'blocked');
+ assert.equal(shield.inspect('java'+String.fromCharCode(0x200B)+'script:alert(1)').status,'blocked');
  assert.equal(shield.inspect('%252e%252e%252fetc%252fpasswd').status,'blocked');
 });
 
