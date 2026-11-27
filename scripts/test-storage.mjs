@@ -95,7 +95,7 @@ function makeHarness(initial={}){
     clearTimeout(){},iso:d=>d.toISOString().slice(0,10),info(){},
     createNoteId:(()=>{let id=0;return()=>String(++id)})(),
     applyPaperClass(){},
-    storageRecoveryBlocked:false,storageRecoveryRaw:null,storageRecoveryExported:false,storageRecoveryMode:'none',storageRecoveryBackupAvailable:false,
+    storageRecoveryBlocked:false,storageRecoveryRaw:null,storageRecoveryExported:false,storageRecoveryMode:'none',storageRecoveryBackupAvailable:false,vaultStorageUnavailable:false,
     VAULT_STORAGE_KEY:'anwar_vault_v1',VAULT_BACKUP_KEY:'anwar_vault_backup_v1',
     VAULT_MODE_KEY:'anwar_vault_mode_v1',
     continueVaultAfterRecovery(){const primary=storage.getItem('anwar_v1');const backup=primary===null?storage.getItem('anwar_v1_backup_v2'):null;if(primary!==null)sandbox.S=JSON.parse(primary);else if(backup!==null)sandbox.S=JSON.parse(backup)},
@@ -200,7 +200,8 @@ assert(h.storage.getItem('anwar_rd')===JSON.stringify({r:'reader',n:12,m:'l'}),'
 h=makeHarness();
 h.storage.failGetKey='anwar_v1';
 h.api.load();
-assert(h.api.snapshot().storageRecoveryBlocked&&h.api.snapshot().storageRecoveryMode==='unavailable','blocked localStorage access is distinct from corrupt JSON');
+assert(!h.api.snapshot().storageRecoveryBlocked&&h.api.snapshot().storageRecoveryMode==='unavailable','unavailable localStorage access does not trigger a persistent recovery lockout');
+assert(h.api.snapshot().vaultStorageUnavailable,'unavailable localStorage access remains retryable from the shield control');
 h.storage.failGetKey=null;
 h.sandbox.vaultUnlocked=false;
 assert(await h.api.retryStorageAccess()===true&&!h.api.snapshot().storageRecoveryBlocked,'retry succeeds when browser storage access returns');
