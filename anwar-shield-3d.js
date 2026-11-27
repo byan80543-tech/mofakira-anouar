@@ -1,8 +1,8 @@
 /* ANWAR SHIELD 3D v0.9.0 — normalized intent-aware editor input gate; local rules only. */
 (function(root){
  'use strict';
- if(root.AnwarShield3D&&root.AnwarShield3D.version==='0.8.0')return;
- const VERSION='0.8.0',MAX=200000;
+ if(root.AnwarShield3D&&root.AnwarShield3D.version==='0.9.0')return;
+ const VERSION='0.9.0',MAX=200000;
  const SEMANTIC_BLOCK_FAMILIES=[
   {id:'semantic-xss-variants',phrases:['xss','cross site scripting','cross-site scripting','crosssitescripting']},
   {id:'semantic-sql-injection',phrases:['sql injection','s q l injection','sqli','sql command injection','nosql injection','حقن sql','حقن اس كيو ال','حقن قواعد البيانات']},
