@@ -360,6 +360,55 @@ try {
   if (importResult.activeMarkup !== 0) failures.push('HTML import created active markup instead of text nodes.');
   if ((await page.evaluate(()=>window.__ANWAR_BYPASS_CANARY__)) !== null) failures.push('Canary executed during HTML file import.');
 
+  // Plain-text import formats use text nodes too. Each test file is synthetic
+  // and contains markup-looking text; the importer must not create active nodes.
+  const textImportCases = [
+    {name:'anwar-probe.txt',mimeType:'text/plain',body:'<img src=x onerror=window.__ANWAR_BYPASS_CANARY__=1>\nplain text import'},
+    {name:'anwar-probe.md',mimeType:'text/markdown',body:'<svg onload=window.__ANWAR_BYPASS_CANARY__=1></svg>\n**markdown text**'},
+    {name:'anwar-probe.csv',mimeType:'text/csv',body:'cell,<iframe srcdoc="probe"></iframe>\nrow,2'}
+  ];
+  const textImportResults = [];
+  for (const file of textImportCases) {
+    await page.locator('#bookFilePicker').setInputFiles({
+      name:file.name,mimeType:file.mimeType,buffer:Buffer.from(file.body,'utf8')
+    });
+    await page.waitForTimeout(100);
+    const state = await editor.evaluate(element=>({
+      activeMarkup:element.querySelectorAll('img,svg,script,iframe,object,embed,math,[onerror],[onload],[onclick]').length,
+      text:element.textContent
+    }));
+    const passed = state.activeMarkup===0 && state.text.includes(file.body.split('\n')[0]);
+    textImportResults.push({name:file.name,passed,activeMarkup:state.activeMarkup});
+    if(!passed)failures.push('Plain-text import created active markup or lost source text: '+JSON.stringify({name:file.name,state}));
+  }
+  log({kind:'plain-text-file-imports',attempts:textImportCases.length,passed:textImportResults.filter(x=>x.passed).length,results:textImportResults});
+
+  // Malformed and attacker-controlled rescue files must be rejected before the
+  // restore dialog opens or any existing test note/vault data is replaced.
+  const rescueBefore = await editor.textContent();
+  const rescueProbe = JSON.stringify({
+    version:1,
+    note:'<img src=x onerror="window.__ANWAR_BYPASS_CANARY__=1">',
+    script:'<script>window.__ANWAR_BYPASS_CANARY__=1</script>'
+  });
+  await page.locator('#rescueFilePicker').setInputFiles({
+    name:'anwar-invalid-rescue-probe.json',
+    mimeType:'application/json',
+    buffer:Buffer.from(rescueProbe,'utf8')
+  });
+  await page.waitForTimeout(180);
+  const rescueState = await page.evaluate(()=>({
+    dialogOpen:!!document.querySelector('#dg')?.open,
+    toast:document.querySelector('#toast')?.textContent||'',
+    activeMarkup:document.querySelectorAll('#dg img,#dg svg,#dg script,#dg iframe,[onerror],[onload]').length,
+    canary:window.__ANWAR_BYPASS_CANARY__
+  }));
+  const rescueAfter = await editor.textContent();
+  const rescueSafe = !rescueState.dialogOpen && rescueState.activeMarkup===0 &&
+    rescueState.canary===null && rescueAfter===rescueBefore;
+  log({kind:'invalid-rescue-file',safe:rescueSafe,dialogOpen:rescueState.dialogOpen,activeMarkup:rescueState.activeMarkup,dataUnchanged:rescueAfter===rescueBefore,toast:rescueState.toast});
+  if(!rescueSafe)failures.push('Invalid rescue file was not safely rejected: '+JSON.stringify(rescueState));
+
   // Dynamic personal adhkar textarea uses textContent when it renders saved
   // values. Submit a small XSS set in this isolated vault and inspect each card.
   await page.evaluate(()=>{ if(typeof window.AnwarRenderAdhkar==='function')window.AnwarRenderAdhkar(); });
