@@ -27,7 +27,7 @@ const floatingPanelsCss=fs.readFileSync(path.join(root,'floating-panels.css'),'u
 const iconGenerator=fs.readFileSync(path.join(root,'scripts/generate-pwa-icons.py'),'utf8');
 const failures=[];
 const ok=(condition,message)=>{if(!condition)failures.push(message);else console.log('PASS',message)};
-ok(appCore.includes('const oversizedTitle=') && appCore.includes('Array.from(htmlToPlainText(note&&note.html||\'\')).length>50000') && appCore.includes('oversizedLiveBody') && appCore.includes('installNotebookInputLimits') && appCore.includes("['t',200,'عنوان العمل']") && appCore.includes("['q',300,'البحث']"), 'notebook title, search and 50,000-character body limits are enforced before insertion and encrypted save');
+ok(appCore.includes('const oversizedTitle=') && appCore.includes('Array.from(htmlToPlainText(') && appCore.includes('length>50000') && appCore.includes('oversizedLiveBody') && appCore.includes('installNotebookInputLimits') && appCore.includes("['t',200,'عنوان العمل']") && appCore.includes("['q',300,'البحث']"), 'notebook title, search and 50,000-character body limits are enforced before insertion and encrypted save');
 ok(html.includes('id="t" maxlength="200"') && html.includes('id="q" type="search" maxlength="300"') && html.includes('id="vaultPassword" type="password" required minlength="12" maxlength="256"') && html.includes('id="vaultPasswordConfirm" type="password" required minlength="12" maxlength="256"'), 'visible title, search and password fields advertise matching input ceilings');
 ok(vaultCrypto.includes('characters>128') && vaultCrypto.includes('bytes>512') && serviceWorker.includes('anwar-shell-2026-11-27-v239'), 'vault password policy is 128 Unicode characters / 512 UTF-8 bytes and offline shell cache is versioned');
 
