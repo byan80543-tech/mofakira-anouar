@@ -1,13 +1,47 @@
-/* ANWAR SHIELD 3D v0.4.0 — strict notebook editor input gate; defense in depth only. */
+/* ANWAR SHIELD 3D v0.5.0 — normalized intent-aware editor input gate; local rules only. */
 (function(root){
  'use strict';
- if(root.AnwarShield3D&&root.AnwarShield3D.version==='0.4.0')return;
- const VERSION='0.4.0',MAX=200000;
+ if(root.AnwarShield3D&&root.AnwarShield3D.version==='0.5.0')return;
+ const VERSION='0.5.0',MAX=200000;
+ const SEMANTIC_BLOCK_FAMILIES=[
+  {id:'semantic-xss-variants',phrases:['xss','cross site scripting','cross-site scripting','crosssitescripting']},
+  {id:'semantic-sql-injection',phrases:['sql injection','s q l injection','sqli','sql command injection','nosql injection','حقن sql','حقن اس كيو ال','حقن قواعد البيانات']},
+  {id:'semantic-command-injection',phrases:['command injection','os command injection','shell injection','remote command execution','execute remote commands','حقن الاوامر','حقن اوامر النظام','تنفيذ اوامر عن بعد','تشغيل اوامر عن بعد','تنفيذ تعليمات عن بعد']},
+  {id:'semantic-security-bypass',phrases:[
+   'تجاوز الحماية','تجاوز نظام الحماية','تجاوز انظمة الحماية','تخطي الحماية','تخطي نظام الحماية','الالتفاف على الحماية','الالتفاف على نظام الحماية','تعطيل وسائل الحماية','تعطيل نظام الحماية','كسر الحماية','تفادي الحماية','تجاوز ضوابط الامان','تخطي اجراءات الامان',
+   'bypass protection','bypass security','security bypass','circumvent security','evade security controls','disable security protection'
+  ]},
+  {id:'semantic-session-theft',phrases:[
+   'سرقة الجلسة','سرقة الجلسات','اختطاف الجلسة','اختطاف الجلسات','خطف الجلسة','خطف الجلسات','الاستيلاء على الجلسة','الاستيلاء على الجلسات','سرقة ملفات تعريف الارتباط','سرقة الكوكيز','سرقة الكوكي','سحب الكوكيز','بسرقة الجلسات',
+   'session hijacking','session theft','steal session','steal sessions','cookie theft','cookie hijacking','steal cookies','steal session cookie'
+  ]},
+  {id:'semantic-secret-token-theft',phrases:[
+   'استخراج الرموز السرية','استخراج الرمز السري','استخراج رموز الدخول','سرقة الرموز','سرقة الرمز','سرقة التوكن','سرقة التوكنات','سحب التوكن','سحب التوكنات','انتزاع الرموز','استخراج المفاتيح السرية','سرقة المفاتيح السرية','استخراج مفاتيح api','سرقة مفاتيح api','كشف مفاتيح api','استخراج الاسرار','سحب الاسرار','استخراج بيانات الاعتماد',
+   'extract secrets','secret extraction','steal secrets','dump secrets','token theft','steal token','steal tokens','api key theft','extract api keys','credential dumping','credential harvesting'
+  ]},
+  {id:'semantic-authentication-bypass',phrases:[
+   'تجاوز تسجيل الدخول','تخطي تسجيل الدخول','تجاوز المصادقة','تخطي المصادقة','تجاوز التحقق','تخطي التحقق','الدخول دون تصريح','دخول غير مصرح','الوصول غير المصرح','تجاوز صلاحيات المستخدم','رفع الصلاحيات','تصعيد الامتيازات',
+   'authentication bypass','bypass login','bypass authentication','unauthorized access','privilege escalation'
+  ]},
+  {id:'semantic-credential-theft',phrases:[
+   'سرقة كلمات المرور','سرقة كلمة المرور','سرقة بيانات الدخول','جمع بيانات تسجيل الدخول','جمع بيانات الاعتماد','تصيد كلمات المرور','سرقة الحسابات','سرقة الحساب',
+   'steal passwords','password theft','credential theft','credential harvesting','steal credentials'
+  ]},
+  {id:'semantic-data-exfiltration',phrases:[
+   'استخراج قاعدة البيانات','سحب قاعدة البيانات','نسخ قاعدة البيانات','تهريب البيانات','تسريب بيانات المستخدمين','استخراج بيانات المستخدمين','سحب بيانات المستخدمين','نسخ بيانات المستخدمين','تهريب بيانات المستخدمين',
+   'data exfiltration','exfiltrate data','database dump','dump database','steal user data'
+  ]},
+  {id:'semantic-log-tampering',phrases:[
+   'اخفاء اثار الاختراق','محو اثار الاختراق','محو سجلات الدخول','حذف سجلات النظام','تعطيل سجلات المراقبة','اخفاء النشاط الضار','التلاعب بسجلات النظام',
+   'erase audit logs','delete security logs','hide attack traces','tamper with logs'
+  ]}
+ ];
+
  const RULES=[
   /* Product policy: the notebook is an Arabic creative space. Known attack names
      and executable payloads are blocked even when entered as isolated words. */
   {id:'known-attack-vocabulary',status:'blocked',re:/\b(?:xss|cross[\s_-]*site[\s_-]*scripting|sql[\s_-]*injection|sqli|nosql[\s_-]*injection|command[\s_-]*injection|os[\s_-]*command[\s_-]*injection|shell[\s_-]*injection|code[\s_-]*injection|remote[\s_-]*code[\s_-]*execution|rce|csrf|cross[\s_-]*site[\s_-]*request[\s_-]*forgery|ssrf|server[\s_-]*side[\s_-]*request[\s_-]*forgery|xxe|xml[\s_-]*external[\s_-]*entity|ssti|server[\s_-]*side[\s_-]*template[\s_-]*injection|lfi|local[\s_-]*file[\s_-]*inclusion|rfi|remote[\s_-]*file[\s_-]*inclusion|path[\s_-]*traversal|directory[\s_-]*traversal|prototype[\s_-]*pollution|ldap[\s_-]*injection|xpath[\s_-]*injection|crlf[\s_-]*injection|header[\s_-]*injection|html[\s_-]*injection|template[\s_-]*injection|deserialization[\s_-]*attack|insecure[\s_-]*deserialization|open[\s_-]*redirect|clickjacking|session[\s_-]*fixation|credential[\s_-]*stuffing|brute[\s_-]*force|reverse[\s_-]*shell|webshell|shellcode|keylogger|phishing|ransomware|malware|exploit(?:ation)?|zero[\s_-]*day)\b/i},
-  {id:'standalone-executable-terms',status:'blocked',re:/\b(?:javascript|vbscript|eval|document\.cookie|innerhtml|outerhtml|onerror|onload|onmouseover|onfocus|onanimationstart)\b/i},
+  {id:'standalone-executable-terms',status:'blocked',re:/\b(?:eval|vbscript)\s*\(|\bdocument\s*\.\s*cookie\b|\b(?:innerhtml|outerhtml)\s*=|\bon[a-z]{3,}\s*=/i},
   {id:'xss-dangerous-element',status:'blocked',re:/<\s*\/?\s*(?:script|iframe|object|embed|applet|svg|math|link|meta)\b/i},
   {id:'xss-event-handler',status:'blocked',re:/\bon[a-z]{3,}\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/i},
   {id:'xss-javascript-url',status:'blocked',re:/\b(?:javascript|vbscript)\s*:/i},
@@ -65,6 +99,36 @@
   }
   return current;
  }
+ function foldIntentText(value){
+  let text=String(value==null?'':value);
+  try{text=text.normalize('NFKC');}catch(_){}
+  text=text.toLowerCase()
+   .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0300-\u036F]/g,'')
+   .replace(/\u0640/g,'')
+   .replace(/[أإآٱ]/g,'ا')
+   .replace(/[ىی]/g,'ي')
+   .replace(/ک/g,'ك')
+   .replace(/[\u200B-\u200F\u202A-\u202E\u2060\uFEFF]/g,'');
+  const confusables={
+   'а':'a','е':'e','о':'o','р':'p','с':'c','х':'x','і':'i','ј':'j','ѕ':'s',
+   'к':'k','м':'m','т':'t','у':'y','в':'b',
+   'α':'a','ο':'o','ρ':'p','χ':'x','ι':'i','κ':'k','τ':'t'
+  };
+  text=text.replace(/[аерсхіјѕкмтувαορχικτ]/g,ch=>confusables[ch]||ch);
+  return text.replace(/[^\p{L}\p{N}]+/gu,' ').trim();
+ }
+ function escapeRegExp(value){
+  const meta='.^$*+?()[]{}|\\';
+  return Array.from(String(value)).map(ch=>meta.includes(ch)?'\\'+ch:ch).join('');
+ }
+ function semanticPhraseMatches(text,phrase){
+  const folded=foldIntentText(text);
+  const compactPhrase=foldIntentText(phrase).replace(/\s+/g,'');
+  if(!compactPhrase||compactPhrase.length<4)return false;
+  const spacedLetters=Array.from(compactPhrase).map(escapeRegExp).join('[\\s\\p{P}\\p{S}_]*');
+  const matcher=new RegExp('(^|[^\\p{L}\\p{N}])'+spacedLetters+'(?=$|[^\\p{L}\\p{N}])','iu');
+  return matcher.test(folded);
+ }
  function normalizeForms(value){
   let original=String(value==null?'':value).slice(0,MAX);
   try{original=original.normalize('NFKC');}catch(_){}
@@ -83,19 +147,36 @@
    .replace(/\/\*[\s\S]{0,2000}?\*\//g,' ')
    .replace(/<!--[\s\S]{0,2000}?-->/g,' ');
   if(withoutComments!==current)forms.push(withoutComments);
-  const compact=withoutComments.replace(/[\s\u00a0]+/g,'');
-  if(compact!==withoutComments)forms.push(compact);
+  const folded=foldIntentText(withoutComments);
+  if(folded&&folded!==withoutComments)forms.push(folded);
+  const compact=folded.replace(/\s+/g,'');
+  if(compact&&compact!==folded)forms.push(compact);
   return forms.filter((form,index,list)=>form.length<=MAX*2&&list.indexOf(form)===index);
  }
  function normalize(value){return normalizeForms(value).join('\n');}
  function inspect(value){
   const forms=normalizeForms(value);
+  let reviewMatch=null;
   for(const rule of RULES){
    for(const form of forms){
     rule.re.lastIndex=0;
-    if(rule.re.test(form))return Object.freeze({blocked:rule.status==='blocked',status:rule.status,id:rule.id,version:VERSION});
+    if(!rule.re.test(form))continue;
+    if(rule.status==='blocked'){
+     return Object.freeze({blocked:true,status:'blocked',id:rule.id,version:VERSION});
+    }
+    if(!reviewMatch)reviewMatch=rule.id;
    }
   }
+  for(const family of SEMANTIC_BLOCK_FAMILIES){
+   for(const phrase of family.phrases){
+    for(const form of forms){
+     if(semanticPhraseMatches(form,phrase)){
+      return Object.freeze({blocked:true,status:'blocked',id:family.id,version:VERSION});
+     }
+    }
+   }
+  }
+  if(reviewMatch)return Object.freeze({blocked:false,status:'review',id:reviewMatch,version:VERSION});
   return Object.freeze({blocked:false,status:'clean',id:null,version:VERSION});
  }
 
@@ -175,6 +256,18 @@
   const end=typeof target.selectionEnd==='number'?target.selectionEnd:start;
   return current.slice(0,start)+data+current.slice(end);
  }
+ const reviewLog=[],reviewLastSeen=new Map();
+ function recordReview(result,source){
+  if(!result||result.status!=='review')return;
+  const now=Date.now(),key=String(result.id||'unknown')+':'+String(source||'input');
+  const last=reviewLastSeen.get(key)||0;
+  if(now-last<1200)return;
+  reviewLastSeen.set(key,now);
+  reviewLog.push(Object.freeze({id:result.id,status:'review',source:source||'input',at:now}));
+  if(reviewLog.length>50)reviewLog.shift();
+  announce(result,source);
+ }
+
  function announce(result,source){
   if(typeof root.CustomEvent==='function'&&typeof root.dispatchEvent==='function'){
    root.dispatchEvent(new root.CustomEvent('anwar-shield-detection',{detail:{version:VERSION,id:result.id,status:result.status,source:source||'input'}}));
@@ -216,7 +309,7 @@
   if(!target||typeof event.data!=='string'||!event.data)return;
   if(/^delete/i.test(String(event.inputType||'')))return;
   const result=inspect(insertedValue(target,event.data));
-  if(result.status!=='clean')rejectEvent(event,result,'beforeinput');
+  if(result.status==='blocked')rejectEvent(event,result,'beforeinput');
  }
  function paste(event){
   const target=field(event.target);
@@ -225,7 +318,7 @@
   const text=transfer&&typeof transfer.getData==='function'?(transfer.getData('text/plain')||transfer.getData('text')):'';
   if(!text)return;
   const result=inspect(insertedValue(target,text));
-  if(result.status!=='clean')rejectEvent(event,result,'paste');
+  if(result.status==='blocked')rejectEvent(event,result,'paste');
  }
  function drop(event){
   const target=field(event.target);
@@ -234,23 +327,29 @@
   const text=transfer&&typeof transfer.getData==='function'?(transfer.getData('text/plain')||transfer.getData('text')):'';
   if(!text)return;
   const result=inspect(insertedValue(target,text));
-  if(result.status!=='clean')rejectEvent(event,result,'drop');
+  if(result.status==='blocked')rejectEvent(event,result,'drop');
  }
  function input(event){
   const target=field(event.target);
   if(!target)return;
   const result=inspect(read(target));
-  if(result.status!=='clean'){
+  if(result.status==='blocked'){
    if(/^delete/i.test(String(event.inputType||'')))return;
    reject(target,result,'input');
-  }else remember(target);
+  }else{
+   if(result.status==='review')recordReview(result,'input');
+   remember(target);
+  }
  }
  function change(event){
   const target=field(event.target);
   if(!target)return;
   const result=inspect(read(target));
-  if(result.status!=='clean')reject(target,result,'change');
-  else remember(target);
+  if(result.status==='blocked')reject(target,result,'change');
+  else{
+   if(result.status==='review')recordReview(result,'change');
+   remember(target);
+  }
  }
  function focus(event){
   const target=field(event.target);
@@ -263,12 +362,13 @@
    const editable=field(target);
    if(!editable)continue;
    const result=inspect(read(editable));
-   if(result.status!=='clean'){
+   if(result.status==='blocked'){
     event.preventDefault();
     event.stopImmediatePropagation();
     reject(editable,result,'submit');
     return;
    }
+   if(result.status==='review')recordReview(result,'submit');
   }
  }
  if(root.document&&root.document.addEventListener){
@@ -280,5 +380,5 @@
   root.document.addEventListener('change',change,true);
   root.document.addEventListener('submit',submit,true);
  }
- root.AnwarShield3D=Object.freeze({version:VERSION,inspect,normalize});
+ root.AnwarShield3D=Object.freeze({version:VERSION,inspect,normalize,getReviewLog:()=>reviewLog.map(item=>({...item}))});
 })(globalThis);
