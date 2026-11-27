@@ -6,11 +6,11 @@
     "privacy_profile_url": "https://mofakira-anouar.pages.dev/privacy-security.html",
     "machine_readable_profile_url": "https://mofakira-anouar.pages.dev/privacy-security.json",
     "source_repository": "https://github.com/byan80543-tech/mofakira-anouar",
-    "reviewed_application_source_revision": "ab07c48a0bd83468ee02c7d4ca302889e414fd55"
+    "reviewed_application_source_revision": "bd0d1ba5a6c54e9bd56dabb130ebd57f2a60226d"
   },
   "review": {
     "date": "2026-11-27",
-    "method": "static source/configuration review; CI validation; live Chromium/Playwright all-field attack matrix with test-only client input-shield bypass",
+    "method": "static source/configuration review; CI and CodeQL; live Chromium/Playwright all-field attack matrix with test-only shield bypass; live keyboard/paste XSS smoke with real shield; live HTTP perimeter and exposed-path checks",
     "scope": [
       "web app source",
       "local vault cryptography",
@@ -21,13 +21,13 @@
       "external resource allowlists",
       "Tasbih voice recognition path"
     ],
-    "status": "source_ci_and_live_all_field_attack_matrix_passed",
+    "status": "source_ci_codeql_and_live_web_security_tests_passed",
     "numeric_privacy_score": null,
     "certification_claimed": false,
     "independent_penetration_test": false,
     "live_mobile_browser_test_completed": false,
-    "live_http_response_headers_verified": false,
-    "limitations": "Source review and CI evidence were inspected. A published-site Chromium/Playwright test (HTTP 200; CSP response header and meta policy present) used a temporary test-only bypass of the client input shield to exercise downstream handling. It passed 70 representative cases (58 configured attack-rule families and 12 semantic phrases) across 15 editable text fields: 1050 injections, no increase in risky DOM elements and no XSS canary execution. HTML/TXT/MD/CSV import, personal adhkar and tasbih rendering, share URL validation, password non-reflection, HTML export, and rejection of an invalid rescue file also passed. Direct raw DOM assignment briefly left five active markup constructs in the live editor, but CSP blocked inline script/event handlers and the save/reopen sanitizer removed them. This is not a comprehensive independent penetration test: no actual SQL/database, OS-command or SSRF requests were executed; PDF/Office/image imports, valid rescue restore replacement, mobile browser, all APIs and third-party integrations remain untested.",
+    "live_http_response_headers_verified": true,
+    "limitations": "The production web app at https://mofakira-anouar.pages.dev/mofakira-anouar/ was tested in an isolated Chromium/Playwright 1.56.1 profile. 70 representative attack cases (58 rule families and 12 semantic phrases) were injected into 15 editable text fields: 1,050 attempts with no increase in risky DOM and no XSS canary. The actual Anwar Shield was also tested with 13 suspicious samples by paste and typing (26/26 blocked) while benign Arabic writing was accepted. HTML/TXT/MD/CSV imports, personal adhkar and custom tasbih rendering, share URL scheme validation, password non-reflection, HTML export, invalid rescue rejection without data change, direct DOM editor bypass (zero active markup), and 41 live perimeter/header/file-boundary/PWA/CORS checks passed. The API gateway URL is empty and no gateway is connected to this production web build; therefore SQL/database, live SSRF, OS command injection, BOLA/IDOR and API authz attacks were not performed against an active backend. Detection-rule strings for those families only tested the client-side shield. This is not an independent certified penetration test and no physical mobile-device test was performed.",
     "owner_reported_manual_xss_test": {
       "target": "https://mofakira-anouar.pages.dev/mofakira-anouar/",
       "reported_date": "2026-11-27",
@@ -41,16 +41,18 @@
       "target": "https://mofakira-anouar.pages.dev/mofakira-anouar/",
       "http_status": 200,
       "content_security_policy_header_present": true,
-      "full_header_set_verified": false,
-      "workflow_run_id": 46021247674,
-      "workflow_url": "https://github.com/byan80543-tech/mofakira-anouar/actions/runs/46021247674"
+      "full_header_set_verified": true,
+      "perimeter_checks": 41,
+      "perimeter_checks_passed": 41,
+      "workflow_run_id": 46045201789,
+      "workflow_url": "https://github.com/byan80543-tech/mofakira-anouar/actions/runs/46045201789"
     },
     "live_editor_xss_smoke_test": {
       "date": "2026-11-27",
       "target": "https://mofakira-anouar.pages.dev/mofakira-anouar/",
       "environment": "Chromium headless; Playwright 1.56.1; GitHub Actions Ubuntu 24.04",
-      "workflow_run_id": 46021247674,
-      "workflow_url": "https://github.com/byan80543-tech/mofakira-anouar/actions/runs/46021247674",
+      "workflow_run_id": 46045201789,
+      "workflow_url": "https://github.com/byan80543-tech/mofakira-anouar/actions/runs/46045201789",
       "input_samples": 13,
       "methods": [
         "paste",
@@ -64,21 +66,24 @@
       "isolated_temporary_browser_profile": true,
       "temporary_vault_and_test_note": true,
       "save_or_export_performed": false,
-      "result": "PASS: all 26 suspicious input attempts (13 samples via paste and typing) were blocked; no XSS canary fired and the benign Arabic writing control was accepted.",
-      "scope_limit": "Limited to the published editor element #pg and the 13 listed probes. Does not prove all site inputs, stored/reflected/DOM rendering paths, file import/export, third-party content, or mobile browsers are safe. Not an independent comprehensive penetration test."
+      "result": "PASS: 13 representative suspicious samples were rejected by both paste and keyboard typing (26/26); no XSS canary fired and benign Arabic writing was accepted.",
+      "scope_limit": "Covers the 13 recorded vectors and the live notebook editor in an isolated browser profile; it is not proof against every possible payload or a certified independent penetration test."
     },
     "live_all_field_attack_matrix": {
       "date": "2026-11-27",
       "target": "https://mofakira-anouar.pages.dev/mofakira-anouar/",
-      "workflow_run_id": 46024883376,
-      "workflow_url": "https://github.com/byan80543-tech/mofakira-anouar/actions/runs/46024883376",
+      "workflow_run_id": 46045201789,
+      "workflow_url": "https://github.com/byan80543-tech/mofakira-anouar/actions/runs/46045201789",
       "environment": "Chromium headless; Playwright 1.56.1; GitHub Actions Ubuntu 24.04",
       "test_only_client_shield_bypass": true,
-      "bypass_scope": "A temporary Chromium profile only; the test preloaded a matching version marker so Anwar Shield did not register input-blocking event handlers. No deployed code or user browser was changed.",
+      "bypass_scope": "A temporary Chromium profile only; the test prevented Anwar Shield input listeners from registering so that downstream DOM sanitization was tested independently. No deployed script or visitor browser was changed.",
       "page_http_status": 200,
       "csp_response_header_present": true,
       "csp_meta_policy_present": true,
       "editable_text_fields": 15,
+      "password_fields": 4,
+      "file_inputs": 2,
+      "non_text_controls": 24,
       "attack_rule_families": 58,
       "semantic_attack_phrases": 12,
       "representative_attack_cases": 70,
@@ -86,32 +91,72 @@
       "field_injection_rounds_passed": 70,
       "increase_in_risky_dom_elements_during_field_matrix": 0,
       "xss_canary_executions": 0,
-      "password_fields_tested": 4,
-      "file_inputs_tested": 2,
       "imports": {
         "html": "passed; no active elements",
         "txt": "passed; no active elements",
         "md": "passed; no active elements",
         "csv": "passed; no active elements",
-        "invalid_rescue_json": "rejected; restore dialog remained closed and vault/note data unchanged"
+        "invalid_rescue_json": "rejected; restore dialog remained closed and note/vault data unchanged"
       },
       "rendered_content": {
-        "personal_adhkar": "8 of 8 samples rendered as text without active elements",
-        "custom_tasbih_dhikr": "4 of 4 samples rendered as text/options without active elements",
-        "share_url_protocol_validation": "javascript: scheme rejected; only HTTP and HTTPS accepted",
-        "password_nonreflection": "passed; values remained in password controls and were not reflected as markup",
-        "html_export": "passed; title and body strings resembling markup remained inert text"
+        "personal_adhkar": "8/8 samples rendered as text without active elements",
+        "custom_tasbih_dhikr": "4/4 samples rendered as text/options without active elements",
+        "share_url_protocol_validation": "javascript: scheme rejected; HTTP and HTTPS only",
+        "password_nonreflection": "passed; payload values were not reflected as markup",
+        "html_export": "passed; title/body strings remained inert text"
       },
       "direct_dom_editor_bypass": {
-        "active_markup_observed_before_reopen": 5,
-        "csp_blocked_inline_script_and_event_handlers": true,
+        "active_markup_observed_immediately_after_assignment": 0,
+        "csp_blocks_inline_script_and_event_handlers": true,
         "canary_executed": false,
         "active_markup_after_save_and_reopen": 0,
-        "interpretation": "Not a successful XSS execution. The live editor temporarily contained active markup when directly assigned through DOM, CSP blocked execution, and the sanitizer removed active markup after save/reopen. Immediate DOM sanitization is a recommended hardening improvement."
+        "interpretation": "The current deployed editor's DOM sanitizer intercepted the direct DOM assignment; no active markup was observed in the live editor."
       },
       "third_party_requests_blocked_by_test_harness": 3,
       "workflow_result": "PASS",
-      "scope_limit": "70 representative cases across 15 editable text fields (1050 field injections), not 1050 distinct attack types. SQLi, SSRF and command-injection inputs were tested as client-side detection strings only; no database, OS command or real SSRF request was executed. PDF/Office/image imports, valid rescue restore replacement, mobile browser, all API endpoints, all external integrations and independent comprehensive penetration testing were not covered."
+      "scope_limit": "70 representative cases across 15 editable text fields (1050 field injections), not 1050 distinct attack types. SQLi, SSRF and command-injection samples tested client-side detection only; no database, OS command or actual SSRF request was sent. PDF/Office/image imports, valid rescue restore replacement, mobile browser, a connected live API and external-provider integrations are outside this browser matrix."
+    },
+    "live_perimeter_test": {
+      "date": "2026-11-27",
+      "target": "https://mofakira-anouar.pages.dev/mofakira-anouar/",
+      "workflow_run_id": 46045201789,
+      "workflow_url": "https://github.com/byan80543-tech/mofakira-anouar/actions/runs/46045201789",
+      "total_checks": 41,
+      "passed": 41,
+      "failed": 0,
+      "http_status": 200,
+      "verified_headers": [
+        "Content-Security-Policy",
+        "X-Frame-Options: DENY",
+        "X-Content-Type-Options: nosniff",
+        "Referrer-Policy: strict-origin-when-cross-origin",
+        "Permissions-Policy",
+        "Strict-Transport-Security: max-age=31536000"
+      ],
+      "pwa_scope": "/mofakira-anouar/",
+      "pwa_start_url": "/mofakira-anouar/",
+      "non_web_source_paths_checked": [
+        "android/",
+        "_recovery/",
+        "scripts/",
+        ".github/",
+        "workers/",
+        "SECURITY-AUDIT.md",
+        ".env",
+        ".git/config",
+        "wrangler.toml"
+      ],
+      "sensitive_file_content_exposed": false,
+      "encoded_path_traversal_content_exposed": false,
+      "unknown_paths_return_generic_html_fallback": true,
+      "cors": {
+        "access_control_allow_origin": "*",
+        "access_control_allow_credentials": false,
+        "classification": "public static asset wildcard; no credentialed cross-origin access"
+      },
+      "api_gateway_connected": false,
+      "api_gateway_config_value": "empty",
+      "result": "PASS"
     }
   },
   "local_data_protection": {
@@ -181,7 +226,7 @@
       "X-DNS-Prefetch-Control: off",
       "Strict-Transport-Security: max-age=31536000"
     ],
-    "live_headers_verified": false
+    "live_headers_verified": true
   },
   "network_and_third_parties": {
     "api_gateway_worker_configured_in_client": false,
@@ -208,7 +253,8 @@
     "service_worker_caches_same_origin_app_assets": true,
     "service_worker_caches_remote_audio_or_api_responses": false,
     "third_party_processing_outside_app_control": true,
-    "blanket_no_analytics_or_no_tracking_claim": false
+    "blanket_no_analytics_or_no_tracking_claim": false,
+    "api_gateway_live_status": "not connected to the production web build; no active API Worker origin configured"
   },
   "public_evidence": {
     "security_policy": "https://github.com/byan80543-tech/mofakira-anouar/blob/main/SECURITY.md",
