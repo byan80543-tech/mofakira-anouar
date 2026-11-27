@@ -95,7 +95,7 @@ function makeHarness(initial={}){
     clearTimeout(){},iso:d=>d.toISOString().slice(0,10),info(){},
     createNoteId:(()=>{let id=0;return()=>String(++id)})(),
     applyPaperClass(){},
-    storageRecoveryBlocked:false,storageRecoveryRaw:null,storageRecoveryExported:false,storageRecoveryMode:'none',storageRecoveryBackupAvailable:false,
+    storageRecoveryBlocked:false,storageRecoveryRaw:null,storageRecoveryExported:false,storageRecoveryMode:'none',storageRecoveryBackupAvailable:false,vaultStorageUnavailable:false,
     VAULT_STORAGE_KEY:'anwar_vault_v1',VAULT_BACKUP_KEY:'anwar_vault_backup_v1',
     VAULT_MODE_KEY:'anwar_vault_mode_v1',
     continueVaultAfterRecovery(){const primary=storage.getItem('anwar_v1');const backup=primary===null?storage.getItem('anwar_v1_backup_v2'):null;if(primary!==null)sandbox.S=JSON.parse(primary);else if(backup!==null)sandbox.S=JSON.parse(backup)},
@@ -113,7 +113,7 @@ function makeHarness(initial={}){
     syncVaultLockButton(){},
     theme(){},chips(){},renderList(){}
   };
-  vm.runInNewContext(String.fromCharCode(10)+preferenceSource+String.fromCharCode(10)+extracted+String.fromCharCode(10)+"this.api={load,save,startFreshNotebook,retryStorageAccess,restoreStorageBackup,exportStorageRecovery,waitForWrites:()=>vaultSaveQueue,writeError:()=>vaultLastWriteError,decryptMock:key=>{const raw=localStorage.getItem(key);const envelope=JSON.parse(raw||'null');if(!envelope||envelope.format!=='mock-vault')throw new Error('bad mock envelope for '+key+': '+String(raw));return AnwarVaultCrypto.decryptWithKey(vaultKey,envelope)},snapshot:()=>({S,storageRecoveryBlocked,storageRecoveryRaw,storageRecoveryExported,storageRecoveryMode,storageRecoveryBackupAvailable}),\n      activateEdit:(note,previous,html)=>{cur=note;pendingBefore=previous;pg.innerHTML=html},\n      draftState:()=>({cur,draftNote,notes:S.notes}),touch,newNote,openNote,flushPendingEdit};",sandbox,{timeout:3000});
+  vm.runInNewContext(String.fromCharCode(10)+preferenceSource+String.fromCharCode(10)+extracted+String.fromCharCode(10)+"this.api={load,save,startFreshNotebook,retryStorageAccess,restoreStorageBackup,exportStorageRecovery,waitForWrites:()=>vaultSaveQueue,writeError:()=>vaultLastWriteError,decryptMock:key=>{const raw=localStorage.getItem(key);const envelope=JSON.parse(raw||'null');if(!envelope||envelope.format!=='mock-vault')throw new Error('bad mock envelope for '+key+': '+String(raw));return AnwarVaultCrypto.decryptWithKey(vaultKey,envelope)},snapshot:()=>({S,storageRecoveryBlocked,storageRecoveryRaw,storageRecoveryExported,storageRecoveryMode,storageRecoveryBackupAvailable,vaultStorageUnavailable}),\n      activateEdit:(note,previous,html)=>{cur=note;pendingBefore=previous;pg.innerHTML=html},\n      draftState:()=>({cur,draftNote,notes:S.notes}),touch,newNote,openNote,flushPendingEdit};",sandbox,{timeout:3000});
   return {api:sandbox.api,storage,elements,messages,sandbox,download};
 }
 const assert=(condition,message)=>{
@@ -200,7 +200,9 @@ assert(h.storage.getItem('anwar_rd')===JSON.stringify({r:'reader',n:12,m:'l'}),'
 h=makeHarness();
 h.storage.failGetKey='anwar_v1';
 h.api.load();
-assert(h.api.snapshot().storageRecoveryBlocked&&h.api.snapshot().storageRecoveryMode==='unavailable','blocked localStorage access is distinct from corrupt JSON');
+assert(!h.api.snapshot().storageRecoveryBlocked&&h.api.snapshot().storageRecoveryMode==='unavailable','unavailable localStorage access does not trigger a persistent recovery lockout');
+assert(h.api.snapshot().vaultStorageUnavailable,'unavailable localStorage access remains retryable from the shield control');
+assert(h.elements.storageRecoveryNotice.hidden,'unavailable storage does not show the blocking recovery panel');
 h.storage.failGetKey=null;
 h.sandbox.vaultUnlocked=false;
 assert(await h.api.retryStorageAccess()===true&&!h.api.snapshot().storageRecoveryBlocked,'retry succeeds when browser storage access returns');

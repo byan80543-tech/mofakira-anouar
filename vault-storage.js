@@ -1,6 +1,7 @@
-/* Verified IndexedDB storage for encrypted vault envelopes.
- * Legacy localStorage envelopes are copied, read back, and only then removed.
- * No plaintext notebook content is written by this module.
+/* Verified encrypted vault storage.
+ * IndexedDB is the preferred database; encrypted envelopes are mirrored to
+ * localStorage so the notebook can continue when IndexedDB is unavailable.
+ * This module never receives or writes plaintext notebook content.
  */
 (function installAnwarVaultStorage(root){
  'use strict';
@@ -9,23 +10,46 @@
  const STORE_NAME='records';
  let databasePromise=null;
 
+ function assertKey(key){
+  if(key!=='anwar_vault_v1'&&key!=='anwar_vault_backup_v1')throw new Error('مفتاح خزنة غير معروف.');
+ }
+ function readLocal(key){
+  try{return {ok:true,value:root.localStorage.getItem(key)}}
+  catch(error){return {ok:false,error}}
+ }
+ function writeLocal(key,value){
+  try{
+   root.localStorage.setItem(key,value);
+   return root.localStorage.getItem(key)===value;
+  }catch(error){return false}
+ }
+ function removeLocal(key){
+  try{
+   root.localStorage.removeItem(key);
+   return root.localStorage.getItem(key)===null;
+  }catch(error){return false}
+ }
+ function warn(message,error){
+  if(root.console&&typeof root.console.warn==='function')root.console.warn(message,error||'');
+ }
+
  function openDatabase(){
   if(databasePromise)return databasePromise;
   databasePromise=new Promise((resolve,reject)=>{
    if(!root.indexedDB){
-    reject(new Error('التخزين الآمن غير متاح في هذا المتصفح. لم نغيّر أي بيانات؛ افتح المفكرة في متصفح يدعم IndexedDB.'));
+    reject(new Error('IndexedDB غير متاح؛ سيُستخدم مخزن النسخ المشفرة الاحتياطي عند توفره.'));
     return;
    }
    let request;
    try{request=root.indexedDB.open(DB_NAME,DB_VERSION)}
-   catch(error){reject(new Error('تعذّر فتح مخزن المفكرة الآمن. لم نغيّر أي بيانات.'));return}
+   catch(error){reject(new Error('تعذّر فتح مخزن IndexedDB.'));return}
    request.onupgradeneeded=()=>{
     const db=request.result;
     if(!db.objectStoreNames.contains(STORE_NAME))db.createObjectStore(STORE_NAME);
    };
    request.onsuccess=()=>resolve(request.result);
-   request.onerror=()=>reject(new Error('تعذّر فتح مخزن المفكرة الآمن. لم نغيّر أي بيانات.'));
-   request.onblocked=()=>reject(new Error('تحديث مخزن المفكرة ينتظر إغلاق نسخة أخرى مفتوحة من المفكرة.'));
+   request.onerror=()=>reject(new Error('تعذّر فتح مخزن IndexedDB.'));
+   request.onblocked=()=>reject(new Error('تحديث مخزن IndexedDB ينتظر إغلاق نسخة أخرى مفتوحة من المفكرة.'));
   }).catch(error=>{
    databasePromise=null;
    throw error;
@@ -42,11 +66,11 @@
     transaction=db.transaction(STORE_NAME,'readonly');
     const request=transaction.objectStore(STORE_NAME).get(key);
     request.onsuccess=()=>{value=request.result===undefined?null:request.result};
-    request.onerror=()=>reject(new Error('تعذّرت قراءة سجل الخزنة من التخزين الآمن.'));
+    request.onerror=()=>reject(new Error('تعذّرت قراءة سجل الخزنة من IndexedDB.'));
     transaction.oncomplete=()=>resolve(value);
-    transaction.onerror=()=>reject(new Error('تعذّرت قراءة سجل الخزنة من التخزين الآمن.'));
-    transaction.onabort=()=>reject(new Error('أُلغيت قراءة سجل الخزنة من التخزين الآمن.'));
-   }catch(error){reject(new Error('تعذّرت قراءة سجل الخزنة من التخزين الآمن.'))}
+    transaction.onerror=()=>reject(new Error('تعذّرت قراءة سجل الخزنة من IndexedDB.'));
+    transaction.onabort=()=>reject(new Error('أُلغيت قراءة سجل الخزنة من IndexedDB.'));
+   }catch(error){reject(new Error('تعذّرت قراءة سجل الخزنة من IndexedDB.'))}
   });
  }
 
@@ -57,14 +81,14 @@
    try{
     transaction=db.transaction(STORE_NAME,'readwrite');
     const request=transaction.objectStore(STORE_NAME).put(value,key);
-    request.onerror=()=>reject(new Error('تعذّر حفظ سجل الخزنة في التخزين الآمن.'));
+    request.onerror=()=>reject(new Error('تعذّر حفظ سجل الخزنة في IndexedDB.'));
     transaction.oncomplete=resolve;
-    transaction.onerror=()=>reject(new Error('تعذّر حفظ سجل الخزنة في التخزين الآمن.'));
-    transaction.onabort=()=>reject(new Error('أُلغيت كتابة سجل الخزنة في التخزين الآمن.'));
-   }catch(error){reject(new Error('تعذّر حفظ سجل الخزنة في التخزين الآمن.'))}
+    transaction.onerror=()=>reject(new Error('تعذّر حفظ سجل الخزنة في IndexedDB.'));
+    transaction.onabort=()=>reject(new Error('أُلغيت كتابة سجل الخزنة في IndexedDB.'));
+   }catch(error){reject(new Error('تعذّر حفظ سجل الخزنة في IndexedDB.'))}
   });
   const verified=await readDatabase(key);
-  if(verified!==value)throw new Error('لم تتطابق مراجعة التخزين الآمن مع السجل المكتوب.');
+  if(verified!==value)throw new Error('لم تتطابق مراجعة IndexedDB مع السجل المكتوب.');
  }
 
  async function deleteDatabase(key){
@@ -74,75 +98,69 @@
    try{
     transaction=db.transaction(STORE_NAME,'readwrite');
     const request=transaction.objectStore(STORE_NAME).delete(key);
-    request.onerror=()=>reject(new Error('تعذّر حذف سجل الخزنة من التخزين الآمن.'));
+    request.onerror=()=>reject(new Error('تعذّر حذف سجل الخزنة من IndexedDB.'));
     transaction.oncomplete=resolve;
-    transaction.onerror=()=>reject(new Error('تعذّر حذف سجل الخزنة من التخزين الآمن.'));
+    transaction.onerror=()=>reject(new Error('تعذّر حذف سجل الخزنة من IndexedDB.'));
     transaction.onabort=()=>reject(new Error('أُلغيت عملية حذف سجل الخزنة.'));
-   }catch(error){reject(new Error('تعذّر حذف سجل الخزنة من التخزين الآمن.'))}
+   }catch(error){reject(new Error('تعذّر حذف سجل الخزنة من IndexedDB.'))}
   });
   if(await readDatabase(key)!==null)throw new Error('لم يكتمل التحقق من حذف سجل الخزنة.');
  }
 
- function removeLegacyCopy(key,expectedValue){
-  try{
-   const legacy=root.localStorage.getItem(key);
-   if(legacy===null)return true;
-   // During reads, remove only the exact legacy record confirmed in IndexedDB.
-   // A different legacy value may be the last recoverable copy of a damaged record.
-   if(typeof expectedValue==='string'&&legacy!==expectedValue){
-    if(root.console&&typeof root.console.warn==='function')root.console.warn('احتُفظ بالنسخة المشفرة القديمة لأن محتواها يختلف عن سجل IndexedDB.',key);
-    return false;
-   }
-   root.localStorage.removeItem(key);
-   return root.localStorage.getItem(key)===null;
-  }catch(error){
-   if(root.console&&typeof root.console.warn==='function')root.console.warn('بقيت نسخة مشفرة قديمة في localStorage بعد ترحيلها إلى التخزين الآمن.',error);
-   return false;
-  }
- }
-
  async function get(key){
-  if(key!=='anwar_vault_v1'&&key!=='anwar_vault_backup_v1')throw new Error('مفتاح خزنة غير معروف.');
-  const existing=await readDatabase(key);
+  assertKey(key);
+  let existing;
+  try{existing=await readDatabase(key)}
+  catch(databaseError){
+   const fallback=readLocal(key);
+   if(fallback.ok&&fallback.value===null)return null;
+   if(fallback.ok&&typeof fallback.value==='string')return fallback.value;
+   throw databaseError;
+  }
   if(existing!==null){
    if(typeof existing!=='string')throw new Error('سجل الخزنة المخزن ليس نصًا صالحًا.');
-   // Do not discard a differing local copy until the stored record is independently trusted.
-   removeLegacyCopy(key,existing);
+   const mirror=readLocal(key);
+   if(!mirror.ok||mirror.value===null)writeLocal(key,existing);
+   else if(mirror.value!==existing)warn('احتُفظ بالنسخة المحلية المختلفة كنسخة استرداد؛ سجل IndexedDB هو النسخة الأساسية.');
    return existing;
   }
-  let legacy=null;
-  try{legacy=root.localStorage.getItem(key)}
-  catch(error){throw new Error('تعذّرت قراءة النسخة القديمة من الخزنة. لم نحذف أي بيانات.')}
-  if(legacy===null)return null;
-  if(typeof legacy!=='string')throw new Error('سجل الخزنة القديم غير صالح.');
-  await writeDatabase(key,legacy);
-  // Keep the original until IndexedDB has committed and read-back matched exactly.
-  if(!removeLegacyCopy(key,legacy)){
-   if(root.console&&typeof root.console.warn==='function')root.console.warn('تم ترحيل الخزنة والتحقق منها، لكن بقيت نسخة محلية مختلفة أو تعذّر حذف النسخة القديمة.');
+  const legacy=readLocal(key);
+  if(!legacy.ok)throw new Error('تعذّرت قراءة نسخة الخزنة المحلية الاحتياطية.');
+  if(legacy.value===null)return null;
+  if(typeof legacy.value!=='string')throw new Error('سجل الخزنة المحلي غير صالح.');
+  try{await writeDatabase(key,legacy.value)}
+  catch(error){
+   warn('تعذّر ترحيل النسخة المشفرة إلى IndexedDB؛ استُخدمت النسخة المشفرة المحلية بعد قراءتها.',error);
+   return legacy.value;
   }
-  return legacy;
+  // Keep the verified local copy as a recovery mirror; it contains ciphertext only.
+  return legacy.value;
  }
 
  async function set(key,value){
-  if(key!=='anwar_vault_v1'&&key!=='anwar_vault_backup_v1')throw new Error('مفتاح خزنة غير معروف.');
+  assertKey(key);
   if(typeof value!=='string'||!value)throw new Error('قيمة سجل الخزنة غير صالحة.');
-  await writeDatabase(key,value);
-  // The IndexedDB copy is committed and verified before the old copy is removed.
-  if(!removeLegacyCopy(key)&&root.console&&typeof root.console.warn==='function'){
-   root.console.warn('تم حفظ الخزنة في التخزين الآمن، لكن تعذّر تنظيف النسخة المشفرة القديمة من localStorage.');
+  // Write and read back the encrypted mirror first. This leaves a recoverable
+  // copy if IndexedDB is blocked or becomes unavailable during this save.
+  const mirrorVerified=writeLocal(key,value);
+  try{
+   await writeDatabase(key,value);
+   return true;
+  }catch(error){
+   if(mirrorVerified){
+    warn('حُفظت النسخة المشفرة والتحقق منها في التخزين المحلي الاحتياطي؛ تعذّر تحديث IndexedDB.',error);
+    return true;
+   }
+   throw error;
   }
-  return true;
  }
 
  async function remove(key){
-  if(key!=='anwar_vault_v1'&&key!=='anwar_vault_backup_v1')throw new Error('مفتاح خزنة غير معروف.');
+  assertKey(key);
+  // Do not delete the only fallback copy when IndexedDB itself is unavailable.
+  await openDatabase();
+  if(!removeLocal(key))throw new Error('تعذّر التحقق من إزالة النسخة المحلية الاحتياطية؛ لم نحذف سجل IndexedDB.');
   await deleteDatabase(key);
-  try{
-   root.localStorage.removeItem(key);
-   if(root.localStorage.getItem(key)!==null)throw new Error('legacy copy remains');
-  }catch(error){
-   throw new Error('حُذف سجل الخزنة من التخزين الآمن، لكن بقيت نسخة مشفرة قديمة في التخزين المحلي.');
-  }
   return true;
  }
 

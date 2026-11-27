@@ -43,6 +43,7 @@ function makeHarness(initial={},failReads=false){
     S:{notes:[]},
     vaultUnlocked:false,
     vaultGateMode:null,
+    vaultStorageUnavailable:false,
     storageRecoveryBlocked:true,
     emptyStorageState(){return {notes:[],preferences:{}}},
     showVaultGate(mode,message){calls.mode=mode;calls.message=message;sandbox.vaultGateMode=mode},
@@ -50,8 +51,8 @@ function makeHarness(initial={},failReads=false){
     finishVaultOpen(){calls.finished=true;sandbox.vaultUnlocked=true;sandbox.vaultGateMode=null},
     prepareLegacyStateForVault(){calls.legacyPrepared=true;return true},
     importLegacyPrivatePreferences(value){return value},
-    showStorageRecoveryNotice(title,message,raw){calls.recovery={title,message,raw}},
-    clearStorageRecovery(){calls.cleared=true;sandbox.storageRecoveryBlocked=false},
+    showStorageRecoveryNotice(title,message,raw){calls.recovery={title,message,raw};if(raw===null){sandbox.storageRecoveryBlocked=false;sandbox.vaultStorageUnavailable=true;}},
+    clearStorageRecovery(){calls.cleared=true;sandbox.storageRecoveryBlocked=false;sandbox.vaultStorageUnavailable=false},
     toast(message){calls.toasts.push(String(message))},
     theme(){},
     chips(){},
@@ -104,8 +105,14 @@ assert.equal(h.calls.legacyPrepared,false,'the app does not overwrite an existin
 
 h=makeHarness({},true);
 await h.api.bootVault();
-assert.ok(h.calls.recovery,'blocked startup storage access is shown as a recovery warning');
-assert.equal(h.calls.mode,null,'blocked storage access never starts a new vault');
+assert.ok(h.calls.recovery,'unavailable storage is reported without a persistent alert panel');
+assert.equal(h.sandbox.storageRecoveryBlocked,false,'unavailable storage does not activate the destructive-recovery lockout');
+assert.equal(h.sandbox.vaultStorageUnavailable,true,'the lock control retains a retry state');
+assert.equal(h.sandbox.vaultHasEncryptedData,true,'unknown storage state is conservatively treated as a possibly existing encrypted vault');
+assert.equal(h.sandbox.vaultGateMode,'unlock','unknown storage state never offers a blank first-time setup');
+assert.equal(h.sandbox.$('vaultGate').hidden,true,'the public app shell remains available');
+assert.equal(h.calls.syncCount,1,'the shield control reflects the locked private area');
+assert.equal(h.calls.toasts.length,0,'startup storage failure does not interrupt the owner with a toast');
 
 h=makeHarness({'anwar_vault_backup_v1':'encrypted-backup'});
 await h.api.continueVaultAfterRecovery();
