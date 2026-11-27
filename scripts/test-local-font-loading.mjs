@@ -31,8 +31,8 @@ assert.ok(core.includes("https://fonts.googleapis.com/css2?family="),
 
 // The explicit print/PDF paths remain intact; this change does not silently
 // remove export capabilities or broaden the Content Security Policy.
-assert.ok(core.includes("https://fonts.googleapis.com/css2?family="),
-  'print typography may still request the chosen font after an explicit print action');
+assert.ok(core.includes("f.replace(/ /g,'+')}&display=swap"),
+  'the print action may still request the selected font only when the visitor prints');
 assert.ok(core.includes('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),
   'PDF rendering library remains on its explicit export path with its integrity value');
 
