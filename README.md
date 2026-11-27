@@ -1,8 +1,10 @@
-# مفكرة أنوار
+# مفكرة أنوار — المستودع الموحد (WEB-PWA + ANDROID-NATIVE)
+
+> **تمييز النسخ:** جذر المستودع هو مصدر نسخة الويب/PWA (`WEB-PWA`)، والمجلد `android/` هو مصدر تطبيق Android الأصلي (`ANDROID-NATIVE`). راجع [PROJECT-IDENTITY.md](PROJECT-IDENTITY.md) قبل اختيار ملفات أي تعديل.
 
 [![Deploy Anwar API Gateway](https://github.com/byan80543-tech/mofakira-anouar/actions/workflows/deploy-anwar-api-gateway.yml/badge.svg)](https://github.com/byan80543-tech/mofakira-anouar/actions/workflows/deploy-anwar-api-gateway.yml)
 
-تطبيق ويب عربي متكامل يجمع الكتابة الأدبية والمكتبة وإذاعة القرآن الكريم والدروس الصوتية والسبحة والأذكار وإنشاء الكتب، مع أدوات للأرشفة والنسخ الاحتياطي وإنشاء رموز QR.
+مستودع المصدر الموحد لمفكرة أنوار: يحتوي نسخة الويب/PWA في الجذر، ومشروع تطبيق Android الأصلي المستقل داخل `android/`. لكل نسخة مسار تشغيل وتخزين وبناء مستقل، مع مشاركة بعض أصول الواجهة عند بناء Android.
 
 ## بيانات المشروع والملكية
 
@@ -19,6 +21,8 @@
 - ملف الخصوصية والأمان المنظّم للأنظمة وأدوات التقييم: https://mofakira-anouar.pages.dev/privacy-security.json
 
 ## وثائق المشروع
+
+- [PROJECT-IDENTITY.md](PROJECT-IDENTITY.md): سجل يحدد نسخة الويب ونسخة Android والنسخ المؤرشفة وملفات APK، ويمنع الخلط بينها.
 
 - [LICENSE.md](LICENSE.md): إشعار الحقوق وعدم منح ترخيص عام مستقل.
 - [COPYRIGHT.md](COPYRIGHT.md): نطاق حقوق الملكية الفكرية وحدودها.
