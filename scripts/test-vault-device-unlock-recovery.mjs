@@ -55,8 +55,9 @@ assert.doesNotMatch(submit,/AnwarVaultStorage\.remove\(|localStorage\.removeItem
 
 assert.match(html,/id="vaultDeviceUnlock"[^>]*hidden/,
  'the original device-unlock control remains in the vault gate');
-assert.match(html,/app-core\.js\?v=20261127-84/,
- 'the PWA shell requests the new recovery-enabled application bundle');
+const appCorePreload=html.match(/<link rel="preload" href="([^"]*app-core[.]js[?]v=[^"]+)" as="script">);
+const appCoreScript=html.match(/<script src="([^"]*app-core[.]js[?]v=[^"]+)" defer><\/script>/);
+assert.ok(appCorePreload&&appCoreScript&&appCorePreload[1]===appCoreScript[1],'the PWA shell preloads and executes the same cache-busted application bundle');
 // Keep this in sync with the separately versioned WebAuthn helper loaded by index.html.
 assert.match(html,/vault-device-unlock\.js\?v=20261126-2/,
  'the existing PRF device helper and credential format remain unchanged');
