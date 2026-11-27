@@ -213,7 +213,7 @@ function showStorageRecoveryNotice(title,message,raw){
   storageRecoveryBlocked=false;
   vaultStorageUnavailable=true;
   if(panel)panel.hidden=true;
-  toast('تعذّر الوصول إلى التخزين الآن. لم تتغير بياناتك؛ المس أيقونة القفل لإعادة المحاولة.',6000);
+  // No blocking banner or startup toast; the shield remains available for retry.
   return;
  }
  storageRecoveryBlocked=true;
@@ -1479,6 +1479,7 @@ function openNote(n){
 }
 function newNote(){
  if(storageRecoveryBlocked){toast('أنزل ملف الاسترداد أولاً، ثم استعد نسخة سليمة قبل إنشاء أعمال جديدة.',6000);return}
+ if(vaultStorageUnavailable){retryStorageAccess();return}
  if(!vaultUnlocked){
   if(vaultHasEncryptedData)showVaultGate('unlock','المساحات الخاصة مقفلة. تحقّق للمتابعة.');
   else showVaultGate('setup','أنشئ عبارة مرور لتفعيل حماية كتاباتك.');
