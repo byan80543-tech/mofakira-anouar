@@ -1515,7 +1515,7 @@ function openNote(n){
  if(draftNote&&draftNote!==n)draftNote=null;
  cur=n;const on=!!n;
  pg.style.display=on?'':'none';$('em').style.display=on?'none':'';
- if(on){pg.innerHTML=san(n.html);pg.style.fontFamily=n.font?`'${n.font}',Amiri,serif`:'';pg.style.fontSize=(n.size||20)+'px';applyPaperClass(n.paper);$('t').value=n.title;$('ty').value=n.type;$('pn').textContent=n.pin?'⭐ تثبيت':'☆ تثبيت';$('sz').value=n.size||20;$('app').classList.add('ed')}
+ if(on){loadFontStylesheets(false).catch(error=>console.warn('تعذّر تحميل الخطوط الأساسية؛ ستُستخدم الخطوط البديلة.',error));pg.innerHTML=san(n.html);pg.style.fontFamily=n.font?`'${n.font}',Amiri,serif`:'';pg.style.fontSize=(n.size||20)+'px';applyPaperClass(n.paper);$('t').value=n.title;$('ty').value=n.type;$('pn').textContent=n.pin?'⭐ تثبيت':'☆ تثبيت';$('sz').value=n.size||20;$('app').classList.add('ed')}
  else {$('app').classList.remove('ed');$('paperStylePanel').hidden=true;$('paperStyleBtn').setAttribute('aria-expanded','false')}
  renderList();info();
 }
@@ -1691,28 +1691,24 @@ function applyFont(f){
  $('fm').classList.remove('o');
 }
 const ANWAR_FONT_STYLESHEETS=["https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Aref+Ruqaa:wght@400;700&family=Cairo:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap","https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Amiri+Quran&family=Aref+Ruqaa&family=Aref+Ruqaa+Ink&family=Scheherazade+New&family=Lateef&family=Harmattan&family=Noto+Naskh+Arabic&family=Markazi+Text&family=Mirza&family=Katibeh&family=Gulzar&display=swap","https://fonts.googleapis.com/css2?family=Cairo&family=Tajawal&family=Almarai&family=Alexandria&family=Changa&family=Mada&family=Readex+Pro&family=IBM+Plex+Sans+Arabic&family=Noto+Sans+Arabic&family=Noto+Kufi+Arabic&family=Vazirmatn&family=Rubik&family=Baloo+Bhaijaan+2&family=Lemonada&display=swap","https://fonts.googleapis.com/css2?family=Reem+Kufi&family=Reem+Kufi+Fun&family=Reem+Kufi+Ink&family=El+Messiri&family=Kufam&family=Lalezar&family=Rakkas&family=Jomhuria&family=Marhey&family=Vibes&family=Blaka&family=Qahiri&family=Playpen+Sans+Arabic&family=Noto+Nastaliq+Urdu&display=swap"];
-const loadedFontStylesheets=new Set();
+const loadedFontStylesheets=new Set(),pendingFontStylesheets=new Map();
 function loadFontStylesheets(includeExtended=false){
  const urls=includeExtended?ANWAR_FONT_STYLESHEETS:ANWAR_FONT_STYLESHEETS.slice(0,1);
  return Promise.all(urls.map(href=>{
   if(loadedFontStylesheets.has(href))return Promise.resolve();
-  return new Promise((resolve,reject)=>{
+  if(pendingFontStylesheets.has(href))return pendingFontStylesheets.get(href);
+  const task=new Promise((resolve,reject)=>{
    const link=document.createElement('link');link.rel='stylesheet';link.href=href;
-   link.onload=()=>{loadedFontStylesheets.add(href);resolve()};
-   link.onerror=()=>{link.remove();reject(new Error('تعذّر تحميل حزمة الخطوط'))};
+   link.onload=()=>{loadedFontStylesheets.add(href);pendingFontStylesheets.delete(href);resolve()};
+   link.onerror=()=>{pendingFontStylesheets.delete(href);link.remove();reject(new Error('تعذّر تحميل حزمة الخطوط'))};
    document.head.append(link);
   });
+  pendingFontStylesheets.set(href,task);
+  return task;
  }));
 }
-function scheduleBaseFonts(){
- const start=()=>{const loadFonts=()=>loadFontStylesheets(false).catch(error=>console.warn(error));
-  if('requestIdleCallback' in window)window.requestIdleCallback(loadFonts,{timeout:2600});
-  else setTimeout(loadFonts,1400);
- };
- if(document.readyState==='complete')start();
- else window.addEventListener('load',start,{once:true});
-}
-scheduleBaseFonts();
+// Privacy: font providers are contacted only after the visitor opens a feature
+// that actually uses selectable typography. The app shell remains local-first.
 function fontList(q){$('fl').innerHTML=FONTS.filter(f=>!q||f.toLowerCase().includes(q.toLowerCase())).map(f=>`<div data-f="${f}"><span style="font-family:'${f}',serif;font-size:18px">أنوار الكلمة</span><em>${f}</em></div>`).join('')}
 function buildPA(){
  const p=$('pa'),ff=cur.font?`'${cur.font}',Amiri,serif`:'Amiri,serif';
