@@ -10,7 +10,7 @@
   },
   "review": {
     "date": "2026-11-27",
-    "method": "static source and configuration review; CI validation; published-site Chromium/Playwright live editor XSS smoke test",
+    "method": "static source/configuration review; CI validation; live Chromium/Playwright all-field attack matrix with test-only client input-shield bypass",
     "scope": [
       "web app source",
       "local vault cryptography",
@@ -21,13 +21,13 @@
       "external resource allowlists",
       "Tasbih voice recognition path"
     ],
-    "status": "source_ci_and_live_editor_xss_smoke_passed",
+    "status": "source_ci_and_live_all_field_attack_matrix_passed",
     "numeric_privacy_score": null,
     "certification_claimed": false,
     "independent_penetration_test": false,
     "live_mobile_browser_test_completed": false,
     "live_http_response_headers_verified": false,
-    "limitations": "Source review and CI evidence were inspected. A live Chromium/Playwright smoke test reached the published site (HTTP 200; CSP header present) and passed 13 suspicious input samples through both paste and typing (26/26 blocked, no XSS canary execution, benign Arabic text accepted) in the #pg editor. This test is limited to that editor and probe set; it does not cover every form, rendering sink, import/export path, mobile browser, or independent comprehensive penetration testing. Full HTTP header verification and broad runtime coverage remain outstanding.",
+    "limitations": "Source review and CI evidence were inspected. A published-site Chromium/Playwright test (HTTP 200; CSP response header and meta policy present) used a temporary test-only bypass of the client input shield to exercise downstream handling. It passed 70 representative cases (58 configured attack-rule families and 12 semantic phrases) across 15 editable text fields: 1050 injections, no increase in risky DOM elements and no XSS canary execution. HTML/TXT/MD/CSV import, personal adhkar and tasbih rendering, share URL validation, password non-reflection, HTML export, and rejection of an invalid rescue file also passed. Direct raw DOM assignment briefly left five active markup constructs in the live editor, but CSP blocked inline script/event handlers and the save/reopen sanitizer removed them. This is not a comprehensive independent penetration test: no actual SQL/database, OS-command or SSRF requests were executed; PDF/Office/image imports, valid rescue restore replacement, mobile browser, all APIs and third-party integrations remain untested.",
     "owner_reported_manual_xss_test": {
       "target": "https://mofakira-anouar.pages.dev/mofakira-anouar/",
       "reported_date": "2026-11-27",
@@ -66,6 +66,52 @@
       "save_or_export_performed": false,
       "result": "PASS: all 26 suspicious input attempts (13 samples via paste and typing) were blocked; no XSS canary fired and the benign Arabic writing control was accepted.",
       "scope_limit": "Limited to the published editor element #pg and the 13 listed probes. Does not prove all site inputs, stored/reflected/DOM rendering paths, file import/export, third-party content, or mobile browsers are safe. Not an independent comprehensive penetration test."
+    },
+    "live_all_field_attack_matrix": {
+      "date": "2026-11-27",
+      "target": "https://mofakira-anouar.pages.dev/mofakira-anouar/",
+      "workflow_run_id": 46024883376,
+      "workflow_url": "https://github.com/byan80543-tech/mofakira-anouar/actions/runs/46024883376",
+      "environment": "Chromium headless; Playwright 1.56.1; GitHub Actions Ubuntu 24.04",
+      "test_only_client_shield_bypass": true,
+      "bypass_scope": "A temporary Chromium profile only; the test preloaded a matching version marker so Anwar Shield did not register input-blocking event handlers. No deployed code or user browser was changed.",
+      "page_http_status": 200,
+      "csp_response_header_present": true,
+      "csp_meta_policy_present": true,
+      "editable_text_fields": 15,
+      "attack_rule_families": 58,
+      "semantic_attack_phrases": 12,
+      "representative_attack_cases": 70,
+      "field_injection_attempts": 1050,
+      "field_injection_rounds_passed": 70,
+      "increase_in_risky_dom_elements_during_field_matrix": 0,
+      "xss_canary_executions": 0,
+      "password_fields_tested": 4,
+      "file_inputs_tested": 2,
+      "imports": {
+        "html": "passed; no active elements",
+        "txt": "passed; no active elements",
+        "md": "passed; no active elements",
+        "csv": "passed; no active elements",
+        "invalid_rescue_json": "rejected; restore dialog remained closed and vault/note data unchanged"
+      },
+      "rendered_content": {
+        "personal_adhkar": "8 of 8 samples rendered as text without active elements",
+        "custom_tasbih_dhikr": "4 of 4 samples rendered as text/options without active elements",
+        "share_url_protocol_validation": "javascript: scheme rejected; only HTTP and HTTPS accepted",
+        "password_nonreflection": "passed; values remained in password controls and were not reflected as markup",
+        "html_export": "passed; title and body strings resembling markup remained inert text"
+      },
+      "direct_dom_editor_bypass": {
+        "active_markup_observed_before_reopen": 5,
+        "csp_blocked_inline_script_and_event_handlers": true,
+        "canary_executed": false,
+        "active_markup_after_save_and_reopen": 0,
+        "interpretation": "Not a successful XSS execution. The live editor temporarily contained active markup when directly assigned through DOM, CSP blocked execution, and the sanitizer removed active markup after save/reopen. Immediate DOM sanitization is a recommended hardening improvement."
+      },
+      "third_party_requests_blocked_by_test_harness": 3,
+      "workflow_result": "PASS",
+      "scope_limit": "70 representative cases across 15 editable text fields (1050 field injections), not 1050 distinct attack types. SQLi, SSRF and command-injection inputs were tested as client-side detection strings only; no database, OS command or real SSRF request was executed. PDF/Office/image imports, valid rescue restore replacement, mobile browser, all API endpoints, all external integrations and independent comprehensive penetration testing were not covered."
     }
   },
   "local_data_protection": {
