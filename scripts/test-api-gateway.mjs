@@ -140,6 +140,8 @@ try {
   response = await worker.fetch(request("/v1/admin/adhkar", { method: "OPTIONS" }), env, context);
   assert.equal(response.status, 204);
   assert.equal(response.headers.get("Access-Control-Allow-Methods"), "GET, POST, PUT, OPTIONS");
+  response = await worker.fetch(request("/v1/not-registered", { method: "OPTIONS" }), env, context);
+  assert.equal(response.status, 404, "unknown paths do not receive a successful CORS preflight");
   response = await worker.fetch(request("/v1/country/list?nationality=MA&page=1&url=https://evil.example"), env, context);
   assert.equal(response.status, 400);
   response = await worker.fetch(request("/v1/country/list?nationality=ZZ&page=1"), env, context);
@@ -313,6 +315,12 @@ try {
     ADHKAR_ADMIN_SECRET: adminSecret,
     ADHKAR_STORE: adminStore
   };
+  const publicAdhkarRead = await worker.fetch(request("/v1/adhkar"), adminEnv, context);
+  assert.equal(publicAdhkarRead.status, 200, "public adhkar reading remains available without an owner session");
+  assert.deepEqual(adminStoreCalls.at(-1), { path: "/entries", method: "GET" });
+  const unauthenticatedAdminRead = await worker.fetch(request("/v1/admin/adhkar"), adminEnv, context);
+  assert.equal(unauthenticatedAdminRead.status, 401, "administrative reads require a signed owner session");
+  assert.equal(adminStoreCalls.length, 1, "unauthenticated administration never reaches the store");
   const loginRequest = new Request("https://gateway.example.workers.dev/v1/admin/session", {
     method: "POST",
     headers: {
