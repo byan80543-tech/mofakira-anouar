@@ -372,6 +372,32 @@ try {
   persisted = JSON.parse(dbState);
   assert.ok(Array.isArray(persisted.clients["c".repeat(64)]["admin-api"]));
 
+  // Twenty owner-login attempts are allowed per IP in a 15-minute sliding window.
+  sql.exec("UPDATE rate_state SET data = ? WHERE id = 1", '{"global":[],"clients":{}}');
+  for (let i = 0; i < 20; i += 1) {
+    last = await limiter.fetch(limiterRequest("d".repeat(64), "admin-login"));
+    assert.equal(last.status, 200, "owner login attempt " + (i + 1) + " is within the 20-attempt window");
+  }
+  last = await limiter.fetch(limiterRequest("d".repeat(64), "admin-login"));
+  assert.equal(last.status, 429, "the 21st owner login attempt in the 15-minute window is blocked");
+  assert.equal((await last.json()).bucket, "admin-login");
+  now += 15 * 60_000 + 1;
+  last = await limiter.fetch(limiterRequest("d".repeat(64), "admin-login"));
+  assert.equal(last.status, 200, "the owner IP is allowed again after the login window expires");
+
+  // Passwords above 128 Unicode code points are rejected by the Worker.
+  const longUnicodeLogin = new Request("https://gateway.example.workers.dev/v1/admin/session", {
+    method: "POST",
+    headers: {
+      Origin: "https://byan80543-tech.github.io",
+      "CF-Connecting-IP": "192.0.2.45",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ password: "😀".repeat(129) })
+  });
+  const longUnicodeResponse = await worker.fetch(longUnicodeLogin, adminEnv, context);
+  assert.equal(longUnicodeResponse.status, 401, "oversized Unicode owner passwords are rejected");
+
   // The Durable Object no longer accepts transcription-only daily quota buckets.
   const obsoleteQuotaRequest = new Request("https://rate-limit.internal/check", {
     method: "POST",
