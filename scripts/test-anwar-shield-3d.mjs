@@ -11,7 +11,7 @@ sandbox.globalThis=sandbox;
 vm.runInNewContext(source,sandbox,{filename:'anwar-shield-3d.js'});
 const shield=sandbox.AnwarShield3D;
 
-test('version',()=>assert.equal(shield.version,'0.7.0'));
+test('version',()=>assert.equal(shield.version,'0.8.0'));
 test('blocks isolated attack vocabulary',()=>{
  for(const value of ['XSS','xss','SQL Injection','RCE','CSRF','SSRF','XXE','SSTI','LFI','RFI','Path Traversal','Prototype Pollution','Phishing','Reverse Shell','LDAP Injection','NoSQL Injection','Command Injection']){
   assert.equal(shield.inspect(value).status,'blocked',value);
@@ -22,6 +22,14 @@ test('blocks executable payload forms but permits benign technology names',()=>{
   assert.equal(shield.inspect(value).status,'blocked',value);
  }
  for(const value of ['JavaScript','javascript','SQL','HTML','innerHTML','onerror','الحماية','الجلسة']){
+  assert.equal(shield.inspect(value).status,'clean',value);
+ }
+});
+test('blocks standalone dangerous SQL and shell keywords, but not substrings',()=>{
+ for(const value of ['SELECT','UNION','DROP','INSERT','UPDATE','DELETE','cat','ls','whoami','wget','curl','alert(1)']){
+  assert.equal(shield.inspect(value).status,'blocked',value);
+ }
+ for(const value of ['selected','category','island','curly prose','JavaScript']){
   assert.equal(shield.inspect(value).status,'clean',value);
  }
 });
@@ -44,7 +52,7 @@ test('blocks common SQL injection without blocking ordinary SQL words',()=>{
  for(const value of ["' OR 1=1 --","' OR '1'='1","UNION SELECT password FROM users",'DROP TABLE users','information_schema.tables','SELECT * FROM users WHERE id=1; WAITFOR DELAY']){
   assert.equal(shield.inspect(value).status,'blocked',value);
  }
- assert.equal(shield.inspect('SELECT').status,'clean');
+ assert.equal(shield.inspect('SELECT').status,'blocked');
  assert.equal(shield.inspect('I selected a book yesterday.').status,'clean');
 });
 test('blocks command injection chains and shell execution patterns',()=>{
