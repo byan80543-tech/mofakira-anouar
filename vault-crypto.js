@@ -42,7 +42,10 @@
  }
  function validatePassword(password){
   if(typeof password!=='string'||Array.from(password).length<12)throw new Error('استخدم عبارة مرور من 12 محرفًا على الأقل.');
-  if(password.length>2048)throw new Error('عبارة المرور طويلة جدًا؛ الحد الأقصى 2048 محرفًا.');
+  const characters=Array.from(password).length;
+  const bytes=encoder.encode(password).byteLength;
+  if(characters>128)throw new Error('عبارة المرور طويلة جدًا؛ الحد الأقصى 128 محرفًا.');
+  if(bytes>512)throw new Error('حجم عبارة المرور يتجاوز 512 بايت.');
  }
  function metadata(envelope){
   if(!envelope||typeof envelope!=='object'||Array.isArray(envelope)||
