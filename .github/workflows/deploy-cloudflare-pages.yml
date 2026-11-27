@@ -37,7 +37,7 @@ jobs:
 
           while IFS= read -r -d '' file; do
             case "$file" in
-              .github/*|workers/*|scripts/*|*.md|_headers)
+              .github/*|workers/*|scripts/*|android/*|_recovery/*|*.md|_headers)
                 continue
                 ;;
               robots.txt|sitemap.xml|privacy-security.html|privacy-security.json)
