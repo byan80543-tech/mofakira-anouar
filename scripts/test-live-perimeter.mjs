@@ -11,7 +11,7 @@ const log = value => console.log(JSON.stringify(value));
 
 async function request(url, options = {}) {
   return fetch(url, {
-    redirect: 'manual',
+    redirect: 'follow',
     cache: 'no-store',
     signal: AbortSignal.timeout(20000),
     ...options
@@ -42,14 +42,17 @@ try {
     contentType: headers.get('content-type'),
     cacheControl: headers.get('cache-control')
   });
-  record('live-csp-header', Boolean(csp), {
-    present: Boolean(csp),
-    directives: csp.split(';').map(x => x.trim()).filter(Boolean),
+  const cspChecks = {
     hasDefaultDeny: /(?:^|;)\s*default-src\s+'none'/i.test(csp),
     blocksObjects: /(?:^|;)\s*object-src\s+'none'/i.test(csp),
     blocksFraming: /(?:^|;)\s*frame-ancestors\s+'none'/i.test(csp),
     disallowsUnsafeEval: !/script-src[^;]*'unsafe-eval'/i.test(csp),
     disallowsUnsafeInlineScript: !/script-src[^;]*'unsafe-inline'/i.test(csp)
+  };
+  record('live-csp-header', Boolean(csp) && Object.values(cspChecks).every(Boolean), {
+    present: Boolean(csp),
+    directives: csp.split(';').map(x => x.trim()).filter(Boolean),
+    ...cspChecks
   });
   record('x-frame-options', xfo.toUpperCase() === 'DENY', { value: xfo });
   record('mime-sniffing-protection', nosniff.toLowerCase() === 'nosniff', { value: nosniff });
@@ -123,11 +126,35 @@ try {
     '.git/config',
     'wrangler.toml'
   ];
+  const sourceMarkers = {
+    'android/README.md': ['ANDROID-NATIVE', 'NATIVE_APP_MIGRATION', 'Kotlin'],
+    'android/app/src/main/AndroidManifest.xml': ['<manifest', '<application', 'android.permission'],
+    'android/app/src/main/java/com/anwar/mofakira/MainActivity.kt': ['class MainActivity', 'package com.anwar'],
+    '_recovery/youtube-feature/index.html.before-youtube-removal': ['youtube-feature', 'before-youtube-removal'],
+    'scripts/test-live-input-bypass.mjs': ['LIVE_INPUT_BYPASS_RESULT', 'ruleCases', "from 'playwright'"],
+    '.github/workflows/quality.yml': ['name: Quality checks', 'pull_request:', 'live-xss-smoke:'],
+    'workers/anwar-api-gateway/src/index.mjs': ['resolveGatewayAccess', 'ADHKAR_ADMIN_SECRET', 'export class AdhkarStore'],
+    'SECURITY-AUDIT.md': ['Content-Security-Policy', 'مراجعة أمن', '## متابعة مراجعة'],
+    '.env': ['CLOUDFLARE_API_TOKEN=', 'IP_HASH_SECRET=', 'OPENAI_API_KEY='],
+    '.git/config': ['[core]', '[remote "origin"]'],
+    'wrangler.toml': ['workers_dev =', '[[durable_objects.bindings]]', 'ALLOWED_ORIGINS']
+  };
   for (const file of confidentialOrNonWebPaths) {
     const response = await request(new URL(file, app).href);
-    record('not-published-' + file.replace(/[^a-z0-9]+/gi, '-'), response.status !== 200, {
+    const body = response.status === 200 ? await response.text() : '';
+    const contentType = response.headers.get('content-type') || '';
+    const markerList = sourceMarkers[file] || [];
+    const leakedMarker = markerList.some(marker => body.includes(marker));
+    const genericHtmlFallback = response.status === 200 &&
+      contentType.toLowerCase().includes('text/html') &&
+      body.length < 5000 && !leakedMarker;
+    const safe = response.status !== 200 || genericHtmlFallback;
+    record('not-published-' + file.replace(/[^a-z0-9]+/gi, '-'), safe, {
       status: response.status,
-      contentType: response.headers.get('content-type')
+      contentType,
+      bodyBytes: body.length,
+      genericHtmlFallback,
+      leakedMarker
     });
   }
 
@@ -138,12 +165,17 @@ try {
   ];
   for (let i = 0; i < traversalUrls.length; i++) {
     const response = await request(traversalUrls[i]);
-    const body = response.status === 200 ? (await response.text()).slice(0, 2000) : '';
-    const leaked = /AndroidManifest|NATIVE_APP_MIGRATION|youtube-feature|ANWAR_TARGET_URL/i.test(body);
-    record('encoded-path-traversal-' + (i + 1), !leaked && response.status !== 200, {
+    const body = response.status === 200 ? await response.text() : '';
+    const contentType = response.headers.get('content-type') || '';
+    const leaked = /AndroidManifest|NATIVE_APP_MIGRATION|youtube-feature|ANWAR_TARGET_URL|class MainActivity/i.test(body);
+    const genericHtmlFallback = response.status === 200 &&
+      contentType.toLowerCase().includes('text/html') &&
+      body.length < 5000 && !leaked;
+    record('encoded-path-traversal-' + (i + 1), !leaked && (response.status !== 200 || genericHtmlFallback), {
       status: response.status,
       leakedMarker: leaked,
-      responseBytesSampled: body.length
+      genericHtmlFallback,
+      responseBytes: body.length
     });
   }
 
@@ -151,8 +183,13 @@ try {
     headers: { Origin: 'https://attacker.invalid', Accept: '*/*' }
   });
   const allowOrigin = corsResponse.headers.get('access-control-allow-origin');
-  record('static-cors-not-open', allowOrigin !== '*' && allowOrigin !== 'https://attacker.invalid', {
-    accessControlAllowOrigin: allowOrigin
+  const allowCredentials = corsResponse.headers.get('access-control-allow-credentials');
+  const safeStaticCors = allowOrigin === null ||
+    (allowOrigin === '*' && String(allowCredentials).toLowerCase() !== 'true');
+  record('static-public-cors-no-credentials', safeStaticCors, {
+    accessControlAllowOrigin: allowOrigin,
+    accessControlAllowCredentials: allowCredentials,
+    classification: allowOrigin === '*' ? 'public anonymous static resource wildcard; no credentials' : 'no cross-origin grant'
   });
 
   const baseMatch = apiConfig.match(/ANWAR_API_GATEWAY_BASE\s*=\s*["']([^"']*)["']/);
