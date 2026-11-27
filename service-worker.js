@@ -1,10 +1,10 @@
 /* Fast local app-shell delivery with background navigation refresh.
  * Bump CACHE_NAME for each published release so the approved worker precaches
  * the matching HTML, update checker and local assets before activation.
- * v233 includes the v0.5.0 normalized intent-aware editor input gate.
+ * v234 includes the v0.5.0 normalized intent-aware editor input gate and final block-priority rules.
  */
 'use strict';
-const CACHE_NAME='anwar-shell-2026-11-27-v233';
+const CACHE_NAME='anwar-shell-2026-11-27-v234';
 const APP_BASE=new URL('./',self.registration.scope);
 const SHELL_ASSETS=[
  './index.html',
