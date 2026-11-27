@@ -10,15 +10,18 @@ sandbox.globalThis=sandbox;
 vm.runInNewContext(source,sandbox,{filename:'anwar-shield-3d.js'});
 const shield=sandbox.AnwarShield3D;
 
-test('version',()=>assert.equal(shield.version,'0.4.0'));
+test('version',()=>assert.equal(shield.version,'0.5.0'));
 test('blocks isolated attack vocabulary',()=>{
  for(const value of ['XSS','xss','SQL Injection','RCE','CSRF','SSRF','XXE','SSTI','LFI','RFI','Path Traversal','Prototype Pollution','Phishing','Reverse Shell','LDAP Injection','NoSQL Injection','Command Injection']){
   assert.equal(shield.inspect(value).status,'blocked',value);
  }
 });
-test('blocks standalone executable terms',()=>{
- for(const value of ['javascript','vbscript','eval','document.cookie','innerHTML','onerror']){
+test('blocks executable payload forms but permits benign technology names',()=>{
+ for(const value of ['vbscript:alert(1)','eval(alert(1))','document.cookie','innerHTML=payload','outerHTML=payload','onerror=alert(1)','onload=alert(1)']){
   assert.equal(shield.inspect(value).status,'blocked',value);
+ }
+ for(const value of ['JavaScript','javascript','SQL','HTML','innerHTML','onerror','الحماية','الجلسة']){
+  assert.equal(shield.inspect(value).status,'clean',value);
  }
 });
 test('blocks common XSS and malicious URLs',()=>{
@@ -66,6 +69,68 @@ test('keeps ordinary Arabic creative text and remembrance clean',()=>{
 test('normalizes invisible characters and mixed encodings',()=>{
  assert.equal(shield.inspect('java'+String.fromCharCode(0x200B)+'script:alert(1)').status,'blocked');
  assert.equal(shield.inspect('%252e%252e%252fetc%252fpasswd').status,'blocked');
+});
+
+
+test('blocks Arabic attack intent across spelling, diacritics and separators',()=>{
+ for(const value of [
+  'تجاوز الحماية',
+  'تَجاوُزُ الحِمايَة',
+  'تـجـاوز الحماية',
+  'تجاوز-الحماية',
+  'تخطي نظام الحماية',
+  'الالتفاف على الحماية',
+  'سرقة الجلسات',
+  'اختِطافُ الجلسات',
+  'خطف الجلسة',
+  'س.ر.ق.ة ا.ل.ج.ل.س.ا.ت',
+  'س ر ق ة ا ل ج ل س ا ت',
+  'استخراج الرّموز السريّة',
+  'سحب التوكنات',
+  'سرقة مفاتيح API',
+  'تجاوز تسجيل الدخول',
+  'تصعيد الامتيازات',
+  'تنفيذ أوامر عن بعد',
+  'تهريب بيانات المستخدمين',
+  'محو سجلات الدخول'
+ ]){
+  assert.equal(shield.inspect(value).status,'blocked',value);
+ }
+});
+test('blocks spaced, punctuated and homoglyph attack variants',()=>{
+ for(const value of ['x.s.s','хѕѕ','s.q.l injection','S Q L Injection','bypass-security','session.hijacking','steal-secrets']){
+  assert.equal(shield.inspect(value).status,'blocked',value);
+ }
+});
+test('does not block ordinary Arabic or neutral technical writing',()=>{
+ for(const value of [
+  'الحماية مهمة لحفظ الملاحظات',
+  'الجلسة الأدبية كانت ممتعة',
+  'أكتب قصيدة عن المطر والليل',
+  'JavaScript لغة تستخدم في تطوير الويب',
+  'SQL قاعدة بيانات في درس تعليمي',
+  'هذه ملاحظة عن مفاتيح API وكيفية حفظها بأمان'
+ ]){
+  assert.equal(shield.inspect(value).status,'clean',value);
+ }
+});
+test('review-only patterns remain writable and expose metadata without storing note text',()=>{
+ const result=shield.inspect('$'+'{constructor.constructor("return process")()}');
+ assert.equal(result.status,'review');
+ assert.equal(result.blocked,false);
+ const handlers={};
+ const document={addEventListener(type,callback){handlers[type]=callback;},body:{appendChild(){}},getElementById(){return null;},createElement(){return{style:{},setAttribute(){}};}};
+ const sandbox={document,CustomEvent:class{constructor(type,options){this.type=type;this.detail=options.detail;}},dispatchEvent(){},decodeURIComponent,setTimeout(){return 1;},clearTimeout(){},WeakMap,Object,String,Array,RegExp};
+ sandbox.globalThis=sandbox;
+ vm.runInNewContext(source,sandbox,{filename:'anwar-shield-review.js'});
+ const target={nodeType:1,tagName:'INPUT',type:'text',value:'$'+'{constructor.constructor("return process")()}',disabled:false,readOnly:false};
+ const inputEvent={target,defaultPrevented:false,preventDefault(){this.defaultPrevented=true;}};
+ handlers.input(inputEvent);
+ assert.equal(inputEvent.defaultPrevented,false,'review does not cancel normal typing');
+ const records=sandbox.AnwarShield3D.getReviewLog();
+ assert.equal(records.length,1);
+ assert.equal(records[0].id,'template-injection');
+ assert.equal(Object.hasOwn(records[0],'text'),false,'review log contains metadata only');
 });
 
 /* Exercise the actual capture-phase event handlers, including contenteditable.
