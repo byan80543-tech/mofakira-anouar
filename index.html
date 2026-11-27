@@ -5100,5 +5100,29 @@ dialog[open]>.float-head{display:none!important}
 }
 </style>
 
+
+<style id="anwar-tasbih-photo-tulip-skin-v1">
+/* خلفية توليب فوتوغرافية هادئة للسبحة؛ تبقى عناصر التحكم والساعة فوقها دون تغيير */
+#rd #tasbihPanel:not([data-tasbih-theme]),
+#rd #tasbihPanel[data-tasbih-theme="emerald"],
+#rd #tasbihPanel[data-tasbih-theme="pink"]{
+ background-color:#f8f1e3!important;
+ background-image:
+  linear-gradient(90deg,rgba(255,250,236,.035),rgba(255,250,236,.09) 50%,rgba(255,250,236,.035)),
+  url("./assets/tasbih-tulip-background.webp")!important;
+ background-position:center center!important;
+ background-repeat:no-repeat!important;
+ background-size:100% 100%!important;
+}
+@media(max-width:390px){
+ #rd #tasbihPanel:not([data-tasbih-theme]),
+ #rd #tasbihPanel[data-tasbih-theme="emerald"],
+ #rd #tasbihPanel[data-tasbih-theme="pink"]{
+  background-position:center center!important;
+  background-size:100% 100%!important;
+ }
+}
+</style>
+
 </body>
 </html>
