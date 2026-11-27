@@ -153,6 +153,25 @@ jobs:
       - name: Test API gateway allowlist, cache and IP rate limiting
         run: node scripts/test-api-gateway.mjs
 
+  editor-dom-sanitizer:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install pinned Playwright
+        run: |
+          npm init -y
+          npm install --no-save playwright@1.56.1
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Verify live editor DOM sanitization
+        run: node scripts/test-editor-dom-sanitizer.mjs
+
   live-xss-smoke:
     if: github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'security-review-2026-11-27'
     runs-on: ubuntu-24.04
