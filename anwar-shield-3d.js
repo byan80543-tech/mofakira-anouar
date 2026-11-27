@@ -32,7 +32,7 @@
   {id:'command-chain',status:'blocked',re:/(?:;|&&|\|\|?)\s*(?:curl|wget|bash|sh|zsh|powershell|pwsh|cmd(?:\.exe)?|nc|netcat|python(?:3)?|perl|ruby|node|php|rm|chmod|whoami|uname|cat|base64|env|printenv)\b/i},
   {id:'command-substitution',status:'blocked',re:/\$\s*\(\s*(?:curl|wget|bash|sh|powershell|cmd|nc|python|perl|ruby|node|php)\b|\x60(?:curl|wget|bash|sh|powershell|cmd|nc)\b/i},
   {id:'command-pipe-to-shell',status:'blocked',re:/\b(?:curl|wget)\b[^\n]{0,180}\|\s*(?:sh|bash|zsh)\b/i},
-  {id:'dangerous-shell-action',status:'blocked',re:/\b(?:rm\s+-rf|chmod\s+\+x|nc\s+-e|netcat\s+-e|powershell|pwsh)\b[^\n]{0,120}(?:\/bin\/sh|-enc(?:odedcommand)?\b)?/i},
+  {id:'dangerous-shell-action',status:'blocked',re:/\b(?:rm\s+-rf|chmod\s+\+x|nc\s+-e|netcat\s+-e)\b|\b(?:powershell|pwsh)\b[^\n]{0,100}\s-(?:enc|encodedcommand|e)\b/i},
   {id:'template-injection',status:'review',re:/\$\{\s*(?:constructor|process|require|globalThis|this\b)|<%[=!]?[\s\S]{0,80}?%>|\{\{\s*(?:constructor|__proto__|7\s*\*\s*7)/i},
   {id:'prototype-pollution',status:'blocked',re:/__proto__|\bconstructor\s*\.\s*prototype\b|\bprototype\s*\[/i},
   {id:'encoded-executable-markup',status:'blocked',re:/(?:%3c\s*(?:script|svg|iframe)|&#x0*3c;?\s*(?:script|svg)|\\x3c\\x73\\x63\\x72\\x69\\x70\\x74)/i},
