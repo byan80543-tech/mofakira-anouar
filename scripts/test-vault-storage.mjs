@@ -111,10 +111,10 @@ assert.equal(h.localValues.has(mainKey),false,'verified removal clears the encry
 
 h.localValues.set(mainKey,legacyPrimary);
 h.state.failNextReadback=true;
-await assert.rejects(
- ()=>h.api.set(mainKey,updated),
- /لم تتطابق مراجعة التخزين الآمن/,
- 'a mismatched IndexedDB read-back rejects the write'
+assert.equal(
+ await h.api.set(mainKey,updated),
+ true,
+ 'a verified encrypted local mirror keeps the save available when IndexedDB read-back fails'
 );
 assert.equal(h.localValues.get(mainKey),updated,'the locally verified encrypted mirror remains recoverable when IndexedDB verification fails');
 
