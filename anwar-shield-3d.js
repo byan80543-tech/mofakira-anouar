@@ -79,8 +79,7 @@
    "criptare i file per chiedere un riscatto","criptografar arquivos para exigir resgate",
    "зашифровать файлы ради выкупа","加密文件索要赎金","身代金のためにファイルを暗号化","몸값을 위해 파일 암호화",
    "fidye icin dosyalari sifrelemek","फिरौती के लिए फ़ाइलों को एन्क्रिप्ट करना"
-  ]}
-
+  ]},
   {id:'semantic-global-security-and-credential-abuse',phrases:[
    'beveiliging omzeilen','toegangscontrole omzeilen','wachtwoorden stelen','sessie kapen','gegevens stelen','commando injectie','commando-injectie',
    'kringgå säkerheten','kringgå autentisering','stjäla lösenord','sessionskapning','datastöld','kommandoinjektion',
