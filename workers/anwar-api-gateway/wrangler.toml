@@ -4,7 +4,7 @@ compatibility_date = "2026-11-18"
 workers_dev = true
 
 [vars]
-ALLOWED_ORIGINS = "https://mofakira-anouar.pages.dev,https://byan80543-tech.github.io"
+ALLOWED_ORIGINS = "https://mofakira-anouar.pages.dev"
 
 [[durable_objects.bindings]]
 name = "IP_LIMITER"

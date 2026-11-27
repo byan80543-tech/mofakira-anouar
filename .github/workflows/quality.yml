@@ -177,14 +177,21 @@ jobs:
         run: node scripts/test-editor-dom-sanitizer.mjs
 
   live-xss-smoke:
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'security-review-2026-11-27'
+    if: >-
+      (github.repository == 'byan80543-tech/mofakira-anouar' &&
+       github.event_name == 'pull_request' &&
+       github.event.pull_request.head.repo.full_name == github.repository &&
+       github.event.pull_request.head.ref == 'security-review-2026-11-27') ||
+      (github.repository == 'byan80543-tech/mofakira-anouar' &&
+       github.event_name == 'workflow_dispatch' &&
+       github.ref == 'refs/heads/main')
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - name: Check out pull request source
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4

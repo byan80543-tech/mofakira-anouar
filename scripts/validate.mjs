@@ -234,7 +234,17 @@ ok(apiGatewayWorker.includes('IP_HASH_SECRET') && apiGatewayWorker.includes('nam
 ok(apiGatewayWorker.includes('total: { limit: 50') && apiGatewayWorker.includes('client: { limit: 30'),'gateway stays within its daily free-tier accepted-request budget and per-IP ceiling');
 ok(apiGatewayWorker.includes('SELECT data FROM rate_state WHERE id = 1') && apiGatewayWorker.includes('UPDATE rate_state SET data = ? WHERE id = 1'),'rate limiter persists all counters in one atomic SQLite row update per accepted request');
 ok(apiGatewayWorker.includes('env.EDGE_LIMITER.limit') && apiGatewayWorker.includes('edgeDecision.success'),'gateway applies an edge rate check before the strict global Durable Object check');
-ok(apiGatewayDeployWorkflow.includes('workflow_dispatch:') && apiGatewayDeployWorkflow.includes('cloudflare/wrangler-action@v4'),'Cloudflare Worker deployment is manual and uses the official Wrangler GitHub Action');
+ok(
+ apiGatewayDeployWorkflow.includes('workflow_dispatch:') &&
+ apiGatewayDeployWorkflow.includes("github.repository == 'byan80543-tech/mofakira-anouar'") &&
+ apiGatewayDeployWorkflow.includes("github.ref == 'refs/heads/main'") &&
+ apiGatewayDeployWorkflow.includes('persist-credentials: false') &&
+ apiGatewayDeployWorkflow.includes('uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683') &&
+ apiGatewayDeployWorkflow.includes('npx --yes wrangler@4.164.0 deploy') &&
+ apiGatewayDeployWorkflow.includes('chmod 600 "$RUNNER_TEMP/anwar-api-gateway-secrets.json"') &&
+ apiGatewayDeployWorkflow.includes('if: always()'),
+ 'Cloudflare Worker deployment is manual, main-only, uses immutable checkout and pinned Wrangler, and protects its temporary secret file'
+);
 ok(apiGatewayDeployWorkflow.includes('CLOUDFLARE_API_TOKEN') && apiGatewayDeployWorkflow.includes('CLOUDFLARE_ACCOUNT_ID') && apiGatewayDeployWorkflow.includes('IP_HASH_SECRET'),'deployment reads Cloudflare credentials and HMAC key only from repository secrets');
 
 ok(apiGatewayWorker.includes('ALLOWED_COUNTRY_CODES') && !apiGatewayWorker.includes('searchParams.get("url")'),'API gateway restricts country parameters and does not expose an open URL proxy');

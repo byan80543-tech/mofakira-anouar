@@ -12,24 +12,54 @@ concurrency:
 
 jobs:
   deploy:
+    # The Worker is production infrastructure: only the repository owner may
+    # dispatch this workflow from the protected production branch.
+    if: >-
+      github.repository == 'byan80543-tech/mofakira-anouar' &&
+      github.event_name == 'workflow_dispatch' &&
+      github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
     steps:
-      - name: Check required repository secrets
+      - name: Enforce production-only dispatch
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          test "$EVENT_NAME" = "workflow_dispatch"
+          test "$REF_NAME" = "refs/heads/main"
+          test "$REPOSITORY" = "byan80543-tech/mofakira-anouar"
+
+      - name: Check out the exact production commit without retaining credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Validate required deployment secrets
+        shell: bash
         env:
           CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           IP_HASH_SECRET: ${{ secrets.IP_HASH_SECRET }}
           ADHKAR_ADMIN_SECRET: ${{ secrets.ADHKAR_ADMIN_SECRET }}
         run: |
-          test -n "$CF_API_TOKEN" || { echo "::error::Missing CLOUDFLARE_API_TOKEN repository secret"; exit 1; }
-          test -n "$CF_ACCOUNT_ID" || { echo "::error::Missing CLOUDFLARE_ACCOUNT_ID repository secret"; exit 1; }
-          test -n "$IP_HASH_SECRET" || { echo "::error::Missing IP_HASH_SECRET repository secret"; exit 1; }
-          test -n "$ADHKAR_ADMIN_SECRET" || { echo "::error::Missing ADHKAR_ADMIN_SECRET repository secret"; exit 1; }
-          test "${#ADHKAR_ADMIN_SECRET}" -ge 32 || { echo "::error::ADHKAR_ADMIN_SECRET must contain at least 32 characters"; exit 1; }
-
-      - name: Check out repository
-        uses: actions/checkout@v4
+          set -euo pipefail
+          test -n "$CF_API_TOKEN" || { echo "::error::Missing CLOUDFLARE_API_TOKEN"; exit 1; }
+          test -n "$CF_ACCOUNT_ID" || { echo "::error::Missing CLOUDFLARE_ACCOUNT_ID"; exit 1; }
+          test -n "$IP_HASH_SECRET" || { echo "::error::Missing IP_HASH_SECRET"; exit 1; }
+          test -n "$ADHKAR_ADMIN_SECRET" || { echo "::error::Missing ADHKAR_ADMIN_SECRET"; exit 1; }
+          IP_BYTES="$(printf '%s' "$IP_HASH_SECRET" | wc -c | tr -d '[:space:]')"
+          ADMIN_BYTES="$(printf '%s' "$ADHKAR_ADMIN_SECRET" | wc -c | tr -d '[:space:]')"
+          test "$IP_BYTES" -ge 32 || { echo "::error::IP_HASH_SECRET must contain at least 32 bytes"; exit 1; }
+          test "$ADMIN_BYTES" -ge 32 || { echo "::error::ADHKAR_ADMIN_SECRET must contain at least 32 bytes"; exit 1; }
+          test "$IP_HASH_SECRET" != "$ADHKAR_ADMIN_SECRET" || { echo "::error::Worker secrets must be distinct"; exit 1; }
 
       - name: Prepare temporary Worker secrets file
         shell: bash
@@ -47,27 +77,21 @@ jobs:
             '{IP_HASH_SECRET: $ip, ADHKAR_ADMIN_SECRET: $admin}' \
             > "$RUNNER_TEMP/anwar-api-gateway-secrets.json"
           chmod 600 "$RUNNER_TEMP/anwar-api-gateway-secrets.json"
+          test "$(stat -c '%a' "$RUNNER_TEMP/anwar-api-gateway-secrets.json")" = "600"
 
-      - name: Deploy Worker and its secrets together
-        id: deploy
-        uses: cloudflare/wrangler-action@v4
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: "4.164.0"
-          workingDirectory: workers/anwar-api-gateway
-          command: deploy --secrets-file ${{ runner.temp }}/anwar-api-gateway-secrets.json
-
-      - name: Show deployment URL
+      - name: Deploy Worker with the pinned Wrangler CLI
+        shell: bash
+        working-directory: workers/anwar-api-gateway
         env:
-          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          if [ -n "$DEPLOYMENT_URL" ]; then
-            echo "Worker deployed: $DEPLOYMENT_URL"
-          else
-            echo "Deployment completed. Find the workers.dev URL in the deploy output above."
-          fi
+          set -euo pipefail
+          npx --yes wrangler@4.164.0 deploy \
+            --config wrangler.toml \
+            --secrets-file "$RUNNER_TEMP/anwar-api-gateway-secrets.json"
+
       - name: Remove temporary Worker secrets file
         if: always()
         shell: bash
-        run: rm -f "${{ runner.temp }}/anwar-api-gateway-secrets.json"
+        run: rm -f "$RUNNER_TEMP/anwar-api-gateway-secrets.json"

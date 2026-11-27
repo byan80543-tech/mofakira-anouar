@@ -58,7 +58,7 @@ const context = {
   waitUntil(promise) { this.waits.push(promise); }
 };
 const baseEnv = () => ({
-  ALLOWED_ORIGIN: "https://byan80543-tech.github.io",
+  ALLOWED_ORIGIN: "https://mofakira-anouar.pages.dev",
   IP_HASH_SECRET: "test-secret-only-for-unit-tests-32-characters-minimum",
   EDGE_LIMITER: { async limit() { return { success: true }; } },
   IP_LIMITER: makeLimiter()
@@ -66,7 +66,7 @@ const baseEnv = () => ({
 const request = (path, options = {}) => new Request("https://gateway.example.workers.dev" + path, {
   method: options.method || "GET",
   headers: {
-    Origin: "https://byan80543-tech.github.io",
+    Origin: "https://mofakira-anouar.pages.dev",
     "CF-Connecting-IP": "192.0.2.10",
     ...(options.headers || {})
   }
@@ -92,6 +92,17 @@ try {
   assert.equal(response.status, 403);
   assert.equal(calls, 0);
 
+  // The retired GitHub Pages copy is not a trusted origin for this deployment.
+  response = await worker.fetch(
+    new Request("https://gateway.example.workers.dev/v1/reciters", {
+      headers: { Origin: "https://byan80543-tech.github.io", "CF-Connecting-IP": "192.0.2.10" }
+    }),
+    baseEnv(),
+    context
+  );
+  assert.equal(response.status, 403);
+  assert.equal(calls, 0);
+
   // Edge binding rejects before the Durable Object and upstream.
   const edgeBlockedEnv = {
     ...baseEnv(),
@@ -108,7 +119,7 @@ try {
   const env = baseEnv();
   response = await worker.fetch(request("/v1/reciters"), env, context);
   assert.equal(response.status, 200);
-  assert.equal(response.headers.get("Access-Control-Allow-Origin"), "https://byan80543-tech.github.io");
+  assert.equal(response.headers.get("Access-Control-Allow-Origin"), "https://mofakira-anouar.pages.dev");
   assert.equal(response.headers.get("X-Anwar-Gateway-Cache"), "MISS");
   assert.equal(calls, 1);
   assert.deepEqual(env.IP_LIMITER.bucketsSeen[0], ["total", "client", "catalog"]);
@@ -156,7 +167,7 @@ try {
 
   response = await worker.fetch(new Request("https://gateway.example.workers.dev/v1/radios", {
     method: "POST",
-    headers: { Origin: "https://byan80543-tech.github.io", "CF-Connecting-IP": "192.0.2.10" }
+    headers: { Origin: "https://mofakira-anouar.pages.dev", "CF-Connecting-IP": "192.0.2.10" }
   }), env, context);
   assert.equal(response.status, 405);
 
@@ -288,7 +299,7 @@ try {
   // The retired audio transcription endpoint is no longer exposed.
   response = await worker.fetch(new Request("https://gateway.example.workers.dev/v1/transcribe", {
     method: "POST",
-    headers: { Origin: "https://byan80543-tech.github.io", "CF-Connecting-IP": "192.0.2.60" }
+    headers: { Origin: "https://mofakira-anouar.pages.dev", "CF-Connecting-IP": "192.0.2.60" }
   }), baseEnv(), context);
   assert.equal(response.status, 404, "the removed audio transcription endpoint returns not found");
 
@@ -324,7 +335,7 @@ try {
   const loginRequest = new Request("https://gateway.example.workers.dev/v1/admin/session", {
     method: "POST",
     headers: {
-      Origin: "https://byan80543-tech.github.io",
+      Origin: "https://mofakira-anouar.pages.dev",
       "CF-Connecting-IP": "192.0.2.44",
       "Content-Type": "application/json"
     },
@@ -368,7 +379,7 @@ try {
 
   const originOnlyAdmin = await worker.fetch(request("/v1/admin/adhkar", {
     method: "GET",
-    headers: { Origin: "https://byan80543-tech.github.io" }
+    headers: { Origin: "https://mofakira-anouar.pages.dev" }
   }), adminEnv, context);
   assert.equal(originOnlyAdmin.status, 401, "an allowed Origin without a signed owner session has no admin authority");
   assert.equal(adminStoreCalls.length, callsBeforeDeniedAdmin, "Origin alone never reaches the private store");
@@ -384,7 +395,7 @@ try {
   const oversizedLogin = new Request("https://gateway.example.workers.dev/v1/admin/session", {
     method: "POST",
     headers: {
-      Origin: "https://byan80543-tech.github.io",
+      Origin: "https://mofakira-anouar.pages.dev",
       "CF-Connecting-IP": "192.0.2.44",
       "Content-Type": "application/json"
     },
@@ -427,7 +438,7 @@ try {
   const longUnicodeLogin = new Request("https://gateway.example.workers.dev/v1/admin/session", {
     method: "POST",
     headers: {
-      Origin: "https://byan80543-tech.github.io",
+      Origin: "https://mofakira-anouar.pages.dev",
       "CF-Connecting-IP": "192.0.2.45",
       "Content-Type": "application/json"
     },
