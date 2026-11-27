@@ -1180,7 +1180,7 @@ function save(){
 function installNotebookInputLimits(){
  const limits=[['t',200,'عنوان العمل'],['q',300,'البحث']];
  for(const [id,max,label] of limits){
-  const field=$(id);if(!field)continue;
+  const field=$(id);if(!field||typeof field.addEventListener!=='function')continue;
   field.addEventListener('beforeinput',event=>{
    if(!String(event.inputType||'').startsWith('insert'))return;
    const start=Number.isInteger(field.selectionStart)?field.selectionStart:field.value.length;
@@ -1196,7 +1196,7 @@ function installNotebookInputLimits(){
    if(Array.from(field.value.slice(0,start)+inserted+field.value.slice(end)).length>max){event.preventDefault();toast(label+' لا يقبل أكثر من '+max+' محرفًا.',3500)}
   });
  }
- if(pg){
+ if(pg&&typeof pg.addEventListener==='function'){
   const wouldExceed=inserted=>{
    const selection=globalThis.getSelection?.();
    let selected='';

@@ -62,10 +62,10 @@ assert.match(html,/tasbih-controller\.js\?v=20261126-4/,'the tasbih voice fix re
 assert.match(headers,/microphone=\(self\)/,'microphone access is limited to this origin');
 assert.match(headers,/on-device-speech-recognition=\(self\)/,'on-device speech recognition is explicitly permitted for this origin');
 assert.match(worker,/\.\/local-speech-privacy\.js/,'the local speech privacy gate is included in the offline shell');
-assert.match(worker,/v234/,'the offline shell version matches the current release');
+assert.match(worker,/v241/,'the offline shell version matches the current release');
 assert.match(html,/قد يرسل المتصفح الصوت إلى خدمة التعرف التابعة له/,'tasbih warns that browser recognition may send audio to its provider');
 
 console.log('PASS: writing dictation is removed; tasbih voice starts from its button and the interface discloses possible browser-provider audio processing.');
 
-assert.match(html,/preload[^>]+app-core\.js\?v=20261126-81/,'the preload points to the updated app-core bundle');
-assert.match(html,/script src="\.\/app-core\.js\?v=20261126-81"/,'the executed app-core script uses the same updated version as preload');
+assert.match(html,/preload[^>]+app-core\.js\?v=20261127-82/,'the preload points to the updated app-core bundle');
+assert.match(html,/script src="\.\/app-core\.js\?v=20261127-82"/,'the executed app-core script uses the same updated version as preload');
