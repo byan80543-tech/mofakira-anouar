@@ -116,8 +116,7 @@
   {id:'template-injection',status:'review',re:/\$\{\s*(?:constructor|process|require|globalThis|this\b)|<%[=!]?[\s\S]{0,80}?%>|\{\{\s*(?:constructor|__proto__|7\s*\*\s*7)/i},
   {id:'prototype-pollution',status:'blocked',re:/__proto__|\bconstructor\s*\.\s*prototype\b|\bprototype\s*\[/i},
   {id:'encoded-executable-markup',status:'blocked',re:/(?:%3c\s*(?:script|svg|iframe)|&#x0*3c;?\s*(?:script|svg)|\\x3c\\x73\\x63\\x72\\x69\\x70\\x74)/i},
-  {id:'suspicious-control-sequence',status:'review',re:/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/}
-
+  {id:'suspicious-control-sequence',status:'review',re:/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/},
   {id:'log4shell-jndi-lookup',status:'blocked',re:/\$\s*\{\s*jndi\s*:\s*(?:ldap|ldaps|rmi|dns|iiop|corba)\s*:/i},
   {id:'shellshock-function-signature',status:'blocked',re:/\(\)\s*\{\s*:\s*;\s*\}\s*;/i},
   {id:'yaml-object-construction',status:'blocked',re:/!!(?:python\/object|javax\.script\.ScriptEngineManager)\b/i},
