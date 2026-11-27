@@ -11,6 +11,8 @@ assert.ok(vault,'vault crypto API is installed');
 const password='Anouar-Notebook-2026!';
 const plaintext=JSON.stringify({notes:[{id:'one',title:'قصيدة خاصة',html:'<div>هذا نص سري</div>'}],theme:'dark',days:['2026-11-17']});
 const created=await vault.createVault(password,plaintext);
+const maximumUnicodePassword=await vault.createVault('😀'.repeat(128),plaintext);
+assert.equal((await vault.decryptEnvelope('😀'.repeat(128),maximumUnicodePassword.envelope)).plaintext,plaintext,'128 four-byte Unicode characters fit the 512-byte ceiling');
 assert.equal(created.envelope.format,'anwar-vault');
 assert.equal(created.envelope.version,1);
 assert.equal(created.envelope.kdf,'PBKDF2-HMAC-SHA-256');
