@@ -35,7 +35,7 @@ const ruleCases = [
   ['path-traversal','blocked','../../etc/passwd'],
   ['crlf-header-injection','blocked','%0d%0aLocation:%20https://example.invalid'],
   ['command-chain','blocked','; whoami'],
-  ['command-substitution','blocked','$(python3 -c "print(1)")'],
+  ['command-substitution','blocked','$(curl test)'],
   ['command-pipe-to-shell','blocked','wget https://example.invalid/a.sh | sh'],
   ['dangerous-shell-action','blocked','rm -rf /tmp/anwar-test'],
   ['template-injection','review','$' + '{constructor.constructor("return process")()}'],
@@ -415,7 +415,7 @@ try {
   if (await shareUrl.count()) {
     await shareUrl.evaluate(element=>{
       Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(element,'javascript:window.__ANWAR_BYPASS_CANARY__=1');
-      element.dispatchEvent(new Event('keydown',{bubbles:true,cancelable:true}));
+      element.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}));
     });
     await page.waitForTimeout(50);
     const toastText = await page.locator('#toast').textContent().catch(()=> '');
