@@ -55,7 +55,7 @@ assert.doesNotMatch(submit,/AnwarVaultStorage\.remove\(|localStorage\.removeItem
 
 assert.match(html,/id="vaultDeviceUnlock"[^>]*hidden/,
  'the original device-unlock control remains in the vault gate');
-assert.match(html,/app-core\.js\?v=20261127-83/,
+assert.match(html,/app-core\.js\?v=20261127-84/,
  'the PWA shell requests the new recovery-enabled application bundle');
 // Keep this in sync with the separately versioned WebAuthn helper loaded by index.html.
 assert.match(html,/vault-device-unlock\.js\?v=20261126-2/,
