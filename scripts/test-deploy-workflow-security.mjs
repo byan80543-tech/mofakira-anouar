@@ -47,3 +47,82 @@ test("deployment token permissions remain read-only on GitHub", () => {
   assert.match(deployment, /permissions:\s*\n\s+contents:\s*read/);
   assert.doesNotMatch(deployment, /permissions:\s*\n\s+contents:\s*write/);
 });
+
+
+const gatewayDeployment = readFileSync(
+  new URL("../.github/workflows/deploy-anwar-api-gateway.yml", import.meta.url),
+  "utf8"
+);
+const quality = readFileSync(
+  new URL("../.github/workflows/quality.yml", import.meta.url),
+  "utf8"
+);
+
+test("API gateway deployment is manual and production-main only", () => {
+  const triggers = gatewayDeployment.match(/^on:\n([\s\S]*?)^permissions:/m)?.[1] || "";
+  assert.match(triggers, /^  workflow_dispatch:\s*$/m);
+  assert.doesNotMatch(triggers, /^\s+(?:push|pull_request|workflow_run):/m);
+
+  for (const condition of [
+    "github.repository == 'byan80543-tech/mofakira-anouar'",
+    "github.event_name == 'workflow_dispatch'",
+    "github.ref == 'refs/heads/main'"
+  ]) {
+    assert.ok(gatewayDeployment.includes(condition), `Missing API deployment gate: ${condition}`);
+  }
+});
+
+test("API gateway deployment keeps GitHub permissions read-only and checkout credentials disabled", () => {
+  assert.match(gatewayDeployment, /permissions:\s*\n\s+contents:\s*read/);
+  assert.doesNotMatch(gatewayDeployment, /permissions:\s*\n(?:\s+[^\n]+\n)*?\s+contents:\s*write/);
+  assert.ok(
+    gatewayDeployment.includes("uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683"),
+    "checkout must use a reviewed immutable commit"
+  );
+  assert.match(gatewayDeployment, /persist-credentials:\s*false/);
+});
+
+test("API gateway deployment protects and removes its temporary secret file", () => {
+  for (const required of [
+    "secrets.CLOUDFLARE_API_TOKEN",
+    "secrets.CLOUDFLARE_ACCOUNT_ID",
+    "secrets.IP_HASH_SECRET",
+    "secrets.ADHKAR_ADMIN_SECRET",
+    "IP_HASH_SECRET must contain at least 32 bytes",
+    "ADHKAR_ADMIN_SECRET must contain at least 32 bytes",
+    'test "$IP_HASH_SECRET" != "$ADHKAR_ADMIN_SECRET"',
+    "umask 077",
+    "chmod 600",
+    "npx --yes wrangler@4.164.0 deploy",
+    "if: always()",
+    'rm -f "$RUNNER_TEMP/anwar-api-gateway-secrets.json"'
+  ]) {
+    assert.ok(gatewayDeployment.includes(required), `Missing API secret or deployment safeguard: ${required}`);
+  }
+  assert.doesNotMatch(gatewayDeployment, /set -x|echo\s+["']?\$\{?(?:IP_HASH_SECRET|ADHKAR_ADMIN_SECRET|CF_API_TOKEN)/i);
+  assert.doesNotMatch(gatewayDeployment, /cloudflare\/wrangler-action@v\d+/);
+});
+
+test("live production smoke tests are manually runnable only from main or the trusted first-party review branch", () => {
+  for (const condition of [
+    "github.repository == 'byan80543-tech/mofakira-anouar'",
+    "github.event_name == 'pull_request'",
+    "github.event.pull_request.head.repo.full_name == github.repository",
+    "github.event.pull_request.head.ref == 'security-review-2026-11-27'",
+    "github.event_name == 'workflow_dispatch'",
+    "github.ref == 'refs/heads/main'"
+  ]) {
+    assert.ok(quality.includes(condition), `Missing live smoke test gate: ${condition}`);
+  }
+  for (const script of [
+    "scripts/test-live-input-bypass.mjs",
+    "scripts/test-live-xss-smoke.mjs",
+    "scripts/test-live-perimeter.mjs"
+  ]) {
+    assert.ok(quality.includes(script), `Missing live production probe: ${script}`);
+  }
+  assert.ok(
+    quality.includes("ANWAR_TARGET_URL: https://mofakira-anouar.pages.dev/mofakira-anouar/"),
+    "live security probes must target the canonical web application"
+  );
+});
