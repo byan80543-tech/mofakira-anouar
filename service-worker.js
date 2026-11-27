@@ -4,7 +4,7 @@
  * v234 includes the v0.5.0 normalized intent-aware editor input gate and final block-priority rules.
  */
 'use strict';
-const CACHE_NAME='anwar-shell-2026-11-27-v237';
+const CACHE_NAME='anwar-shell-2026-11-27-v238';
 const APP_BASE=new URL('./',self.registration.scope);
 const SHELL_ASSETS=[
  './index.html',
