@@ -52,7 +52,11 @@ assert.match(core,/if\(disableEncryption\)disableEncryption\.hidden=true/,'the U
 assert.match(core,/function beginVaultDisableEncryption\(\)[\s\S]{0,180}التشفير الشامل إلزامي/,'the legacy disable action is a harmless no-op');
 assert.match(core,/function persistPlainSnapshot\(\)[\s\S]{0,150}الحفظ دون تشفير معطّل/,'the plaintext persistence function cannot write unencrypted records');
 assert.match(core,/if\(!vaultKey\|\|!vaultTemplate\)[\s\S]{0,150}الحفظ متوقف حتى اكتمال التشفير الشامل/,'save refuses to write if the encryption key or envelope is absent');
-assert.match(core,/async function bootVault\(\)[\s\S]{0,2400}showVaultGate\('setup','التشفير الشامل مطلوب/,'first launch requires encryption before opening private data');
+const bootStart=core.indexOf('async function bootVault(){');
+const bootEnd=core.indexOf('async function submitVaultForm(',bootStart);
+assert.ok(bootStart>=0&&bootEnd>bootStart,'vault startup function exists');
+const bootSource=core.slice(bootStart,bootEnd);
+assert.match(bootSource,/showVaultGate\('setup','التشفير الشامل مطلوب/,'first launch requires encryption before opening private data');
 assert.match(core,/if\(vaultGateMode==='setup'\)return;[\s\S]{0,120}vaultGate'\)\.hidden=true/,'the setup gate cannot be dismissed to bypass mandatory encryption');
 assert.match(core,/if\(!removedLegacy\|\|!removedPreferences\)[\s\S]{0,300}لم نفتح المحتوى/,'legacy plaintext cleanup failure keeps private content locked');
 
