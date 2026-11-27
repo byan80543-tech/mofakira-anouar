@@ -16,7 +16,7 @@ test("production deployment requires the exact trusted Quality checks run", () =
     "github.event.workflow_run.head_repository.full_name == github.repository",
     "github.event.workflow_run.name == 'Quality checks'",
     "github.event.workflow_run.path == '.github/workflows/quality.yml'",
-    "github.event.workflow_run.workflow_id == 422675085"
+    "github.event.workflow_run.workflow_id == 420424205"
   ];
 
   for (const condition of required) {
