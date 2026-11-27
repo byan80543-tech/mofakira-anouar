@@ -126,3 +126,11 @@ test("live production smoke tests are manually runnable only from main or the tr
     "live security probes must target the canonical web application"
   );
 });
+
+
+test("manual live production smoke tests check out the dispatched commit", () => {
+  assert.ok(
+    quality.includes("ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}"),
+    "manual production smoke tests must check out the dispatched main commit"
+  );
+});
