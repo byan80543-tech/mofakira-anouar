@@ -41,14 +41,14 @@
    "injection sql","inyeccion sql","inyección sql","iniezione sql","injeção sql","инъекция sql","внедрение sql","sql注入","sqlインジェクション","sql 인젝션","sql enjeksiyonu","sql इंजेक्शन"
   ]},
   {id:'semantic-multilingual-security-bypass',phrases:[
-   "contourner la securite","contourner les controles de securite","bypasser les controles d'acces","eludir la seguridad","evadir los controles de seguridad","omitir la autenticacion","saltarse la proteccion",
+   "contourner la securite","contourner la sécurité","contourner les controles de securite","contourner les contrôles de sécurité","bypasser les controles d'acces","bypasser les contrôles d'accès","eludir la seguridad","evadir los controles de seguridad","omitir la autenticacion","saltarse la proteccion",
    "sicherheitskontrollen umgehen","authentifizierung umgehen","zugriffskontrollen umgehen",
-   "aggirare la sicurezza","eludere l'autenticazione","contornar a seguranca","burlar a autenticacao","ignorar os controles de acesso",
+   "aggirare la sicurezza","eludere l'autenticazione","contornar a seguranca","contornar a segurança","burlar a autenticacao","burlar a autenticação","ignorar os controles de acesso",
    "обойти защиту","обход защиты","обойти аутентификацию","обход контроля доступа",
    "绕过安全机制","绕过身份验证","绕过访问控制",
    "セキュリティを回避","認証を回避","アクセス制御を回避",
    "보안 우회","인증 우회","접근 제어 우회",
-   "guvenligi atlatmak","kimlik dogrulamayi atlatmak",
+   "guvenligi atlatmak","güvenliği atlatmak","kimlik dogrulamayi atlatmak","kimlik doğrulamayı atlatmak",
    "surturarea securitatii","melewati keamanan","melewati autentikasi",
    "सुरक्षा को दरकिनार करना","प्रमाणीकरण को दरकिनार करना","सुरक्षा को बायपास करना"
   ]},
@@ -69,7 +69,7 @@
    "पासवर्ड चोरी","क्रेडेंशियल चोरी"
   ]},
   {id:'semantic-multilingual-data-exfiltration',phrases:[
-   "exfiltration de donnees","exfiltrer des donnees","exfiltracion de datos","exfiltración de datos","extraer datos",
+   "exfiltration de donnees","exfiltration de données","exfiltrer des donnees","exfiltrer des données","exfiltracion de datos","exfiltración de datos","extraer datos",
    "datenexfiltration","daten ausschleusen","esfiltrazione dei dati","esfiltrare dati","exfiltracao de dados","exfiltração de dados","extrair dados",
    "эксфильтрация данных","вывести данные","утечка данных",
    "数据外泄","窃取数据","データ流出","データ窃取","데이터 유출","데이터 탈취",
