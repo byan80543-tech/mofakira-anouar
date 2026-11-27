@@ -11,6 +11,8 @@ assert.ok(vault,'vault crypto API is installed');
 const password='Anouar-Notebook-2026!';
 const plaintext=JSON.stringify({notes:[{id:'one',title:'قصيدة خاصة',html:'<div>هذا نص سري</div>'}],theme:'dark',days:['2026-11-17']});
 const created=await vault.createVault(password,plaintext);
+const maximumUnicodePassword=await vault.createVault('😀'.repeat(128),plaintext);
+assert.equal((await vault.decryptEnvelope('😀'.repeat(128),maximumUnicodePassword.envelope)).plaintext,plaintext,'128 four-byte Unicode characters fit the 512-byte ceiling');
 assert.equal(created.envelope.format,'anwar-vault');
 assert.equal(created.envelope.version,1);
 assert.equal(created.envelope.kdf,'PBKDF2-HMAC-SHA-256');
@@ -35,7 +37,8 @@ const altered={...created.envelope,ciphertext:(originalCiphertext[0]==='A'?'B':'
 await assert.rejects(()=>vault.decryptEnvelope(password,altered),/تالف|غير صالحة/,'tampered ciphertext is rejected');
 assert.throws(()=>vault.validateEnvelope({...created.envelope,iterations:1000}),/غير مدعومة/,'weakened KDF settings are rejected');
 await assert.rejects(()=>vault.createVault('short',plaintext),/12 محرفًا/,'short passwords are rejected');
-await assert.rejects(()=>vault.createVault('x'.repeat(2049),plaintext),/2048/,'passwords above the shared device-unlock maximum are rejected');
+await assert.rejects(()=>vault.createVault('x'.repeat(129),plaintext),/128 محرفًا/,'passwords above 128 Unicode characters are rejected');
+await assert.rejects(()=>vault.createVault('😀'.repeat(129),plaintext),/128 محرفًا/,'astral Unicode passwords are counted by code point, not UTF-16 code unit');
 
 // Check actual UTF-8 bytes before deriving a key or writing an envelope.
 const oversizedArabic='ا'.repeat(4*1024*1024);

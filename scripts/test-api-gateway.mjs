@@ -222,10 +222,10 @@ try {
     blockConcurrencyWhile(callback) { callback(); }
   };
   const limiter = new IpRateLimiter(fakeCtx, {});
-  const limiterRequest = (clientKey, routeBucket = "country-list") => new Request("https://rate-limit.internal/check", {
+  const limiterRequest = (clientKey, routeBucket = "country-list", extra = {}) => new Request("https://rate-limit.internal/check", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ clientKey, buckets: ["total", "client", routeBucket] })
+    body: JSON.stringify({ clientKey, buckets: ["total", "client", routeBucket], ...extra })
   });
 
   const clientA = "a".repeat(64);
@@ -371,6 +371,39 @@ try {
   assert.equal(last.status, 200, "the Durable Object accepts the dedicated admin-api bucket");
   persisted = JSON.parse(dbState);
   assert.ok(Array.isArray(persisted.clients["c".repeat(64)]["admin-api"]));
+
+  // Twenty failed owner-login attempts are allowed per IP in a 15-minute sliding window.
+  sql.exec("UPDATE rate_state SET data = ? WHERE id = 1", '{"global":[],"clients":{}}');
+  for (let i = 0; i < 20; i += 1) {
+    last = await limiter.fetch(limiterRequest("d".repeat(64), "admin-login", { failureOnly: true, failed: true }));
+    assert.equal(last.status, 200, "failed owner login " + (i + 1) + " is within the 20-attempt window");
+  }
+  last = await limiter.fetch(limiterRequest("d".repeat(64), "admin-login", { failureOnly: true, failed: true }));
+  assert.equal(last.status, 429, "the 21st failed owner login in the 15-minute window is blocked");
+  assert.equal((await last.json()).bucket, "admin-login");
+  now += 15 * 60_000 + 1;
+  last = await limiter.fetch(limiterRequest("d".repeat(64), "admin-login", { failureOnly: true, failed: true }));
+  assert.equal(last.status, 200, "the owner IP is allowed again after the failed-login window expires");
+
+  // Successful logins consume the general traffic budget but not the failed-login counter.
+  sql.exec("UPDATE rate_state SET data = ? WHERE id = 1", '{"global":[],"clients":{}}');
+  last = await limiter.fetch(limiterRequest("e".repeat(64), "admin-login", { failureOnly: true, failed: false }));
+  assert.equal(last.status, 200);
+  persisted = JSON.parse(dbState);
+  assert.equal(persisted.clients["e".repeat(64)]["admin-login"].length, 0, "successful owner login does not increase failed-login count");
+
+  // Passwords above 128 Unicode code points are rejected by the Worker.
+  const longUnicodeLogin = new Request("https://gateway.example.workers.dev/v1/admin/session", {
+    method: "POST",
+    headers: {
+      Origin: "https://byan80543-tech.github.io",
+      "CF-Connecting-IP": "192.0.2.45",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ password: "😀".repeat(129) })
+  });
+  const longUnicodeResponse = await worker.fetch(longUnicodeLogin, adminEnv, context);
+  assert.equal(longUnicodeResponse.status, 401, "oversized Unicode owner passwords are rejected");
 
   // The Durable Object no longer accepts transcription-only daily quota buckets.
   const obsoleteQuotaRequest = new Request("https://rate-limit.internal/check", {

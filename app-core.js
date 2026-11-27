@@ -1162,6 +1162,10 @@ function save(){
  if(storageRecoveryBlocked){toast('الحفظ متوقف حمايةً للبيانات القديمة. عالج الاسترداد أولًا.',5000);return false}
  if(!vaultUnlocked){toast('المفكرة مقفلة؛ افتحها قبل التعديل.',4500);return false}
  if(!vaultKey||!vaultTemplate){toast('الحفظ متوقف حتى اكتمال التشفير الشامل. لم تُحفظ بيانات مكشوفة.',5000);return false}
+ const oversizedTitle=(S.notes||[]).some(note=>Array.from(String(note&&note.title||'')).length>200);
+ const oversizedBody=(S.notes||[]).some(note=>Array.from(htmlToPlainText(note&&note.html||'')).length>50000);
+ const oversizedLiveBody=!!(pg&&Array.from(pg.innerText||pg.textContent||'').length>50000);
+ if(oversizedTitle||oversizedBody||oversizedLiveBody){toast(oversizedTitle?'عنوان العمل يتجاوز الحد الأقصى البالغ 200 محرف.':'نص العمل يتجاوز الحد الأقصى البالغ 50,000 محرف. احذف جزءًا من النص قبل الحفظ.',5500);return false}
  const snapshot=JSON.stringify(S);
  vaultSaveQueue=vaultSaveQueue.then(async()=>{
   await persistVaultSnapshot(snapshot);
@@ -1173,6 +1177,53 @@ function save(){
  });
  return true;
 }
+function installNotebookInputLimits(){
+ const limits=[['t',200,'عنوان العمل'],['q',300,'البحث']];
+ for(const [id,max,label] of limits){
+  const field=$(id);if(!field)continue;
+  field.addEventListener('beforeinput',event=>{
+   if(!String(event.inputType||'').startsWith('insert'))return;
+   const start=Number.isInteger(field.selectionStart)?field.selectionStart:field.value.length;
+   const end=Number.isInteger(field.selectionEnd)?field.selectionEnd:start;
+   const inserted=event.data??event.dataTransfer?.getData('text/plain')??'';
+   const next=field.value.slice(0,start)+inserted+field.value.slice(end);
+   if(Array.from(next).length>max){event.preventDefault();toast(label+' لا يقبل أكثر من '+max+' محرفًا.',3500)}
+  });
+  field.addEventListener('paste',event=>{
+   const inserted=event.clipboardData?.getData('text/plain')||'';
+   const start=Number.isInteger(field.selectionStart)?field.selectionStart:field.value.length;
+   const end=Number.isInteger(field.selectionEnd)?field.selectionEnd:start;
+   if(Array.from(field.value.slice(0,start)+inserted+field.value.slice(end)).length>max){event.preventDefault();toast(label+' لا يقبل أكثر من '+max+' محرفًا.',3500)}
+  });
+ }
+ if(pg){
+  const wouldExceed=inserted=>{
+   const selection=globalThis.getSelection?.();
+   let selected='';
+   if(selection&&selection.rangeCount){
+    const range=selection.getRangeAt(0);
+    if(pg.contains(range.commonAncestorContainer))selected=range.toString();
+   }
+   const current=pg.innerText||pg.textContent||'';
+   return Array.from(current).length-Array.from(selected).length+Array.from(inserted||'').length>50000;
+  };
+  pg.addEventListener('beforeinput',event=>{
+   if(!String(event.inputType||'').startsWith('insert'))return;
+   let inserted=event.data??event.dataTransfer?.getData('text/plain')??'';
+   if(event.inputType==='insertParagraph'||event.inputType==='insertLineBreak')inserted+='\n';
+   if(wouldExceed(inserted)){event.preventDefault();toast('نص العمل بلغ الحد الأقصى 50,000 محرف. لن نقبل نصًا إضافيًا.',4500)}
+  });
+  pg.addEventListener('paste',event=>{
+   const inserted=event.clipboardData?.getData('text/plain')||'';
+   if(wouldExceed(inserted)){event.preventDefault();toast('اللصق يتجاوز الحد الأقصى 50,000 محرف؛ لم يُدرج النص.',4500)}
+  });
+  pg.addEventListener('drop',event=>{
+   const inserted=event.dataTransfer?.getData('text/plain')||'';
+   if(wouldExceed(inserted)){event.preventDefault();toast('الإدراج يتجاوز الحد الأقصى 50,000 محرف؛ لم يُدرج النص.',4500)}
+  });
+ }
+}
+installNotebookInputLimits();
 function toast(m,d){const t=$('toast');t.textContent=m;t.classList.add('s');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('s'),d||2000)}
 let privatePreferenceSaveTimer=null;
 globalThis.AnwarPrivatePreferences.setPersistHandler(preferences=>{
