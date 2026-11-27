@@ -19,7 +19,7 @@ assert.match(html,/1,050 محاولة إدخال تمثيلية/,'public profile
 assert.match(html,/26\/26 محاولة مشبوهة محظورة/,'public profile contains the verified real-shield result');
 assert.match(html,/41\/41 فحصاً للمحيط/,'public profile contains the verified perimeter result');
 assert.doesNotMatch(html,/خزنة محلية اختيارية للملاحظات|optional, user-enabled/i,'public profile must not retain the obsolete optional-vault claim');
-assert.match(html,/لا يُجرَ تدقيق اختراق مستقل معتمد/,'public profile retains the independent-audit limitation');
+assert.match(html,/لم يُجرَ تدقيق اختراق مستقل معتمد/,'public profile retains the independent-audit limitation');
 
 assert.match(roadmap,/المرحلة 1 — ترقية اشتقاق المفاتيح إلى Argon2id/,'roadmap prioritizes the KDF migration');
 assert.match(roadmap,/إبقاء فك تشفير الإصدار القديم متاحاً/,'roadmap requires backward-compatible vault migration');
