@@ -5201,5 +5201,73 @@ dialog[open]>.float-head{display:none!important}
 }
 </style>
 
+
+<style id="anwar-tasbih-contrast-scale-v1">
+/* إطار أوضح وتناسب صحيح لخلفية التوليب على شاشات الهاتف */
+#rd #tasbihPanel{
+ box-sizing:border-box!important;
+ border:2px solid #9b702b!important;
+ outline:1px solid rgba(255,248,225,.96)!important;
+ outline-offset:-5px!important;
+ box-shadow:
+  0 0 0 1px rgba(116,76,24,.42),
+  0 5px 18px rgba(48,38,20,.17),
+  inset 0 0 0 2px rgba(255,252,239,.94),
+  inset 0 0 0 4px rgba(158,116,43,.56)!important;
+ background-position:center center!important;
+ background-size:100% 100%,cover!important;
+ background-repeat:no-repeat!important;
+ background-origin:border-box!important;
+ background-clip:border-box!important;
+}
+#rd #tasbihPanel .anwar-tasbih-bead{
+ width:clamp(9px,2.45vw,12px)!important;
+ height:clamp(9px,2.45vw,12px)!important;
+ border:1.2px solid #70420c!important;
+ background:
+  radial-gradient(ellipse at 25% 17%,#fff 0 4%,#fff6d7 8%,rgba(255,225,151,.96) 16%,transparent 31%),
+  radial-gradient(circle at 35% 32%,#ffe18a 0%,#eeb541 27%,#c48619 54%,#89500d 77%,#492805 100%)!important;
+ box-shadow:
+  inset 1px 1.2px 2px rgba(255,255,248,.98),
+  inset -1.5px -1.8px 2.8px rgba(58,32,5,.72),
+  0 1.5px 3.5px rgba(35,24,9,.52),
+  0 0 5px rgba(246,188,72,.48)!important;
+}
+#rd #tasbihPanel .anwar-tasbih-bead::after{
+ left:17%!important;top:12%!important;
+ width:34%!important;height:25%!important;
+ background:linear-gradient(140deg,#fff 0%,rgba(255,250,226,.78) 36%,rgba(255,245,205,0) 100%)!important;
+ opacity:1!important;
+}
+#rd #tasbihPanel .anwar-tasbih-bead.is-counted{
+ box-shadow:
+  0 0 0 1.5px rgba(111,72,16,.66),
+  0 0 0 3px rgba(255,224,154,.62),
+  0 0 8px rgba(224,163,47,.58),
+  inset 1px 1.2px 2px rgba(255,255,248,.98),
+  inset -1.5px -1.8px 2.8px rgba(58,32,5,.66)!important;
+}
+#rd #tasbihPanel .tasbih-clock-dial{
+ border:3px solid #95631e!important;
+ box-shadow:
+  0 0 0 2px rgba(255,250,230,.98),
+  0 0 0 4px rgba(143,99,33,.58),
+  inset 0 0 0 3px #fffdf4,
+  inset 0 0 0 6px rgba(183,132,43,.38),
+  inset 0 0 15px rgba(119,91,39,.10),
+  0 5px 13px rgba(48,35,16,.25)!important;
+}
+#rd #tasbihPanel .tasbih-number-text{
+ text-shadow:0 1px 0 #fff,0 0 1px rgba(12,52,35,.36)!important;
+}
+@media(max-width:430px){
+ #rd #tasbihPanel{background-size:100% 100%,cover!important}
+ #rd #tasbihPanel .anwar-tasbih-bead{
+  width:clamp(9px,2.8vw,11px)!important;
+  height:clamp(9px,2.8vw,11px)!important;
+ }
+}
+</style>
+
 </body>
 </html>
