@@ -24,6 +24,17 @@ try {
       '<a href="javascript:window.__anwarSanitizerCanary++">رابط غير آمن</a>' +
       '<div class="v" onclick="window.__anwarSanitizerCanary++"><span>صدر البيت</span><span>عجز البيت</span></div>';
 
+    const immediatelyAfterInnerHTML = {
+      activeNodes: editor.querySelectorAll('img,svg,script,iframe,object,embed,math,a,[onerror],[onload],[onclick],[srcdoc]').length,
+      canary: window.__anwarSanitizerCanary
+    };
+    editor.insertAdjacentHTML('beforeend',
+      '<img src="broken:" onerror="window.__anwarSanitizerCanary++"><a href="javascript:window.__anwarSanitizerCanary++">رابط آخر</a>');
+    const immediatelyAfterAdjacentHTML = {
+      activeNodes: editor.querySelectorAll('img,a,[onerror],[href^="javascript:" i]').length,
+      canary: window.__anwarSanitizerCanary
+    };
+
     await new Promise(resolve => setTimeout(resolve, 0));
 
     const paragraph = editor.querySelector('p');
@@ -40,6 +51,8 @@ try {
     const style = paragraph ? paragraph.getAttribute('style') : null;
     const verse = editor.querySelector('div.v');
     const state = {
+      immediatelyAfterInnerHTML,
+      immediatelyAfterAdjacentHTML,
       activeNodes,
       unsafeAttributes,
       canary: window.__anwarSanitizerCanary,
@@ -55,6 +68,10 @@ try {
     return state;
   });
 
+  assert.equal(result.immediatelyAfterInnerHTML.activeNodes, 0, 'innerHTML sink must sanitize synchronously before markup enters the editor');
+  assert.equal(result.immediatelyAfterInnerHTML.canary, 0, 'no canary may execute during innerHTML assignment');
+  assert.equal(result.immediatelyAfterAdjacentHTML.activeNodes, 0, 'insertAdjacentHTML sink must sanitize synchronously');
+  assert.equal(result.immediatelyAfterAdjacentHTML.canary, 0, 'no canary may execute during adjacent HTML insertion');
   assert.equal(result.activeNodes, 0, 'active HTML elements/links must not remain in the editor');
   assert.equal(result.unsafeAttributes, 0, 'event and executable URL/style attributes must be removed');
   assert.equal(result.canary, 0, 'no XSS canary may execute');
