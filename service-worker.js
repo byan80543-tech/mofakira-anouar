@@ -1,14 +1,14 @@
 /* Fast local app-shell delivery with background navigation refresh.
  * Bump CACHE_NAME for each published release so the approved worker precaches
  * the matching HTML, update checker and local assets before activation.
- * v247 aligns the app-shell cache with the selected natural purple and pink tulip garden backdrop.
+ * v248 aligns the app-shell cache with the full-resolution AVIF purple and pink tulip garden backdrop.
  */
 'use strict';
-const CACHE_NAME='anwar-shell-2026-11-27-v247';
+const CACHE_NAME='anwar-shell-2026-11-27-v248';
 const APP_BASE=new URL('./',self.registration.scope);
 const SHELL_ASSETS=[
  './index.html',
- './assets/tasbih-tulip-garden.webp',
+ './assets/tasbih-tulip-garden.avif',
  './manifest.webmanifest',
  './icon-192.png',
  './icon-512.png',
