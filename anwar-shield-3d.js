@@ -1,8 +1,8 @@
-/* ANWAR SHIELD 3D v0.5.0 — normalized intent-aware editor input gate; local rules only. */
+/* ANWAR SHIELD 3D v0.6.0 — normalized intent-aware editor input gate; local rules only. */
 (function(root){
  'use strict';
- if(root.AnwarShield3D&&root.AnwarShield3D.version==='0.5.0')return;
- const VERSION='0.5.0',MAX=200000;
+ if(root.AnwarShield3D&&root.AnwarShield3D.version==='0.6.0')return;
+ const VERSION='0.6.0',MAX=200000;
  const SEMANTIC_BLOCK_FAMILIES=[
   {id:'semantic-xss-variants',phrases:['xss','cross site scripting','cross-site scripting','crosssitescripting']},
   {id:'semantic-sql-injection',phrases:['sql injection','s q l injection','sqli','sql command injection','nosql injection','حقن sql','حقن اس كيو ال','حقن قواعد البيانات']},
@@ -34,6 +34,52 @@
   {id:'semantic-log-tampering',phrases:[
    'اخفاء اثار الاختراق','محو اثار الاختراق','محو سجلات الدخول','حذف سجلات النظام','تعطيل سجلات المراقبة','اخفاء النشاط الضار','التلاعب بسجلات النظام',
    'erase audit logs','delete security logs','hide attack traces','tamper with logs'
+  ]}
+
+  {id:'semantic-multilingual-injection',phrases:[
+   "injection de commandes","injection de commande","inyeccion de comandos","inyección de comandos","befehlsinjektion","befehle einschleusen","iniezione di comandi","injeção de comandos","injecao de comandos","инъекция команд","внедрение команд","命令注入","コマンドインジェクション","명령어 삽입","komut enjeksiyonu","कमांड इंजेक्शन",
+   "injection sql","inyeccion sql","inyección sql","iniezione sql","injeção sql","инъекция sql","внедрение sql","sql注入","sqlインジェクション","sql 인젝션","sql enjeksiyonu","sql इंजेक्शन"
+  ]},
+  {id:'semantic-multilingual-security-bypass',phrases:[
+   "contourner la securite","contourner les controles de securite","bypasser les controles d'acces","eludir la seguridad","evadir los controles de seguridad","omitir la autenticacion","saltarse la proteccion",
+   "sicherheitskontrollen umgehen","authentifizierung umgehen","zugriffskontrollen umgehen",
+   "aggirare la sicurezza","eludere l'autenticazione","contornar a seguranca","burlar a autenticacao","ignorar os controles de acesso",
+   "обойти защиту","обход защиты","обойти аутентификацию","обход контроля доступа",
+   "绕过安全机制","绕过身份验证","绕过访问控制",
+   "セキュリティを回避","認証を回避","アクセス制御を回避",
+   "보안 우회","인증 우회","접근 제어 우회",
+   "guvenligi atlatmak","kimlik dogrulamayi atlatmak",
+   "surturarea securitatii","melewati keamanan","melewati autentikasi",
+   "सुरक्षा को दरकिनार करना","प्रमाणीकरण को दरकिनार करना","सुरक्षा को बायपास करना"
+  ]},
+  {id:'semantic-multilingual-session-theft',phrases:[
+   "vol de session","detournement de session","voler les sessions","robo de sesion","robo de sesión","secuestro de sesion","secuestro de sesión","robar sesiones",
+   "sitzungsdiebstahl","sitzung kapern","furto di sessione","dirottamento di sessione","roubo de sessao","roubo de sessão","sequestro de sessao",
+   "кража сессии","угон сессии","перехват сессии",
+   "窃取会话","会话劫持","セッション窃取","セッションハイジャック",
+   "세션 탈취","세션 가로채기","oturum calma","oturum çalma","oturum ele gecirme",
+   "सत्र चोरी","सत्र अपहरण"
+  ]},
+  {id:'semantic-multilingual-credential-theft',phrases:[
+   "vol de mots de passe","voler les identifiants","robo de contrasenas","robo de contraseñas","robar credenciales",
+   "passworter stehlen","passwörter stehlen","zugangsdaten stehlen",
+   "rubare password","furto di credenziali","roubo de senhas","roubar credenciais",
+   "кража паролей","похищение учетных данных","窃取密码","盗取凭据","パスワード窃取","認証情報の窃取",
+   "비밀번호 탈취","인증 정보 탈취","sifre hirsizligi","şifre hırsızlığı","kimlik bilgilerini calmak",
+   "पासवर्ड चोरी","क्रेडेंशियल चोरी"
+  ]},
+  {id:'semantic-multilingual-data-exfiltration',phrases:[
+   "exfiltration de donnees","exfiltrer des donnees","exfiltracion de datos","exfiltración de datos","extraer datos",
+   "datenexfiltration","daten ausschleusen","esfiltrazione dei dati","esfiltrare dati","exfiltracao de dados","exfiltração de dados","extrair dados",
+   "эксфильтрация данных","вывести данные","утечка данных",
+   "数据外泄","窃取数据","データ流出","データ窃取","데이터 유출","데이터 탈취",
+   "veri sizdirma","verileri disari aktarmak","डेटा चोरी","डेटा निकालना"
+  ]},
+  {id:'semantic-multilingual-ransomware-intent',phrases:[
+   "chiffrer les fichiers contre rancon","cifrar archivos para pedir rescate","dateien verschlusseln und losgeld verlangen",
+   "criptare i file per chiedere un riscatto","criptografar arquivos para exigir resgate",
+   "зашифровать файлы ради выкупа","加密文件索要赎金","身代金のためにファイルを暗号化","몸값을 위해 파일 암호화",
+   "fidye icin dosyalari sifrelemek","फिरौती के लिए फ़ाइलों को एन्क्रिप्ट करना"
   ]}
  ];
 
@@ -71,6 +117,16 @@
   {id:'prototype-pollution',status:'blocked',re:/__proto__|\bconstructor\s*\.\s*prototype\b|\bprototype\s*\[/i},
   {id:'encoded-executable-markup',status:'blocked',re:/(?:%3c\s*(?:script|svg|iframe)|&#x0*3c;?\s*(?:script|svg)|\\x3c\\x73\\x63\\x72\\x69\\x70\\x74)/i},
   {id:'suspicious-control-sequence',status:'review',re:/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/}
+
+  {id:'log4shell-jndi-lookup',status:'blocked',re:/\$\s*\{\s*jndi\s*:\s*(?:ldap|ldaps|rmi|dns|iiop|corba)\s*:/i},
+  {id:'shellshock-function-signature',status:'blocked',re:/\(\)\s*\{\s*:\s*;\s*\}\s*;/i},
+  {id:'yaml-object-construction',status:'blocked',re:/!!(?:python\/object|javax\.script\.ScriptEngineManager)\b/i},
+  {id:'ssrf-cloud-metadata-hostname',status:'blocked',re:/https?:\/\/(?:metadata\.google\.internal|instance-data\.ec2\.internal)(?::\d+)?(?:[/?#]|$)/i},
+  {id:'http-request-smuggling-indicator',status:'review',re:/(?:content-length\s*:\s*\d+[\s\S]{0,180}transfer-encoding\s*:|transfer-encoding\s*:[\s\S]{0,180}content-length\s*:)/i},
+  {id:'web-cache-poisoning-indicator',status:'review',re:/\bx-forwarded-host\s*:[^\r\n]{1,200}/i},
+  {id:'jwt-none-algorithm-indicator',status:'review',re:/["']alg["']\s*:\s*["']none["']/i},
+  {id:'prompt-injection-indicator',status:'review',re:/\b(?:ignore|disregard|override)\s+(?:all\s+)?(?:previous|prior|system)\s+instructions\b|\b(?:reveal|print|show|expose)\s+(?:the\s+)?(?:system|developer)\s+prompt\b/i},
+  {id:'struts-ognl-indicator',status:'review',re:/%\{\s*#(?:context|_memberaccess|dm|cmd)\b/i}
  ];
 
  function decodeEntities(value){
@@ -111,10 +167,10 @@
    .replace(/[\u200B-\u200F\u202A-\u202E\u2060\uFEFF]/g,'');
   const confusables={
    'а':'a','е':'e','о':'o','р':'p','с':'c','х':'x','і':'i','ј':'j','ѕ':'s',
-   'к':'k','м':'m','т':'t','у':'y','в':'b',
-   'α':'a','ο':'o','ρ':'p','χ':'x','ι':'i','κ':'k','τ':'t'
+   'к':'k','м':'m','т':'t','у':'y','в':'b','һ':'h','н':'h','ӏ':'l','ԁ':'d','ԛ':'q','ԝ':'w',
+   'α':'a','ο':'o','ρ':'p','χ':'x','ι':'i','κ':'k','τ':'t','ν':'v','ϲ':'c','ϳ':'j','ϱ':'p','ϵ':'e','ϰ':'k'
   };
-  text=text.replace(/[аерсхіјѕкмтувαορχικτ]/g,ch=>confusables[ch]||ch);
+  text=text.replace(/[аерсхіјѕкмтувһнӏԁԛԝαορχικτνϲϳϱϵϰ]/g,ch=>confusables[ch]||ch);
   return text.replace(/[^\p{L}\p{N}]+/gu,' ').trim();
  }
  function escapeRegExp(value){
