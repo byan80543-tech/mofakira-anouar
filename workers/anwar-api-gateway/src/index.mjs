@@ -595,7 +595,32 @@ function isAdhkarApiPath(pathname) {
     pathname === "/v1/admin/session" ||
     pathname === "/v1/admin/adhkar" ||
     pathname === "/v1/admin/adhkar/initialize" ||
-    /^\/v1\/admin\/adhkar\/[a-z0-9-]{1,80}$/i.test(pathname);
+    /^\\/v1\\/admin\\/adhkar\\/[a-z0-9-]{1,80}$/i.test(pathname);
+}
+
+/**
+ * Server-side route policy: an absent path is denied, and a known path only
+ * accepts its explicitly listed methods. This is an access-control boundary,
+ * not a substitute for the owner-session check inside handleAdhkarApi.
+ */
+function resolveGatewayAccess(pathname) {
+  const routes = {
+    "/v1/reciters": ["GET"],
+    "/v1/radios": ["GET"],
+    "/v1/country/list": ["GET"],
+    "/v1/country/profile": ["GET"],
+    "/v1/adhkar": ["GET"],
+    "/v1/admin/session": ["POST"],
+    "/v1/admin/adhkar": ["GET", "POST", "PUT"],
+    "/v1/admin/adhkar/initialize": ["POST"]
+  };
+  if (Object.hasOwn(routes, pathname)) {
+    return { methods: routes[pathname], access: pathname.startsWith("/v1/admin/") ? "owner" : "public" };
+  }
+  if (/^\\/v1\\/admin\\/adhkar\\/[a-z0-9-]{1,80}$/i.test(pathname)) {
+    return { methods: ["DELETE"], access: "owner" };
+  }
+  return null;
 }
 
 async function handleAdhkarApi(request, url, env, origin) {
@@ -810,36 +835,35 @@ export default {
       return json({ error: "Origin not allowed" }, 403);
     }
 
+    const url = new URL(request.url);
+    const access = resolveGatewayAccess(url.pathname);
+    if (!access) return errorResponse("المسار غير موجود.", 404, origin);
+
+    const allowedMethods = [...access.methods, "OPTIONS"];
     if (request.method === "OPTIONS") {
       return withCors(new Response(null, {
         status: 204,
         headers: {
-          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "Access-Control-Allow-Methods": allowedMethods.join(", "),
           "Access-Control-Allow-Headers": "Content-Type, Authorization",
           "Access-Control-Max-Age": "600",
           "Cache-Control": "no-store"
         }
       }), origin, {
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Methods": allowedMethods.join(", "),
         "Access-Control-Allow-Headers": "Content-Type, Authorization",
         "Access-Control-Max-Age": "600"
       });
     }
 
-    const url = new URL(request.url);
+    if (!access.methods.includes(request.method)) {
+      return errorResponse("طريقة الطلب غير مسموحة لهذا المسار.", 405, origin, {
+        Allow: allowedMethods.join(", ")
+      });
+    }
+
     const adhkarResponse = await handleAdhkarApi(request, url, env, origin);
     if (adhkarResponse) return adhkarResponse;
-
-    if (request.method === "POST") {
-      if (!url.search && resolveRoute(url)) {
-        return errorResponse("طريقة الطلب غير مسموحة.", 405, origin, { Allow: "GET, OPTIONS" });
-      }
-      return errorResponse("المسار غير موجود.", 404, origin);
-    }
-
-    if (request.method !== "GET") {
-      return errorResponse("طريقة الطلب غير مسموحة.", 405, origin, { Allow: "GET, POST, OPTIONS" });
-    }
 
     const route = resolveRoute(url);
     if (!route) return errorResponse("المسار غير موجود.", 404, origin);
