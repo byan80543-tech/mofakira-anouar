@@ -45,7 +45,7 @@ for (const sourcePath of [
   'ibtihalat-radio.js', 'prayer-times.js', 'poetry-dictation.js', 'protective-adhkar.js',
   'tasbih-controller.js', 'official-adhkar.js', 'vault-crypto.js', 'vault-storage.js',
   'vault-device-unlock.js', 'toolbar-back-navigation.js', 'api-gateway-config.js',
-  'click-guard.js', 'floating-panels.js', 'floating-panels.css',
+  'click-guard.js', 'anwar-shield-3d.js', 'floating-panels.js', 'floating-panels.css',
   'update-notice-v2.js', 'update-notice-v2.css'
 ]) {
   const source = readRepoFile(sourcePath);
