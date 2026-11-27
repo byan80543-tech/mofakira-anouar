@@ -116,7 +116,7 @@ edgeAllowed = true;
 response = await call('/v1/adhkar', 'POST', {
   group: 'التحصين', title: 'محاولة زائر', text: 'لا يسمح بالنشر العام', source: 'مرجع'
 });
-assert.equal(response.status, 401, 'a visitor cannot add to the public library');
+assert.equal(response.status, 405, 'the public read-only route rejects visitor writes at the route-policy boundary');
 
 response = await call('/v1/adhkar/suggestions', 'POST', {
   group: 'التحصين', title: 'اقتراح', text: 'لا يستقبل الخادم اقتراحات الزوار'
