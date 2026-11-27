@@ -113,6 +113,7 @@
   try{existing=await readDatabase(key)}
   catch(databaseError){
    const fallback=readLocal(key);
+   if(fallback.ok&&fallback.value===null)return null;
    if(fallback.ok&&typeof fallback.value==='string')return fallback.value;
    throw databaseError;
   }
