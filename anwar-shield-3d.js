@@ -1,8 +1,8 @@
-/* ANWAR SHIELD 3D v0.7.0 — normalized intent-aware editor input gate; local rules only. */
+/* ANWAR SHIELD 3D v0.8.0 — normalized intent-aware editor input gate; local rules only. */
 (function(root){
  'use strict';
- if(root.AnwarShield3D&&root.AnwarShield3D.version==='0.7.0')return;
- const VERSION='0.7.0',MAX=200000;
+ if(root.AnwarShield3D&&root.AnwarShield3D.version==='0.8.0')return;
+ const VERSION='0.8.0',MAX=200000;
  const SEMANTIC_BLOCK_FAMILIES=[
   {id:'semantic-xss-variants',phrases:['xss','cross site scripting','cross-site scripting','crosssitescripting']},
   {id:'semantic-sql-injection',phrases:['sql injection','s q l injection','sqli','sql command injection','nosql injection','حقن sql','حقن اس كيو ال','حقن قواعد البيانات']},
@@ -102,6 +102,7 @@
   /* Product policy: the notebook is an Arabic creative space. Known attack names
      and executable payloads are blocked even when entered as isolated words. */
   {id:'known-attack-vocabulary',status:'blocked',re:/\b(?:xss|cross[\s_-]*site[\s_-]*scripting|sql[\s_-]*injection|sqli|nosql[\s_-]*injection|command[\s_-]*injection|os[\s_-]*command[\s_-]*injection|shell[\s_-]*injection|code[\s_-]*injection|remote[\s_-]*code[\s_-]*execution|rce|csrf|cross[\s_-]*site[\s_-]*request[\s_-]*forgery|ssrf|server[\s_-]*side[\s_-]*request[\s_-]*forgery|xxe|xml[\s_-]*external[\s_-]*entity|ssti|server[\s_-]*side[\s_-]*template[\s_-]*injection|lfi|local[\s_-]*file[\s_-]*inclusion|rfi|remote[\s_-]*file[\s_-]*inclusion|path[\s_-]*traversal|directory[\s_-]*traversal|prototype[\s_-]*pollution|ldap[\s_-]*injection|xpath[\s_-]*injection|crlf[\s_-]*injection|header[\s_-]*injection|html[\s_-]*injection|template[\s_-]*injection|deserialization[\s_-]*attack|insecure[\s_-]*deserialization|open[\s_-]*redirect|clickjacking|session[\s_-]*fixation|credential[\s_-]*stuffing|brute[\s_-]*force|reverse[\s_-]*shell|webshell|shellcode|keylogger|phishing|ransomware|malware|exploit(?:ation)?|zero[\s_-]*day)\b/i},
+  {id:'standalone-attack-keywords',status:'blocked',re:/\b(?:select|union|drop|insert|update|delete|cat|ls|whoami|wget|curl)\b|\balert\s*\(/i},
   {id:'standalone-executable-terms',status:'blocked',re:/\b(?:eval|vbscript)\s*\(|\bdocument\s*\.\s*cookie\b|\b(?:innerhtml|outerhtml)\s*=|\bon[a-z]{3,}\s*=/i},
   {id:'xss-dangerous-element',status:'blocked',re:/<\s*\/?\s*(?:script|iframe|object|embed|applet|svg|math|link|meta)\b/i},
   {id:'xss-event-handler',status:'blocked',re:/\bon[a-z]{3,}\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/i},
