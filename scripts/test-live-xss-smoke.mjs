@@ -64,9 +64,15 @@ try {
   }
 
   const editor = page.locator('#pg');
+  if (!(await editor.isVisible())) {
+    const newWorkButton = page.locator('#new');
+    await newWorkButton.waitFor({ state: 'visible', timeout: 15000 });
+    await newWorkButton.click();
+  }
   await editor.waitFor({ state: 'visible', timeout: 20000 });
   await page.waitForFunction(
     () => window.AnwarShield3D && typeof window.AnwarShield3D.inspect === 'function',
+    null,
     { timeout: 15000 }
   );
 
