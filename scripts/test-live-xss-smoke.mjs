@@ -51,14 +51,37 @@ try {
   console.log('HTTP_STATUS ' + response.status());
   console.log('CSP_PRESENT ' + Boolean(headers['content-security-policy']));
 
+  // This browser context starts empty. The app requires a local vault setup
+  // before private editing; create a disposable test-only vault in this isolated
+  // browser profile so no real user data or remote account is touched.
+  const gate = page.locator('#vaultGate');
+  if (await gate.isVisible()) {
+    const temporaryPassphrase = 'Anwar-Live-Smoke-Only-2026!NoReuse';
+    await page.locator('#vaultPassword').fill(temporaryPassphrase);
+    await page.locator('#vaultPasswordConfirm').fill(temporaryPassphrase);
+    await page.locator('#vaultForm').evaluate(form => form.requestSubmit());
+    await gate.waitFor({ state: 'hidden', timeout: 30000 });
+  }
+
   const editor = page.locator('#pg');
   await editor.waitFor({ state: 'visible', timeout: 20000 });
+  await page.waitForFunction(
+    () => window.AnwarShield3D && typeof window.AnwarShield3D.inspect === 'function',
+    { timeout: 15000 }
+  );
 
-  // This browser context is fresh and ephemeral. Never click Save or export.
-  await page.evaluate(() => {
-    try { localStorage.clear(); } catch {}
-    try { sessionStorage.clear(); } catch {}
+  const focusEditor = async () => editor.evaluate(element => {
+    element.focus();
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    range.collapse(false);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
   });
+
+  // Never click Save or export. All test-only storage remains in this temporary
+  // browser context and is discarded when Chromium closes.
 
   for (const payload of vectors) {
     const paste = await page.evaluate(value => {
@@ -89,7 +112,7 @@ try {
     }
 
     await editor.evaluate(element => { element.replaceChildren(); });
-    await editor.click();
+    await focusEditor();
     await page.keyboard.insertText(payload);
     await page.waitForTimeout(80);
 
