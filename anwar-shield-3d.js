@@ -80,7 +80,24 @@
    "зашифровать файлы ради выкупа","加密文件索要赎金","身代金のためにファイルを暗号化","몸값을 위해 파일 암호화",
    "fidye icin dosyalari sifrelemek","फिरौती के लिए फ़ाइलों को एन्क्रिप्ट करना"
   ]}
- ];
+
+  {id:'semantic-global-security-and-credential-abuse',phrases:[
+   'beveiliging omzeilen','toegangscontrole omzeilen','wachtwoorden stelen','sessie kapen','gegevens stelen','commando injectie','commando-injectie',
+   'kringgå säkerheten','kringgå autentisering','stjäla lösenord','sessionskapning','datastöld','kommandoinjektion',
+   'omgå sikkerheten','omgå autentisering','stjele passord','kapre økten','datatyveri','kommandoinjeksjon',
+   'omgå sikkerheden','omgå godkendelse','stjæle adgangskoder','kapre session','datatyveri','kommandoindsprøjtning',
+   'obejść zabezpieczenia','obejść uwierzytelnianie','kraść hasła','przejęcie sesji','kradzież danych','wstrzykiwanie poleceń',
+   'obejít zabezpečení','obejít ověřování','krást hesla','převzít relaci','krádež dat','vkládání příkazů',
+   'παράκαμψη ασφάλειας','παράκαμψη ελέγχου ταυτότητας','κλοπή κωδικών','κλοπή συνεδρίας','κλοπή δεδομένων','έγχυση εντολών',
+   'עקיפת אבטחה','עקיפת אימות','גניבת סיסמאות','חטיפת הפעלה','גניבת נתונים','הזרקת פקודות',
+   'ข้ามการรักษาความปลอดภัย','หลีกเลี่ยงการตรวจสอบสิทธิ์','ขโมยรหัสผ่าน','ยึดเซสชัน','ขโมยข้อมูล','การแทรกคำสั่ง',
+   'vượt qua bảo mật','bỏ qua xác thực','đánh cắp mật khẩu','chiếm đoạt phiên','đánh cắp dữ liệu','chèn lệnh',
+   'lampasan ang seguridad','iwasan ang pagpapatotoo','pagnakaw ng password','pag-hijack ng sesyon','pagnanakaw ng datos','iniiksyon ng utos',
+   'سیکیورٹی کو بائی پاس کرنا','تصدیق کو بائی پاس کرنا','پاس ورڈ چوری کرنا','سیشن ہائی جیک کرنا','ڈیٹا چوری کرنا','کمانڈ انجیکشن',
+   'دور زدن امنیت','دور زدن احراز هویت','سرقت گذرواژه','ربودن نشست','سرقت داده','تزریق فرمان',
+   'kukwepa usalama','kupita uthibitishaji','wizi wa nywila','utekaji wa kikao','wizi wa data','uingizaji wa amri',
+   'নিরাপত্তা এড়িয়ে যাওয়া','প্রমাণীকরণ এড়িয়ে যাওয়া','পাসওয়ার্ড চুরি','সেশন হাইজ্যাক','তথ্য চুরি','কমান্ড ইনজেকশন'
+  ]}, ];
 
  const RULES=[
   /* Product policy: the notebook is an Arabic creative space. Known attack names
