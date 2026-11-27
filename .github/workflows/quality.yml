@@ -120,6 +120,8 @@ jobs:
         run: node scripts/test-storage.mjs
       - name: Test encrypted vault cryptography and backup integrity
         run: node scripts/test-vault-crypto.mjs
+      - name: Validate public privacy profile against implementation and roadmap
+        run: node scripts/test-privacy-profile.mjs
       - name: Test interactive vault shield control
         run: node scripts/test-vault-shield.mjs
       - name: Test verified IndexedDB vault storage and legacy migration

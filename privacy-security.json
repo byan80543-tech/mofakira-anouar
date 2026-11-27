@@ -157,12 +157,23 @@
       "api_gateway_connected": false,
       "api_gateway_config_value": "empty",
       "result": "PASS"
+    },
+    "public_profile_alignment_updated": "2026-11-27",
+    "live_test_summary": {
+      "editable_text_fields": 15,
+      "representative_attack_cases": 70,
+      "field_injection_attempts": 1050,
+      "suspicious_keyboard_and_paste_attempts": 26,
+      "suspicious_attempts_blocked": 26,
+      "successful_xss_canaries": 0,
+      "live_perimeter_checks": 41,
+      "live_perimeter_checks_passed": 41
     }
   },
   "local_data_protection": {
     "encrypted_vault": {
       "available": true,
-      "enabled_by_default": false,
+      "enabled_by_default": true,
       "user_action_required": true,
       "cipher": "AES-256-GCM",
       "key_derivation": "PBKDF2-HMAC-SHA-256",
@@ -178,7 +189,9 @@
       "webauthn_prf_device_unlock": "optional; restricted in source to the approved HTTPS origin and supporting authenticators",
       "protects_while_vault_locked": true,
       "protects_against_same_origin_malicious_code_while_unlocked": false,
-      "protects_against_compromised_device": false
+      "protects_against_compromised_device": false,
+      "mandatory_before_private_use": true,
+      "kdf_migration_status": "Argon2id planned; current format remains PBKDF2-HMAC-SHA-256 with 600000 iterations"
     },
     "rescue_backup": {
       "encrypted": true,
