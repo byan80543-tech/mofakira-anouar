@@ -16,3 +16,8 @@
 3. اختبار عائلات الهجوم في كل نظام كتابة على حدة، مع positive وnegative fixtures.
 4. عدم تحويل اسم بلد أو لغة أو جنسية إلى سبب للحظر.
 5. مراجعة أي لغة أو قاعدة جديدة بواسطة متحدث/مراجع مناسب قبل تفعيل الحظر.
+
+## المراجع المعيارية
+- ISO 3166-1: https://www.iso.org/standard/72482.html
+- Unicode CLDR (بيانات المناطق واللغات): https://unicode.org/reports/tr35/tr35-info.html
+- IANA Language Subtag Registry وBCP 47: https://www.iana.org/assignments/language-subtags-tags-extensions
