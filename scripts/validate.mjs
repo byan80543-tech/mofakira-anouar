@@ -30,7 +30,7 @@ const iconGenerator=fs.readFileSync(path.join(root,'scripts/generate-pwa-icons.p
 const failures=[];
 try{new vm.Script(editorDomSanitizer,{filename:'editor-dom-sanitizer.js'});console.log('PASS live editor DOM sanitizer JavaScript syntax is valid')}catch(error){failures.push('editor-dom-sanitizer.js: '+error.message)}
 const sanitizerScriptIndex=html.indexOf('editor-dom-sanitizer.js');
-const appCoreScriptIndex=html.indexOf('app-core.js');
+const appCoreScriptIndex=html.indexOf('<script src="./app-core.js');
 if(!(sanitizerScriptIndex>=0&&appCoreScriptIndex>sanitizerScriptIndex&&appCore.includes('globalThis.AnwarEditorDomSanitizer')&&appCore.includes('liveEditorSanitizer.observe(pg)')&&serviceWorker.includes("'./editor-dom-sanitizer.js'")))failures.push('Live editor DOM sanitizer must load before app-core and be included in the offline shell');
 else console.log('PASS live editor DOM sanitizer loads before app-core and is included in the offline shell');
 const ok=(condition,message)=>{if(!condition)failures.push(message);else console.log('PASS',message)};
