@@ -1,0 +1,76 @@
+name: Live production security verification
+
+on:
+  workflow_run:
+    workflows:
+      - Deploy Anwar Notebook to Cloudflare Pages
+    types:
+      - completed
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: anwar-live-production-security
+  cancel-in-progress: false
+
+jobs:
+  live-production-security:
+    # Run only against the canonical production deployment from this repository.
+    # The Pages workflow itself already requires the exact trusted Quality run.
+    if: >-
+      github.repository == 'byan80543-tech/mofakira-anouar' &&
+      (
+        (github.event_name == 'workflow_dispatch' &&
+         github.ref == 'refs/heads/main') ||
+        (github.event_name == 'workflow_run' &&
+         github.event.workflow_run.conclusion == 'success' &&
+         (github.event.workflow_run.event == 'workflow_run' ||
+          github.event.workflow_run.event == 'workflow_dispatch') &&
+         github.event.workflow_run.head_branch == 'main' &&
+         github.event.workflow_run.repository.full_name == github.repository &&
+         github.event.workflow_run.head_repository.full_name == github.repository &&
+         github.event.workflow_run.name == 'Deploy Anwar Notebook to Cloudflare Pages' &&
+         github.event.workflow_run.path == '.github/workflows/deploy-cloudflare-pages.yml' &&
+         github.event.workflow_run.workflow_id == 422675085)
+      )
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out the exact commit deployed to production
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pinned Playwright
+        run: |
+          npm init -y
+          npm install --no-save playwright@1.56.1
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run all-field security input-bypass matrix
+        env:
+          ANWAR_TARGET_URL: https://mofakira-anouar.pages.dev/mofakira-anouar/
+        run: node scripts/test-live-input-bypass.mjs
+
+      - name: Verify real keyboard and paste XSS protection
+        env:
+          ANWAR_TARGET_URL: https://mofakira-anouar.pages.dev/mofakira-anouar/
+        run: node scripts/test-live-xss-smoke.mjs
+
+      - name: Verify production headers, PWA perimeter and exposed-file boundaries
+        env:
+          ANWAR_TARGET_URL: https://mofakira-anouar.pages.dev/mofakira-anouar/
+        run: node scripts/test-live-perimeter.mjs
