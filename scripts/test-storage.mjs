@@ -95,6 +95,8 @@ function makeHarness(initial={}){
     clearTimeout(){},iso:d=>d.toISOString().slice(0,10),info(){},
     createNoteId:(()=>{let id=0;return()=>String(++id)})(),
     applyPaperClass(){},
+    // openNote requests editor fonts in production; this isolated storage harness stubs that network-only dependency.
+    loadFontStylesheets(){return Promise.resolve()},
     storageRecoveryBlocked:false,storageRecoveryRaw:null,storageRecoveryExported:false,storageRecoveryMode:'none',storageRecoveryBackupAvailable:false,vaultStorageUnavailable:false,
     VAULT_STORAGE_KEY:'anwar_vault_v1',VAULT_BACKUP_KEY:'anwar_vault_backup_v1',
     VAULT_MODE_KEY:'anwar_vault_mode_v1',
