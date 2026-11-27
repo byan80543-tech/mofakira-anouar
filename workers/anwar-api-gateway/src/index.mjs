@@ -11,7 +11,7 @@ const RATE_POLICIES = Object.freeze({
   catalog: { limit: 20, windowMs: 60_000 },
   "country-list": { limit: 8, windowMs: 60_000 },
   "country-profile": { limit: 12, windowMs: 60_000 },
-  "admin-login": { limit: 5, windowMs: 60 * 60_000 },
+  "admin-login": { limit: 20, windowMs: 15 * 60_000 },
   // Bound authenticated owner actions as well, including after a token leak.
   "admin-api": { limit: 20, windowMs: 60_000 }
 });
@@ -628,7 +628,9 @@ async function handleAdhkarApi(request, url, env, origin) {
     if (limited) return limited;
     if (adminSecret.length < 32) return errorResponse("دخول الإدارة غير مهيأ على الخادم.", 503, origin);
     const body = await readJsonBody(request, 4096);
-    if (!body || typeof body.password !== "string" || body.password.length > 512 ||
+    if (!body || typeof body.password !== "string" ||
+        Array.from(body.password).length > 128 ||
+        new TextEncoder().encode(body.password).byteLength > 512 ||
         !constantTimeEqual(body.password, adminSecret)) {
       return errorResponse("تعذر التحقق من رمز الإدارة.", 401, origin);
     }
