@@ -115,11 +115,13 @@ test('does not block ordinary Arabic or neutral technical writing',()=>{
  }
 });
 test('review-only patterns remain writable and expose metadata without storing note text',()=>{
- assert.equal(shield.inspect('
+ assert.equal(shield.inspect('$'+'{constructor.constructor("return process")()} XSS').status,'blocked','a confirmed attack takes priority over review-only syntax');
+ const result=shield.inspect('$'+'{constructor.constructor("return process")()}');
+ assert.equal(result.status,'review');
  assert.equal(result.blocked,false);
  const handlers={};
  const document={addEventListener(type,callback){handlers[type]=callback;},body:{appendChild(){}},getElementById(){return null;},createElement(){return{style:{},setAttribute(){}};}};
- const sandbox={document,CustomEvent:class{constructor(type,options){this.type=type;this.detail=options.detail;}},dispatchEvent(){},decodeURIComponent,setTimeout(){return 1;},clearTimeout(){},WeakMap,Object,String,Array,RegExp};
+ const sandbox={document,CustomEvent:class{constructor(type,options){this.type=type;this.detail=options.detail;}},dispatchEvent(){},decodeURIComponent,setTimeout(){return 1;},clearTimeout(){},WeakMap,Object,String,Array,RegExp,Map,Date};
  sandbox.globalThis=sandbox;
  vm.runInNewContext(source,sandbox,{filename:'anwar-shield-review.js'});
  const target={nodeType:1,tagName:'INPUT',type:'text',value:'$'+'{constructor.constructor("return process")()}',disabled:false,readOnly:false};
@@ -131,7 +133,7 @@ test('review-only patterns remain writable and expose metadata without storing n
  assert.equal(records[0].id,'template-injection');
  assert.equal(Object.hasOwn(records[0],'text'),false,'review log contains metadata only');
 });
-
+ 
 /* Exercise the actual capture-phase event handlers, including contenteditable.
    This catches the regression where the browser warning appeared but the editor
    still retained the text because contenteditable has no .value property. */
