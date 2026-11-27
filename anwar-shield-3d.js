@@ -1,8 +1,8 @@
-/* ANWAR SHIELD 3D v0.8.0 — normalized intent-aware editor input gate; local rules only. */
+/* ANWAR SHIELD 3D v0.9.0 — normalized intent-aware editor input gate; local rules only. */
 (function(root){
  'use strict';
- if(root.AnwarShield3D&&root.AnwarShield3D.version==='0.8.0')return;
- const VERSION='0.8.0',MAX=200000;
+ if(root.AnwarShield3D&&root.AnwarShield3D.version==='0.9.0')return;
+ const VERSION='0.9.0',MAX=200000;
  const SEMANTIC_BLOCK_FAMILIES=[
   {id:'semantic-xss-variants',phrases:['xss','cross site scripting','cross-site scripting','crosssitescripting']},
   {id:'semantic-sql-injection',phrases:['sql injection','s q l injection','sqli','sql command injection','nosql injection','حقن sql','حقن اس كيو ال','حقن قواعد البيانات']},
@@ -162,6 +162,7 @@
  ];
 
  function decodeEntities(value){
+  if(value.indexOf('&')===-1)return value;
   const named={lt:'<',gt:'>',colon:':',sol:'/',semi:';',equals:'=',amp:'&',quot:'"',apos:"'"};
   return value.replace(/&(#x[0-9a-f]{1,6}|#\d{1,7}|lt|gt|colon|sol|semi|equals|amp|quot|apos);?/gi,function(match,entity){
    const key=String(entity).toLowerCase();
@@ -171,12 +172,14 @@
   });
  }
  function decodeEscapes(value){
+  if(value.indexOf('\\')===-1)return value;
   return value
    .replace(/\\x([0-9a-f]{2})/gi,function(_,hex){return String.fromCharCode(parseInt(hex,16));})
    .replace(/\\u\{([0-9a-f]{1,6})\}/gi,function(_,hex){const n=parseInt(hex,16);return n<=0x10ffff?String.fromCodePoint(n):_;})
    .replace(/\\u([0-9a-f]{4})/gi,function(_,hex){return String.fromCharCode(parseInt(hex,16));});
  }
  function decodePercent(value){
+  if(!/%[0-9a-f]{2}/i.test(value))return value;
   let current=value;
   for(let i=0;i<3;i++){
    let next;
@@ -205,17 +208,82 @@
   text=text.replace(/[аеорсхіјѕкмтувһнӏԁԛԝαορχικτνϲϳϱϵϰ]/g,ch=>confusables[ch]||ch);
   return text.replace(/[^\p{L}\p{N}]+/gu,' ').trim();
  }
- function escapeRegExp(value){
-  const meta='.^$*+?()[]{}|\\';
-  return Array.from(String(value)).map(ch=>meta.includes(ch)?'\\'+ch:ch).join('');
+ const INTENT_WORD_CHARACTER=/[\p{L}\p{N}]/u;
+ function buildSemanticMatcher(){
+  const nodes=[{next:new Map(),failure:0,outputs:[]}];
+  for(const family of SEMANTIC_BLOCK_FAMILIES){
+   for(const phrase of family.phrases){
+    const compact=Array.from(foldIntentText(phrase).replace(/\s+/g,''));
+    if(compact.length<4)continue;
+    let state=0;
+    for(const character of compact){
+     let next=nodes[state].next.get(character);
+     if(next===undefined){
+      next=nodes.length;
+      nodes[state].next.set(character,next);
+      nodes.push({next:new Map(),failure:0,outputs:[]});
+     }
+     state=next;
+    }
+    if(!nodes[state].outputs.some(output=>output.id===family.id)){
+     nodes[state].outputs.push({length:compact.length,id:family.id});
+    }
+   }
+  }
+  const queue=[];
+  for(const child of nodes[0].next.values())queue.push(child);
+  for(let cursor=0;cursor<queue.length;cursor++){
+   const state=queue[cursor];
+   for(const [character,child] of nodes[state].next){
+    let fallback=nodes[state].failure;
+    while(fallback!==0&&!nodes[fallback].next.has(character))fallback=nodes[fallback].failure;
+    const fallbackChild=nodes[fallback].next.get(character);
+    nodes[child].failure=fallbackChild===undefined?0:fallbackChild;
+    const inherited=nodes[nodes[child].failure].outputs;
+    if(inherited.length)nodes[child].outputs.push(...inherited);
+    queue.push(child);
+   }
+  }
+  return nodes;
  }
- function semanticPhraseMatches(text,phrase){
-  const folded=foldIntentText(text);
-  const compactPhrase=foldIntentText(phrase).replace(/\s+/g,'');
-  if(!compactPhrase||compactPhrase.length<4)return false;
-  const spacedLetters=Array.from(compactPhrase).map(escapeRegExp).join('[\\s\\p{P}\\p{S}_]*');
-  const matcher=new RegExp('(^|[^\\p{L}\\p{N}])'+spacedLetters+'(?=$|[^\\p{L}\\p{N}])','iu');
-  return matcher.test(folded);
+ const SEMANTIC_MATCHER=buildSemanticMatcher();
+ function findSemanticMatch(folded){
+  if(!folded)return null;
+  const characters=[],boundaryBefore=[],boundaryAfter=[];
+  let previousWord=false,lastWordIndex=-1;
+  for(let offset=0;offset<folded.length;){
+   const character=String.fromCodePoint(folded.codePointAt(offset));
+   const isWord=INTENT_WORD_CHARACTER.test(character);
+   if(isWord){
+    const index=characters.length;
+    characters.push(character);
+    boundaryBefore.push(!previousWord);
+    boundaryAfter.push(false);
+    previousWord=true;
+    lastWordIndex=index;
+   }else{
+    if(lastWordIndex>=0)boundaryAfter[lastWordIndex]=true;
+    previousWord=false;
+    lastWordIndex=-1;
+   }
+   offset+=character.length;
+  }
+  if(lastWordIndex>=0)boundaryAfter[lastWordIndex]=true;
+  let state=0;
+  for(let index=0;index<characters.length;index++){
+   const character=characters[index];
+   while(state!==0&&!SEMANTIC_MATCHER[state].next.has(character)){
+    state=SEMANTIC_MATCHER[state].failure;
+   }
+   const next=SEMANTIC_MATCHER[state].next.get(character);
+   state=next===undefined?0:next;
+   const outputs=SEMANTIC_MATCHER[state].outputs;
+   for(const output of outputs){
+    const start=index+1-output.length;
+    if(start>=0&&boundaryBefore[start]&&boundaryAfter[index])return output.id;
+   }
+  }
+  return null;
  }
  function normalizeForms(value){
   let original=String(value==null?'':value).slice(0,MAX);
@@ -255,14 +323,13 @@
     if(!reviewMatch)reviewMatch=rule.id;
    }
   }
-  for(const family of SEMANTIC_BLOCK_FAMILIES){
-   for(const phrase of family.phrases){
-    for(const form of forms){
-     if(semanticPhraseMatches(form,phrase)){
-      return Object.freeze({blocked:true,status:'blocked',id:family.id,version:VERSION});
-     }
-    }
-   }
+  const checkedIntentForms=new Set();
+  for(const form of forms){
+   const folded=foldIntentText(form);
+   if(!folded||checkedIntentForms.has(folded))continue;
+   checkedIntentForms.add(folded);
+   const semanticId=findSemanticMatch(folded);
+   if(semanticId)return Object.freeze({blocked:true,status:'blocked',id:semanticId,version:VERSION});
   }
   if(reviewMatch)return Object.freeze({blocked:false,status:'review',id:reviewMatch,version:VERSION});
   return Object.freeze({blocked:false,status:'clean',id:null,version:VERSION});
@@ -320,6 +387,8 @@
   }else target.value=state.value;
  }
  const safe=new WeakMap();
+ const pendingInputs=new WeakMap();
+ const prevalidatedInsertions=new WeakMap();
  function remember(target){if(target)safe.set(target,snapshot(target));}
  function insertedValue(target,data){
   const current=read(target);
@@ -392,12 +461,70 @@
   announce(result,source);
   notify(result);
  }
+ const snapshotTimers=new WeakMap();
+ function scheduleRemember(target,source){
+  if(!target)return;
+  if(!isEditable(target)){
+   remember(target);
+   return;
+  }
+  const previous=snapshotTimers.get(target);
+  if(previous)root.clearTimeout(previous);
+  const timer=root.setTimeout(function(){
+   snapshotTimers.delete(target);
+   const result=inspect(read(target));
+   if(result.status==='blocked'){
+    reject(target,result,source||'idle-input');
+    return;
+   }
+   if(result.status==='review')recordReview(result,source||'idle-input');
+   remember(target);
+  },650);
+  snapshotTimers.set(target,timer);
+ }
+ function commitRemember(target,source){
+  if(!target)return;
+  const timer=snapshotTimers.get(target);
+  if(timer){
+   root.clearTimeout(timer);
+   snapshotTimers.delete(target);
+  }
+  const result=inspect(read(target));
+  if(result.status==='blocked'){
+   reject(target,result,source||'change');
+   return;
+  }
+  if(result.status==='review')recordReview(result,source||'change');
+  remember(target);
+ }
  function before(event){
   const target=field(event.target);
-  if(!target||typeof event.data!=='string'||!event.data)return;
-  if(/^delete/i.test(String(event.inputType||'')))return;
-  const result=inspect(insertedValue(target,event.data));
+  if(!target)return;
+  const inputType=String(event.inputType||'');
+  if(/^delete/i.test(inputType)){
+   prevalidatedInsertions.delete(target);
+   return;
+  }
+  const data=event.data;
+  if(typeof data!=='string'||!data){
+   if((inputType==='insertFromPaste'||inputType==='insertFromDrop')&&prevalidatedInsertions.has(target)){
+    pendingInputs.set(target,prevalidatedInsertions.get(target));
+    prevalidatedInsertions.delete(target);
+   }
+   return;
+  }
+  const candidate=insertedValue(target,data);
+  if(prevalidatedInsertions.has(target)){
+   const prevalidated=prevalidatedInsertions.get(target);
+   prevalidatedInsertions.delete(target);
+   if(prevalidated===candidate){
+    pendingInputs.set(target,candidate);
+    return;
+   }
+  }
+  const result=inspect(candidate);
   if(result.status==='blocked')rejectEvent(event,result,'beforeinput');
+  else pendingInputs.set(target,candidate);
  }
  function paste(event){
   const target=field(event.target);
@@ -405,8 +532,10 @@
   const transfer=event.clipboardData;
   const text=transfer&&typeof transfer.getData==='function'?(transfer.getData('text/plain')||transfer.getData('text')):'';
   if(!text)return;
-  const result=inspect(insertedValue(target,text));
+  const candidate=insertedValue(target,text);
+  const result=inspect(candidate);
   if(result.status==='blocked')rejectEvent(event,result,'paste');
+  else prevalidatedInsertions.set(target,candidate);
  }
  function drop(event){
   const target=field(event.target);
@@ -414,34 +543,52 @@
   const transfer=event.dataTransfer;
   const text=transfer&&typeof transfer.getData==='function'?(transfer.getData('text/plain')||transfer.getData('text')):'';
   if(!text)return;
-  const result=inspect(insertedValue(target,text));
+  const candidate=insertedValue(target,text);
+  const result=inspect(candidate);
   if(result.status==='blocked')rejectEvent(event,result,'drop');
+  else prevalidatedInsertions.set(target,candidate);
  }
  function input(event){
   const target=field(event.target);
   if(!target)return;
-  const result=inspect(read(target));
+  const current=read(target);
+  if(pendingInputs.has(target)){
+   const expected=pendingInputs.get(target);
+   pendingInputs.delete(target);
+   if(current===expected){
+    prevalidatedInsertions.delete(target);
+    scheduleRemember(target,'input');
+    return;
+   }
+  }
+  if(prevalidatedInsertions.has(target)){
+   const expected=prevalidatedInsertions.get(target);
+   prevalidatedInsertions.delete(target);
+   if(current===expected){
+    scheduleRemember(target,'input');
+    return;
+   }
+  }
+  const result=inspect(current);
   if(result.status==='blocked'){
    if(/^delete/i.test(String(event.inputType||'')))return;
    reject(target,result,'input');
   }else{
    if(result.status==='review')recordReview(result,'input');
-   remember(target);
+   scheduleRemember(target,'input');
   }
  }
  function change(event){
   const target=field(event.target);
-  if(!target)return;
-  const result=inspect(read(target));
-  if(result.status==='blocked')reject(target,result,'change');
-  else{
-   if(result.status==='review')recordReview(result,'change');
-   remember(target);
-  }
+  if(target)commitRemember(target,'change');
  }
  function focus(event){
   const target=field(event.target);
   if(target)remember(target);
+ }
+ function blur(event){
+  const target=field(event.target);
+  if(target)commitRemember(target,'blur');
  }
  function submit(event){
   const formElement=event.target;
@@ -461,6 +608,7 @@
  }
  if(root.document&&root.document.addEventListener){
   root.document.addEventListener('focusin',focus,true);
+  root.document.addEventListener('focusout',blur,true);
   root.document.addEventListener('beforeinput',before,true);
   root.document.addEventListener('paste',paste,true);
   root.document.addEventListener('drop',drop,true);

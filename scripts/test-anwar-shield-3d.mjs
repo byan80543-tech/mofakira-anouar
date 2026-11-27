@@ -11,7 +11,7 @@ sandbox.globalThis=sandbox;
 vm.runInNewContext(source,sandbox,{filename:'anwar-shield-3d.js'});
 const shield=sandbox.AnwarShield3D;
 
-test('version',()=>assert.equal(shield.version,'0.8.0'));
+test('version',()=>assert.equal(shield.version,'0.9.0'));
 test('blocks isolated attack vocabulary',()=>{
  for(const value of ['XSS','xss','SQL Injection','RCE','CSRF','SSRF','XXE','SSTI','LFI','RFI','Path Traversal','Prototype Pollution','Phishing','Reverse Shell','LDAP Injection','NoSQL Injection','Command Injection']){
   assert.equal(shield.inspect(value).status,'blocked',value);
