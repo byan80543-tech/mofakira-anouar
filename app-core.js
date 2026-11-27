@@ -362,7 +362,7 @@ async function continueVaultAfterRecovery(){
  showVaultGate('setup','التشفير الشامل إلزامي. استعدنا بياناتك القديمة دون حذفها؛ أنشئ عبارة المرور الآن لتشفيرها والتحقق من النسخة الاحتياطية قبل فتح المفكرة.');
  syncVaultLockButton();
  theme();chips();
- if($('pg'))$('pg').innerHTML='';invalidateLiveBodyCharacterCount();
+ if($('pg'))$('pg').innerHTML='';
  if($('t'))$('t').value='';
  if($('cards'))$('cards').innerHTML='';
 }
@@ -591,7 +591,7 @@ async function bootVault(){
  showVaultGate('setup','التشفير الشامل مطلوب قبل فتح مفكرة أنوار. استعدنا بياناتك الموجودة محليًا دون حذفها؛ أنشئ عبارة المرور الآن لتشفير جميع الأعمال وإعدادات السبحة والتحقق من النسخ الاحتياطية.');
  syncVaultLockButton();
  theme();chips();
- if($('pg'))$('pg').innerHTML='';invalidateLiveBodyCharacterCount();
+ if($('pg'))$('pg').innerHTML='';
  if($('t'))$('t').value='';
  if($('cards'))$('cards').innerHTML='';
 }
@@ -869,7 +869,7 @@ async function lockVault(reason='manual'){
    S=emptyStorageState();
    globalThis.AnwarPrivatePreferences.load(S.preferences);
    cur=null;draftNote=null;saved=null;
-   pg.innerHTML='';invalidateLiveBodyCharacterCount();
+   pg.innerHTML='';
    $('t').value='';
    $('backupPassword').value='';
    $('historyItems').innerHTML='';
@@ -1171,7 +1171,7 @@ async function restoreStorageBackup(){
   globalThis.AnwarPrivatePreferences.load(emptyStorageState().preferences);
   showVaultGate('setup','استعدنا النسخة الاحتياطية في الذاكرة دون إنشاء نسخة نصية جديدة. أنشئ عبارة المرور لتشفيرها والتحقق من الخزنة قبل فتح المفكرة.');
   syncVaultLockButton();theme();chips();
-  if($('pg')){$('pg').innerHTML='';invalidateLiveBodyCharacterCount();$('pg').style.display='none'}
+  if($('pg')){$('pg').innerHTML='';$('pg').style.display='none'}
   if($('em'))$('em').style.display='';
   if($('t'))$('t').value='';
   if($('cards'))$('cards').innerHTML='';
@@ -1192,7 +1192,7 @@ async function startFreshNotebook(){
   globalThis.AnwarPrivatePreferences.load(S.preferences);
   showVaultGate('setup','بدأت مفكرة جديدة في الذاكرة فقط. أنشئ عبارة المرور لتشفيرها قبل فتحها أو حفظ أي بيانات.');
   syncVaultLockButton();theme();chips();
-  if($('pg')){$('pg').innerHTML='';invalidateLiveBodyCharacterCount();$('pg').style.display='none'}
+  if($('pg')){$('pg').innerHTML='';$('pg').style.display='none'}
   if($('em'))$('em').style.display='';
   if($('t'))$('t').value='';
   if($('cards'))$('cards').innerHTML='';
@@ -1508,11 +1508,12 @@ function openArchive(){
  if(!$('archiveDialog').open)$('archiveDialog').showModal();
 }
 function openNote(n){
+ invalidateLiveBodyCharacterCount();
  if(cur&&cur!==n)flushPendingEdit(false);
  if(draftNote&&draftNote!==n)draftNote=null;
  cur=n;const on=!!n;
  pg.style.display=on?'':'none';$('em').style.display=on?'none':'';
- if(on){pg.innerHTML=san(n.html);invalidateLiveBodyCharacterCount();pg.style.fontFamily=n.font?`'${n.font}',Amiri,serif`:'';pg.style.fontSize=(n.size||20)+'px';applyPaperClass(n.paper);$('t').value=n.title;$('ty').value=n.type;$('pn').textContent=n.pin?'⭐ تثبيت':'☆ تثبيت';$('sz').value=n.size||20;$('app').classList.add('ed')}
+ if(on){pg.innerHTML=san(n.html);pg.style.fontFamily=n.font?`'${n.font}',Amiri,serif`:'';pg.style.fontSize=(n.size||20)+'px';applyPaperClass(n.paper);$('t').value=n.title;$('ty').value=n.type;$('pn').textContent=n.pin?'⭐ تثبيت':'☆ تثبيت';$('sz').value=n.size||20;$('app').classList.add('ed')}
  else {$('app').classList.remove('ed');$('paperStylePanel').hidden=true;$('paperStyleBtn').setAttribute('aria-expanded','false')}
  renderList();info();
 }
@@ -2482,7 +2483,7 @@ async function doWord(){
 }
 
 function openHistory(){if(!cur){toast('افتح عملًا أولًا');return}clearTimeout(tm);if(pendingBefore){cur.history=cur.history||[];if(pendingBefore.html!==cur.html)cur.history.push(pendingBefore);cur.history=cur.history.slice(-15);pendingBefore=null}const h=(cur.history||[]).slice().reverse();$('historyItems').innerHTML=h.length?h.map((v,i)=>`<button type="button" class="history-item" data-ver="${h.length-1-i}"><span>${esc(v.title||'بلا عنوان')} · ${TYPES[v.type]||'عمل'}</span><small>${fmt(v.ts)}</small></button>`).join(''):'<p class="empty">لا توجد إصدارات سابقة لهذا العمل بعد.</p>';$('historyDialog').showModal()}
-function restoreHistory(i){if(!cur)return;const h=cur.history||[],v=h[i];if(!v)return;if(!confirm('استعادة هذا الإصدار؟ سيُحفظ الإصدار الحالي في السجل قبل الاستعادة.'))return;h.push({title:cur.title,type:cur.type,html:cur.html,ts:cur.ts,font:cur.font,size:cur.size,paper:cur.paper||'plain'});cur.history=h.slice(-15);Object.assign(cur,{title:v.title,type:v.type,html:v.html,ts:Date.now(),font:v.font,size:v.size,paper:v.paper||'plain'});pg.innerHTML=san(cur.html);invalidateLiveBodyCharacterCount();$('t').value=cur.title;$('ty').value=cur.type;save();openNote(cur);$('historyDialog').close();toast('تمت استعادة الإصدار')}
+function restoreHistory(i){if(!cur)return;const h=cur.history||[],v=h[i];if(!v)return;if(!confirm('استعادة هذا الإصدار؟ سيُحفظ الإصدار الحالي في السجل قبل الاستعادة.'))return;h.push({title:cur.title,type:cur.type,html:cur.html,ts:cur.ts,font:cur.font,size:cur.size,paper:cur.paper||'plain'});cur.history=h.slice(-15);Object.assign(cur,{title:v.title,type:v.type,html:v.html,ts:Date.now(),font:v.font,size:v.size,paper:v.paper||'plain'});pg.innerHTML=san(cur.html);$('t').value=cur.title;$('ty').value=cur.type;save();openNote(cur);$('historyDialog').close();toast('تمت استعادة الإصدار')}
 function setBookToolExpanded(open,scroll=false){
  const app=$('app'),panel=$('bookToolPanel'),content=$('bookToolContent'),toggle=$('bookToolToggle');
  if(!panel||!content||!toggle)return;
