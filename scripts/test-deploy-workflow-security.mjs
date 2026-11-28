@@ -58,22 +58,50 @@ const quality = readFileSync(
   "utf8"
 );
 
-test("API gateway deployment is manual and production-main only", () => {
+test("live API gateway deployment probe is syntax checked by the main Quality workflow", () => {
+  assert.ok(
+    quality.includes("node --check scripts/test-live-api-gateway.mjs"),
+    "the production API smoke test must be parsed before any production deployment"
+  );
+});
+
+test("API gateway deployment follows only the trusted production Quality run or a manual main dispatch", () => {
   const triggers = gatewayDeployment.match(/^on:\n([\s\S]*?)^permissions:/m)?.[1] || "";
   assert.match(triggers, /^  workflow_dispatch:\s*$/m);
-  assert.doesNotMatch(triggers, /^\s+(?:push|pull_request|workflow_run):/m);
+  assert.match(triggers, /^  workflow_run:\s*$/m);
+  assert.match(triggers, /workflows:\n\s+- Quality checks/);
+  assert.match(triggers, /branches:\n\s+- main/);
+  assert.doesNotMatch(triggers, /^\s+(?:push|pull_request):/m);
 
   for (const condition of [
     "github.repository == 'byan80543-tech/mofakira-anouar'",
     "github.event_name == 'workflow_dispatch'",
-    "github.ref == 'refs/heads/main'"
+    "github.ref == 'refs/heads/main'",
+    "github.event.workflow_run.conclusion == 'success'",
+    "github.event.workflow_run.event == 'push'",
+    "github.event.workflow_run.head_branch == 'main'",
+    "github.event.workflow_run.repository.full_name == github.repository",
+    "github.event.workflow_run.head_repository.full_name == github.repository",
+    "github.event.workflow_run.name == 'Quality checks'",
+    "github.event.workflow_run.path == '.github/workflows/quality.yml'",
+    "github.event.workflow_run.workflow_id == 420424205"
   ]) {
-    assert.ok(gatewayDeployment.includes(condition), `Missing API deployment gate: ${condition}`);
+    assert.ok(gatewayDeployment.includes(condition), `Missing API deployment trust gate: ${condition}`);
+  }
+
+  for (const safeguard of [
+    "actions/workflows/deploy-anwar-api-gateway.yml/runs?branch=main&status=success&per_page=1",
+    "git diff --name-only",
+    "workers/anwar-api-gateway/",
+    "deploy=true",
+    "deploy=false"
+  ]) {
+    assert.ok(gatewayDeployment.includes(safeguard), `Missing selective deployment safeguard: ${safeguard}`);
   }
 });
 
 test("API gateway deployment keeps GitHub permissions read-only and checkout credentials disabled", () => {
-  assert.match(gatewayDeployment, /permissions:\s*\n\s+contents:\s*read/);
+  assert.match(gatewayDeployment, /permissions:\s*\n\s+actions:\s*read\s*\n\s+contents:\s*read/);
   assert.equal(gatewayDeployment.includes("contents: write"), false, "GitHub token permissions must never grant contents: write");
   assert.ok(
     gatewayDeployment.includes("uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683"),
@@ -82,9 +110,18 @@ test("API gateway deployment keeps GitHub permissions read-only and checkout cre
   assert.match(gatewayDeployment, /persist-credentials:\s*false/);
 });
 
+test("API gateway smoke workflow uses a Node 24 compatible pinned setup action", () => {
+  assert.ok(
+    gatewayDeployment.includes("uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1"),
+    "the live smoke job must pin the verified setup-node v7 commit"
+  );
+});
+
 test("API gateway deployment protects and removes its temporary secret file", () => {
   for (const required of [
     "secrets.CLOUDFLARE_API_TOKEN",
+    "secrets.CLOUDFLARE_METADATA_API_TOKEN",
+    "CF_METADATA_TOKEN",
     "secrets.CLOUDFLARE_ACCOUNT_ID",
     "secrets.IP_HASH_SECRET",
     "secrets.ADHKAR_ADMIN_SECRET",
@@ -94,8 +131,15 @@ test("API gateway deployment protects and removes its temporary secret file", ()
     "umask 077",
     "chmod 600",
     "npx --yes wrangler@4.164.0 deploy",
+    "workers/subdomain",
+    "cloudflare-api-auth.conf",
+    "chmod 600",
+    "scripts/test-live-api-gateway.mjs",
+    "ANWAR_API_GATEWAY_BASE:",
     "if: always()",
-    'rm -f "$RUNNER_TEMP/anwar-api-gateway-secrets.json"'
+    'rm -f \\',
+    '"$RUNNER_TEMP/anwar-api-gateway-secrets.json"',
+    '"$RUNNER_TEMP/cloudflare-api-auth.conf"'
   ]) {
     assert.ok(gatewayDeployment.includes(required), `Missing API secret or deployment safeguard: ${required}`);
   }

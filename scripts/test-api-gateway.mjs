@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { webcrypto } from "node:crypto";
-import worker, { IpRateLimiter } from "../workers/anwar-api-gateway/src/index.mjs";
+import worker, { IpRateLimiter, readTextWithLimit } from "../workers/anwar-api-gateway/src/index.mjs";
 
 const originalFetch = globalThis.fetch;
 const originalCrypto = globalThis.crypto;
@@ -60,7 +60,13 @@ const context = {
 const baseEnv = () => ({
   ALLOWED_ORIGIN: "https://mofakira-anouar.pages.dev",
   IP_HASH_SECRET: "test-secret-only-for-unit-tests-32-characters-minimum",
-  EDGE_LIMITER: { async limit() { return { success: true }; } },
+  EDGE_LIMITER: {
+    calls: [],
+    async limit({ key }) {
+      this.calls.push(key);
+      return { success: true };
+    }
+  },
   IP_LIMITER: makeLimiter()
 });
 const request = (path, options = {}) => new Request("https://gateway.example.workers.dev" + path, {
@@ -82,14 +88,18 @@ try {
   };
 
   // Strict origin: a rejected request never reaches the upstream.
+  const rejectedOriginEnv = baseEnv();
   let response = await worker.fetch(
     new Request("https://gateway.example.workers.dev/v1/reciters", {
       headers: { Origin: "https://attacker.example", "CF-Connecting-IP": "192.0.2.10" }
     }),
-    baseEnv(),
+    rejectedOriginEnv,
     context
   );
   assert.equal(response.status, 403);
+  assert.equal(rejectedOriginEnv.EDGE_LIMITER.calls.length, 1, "untrusted Origin requests are rate limited before CORS rejection");
+  assert.match(rejectedOriginEnv.EDGE_LIMITER.calls[0], /^client:[a-f0-9]{64}$/, "the edge limiter receives an HMAC key, not a raw IP address");
+  assert.equal(rejectedOriginEnv.EDGE_LIMITER.calls[0].includes("192.0.2.10"), false);
   assert.equal(calls, 0);
 
   // The retired GitHub Pages copy is not a trusted origin for this deployment.
@@ -256,6 +266,41 @@ try {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ clientKey, buckets: ["total", "client", routeBucket], ...extra })
   });
+
+  // Malformed JSON primitives must fail closed rather than throwing inside
+  // the Durable Object request handler.
+  const nullLimiterPayload = await limiter.fetch(new Request("https://rate-limit.internal/check", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: "null"
+  }));
+  assert.equal(nullLimiterPayload.status, 400, "a JSON null limiter payload is rejected");
+
+  // Upstream streams are bounded even when Content-Length is omitted.
+  const oversizedUpstream = new Response(new ReadableStream({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode("12345"));
+      controller.close();
+    }
+  }));
+  await assert.rejects(
+    readTextWithLimit(oversizedUpstream, 4, 100),
+    /too large/i,
+    "streamed upstream bodies cannot exceed their configured byte limit"
+  );
+
+  // A provider that never completes its body cannot hold a Worker request open.
+  let timedOutUpstreamCancelled = false;
+  const stalledUpstream = new Response(new ReadableStream({
+    pull() {},
+    cancel() { timedOutUpstreamCancelled = true; }
+  }));
+  await assert.rejects(
+    readTextWithLimit(stalledUpstream, 1024, 15),
+    /timed out/i,
+    "upstream body reads have a hard timeout"
+  );
+  assert.equal(timedOutUpstreamCancelled, true, "timed-out upstream streams are cancelled");
 
   const clientA = "a".repeat(64);
   const clientB = "b".repeat(64);

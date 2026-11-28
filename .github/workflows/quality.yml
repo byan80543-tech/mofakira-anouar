@@ -156,6 +156,8 @@ jobs:
         run: node scripts/test-asset-version-freshness.mjs
       - name: Test API gateway allowlist, cache and IP rate limiting
         run: node scripts/test-api-gateway.mjs
+      - name: Check live API gateway smoke probe syntax
+        run: node --check scripts/test-live-api-gateway.mjs
 
   editor-dom-sanitizer:
     runs-on: ubuntu-24.04

@@ -218,6 +218,7 @@ async function fetchSameOriginOnly(target) {
 
     if (response.status >= 300 && response.status < 400) {
       const location = response.headers.get("Location");
+      try { await response.body?.cancel(); } catch {}
       if (!location) throw new Error("Upstream redirect without a location");
       const next = validateUpstreamUrl(new URL(location, current));
       current = next;
@@ -229,36 +230,60 @@ async function fetchSameOriginOnly(target) {
   throw new Error("Too many upstream redirects");
 }
 
-async function readTextWithLimit(response, maxBytes) {
-  const advertisedLength = Number(response.headers.get("Content-Length") || 0);
-  if (advertisedLength > maxBytes) {
-    try { await response.body?.cancel(); } catch {}
-    throw new Error("Upstream response too large");
+async function readTextWithLimit(response, maxBytes, timeoutMs = UPSTREAM_TIMEOUT_MS) {
+  const advertisedHeader = response.headers.get("Content-Length");
+  if (advertisedHeader !== null) {
+    const advertisedLength = Number(advertisedHeader);
+    if (!Number.isSafeInteger(advertisedLength) || advertisedLength < 0 || advertisedLength > maxBytes) {
+      try { await response.body?.cancel(); } catch {}
+      throw new Error("Upstream response too large or has an invalid length");
+    }
   }
 
   if (!response.body) return "";
   const reader = response.body.getReader();
   const chunks = [];
   let total = 0;
+  let timer = null;
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    total += value.byteLength;
-    if (total > maxBytes) {
-      try { await reader.cancel(); } catch {}
-      throw new Error("Upstream response too large");
+  const consume = async () => {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!value || !Number.isSafeInteger(value.byteLength)) {
+        try { await reader.cancel(); } catch {}
+        throw new Error("Invalid upstream response chunk");
+      }
+      total += value.byteLength;
+      if (total > maxBytes) {
+        try { await reader.cancel("Upstream response too large"); } catch {}
+        throw new Error("Upstream response too large");
+      }
+      chunks.push(value);
     }
-    chunks.push(value);
-  }
 
-  const bytes = new Uint8Array(total);
-  let offset = 0;
-  for (const chunk of chunks) {
-    bytes.set(chunk, offset);
-    offset += chunk.byteLength;
+    const bytes = new Uint8Array(total);
+    let offset = 0;
+    for (const chunk of chunks) {
+      bytes.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+    return new TextDecoder("utf-8", { fatal: false }).decode(bytes);
+  };
+
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      try { void reader.cancel("Upstream response body timed out"); } catch {}
+      reject(new Error("Upstream response body timed out"));
+    }, Math.max(1, Number(timeoutMs) || UPSTREAM_TIMEOUT_MS));
+  });
+
+  try {
+    return await Promise.race([consume(), timeout]);
+  } finally {
+    if (timer !== null) clearTimeout(timer);
+    try { reader.releaseLock(); } catch {}
   }
-  return new TextDecoder("utf-8", { fatal: false }).decode(bytes);
 }
 
 async function readClientIpHash(request, env) {
@@ -308,10 +333,14 @@ export class IpRateLimiter {
       return json({ error: "Invalid limiter request" }, 400);
     }
 
-    const clientKey = payload && payload.clientKey;
-    const buckets = payload && payload.buckets;
-    const failureOnly = payload && payload.failureOnly === true;
-    const failed = payload && payload.failed === true;
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+      return json({ error: "Invalid rate-limit request" }, 400);
+    }
+
+    const clientKey = payload.clientKey;
+    const buckets = payload.buckets;
+    const failureOnly = payload.failureOnly === true;
+    const failed = payload.failed === true;
     const validRouteBuckets = new Set(["catalog", "country-list", "country-profile", "admin-login", "admin-api"]);
     const validShape = Array.isArray(buckets) &&
       buckets.length === 3 &&
@@ -776,6 +805,7 @@ export class AdhkarStore {
     const url = new URL(request.url);
     const path = url.pathname;
     const method = request.method;
+    if (url.search || url.hash) return this.json({ error: "not_found" }, 404);
 
     if (path === "/entries" && method === "GET") {
       const rows = this.ctx.storage.sql.exec(
@@ -786,12 +816,16 @@ export class AdhkarStore {
 
     if (path === "/initialize" && method === "POST") {
       if (this.initialized()) return this.json({ error: "already_initialized" }, 409);
-      const body = await request.json();
-      if (!Array.isArray(body.entries) || body.entries.length < 1 || body.entries.length > 200) {
+      const body = await readJsonBody(request, ADHKAR_BODY_LIMIT);
+      if (!body || !Array.isArray(body.entries) || body.entries.length < 1 || body.entries.length > 200) {
+        return this.json({ error: "invalid_initial_entries" }, 400);
+      }
+      const entries = body.entries.map(item => normalizeDhikr(item, { keepId: true }));
+      if (entries.some(item => !item) || new Set(entries.map(item => item.id)).size !== entries.length) {
         return this.json({ error: "invalid_initial_entries" }, 400);
       }
       const now = new Date().toISOString();
-      for (const item of body.entries) {
+      for (const item of entries) {
         this.ctx.storage.sql.exec(
           "INSERT INTO adhkar_entries (id, group_name, title, text, count, occasion, source, source_url, kind, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
           item.id, item.group, item.title, item.text, item.count, item.occasion,
@@ -799,12 +833,16 @@ export class AdhkarStore {
         );
       }
       this.ctx.storage.sql.exec("UPDATE adhkar_meta SET value = '1' WHERE key = 'initialized'");
-      return this.json({ initialized: true, count: body.entries.length });
+      return this.json({ initialized: true, count: entries.length });
     }
 
     if (path === "/entry" && (method === "POST" || method === "PUT")) {
       if (!this.initialized()) return this.json({ error: "initialize_library_first" }, 409);
-      const item = await request.json();
+      const item = normalizeDhikr(await readJsonBody(request, ADHKAR_BODY_LIMIT), {
+        keepId: true,
+        requireSource: true
+      });
+      if (!item) return this.json({ error: "invalid_entry" }, 400);
       const now = new Date().toISOString();
       this.ctx.storage.sql.exec(
         "INSERT INTO adhkar_entries (id, group_name, title, text, count, occasion, source, source_url, kind, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET group_name=excluded.group_name, title=excluded.title, text=excluded.text, count=excluded.count, occasion=excluded.occasion, source=excluded.source, source_url=excluded.source_url, kind=excluded.kind, updated_at=excluded.updated_at",
@@ -827,6 +865,25 @@ export class AdhkarStore {
 
 export default {
   async fetch(request, env, ctx) {
+    // Apply a per-client edge limit before trusting Origin or route details.
+    // A rejected cross-origin request must not bypass rate limiting entirely.
+    let edgeClientDecision;
+    try {
+      if (!env.EDGE_LIMITER) throw new Error("Edge rate limiter binding missing");
+      const rawClientIp = request.headers.get("CF-Connecting-IP") || "unknown";
+      const clientKey = await hmacClientKey(rawClientIp, env.IP_HASH_SECRET);
+      edgeClientDecision = await env.EDGE_LIMITER.limit({ key: "client:" + clientKey });
+    } catch {
+      return json({ error: "بوابة تحديد المعدل الطرفية غير متاحة مؤقتًا." }, 503);
+    }
+    if (!edgeClientDecision.success) {
+      return json(
+        { error: "تم تجاوز الحد الطرفي لطلبات هذه الشبكة. انتظر قليلًا ثم أعد المحاولة." },
+        429,
+        { "Retry-After": "60" }
+      );
+    }
+
     const configuredOrigins = String(env.ALLOWED_ORIGINS || env.ALLOWED_ORIGIN || "");
     const allowedOrigins = configuredOrigins.split(",").map(value => value.trim()).filter(Boolean);
     const origin = request.headers.get("Origin") || "";
@@ -971,3 +1028,4 @@ export default {
     }
   }
 };
+export { readTextWithLimit };

@@ -1,9 +1,17 @@
 name: Deploy Anwar API Gateway
 
 on:
+  workflow_run:
+    workflows:
+      - Quality checks
+    types:
+      - completed
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
+  actions: read
   contents: read
 
 concurrency:
@@ -12,46 +20,91 @@ concurrency:
 
 jobs:
   deploy:
-    # The Worker is production infrastructure: only the repository owner may
-    # dispatch this workflow from the protected production branch.
+    # Production deployment is permitted only after the exact trusted Quality
+    # workflow succeeds on main, or through an owner-triggered manual main run.
     if: >-
       github.repository == 'byan80543-tech/mofakira-anouar' &&
-      github.event_name == 'workflow_dispatch' &&
-      github.ref == 'refs/heads/main'
+      (
+        (github.event_name == 'workflow_dispatch' &&
+         github.ref == 'refs/heads/main') ||
+        (github.event_name == 'workflow_run' &&
+         github.event.workflow_run.conclusion == 'success' &&
+         github.event.workflow_run.event == 'push' &&
+         github.event.workflow_run.head_branch == 'main' &&
+         github.event.workflow_run.repository.full_name == github.repository &&
+         github.event.workflow_run.head_repository.full_name == github.repository &&
+         github.event.workflow_run.name == 'Quality checks' &&
+         github.event.workflow_run.path == '.github/workflows/quality.yml' &&
+         github.event.workflow_run.workflow_id == 420424205)
+      )
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      contents: read
+    timeout-minutes: 20
     steps:
-      - name: Enforce production-only dispatch
-        shell: bash
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          REF_NAME: ${{ github.ref }}
-          REPOSITORY: ${{ github.repository }}
-        run: |
-          set -euo pipefail
-          test "$EVENT_NAME" = "workflow_dispatch"
-          test "$REF_NAME" = "refs/heads/main"
-          test "$REPOSITORY" = "byan80543-tech/mofakira-anouar"
-
       - name: Check out the exact production commit without retaining credentials
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: ${{ github.sha }}
-          fetch-depth: 1
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0
           persist-credentials: false
 
+      - name: Determine whether the gateway changed since its last successful deployment
+        id: scope
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          DEPLOY_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+            echo "Manual production deployment requested." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          RESPONSE="$RUNNER_TEMP/previous-api-gateway-runs.json"
+          curl --fail --silent --show-error --retry 2 --max-time 15 \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$REPOSITORY/actions/workflows/deploy-anwar-api-gateway.yml/runs?branch=main&status=success&per_page=1" \
+            > "$RESPONSE"
+
+          LAST_DEPLOY_SHA="$(jq -r '.workflow_runs[0].head_sha // empty' "$RESPONSE")"
+          if [ -z "$LAST_DEPLOY_SHA" ]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+            echo "No successful gateway deployment exists; the first production deployment is required." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          if ! git cat-file -e "$LAST_DEPLOY_SHA^{commit}" 2>/dev/null; then
+            echo "::error::The previous successful gateway commit is not available in the checked-out history."
+            exit 1
+          fi
+
+          CHANGED="$(git diff --name-only "$LAST_DEPLOY_SHA" "$DEPLOY_SHA")"
+          if printf '%s\n' "$CHANGED" | grep -Eq '^(workers/anwar-api-gateway/|\.github/workflows/deploy-anwar-api-gateway\.yml$)'; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+            echo "Gateway code or deployment policy changed since the last successful gateway deployment." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+            echo "Gateway code and deployment policy are unchanged; no Worker redeployment is needed." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Validate required deployment secrets
+        if: steps.scope.outputs.deploy == 'true'
         shell: bash
         env:
           CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_METADATA_TOKEN: ${{ secrets.CLOUDFLARE_METADATA_API_TOKEN }}
           CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           IP_HASH_SECRET: ${{ secrets.IP_HASH_SECRET }}
           ADHKAR_ADMIN_SECRET: ${{ secrets.ADHKAR_ADMIN_SECRET }}
         run: |
           set -euo pipefail
           test -n "$CF_API_TOKEN" || { echo "::error::Missing CLOUDFLARE_API_TOKEN"; exit 1; }
+          test -n "$CF_METADATA_TOKEN" || { echo "::error::Missing CLOUDFLARE_METADATA_API_TOKEN (Workers Metadata Read-Only)"; exit 1; }
           test -n "$CF_ACCOUNT_ID" || { echo "::error::Missing CLOUDFLARE_ACCOUNT_ID"; exit 1; }
           test -n "$IP_HASH_SECRET" || { echo "::error::Missing IP_HASH_SECRET"; exit 1; }
           test -n "$ADHKAR_ADMIN_SECRET" || { echo "::error::Missing ADHKAR_ADMIN_SECRET"; exit 1; }
@@ -61,16 +114,16 @@ jobs:
           test "$ADMIN_BYTES" -ge 32 || { echo "::error::ADHKAR_ADMIN_SECRET must contain at least 32 bytes"; exit 1; }
           test "$IP_HASH_SECRET" != "$ADHKAR_ADMIN_SECRET" || { echo "::error::Worker secrets must be distinct"; exit 1; }
 
-      - name: Prepare temporary Worker secrets file
+      - name: Prepare protected temporary deployment secrets
+        if: steps.scope.outputs.deploy == 'true'
         shell: bash
         env:
+          CF_METADATA_TOKEN: ${{ secrets.CLOUDFLARE_METADATA_API_TOKEN }}
           IP_HASH_SECRET: ${{ secrets.IP_HASH_SECRET }}
           ADHKAR_ADMIN_SECRET: ${{ secrets.ADHKAR_ADMIN_SECRET }}
         run: |
           set -euo pipefail
           umask 077
-          test -n "$IP_HASH_SECRET"
-          test -n "$ADHKAR_ADMIN_SECRET"
           jq -n \
             --arg ip "$IP_HASH_SECRET" \
             --arg admin "$ADHKAR_ADMIN_SECRET" \
@@ -78,8 +131,12 @@ jobs:
             > "$RUNNER_TEMP/anwar-api-gateway-secrets.json"
           chmod 600 "$RUNNER_TEMP/anwar-api-gateway-secrets.json"
           test "$(stat -c '%a' "$RUNNER_TEMP/anwar-api-gateway-secrets.json")" = "600"
+          jq -nr --arg token "$CF_METADATA_TOKEN" '"header = \"Authorization: Bearer \($token)\""' \
+            > "$RUNNER_TEMP/cloudflare-api-auth.conf"
+          chmod 600 "$RUNNER_TEMP/cloudflare-api-auth.conf"
 
       - name: Deploy Worker with the pinned Wrangler CLI
+        if: steps.scope.outputs.deploy == 'true'
         shell: bash
         working-directory: workers/anwar-api-gateway
         env:
@@ -91,7 +148,51 @@ jobs:
             --config wrangler.toml \
             --secrets-file "$RUNNER_TEMP/anwar-api-gateway-secrets.json"
 
-      - name: Remove temporary Worker secrets file
+      - name: Resolve the exact deployed Worker origin
+        id: worker
+        if: steps.scope.outputs.deploy == 'true'
+        shell: bash
+        env:
+          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          RESPONSE="$RUNNER_TEMP/cloudflare-worker-subdomain.json"
+          HTTP_CODE="$(curl --silent --show-error --retry 2 --max-time 20 \
+            --output "$RESPONSE" --write-out '%{http_code}' \
+            --config "$RUNNER_TEMP/cloudflare-api-auth.conf" \
+            "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/workers/subdomain")"
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "::error::Cloudflare could not return the Workers subdomain (HTTP $HTTP_CODE). Verify the token has Workers Scripts Write or Read permission."
+            exit 1
+          fi
+          SUBDOMAIN="$(jq -er 'if .success == true and (.result.subdomain | type == "string") then .result.subdomain else error("invalid Workers subdomain response") end' "$RESPONSE")"
+          if [[ ! "$SUBDOMAIN" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$ ]]; then
+            echo "::error::Cloudflare returned a Workers subdomain with an invalid format."
+            exit 1
+          fi
+          BASE_URL="https://anwar-api-gateway.$SUBDOMAIN.workers.dev"
+          echo "base_url=$BASE_URL" >> "$GITHUB_OUTPUT"
+          echo "### Anwar API Gateway" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Worker origin resolved from the authenticated Cloudflare account: `$BASE_URL`" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Set up Node.js
+        if: steps.scope.outputs.deploy == 'true'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 22
+
+      - name: Verify deployed gateway routes, feeds and access boundaries
+        if: steps.scope.outputs.deploy == 'true'
+        env:
+          ANWAR_API_GATEWAY_BASE: ${{ steps.worker.outputs.base_url }}
+        run: node scripts/test-live-api-gateway.mjs
+
+      - name: Remove all temporary Cloudflare secret files
         if: always()
         shell: bash
-        run: rm -f "$RUNNER_TEMP/anwar-api-gateway-secrets.json"
+        run: |
+          rm -f \
+            "$RUNNER_TEMP/anwar-api-gateway-secrets.json" \
+            "$RUNNER_TEMP/cloudflare-api-auth.conf" \
+            "$RUNNER_TEMP/cloudflare-worker-subdomain.json" \
+            "$RUNNER_TEMP/previous-api-gateway-runs.json"
