@@ -57,6 +57,10 @@
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
             android:exported="false" />
         <activity
+            android:name=".NativePdfLibraryActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
+            android:exported="false" />
+        <activity
             android:name=".NativeAdhkarActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
             android:exported="false" />
