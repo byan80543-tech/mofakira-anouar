@@ -115,7 +115,7 @@ jobs:
           test -s "$APK"
           test -s "$AAB"
           "$ANDROID_HOME/build-tools/36.1.0/apksigner" verify --verbose --print-certs "$APK" | tee "$RUNNER_TEMP/anwar-apk-signature.txt"
-          grep -Fq "DA39FDDF01925007C02589A813CE38598910FA2FD35FC00C07A93D1874F0E88C" "$RUNNER_TEMP/anwar-apk-signature.txt"
+          grep -Fqi "DA39FDDF01925007C02589A813CE38598910FA2FD35FC00C07A93D1874F0E88C" "$RUNNER_TEMP/anwar-apk-signature.txt"
           jarsigner -verify "$AAB"
           sha256sum "$APK" "$AAB"
 
