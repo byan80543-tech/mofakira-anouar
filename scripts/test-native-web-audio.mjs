@@ -3,100 +3,76 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 
 const read = (path) => fs.readFileSync(new URL('../' + path, import.meta.url), 'utf8');
-const manifest = read('android/app/src/main/AndroidManifest.xml');
-const gradle = read('android/app/build.gradle.kts');
-const gate = read('android/app/src/main/java/com/anwar/mofakira/ReligiousGateActivity.kt');
-const activity = read('android/app/src/main/java/com/anwar/mofakira/NativeAudioWebActivity.kt');
-const legacyActivity = read('android/app/src/main/java/com/anwar/mofakira/NativeAudioActivity.kt');
-const service = read('android/app/src/main/java/com/anwar/mofakira/playback/NativeMediaService.kt');
-const catalog = read('android/app/src/main/java/com/anwar/mofakira/playback/NativeMediaCatalog.kt');
-const html = read('android/app/src/main/assets/audio/index.html');
-const css = read('android/app/src/main/assets/audio/app.css');
-const js = read('android/app/src/main/assets/audio/app.js');
-const tulip = read('android/app/src/main/assets/audio/tulip-cutout.svg');
-const roseClosed = read('android/app/src/main/assets/audio/royal-rose-closed.svg');
-const roseOpen = read('android/app/src/main/assets/audio/royal-rose-open.svg');
+const exists = (path) => fs.existsSync(new URL('../' + path, import.meta.url));
+const testPath = new URL(import.meta.url).pathname;
+const syntax = spawnSync(process.execPath, ['--check', testPath], { encoding: 'utf8' });
+assert.equal(syntax.status, 0, 'audio WebView retirement test must parse: ' + (syntax.stderr || syntax.stdout));
 
-assert.match(gradle, /versionCode = 19/);
-assert.match(gradle, /versionName = "0.10.0"/);
-assert.match(gradle, /applicationIdSuffix = "\.preview.v19"/);
-assert.match(manifest, /android:name="\.NativeAudioWebActivity"[\s\S]*?android:exported="false"/);
-assert.doesNotMatch(gate, /NativeAudioWebActivity::class\.java/,
-  'the religious gateway now opens the native audio screen while the legacy WebView screen remains available for compatibility checks');
+const manifest = read('android/app/src/main/AndroidManifest.xml');
+const gate = read('android/app/src/main/java/com/anwar/mofakira/ReligiousGateActivity.kt');
+const nativeAudio = read('android/app/src/main/java/com/anwar/mofakira/NativeAudioActivity.kt');
+const nativeArtwork = read('android/app/src/main/java/com/anwar/mofakira/NativeAudioArtwork.kt');
+const nativeRose = read('android/app/src/main/java/com/anwar/mofakira/NativeRosePlayButton.kt');
+const mediaService = read('android/app/src/main/java/com/anwar/mofakira/playback/NativeMediaService.kt');
+const legacy = read('android/app/src/main/java/com/anwar/mofakira/LegacyWebActivity.kt');
+
+assert.doesNotMatch(manifest, /NativeAudioWebActivity/,
+  'the dedicated audio WebView activity is no longer registered');
+assert.doesNotMatch(gate, /NativeAudioWebActivity/,
+  'the religious gateway has no route to the retired audio WebView');
+assert.match(gate, /NativeAudioActivity::class\.java/,
+  'the religious gateway launches the native audio screen');
 assert.match(gate, /NativeAudioActivity\.MODE_QURAN/);
 assert.match(gate, /NativeAudioActivity\.MODE_RADIO/);
 assert.match(gate, /NativeAudioActivity\.MODE_LESSONS/);
 
-assert.match(activity, /file:\/\/\/android_asset\/audio\/index\.html/);
-assert.match(activity, /addJavascriptInterface\(AudioBridge\(\), "AnwarAudioBridge"\)/);
-assert.match(activity, /allowUniversalAccessFromFileURLs = false/);
-assert.match(activity, /MIXED_CONTENT_NEVER_ALLOW/);
-assert.match(activity, /MediaController\.Builder\(this, token\)\.buildAsync\(\)/);
-assert.match(activity, /NativeMediaService::class\.java/);
-assert.match(activity, /NativeMediaCatalog\.loadReciters\(\)/);
-assert.match(activity, /NativeMediaCatalog\.loadStations\(\)/);
-assert.match(activity, /NativeMediaCatalog\.lessonSeries/);
-assert.match(activity, /player\.setMediaItems\(items, startIndex/);
-assert.match(activity, /player\.repeatMode = repeatMode/);
-assert.match(activity, /@JavascriptInterface fun playEdition/);
-assert.match(activity, /@JavascriptInterface fun playStation/);
-assert.match(activity, /@JavascriptInterface fun playLesson/);
-assert.match(activity, /@JavascriptInterface fun seekTo/);
-assert.match(activity, /@JavascriptInterface fun setVolume/);
-assert.match(activity, /player\?\.volume/);
-assert.match(activity, /player\.play\(\)/);
-assert.match(activity, /controller\?\.release\(\)/);
-
-assert.match(service, /class NativeMediaService : MediaSessionService/);
-assert.match(service, /persistPlaybackState\(\)/,
-  'the original UI must control the same persistent native playback service');
-assert.match(legacyActivity, /class NativeAudioActivity/);
-
-for (const id of [
-  'quranScreen','radioScreen','lessonsScreen','ibtihalatScreen',
-  'reciterGrid','reciterMore','surahPickerModal','surahPickerList',
-  'lessonSeriesModal','lessonSeriesList','lessonList','stationGrid',
-  'rpp','previousTrack','nextTrack','seekRange','volumeRange'
+assert.equal(
+  exists('android/app/src/main/java/com/anwar/mofakira/NativeAudioWebActivity.kt'),
+  false,
+  'the obsolete audio WebView Activity source has been deleted'
+);
+for (const path of [
+  'android/app/src/main/assets/audio/index.html',
+  'android/app/src/main/assets/audio/app.css',
+  'android/app/src/main/assets/audio/app.js',
+  'android/app/src/main/assets/audio/royal-rose-closed.svg',
+  'android/app/src/main/assets/audio/royal-rose-open.svg'
 ]) {
-  assert.match(html, new RegExp('id="' + id + '"'), 'audio page contains ' + id);
+  assert.equal(exists(path), false, 'obsolete WebView audio asset is deleted: ' + path);
 }
-assert.match(html, /id="reciterGrid" class="reciter-grid"/);
-assert.match(html, /id="lessonList" class="lesson-list"/);
-assert.match(html, /id="surahPickerModal"/);
-assert.match(html, /id="lessonSeriesModal"/);
 
-assert.match(css, /\.reciter-card/);
-assert.match(css, /\.reciter-seal/);
-assert.match(css, /\.reciter-play/);
-assert.match(css, /royal-rose-closed\.svg/);
-assert.match(css, /royal-rose-open\.svg/);
-assert.match(css, /anwarFlowerBloom/);
-assert.match(css, /\.surah-picker-option/);
-assert.match(css, /\.lesson-series-option/);
-assert.match(css, /\.lesson-item/);
-assert.match(css, /\.lesson-tulip/);
-assert.match(css, /max-height:min\(88dvh,780px\)/);
+assert.doesNotMatch(nativeAudio, /WebView|JavascriptInterface|WebViewClient|android\.webkit/,
+  'the native audio Activity contains no browser surface or JavaScript bridge');
+assert.match(nativeAudio, /MediaController\.Builder\(this, token\)\.buildAsync\(\)/);
+assert.match(nativeAudio, /NativeMediaService::class\.java/);
+assert.match(nativeAudio, /volumeSeekBar = SeekBar\(this\)/);
+assert.match(nativeAudio, /seekToNextMediaItem/);
+assert.match(nativeAudio, /seekToPreviousMediaItem/);
+assert.match(nativeAudio, /private fun renderQuran\(/);
+assert.match(nativeAudio, /private fun renderRadio\(/);
+assert.match(nativeAudio, /private fun renderLessons\(/);
+assert.match(nativeAudio, /private fun renderIbtihalat\(/);
 
-assert.ok(tulip.includes('data:image/webp;base64,'), 'original transparent tulip artwork is bundled locally');
-assert.ok(roseClosed.startsWith('<svg') && roseOpen.startsWith('<svg'),
-  'the original closed and open flower controls are bundled locally');
+assert.match(nativeArtwork, /TULIP_ASSET = "audio\/tulip-cutout\.svg"/,
+  'the exact original tulip is retained as the native list artwork');
+assert.ok(exists('android/app/src/main/assets/audio/tulip-cutout.svg'));
+assert.match(nativeRose, /R\.drawable\.anwar_rose_closed/);
+assert.match(nativeRose, /R\.drawable\.anwar_rose_open/);
+assert.ok(exists('android/app/src/main/res/drawable-nodpi/anwar_rose_closed.png'));
+assert.ok(exists('android/app/src/main/res/drawable-nodpi/anwar_rose_open.png'));
 
-assert.match(js, /AnwarAudioBridge/);
-assert.match(js, /groupReciters/);
-assert.match(js, /renderSurahOptions/);
-assert.match(js, /renderSeriesOptions/);
-assert.match(js, /AnwarAudioBridge/);
-assert.match(js, /playEdition/);
-assert.match(js, /playStation/);
-assert.match(js, /playLesson/);
-assert.match(js, /onPlayerState/);
-assert.match(js, /textContent/,
-  'catalog values are written as text, not injected as HTML');
-assert.doesNotMatch(js, /\bfetch\s*\(/,
-  'the local interface does not create a second network audio or data client');
+assert.match(mediaService, /class NativeMediaService : MediaSessionService/);
+assert.match(mediaService, /persistPlaybackState\(\)/);
+assert.match(mediaService, /restorePlaybackState\(exoPlayer\)/);
 
-const jsPath = new URL('../android/app/src/main/assets/audio/app.js', import.meta.url);
-const syntax = spawnSync(process.execPath, ['--check', jsPath.pathname], { encoding: 'utf8' });
-assert.equal(syntax.status, 0, 'audio JavaScript must parse: ' + (syntax.stderr || syntax.stdout));
+assert.match(legacy, /class LegacyWebActivity : Activity\(\)/);
+assert.match(legacy, /WebView/,
+  'the general compatibility WebView remains available for features not yet migrated');
+assert.match(manifest, /android:name="\.LegacyWebActivity"/,
+  'the migration does not remove the general legacy compatibility activity');
 
-console.log('Original Anwar Quran reader, tulip and rose lists, lesson dialogs, and native Media3 bridge tests passed.');
+const audioAssetNames = fs.readdirSync(new URL('../android/app/src/main/assets/audio/', import.meta.url)).sort();
+assert.deepEqual(audioAssetNames, ['tulip-cutout.svg'],
+  'the audio assets folder retains only the tulip bitmap container consumed by native Android');
+
+console.log('Dedicated audio WebView and HTML shell retired; native Media3 audio and original tulip/rose artwork retained. General LegacyWebActivity remains.');

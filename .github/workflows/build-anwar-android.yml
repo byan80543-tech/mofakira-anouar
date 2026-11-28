@@ -87,7 +87,7 @@ jobs:
         run: node scripts/test-native-notebook-archive.mjs
       - name: Validate two native gateways and icon destinations
         run: node scripts/test-native-gateway.mjs
-      - name: Validate original-style local audio WebView and Media3 bridge
+      - name: Validate fully native audio and retired dedicated WebView shell
         run: node scripts/test-native-web-audio.mjs
       - name: Validate one-piece packaged original web application shell
         run: node scripts/test-android-unified-web-shell.mjs
