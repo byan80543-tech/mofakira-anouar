@@ -104,7 +104,7 @@ jobs:
               "The published manifest does not declare an app-like display mode");
             assert(Array.isArray(manifest.icons), "The published manifest has no icons array");
             for (const size of [192, 512]) {
-              assert(manifest.icons.some(icon => (icon.sizes || "").split(/\\s+/).includes(size + "x" + size)),
+              assert(manifest.icons.some(icon => (icon.sizes || "").split(/\s+/).includes(size + "x" + size)),
                 "The published manifest does not declare a " + size + "px icon");
             }
 
