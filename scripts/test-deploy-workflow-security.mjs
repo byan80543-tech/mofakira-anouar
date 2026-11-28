@@ -59,12 +59,12 @@ const quality = readFileSync(
 );
 
 test("API gateway deployment follows only the trusted production Quality run or a manual main dispatch", () => {
-  const triggers = gatewayDeployment.match(/^on:\\n([\\s\\S]*?)^permissions:/m)?.[1] || "";
-  assert.match(triggers, /^  workflow_dispatch:\\s*$/m);
-  assert.match(triggers, /^  workflow_run:\\s*$/m);
-  assert.match(triggers, /workflows:\\n\\s+- Quality checks/);
-  assert.match(triggers, /branches:\\n\\s+- main/);
-  assert.doesNotMatch(triggers, /^\\s+(?:push|pull_request):/m);
+  const triggers = gatewayDeployment.match(/^on:\n([\s\S]*?)^permissions:/m)?.[1] || "";
+  assert.match(triggers, /^  workflow_dispatch:\s*$/m);
+  assert.match(triggers, /^  workflow_run:\s*$/m);
+  assert.match(triggers, /workflows:\n\s+- Quality checks/);
+  assert.match(triggers, /branches:\n\s+- main/);
+  assert.doesNotMatch(triggers, /^\s+(?:push|pull_request):/m);
 
   for (const condition of [
     "github.repository == 'byan80543-tech/mofakira-anouar'",
@@ -106,6 +106,8 @@ test("API gateway deployment keeps GitHub permissions read-only and checkout cre
 test("API gateway deployment protects and removes its temporary secret file", () => {
   for (const required of [
     "secrets.CLOUDFLARE_API_TOKEN",
+    "secrets.CLOUDFLARE_METADATA_API_TOKEN",
+    "CF_METADATA_TOKEN",
     "secrets.CLOUDFLARE_ACCOUNT_ID",
     "secrets.IP_HASH_SECRET",
     "secrets.ADHKAR_ADMIN_SECRET",
