@@ -71,6 +71,9 @@ class NativeAudioActivity : Activity() {
     private var stationListView: ListView? = null
     private var lessonListView: ListView? = null
     private val devotionalRoseButtons = mutableListOf<Pair<String, NativeRosePlayButton>>()
+    private val pendingRoseBloomKeys = mutableSetOf<String>()
+    private var lastRosePlaybackMediaId: String? = null
+    private var lastRosePlaybackWasPlaying = false
 
     private var mode = MODE_QURAN
     private var controller: MediaController? = null
@@ -403,6 +406,10 @@ class NativeAudioActivity : Activity() {
                 val currentId = controller?.currentMediaItem?.mediaId.orEmpty()
                 edition != null && controller?.isPlaying == true &&
                     currentId.startsWith("quran:${edition.serverUrl}:")
+            },
+            shouldAnimateRose = { position ->
+                val edition = visibleReciters.getOrNull(position)
+                edition != null && consumePendingRoseBloom("quran:${edition.serverUrl}")
             }
         )
         val selected = selectedEdition
@@ -444,6 +451,10 @@ class NativeAudioActivity : Activity() {
                     val station = stations.getOrNull(position)
                     station != null && controller?.isPlaying == true &&
                         controller?.currentMediaItem?.mediaId == "radio:${station.url}"
+                },
+                shouldAnimateRose = { position ->
+                    val station = stations.getOrNull(position)
+                    station != null && consumePendingRoseBloom("radio:${station.url}")
                 }
             )
         }
@@ -504,6 +515,9 @@ class NativeAudioActivity : Activity() {
                 isRosePlaying = { position ->
                     controller?.isPlaying == true &&
                         controller?.currentMediaItem?.mediaId == "lesson:${series.id}:$position"
+                },
+                shouldAnimateRose = { position ->
+                    consumePendingRoseBloom("lesson:${series.id}:$position")
                 }
             )
         }
@@ -745,12 +759,20 @@ class NativeAudioActivity : Activity() {
             else -> "$title · $artist"
         }
         val isPlaying = c?.isPlaying == true
+        val currentMediaId = c?.currentMediaItem?.mediaId.orEmpty()
+        if (isPlaying && (!lastRosePlaybackWasPlaying || currentMediaId != lastRosePlaybackMediaId)) {
+            pendingRoseBloomKeys.clear()
+            pendingRoseBloomKeyFor(currentMediaId)?.let(pendingRoseBloomKeys::add)
+        } else if (!isPlaying) {
+            pendingRoseBloomKeys.clear()
+        }
+        lastRosePlaybackWasPlaying = isPlaying
+        lastRosePlaybackMediaId = currentMediaId
         playPauseButton.setPlaybackActive(isPlaying)
         playPauseButton.alpha = if ((c?.mediaItemCount ?: 0) > 0) 1f else 0.55f
         reciterListView?.invalidateViews()
         stationListView?.invalidateViews()
         lessonListView?.invalidateViews()
-        val currentMediaId = c?.currentMediaItem?.mediaId.orEmpty()
         devotionalRoseButtons.forEach { (trackId, button) ->
             button.setPlaybackActive(isPlaying && currentMediaId == "ibtihal:$trackId")
         }
@@ -816,17 +838,20 @@ class NativeAudioActivity : Activity() {
         style: TulipRowStyle,
         selectedPosition: Int = -1,
         onRoseClick: ((Int) -> Unit)? = null,
-        isRosePlaying: (Int) -> Boolean = { false }
+        isRosePlaying: (Int) -> Boolean = { false },
+        shouldAnimateRose: (Int) -> Boolean = { false }
     ): ArrayAdapter<String> = object : ArrayAdapter<String>(this, 0, labels) {
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
             val label = getItem(position).orEmpty()
             val click = onRoseClick?.let { action -> { action(position) } }
+            val playing = isRosePlaying(position)
             return tulipRow(
                 label = label,
                 style = style,
                 selected = position == selectedPosition,
                 roseClick = click,
-                rosePlaying = isRosePlaying(position)
+                rosePlaying = playing,
+                animateRose = playing && shouldAnimateRose(position)
             )
         }
     }
@@ -836,7 +861,8 @@ class NativeAudioActivity : Activity() {
         style: TulipRowStyle,
         selected: Boolean,
         roseClick: (() -> Unit)?,
-        rosePlaying: Boolean
+        rosePlaying: Boolean,
+        animateRose: Boolean
     ): View {
         val rowHeight: Int
         val badgeWidth: Int
@@ -975,7 +1001,7 @@ class NativeAudioActivity : Activity() {
                 artworkSizeDp = roseArtworkSize,
                 onClick = roseClick
             )
-            rose.setPlaybackActive(rosePlaying, animate = false)
+            rose.setPlaybackActive(rosePlaying, animate = animateRose)
             row.addView(
                 rose,
                 LinearLayout.LayoutParams(dp(roseViewSize), dp(roseViewSize)).apply {
@@ -985,6 +1011,20 @@ class NativeAudioActivity : Activity() {
             )
         }
         return row
+    }
+
+    private fun consumePendingRoseBloom(key: String): Boolean =
+        pendingRoseBloomKeys.remove(key)
+
+    private fun pendingRoseBloomKeyFor(mediaId: String): String? = when {
+        mediaId.startsWith("quran:") -> {
+            val edition = reciters.firstOrNull { mediaId.startsWith("quran:${it.serverUrl}:") }
+            edition?.let { "quran:${it.serverUrl}" }
+        }
+        mediaId.startsWith("radio:") -> mediaId
+        mediaId.startsWith("lesson:") -> mediaId
+        mediaId.startsWith("ibtihal:") -> mediaId
+        else -> null
     }
 
     private fun sectionTitle(value: String) = text(value, 17f, green, true, top = 12, bottom = 5)
