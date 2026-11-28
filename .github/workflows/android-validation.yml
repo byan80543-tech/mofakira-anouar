@@ -9,6 +9,7 @@ on:
       - "scripts/test-native-audio-tulip.mjs"
       - "scripts/test-native-audio-rose.mjs"
       - "scripts/test-native-audio-surah-picker.mjs"
+      - "scripts/test-native-audio-play-mode.mjs"
       - "scripts/generate-native-adhkar-catalog.mjs"
       - "official-adhkar.js"
       - ".github/workflows/android-validation.yml"
@@ -47,6 +48,8 @@ jobs:
         run: node scripts/test-native-audio-rose.mjs
       - name: Verify the native Quran surah picker searches and selects from all surahs
         run: node scripts/test-native-audio-surah-picker.mjs
+      - name: Verify native Quran single-surah and continuous Media3 playback modes
+        run: node scripts/test-native-audio-play-mode.mjs
       - name: Verify religious audio library opens the fully native Android screen
         run: node scripts/test-native-audio-entry-routing.mjs
       - name: Verify the original tulip artwork is rendered by native Android list rows
