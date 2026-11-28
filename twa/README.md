@@ -24,7 +24,7 @@
 - اسم التطبيق: مفكرة أنوار
 - package ID: `com.anwar.mofakira.twa`
 - نقطة البدء والنطاق: `/mofakira-anouar/`
-- أقل إصدار Android: API 23
+- أقل إصدار Android: API 24 (متطلب مكتبة Android Browser Helper 2.8.0)
 - تفويض الإشعارات: معطل افتراضياً
 - النمط: TWA مع رجوع Custom Tabs عند فشل التحقق
 
