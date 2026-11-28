@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 
 const read = (path) => fs.readFileSync(new URL('../' + path, import.meta.url), 'utf8');
 const manifest = read('android/app/src/main/AndroidManifest.xml');
@@ -9,7 +10,19 @@ const androidAppGradle = gradle;
 const home = read('android/app/src/main/java/com/anwar/mofakira/MainActivity.kt');
 const notebook = read('android/app/src/main/java/com/anwar/mofakira/NativeNotebookActivity.kt');
 const religiousGate = read('android/app/src/main/java/com/anwar/mofakira/ReligiousGateActivity.kt');
+const testPath = new URL(import.meta.url).pathname;
+const syntax = spawnSync(process.execPath, ['--check', testPath], { encoding: 'utf8' });
+assert.equal(syntax.status, 0, 'native audio test script must parse: ' + (syntax.stderr || syntax.stdout));
 const audioActivity = read('android/app/src/main/java/com/anwar/mofakira/NativeAudioActivity.kt');
+assert.match(audioActivity, /private lateinit var volumeSeekBar: SeekBar/);
+assert.match(audioActivity, /volumeSeekBar = SeekBar\(this\)/,
+  'the fully native player exposes a volume slider');
+assert.match(audioActivity, /controller\?\.volume = safePercent \/ 100f/,
+  'the slider changes Media3 playback volume directly');
+assert.match(audioActivity, /private fun updateVolumeUi\(\)/,
+  'the slider reflects the current persistent media-session volume');
+assert.match(audioActivity, /isAdjustingVolume/,
+  "player state refreshes do not fight the user’s active volume adjustment");
 const webAudioActivity = read('android/app/src/main/java/com/anwar/mofakira/NativeAudioWebActivity.kt');
 const audioHtml = read('android/app/src/main/assets/audio/index.html');
 const audioCss = read('android/app/src/main/assets/audio/app.css');
