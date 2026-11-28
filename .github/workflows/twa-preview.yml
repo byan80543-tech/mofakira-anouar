@@ -137,8 +137,9 @@ jobs:
           bubblewrap update --directory="./twa" --manifest="./twa/twa-manifest.json" --skipVersionUpgrade
 
       - name: Compile unsigned release outputs
+        working-directory: twa
         run: |
-          bubblewrap build --directory="./twa" --manifest="./twa/twa-manifest.json" --skipSigning
+          bubblewrap build --directory="." --manifest="./twa-manifest.json" --skipSigning
 
       - name: Compile a debug APK for device preview
         working-directory: twa
