@@ -1,6 +1,7 @@
 package com.anwar.mofakira
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.ComponentName
 import android.content.Intent
 import android.graphics.Color
@@ -333,19 +334,16 @@ class NativeAudioActivity : Activity() {
 
         val surahLabel = fieldLabel("السورة")
         contentArea.addView(surahLabel)
-        val surahSpinner = Spinner(this)
-        val surahAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item,
-            NativeMediaCatalog.surahNames.mapIndexed { index, name -> "${index + 1}. $name" })
-        surahAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        surahSpinner.adapter = surahAdapter
-        contentArea.addView(surahSpinner, matchWrap(dp(48)))
+        val surahPicker = actionButton(surahSelectionLabel(), Color.WHITE, navy) {
+            showSurahPickerDialog(surahPicker)
+        }
+        contentArea.addView(surahPicker, matchWrap(dp(48)))
 
         val play = actionButton("تشغيل التلاوة المتتابعة", gold, navy) {
             val edition = selectedEdition
             if (edition == null) {
                 statusText.text = "اختر قارئاً أولا."
             } else {
-                selectedSurah = (surahSpinner.selectedItemPosition + 1).coerceIn(1, 114)
                 playQuran(edition, selectedSurah)
             }
         }
@@ -355,31 +353,120 @@ class NativeAudioActivity : Activity() {
             reciterList.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, listOf("جارٍ تحميل القراء…"))
         } else {
             selectedEdition = selectedEdition ?: reciters.first()
-            applyReciterFilter("", reciterList, selectedReader, surahSpinner, search)
+            applyReciterFilter("", reciterList, selectedReader, surahPicker, search)
         }
         reciterList.setOnItemClickListener { _, _, position, _ ->
             val edition = visibleReciters.getOrNull(position) ?: return@setOnItemClickListener
             selectedEdition = edition
             selectedSurah = edition.availableSurahs.firstOrNull() ?: 1
             selectedReader.text = "القارئ: ${edition.displayName}"
-            val targetPosition = (selectedSurah - 1).coerceIn(0, 113)
-            surahSpinner.setSelection(targetPosition)
-            applyReciterFilter(search.text?.toString().orEmpty(), reciterList, selectedReader, surahSpinner, search)
+            surahPicker.text = surahSelectionLabel()
+            applyReciterFilter(search.text?.toString().orEmpty(), reciterList, selectedReader, surahPicker, search)
         }
         search.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                applyReciterFilter(s?.toString().orEmpty(), reciterList, selectedReader, surahSpinner, search)
+                applyReciterFilter(s?.toString().orEmpty(), reciterList, selectedReader, surahPicker, search)
             }
             override fun afterTextChanged(s: Editable?) = Unit
         })
+    }
+
+    private fun surahSelectionLabel(): String {
+        val surahName = NativeMediaCatalog.surahNames.getOrNull(selectedSurah - 1) ?: "الفاتحة"
+        return "السورة المختارة · $selectedSurah. $surahName"
+    }
+
+    private fun showSurahPickerDialog(target: TextView) {
+        val pickerContent = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            setPadding(dp(18), dp(8), dp(18), dp(8))
+        }
+        val search = EditText(this).apply {
+            hint = "ابحث عن سورة أو رقمها…"
+            textSize = 14f
+            setSingleLine(true)
+            setTextColor(ink)
+            setHintTextColor(muted)
+            gravity = Gravity.END or Gravity.CENTER_VERTICAL
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            setPadding(dp(12), dp(6), dp(12), dp(6))
+            background = rounded(Color.WHITE, 11, Color.rgb(225, 219, 207))
+        }
+        pickerContent.addView(search, LinearLayout.LayoutParams(-1, dp(46)))
+
+        val surahList = ListView(this).apply {
+            divider = ColorDrawable(Color.rgb(235, 231, 222))
+            dividerHeight = dp(1)
+            setBackgroundColor(Color.WHITE)
+            isNestedScrollingEnabled = true
+        }
+        pickerContent.addView(surahList, LinearLayout.LayoutParams(-1, dp(390)))
+
+        val allSurahs = NativeMediaCatalog.surahNames.mapIndexed { index, name ->
+            (index + 1) to "${index + 1}. $name"
+        }
+        val visibleSurahNumbers = mutableListOf<Int>()
+        val adapter = object : ArrayAdapter<String>(
+            this,
+            android.R.layout.simple_list_item_1,
+            mutableListOf()
+        ) {
+            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+                val item = super.getView(position, convertView, parent) as TextView
+                item.textSize = 15f
+                item.setTextColor(navy)
+                item.gravity = Gravity.END or Gravity.CENTER_VERTICAL
+                item.layoutDirection = View.LAYOUT_DIRECTION_RTL
+                item.setPadding(dp(12), dp(5), dp(12), dp(5))
+                return item
+            }
+        }
+        surahList.adapter = adapter
+
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("اختيار السورة")
+            .setView(pickerContent)
+            .setNegativeButton("إغلاق", null)
+            .create()
+
+        fun filterSurahs(query: String) {
+            val normalized = query.trim().lowercase(Locale.forLanguageTag("ar"))
+            adapter.clear()
+            visibleSurahNumbers.clear()
+            allSurahs.forEach { (number, label) ->
+                if (normalized.isBlank() || label.lowercase(Locale.forLanguageTag("ar")).contains(normalized)) {
+                    visibleSurahNumbers += number
+                    adapter.add(label)
+                }
+            }
+            val selectedPosition = visibleSurahNumbers.indexOf(selectedSurah)
+            if (selectedPosition >= 0) surahList.setSelection(selectedPosition)
+        }
+
+        surahList.setOnItemClickListener { _, _, position, _ ->
+            selectedSurah = visibleSurahNumbers.getOrNull(position) ?: return@setOnItemClickListener
+            target.text = surahSelectionLabel()
+            dialog.dismiss()
+        }
+        search.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                filterSurahs(s?.toString().orEmpty())
+            }
+            override fun afterTextChanged(s: Editable?) = Unit
+        })
+        filterSurahs("")
+        dialog.show()
+        dialog.window?.setLayout((resources.displayMetrics.widthPixels * 0.9f).toInt(), dp(520))
     }
 
     private fun applyReciterFilter(
         query: String,
         list: ListView,
         selectedReader: TextView,
-        surahSpinner: Spinner,
+        surahPicker: TextView,
         search: EditText
     ) {
         val q = query.trim().lowercase(Locale.forLanguageTag("ar"))
@@ -395,9 +482,9 @@ class NativeAudioActivity : Activity() {
                     if (selectedSurah !in edition.availableSurahs) {
                         selectedSurah = edition.availableSurahs.firstOrNull() ?: 1
                     }
-                    surahSpinner.setSelection((selectedSurah - 1).coerceIn(0, 113))
+                    surahPicker.text = surahSelectionLabel()
                     selectedReader.text = "القارئ: ${edition.displayName}"
-                    applyReciterFilter(search.text?.toString().orEmpty(), list, selectedReader, surahSpinner, search)
+                    applyReciterFilter(search.text?.toString().orEmpty(), list, selectedReader, surahPicker, search)
                     playQuran(edition, selectedSurah)
                 }
             },
