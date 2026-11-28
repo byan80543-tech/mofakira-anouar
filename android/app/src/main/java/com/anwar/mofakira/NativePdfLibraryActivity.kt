@@ -241,6 +241,12 @@ class NativePdfLibraryActivity : Activity() {
             val descriptor = contentResolver.openFileDescriptor(uri, "r")
                 ?: throw IllegalStateException("تعذّر فتح الملف للقراءة.")
             val fileSize = descriptor.statSize
+            if (fileSize <= 0L) {
+                descriptor.close()
+                throw IllegalArgumentException(
+                    "تعذّر التحقق من حجم ملف PDF. احفظ نسخة محلية معروفة الحجم ثم أعد اختيارها."
+                )
+            }
             if (fileSize > MAX_PDF_FILE_BYTES) {
                 descriptor.close()
                 throw IllegalArgumentException("حجم الكتاب يتجاوز 100 ميغابايت. اختر نسخة أصغر.")

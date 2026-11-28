@@ -25,6 +25,8 @@ assert.match(activity, /MAX_BITMAP_PIXELS/,
   "Rendered page bitmaps have an explicit memory ceiling.");
 assert.match(activity, /descriptor\.statSize/,
   "Known PDF file sizes are checked before opening a renderer.");
+assert.match(activity, /fileSize <= 0L/,
+  "PDF files with unknown or empty size are rejected instead of bypassing the file-size limit.");
 assert.match(activity, /MAX_PDF_FILE_BYTES = 100L \* 1024L \* 1024L/,
   "The native reader rejects PDFs larger than the documented 100 MiB limit.");
 assert.match(activity, /MAX_PDF_PAGES = 2_000/,
