@@ -5,6 +5,7 @@ import android.content.ComponentName
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
@@ -14,6 +15,8 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
+import android.widget.AbsListView
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.EditText
@@ -302,8 +305,9 @@ class NativeAudioActivity : Activity() {
         }
         contentArea.addView(search, matchWrap(dp(46)))
         val reciterList = ListView(this).apply {
-            divider = null
-            dividerHeight = 0
+            divider = ColorDrawable(Color.TRANSPARENT)
+            dividerHeight = dp(9)
+            setBackgroundColor(Color.TRANSPARENT)
             isNestedScrollingEnabled = false
         }
         contentArea.addView(reciterList, matchWrap(dp(190)))
@@ -356,7 +360,11 @@ class NativeAudioActivity : Activity() {
     private fun applyReciterFilter(query: String, list: ListView, selectedReader: TextView) {
         val q = query.trim().lowercase(Locale.forLanguageTag("ar"))
         visibleReciters = reciters.filter { q.isBlank() || it.displayName.lowercase(Locale.forLanguageTag("ar")).contains(q) }
-        list.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, visibleReciters.map { it.displayName })
+        list.adapter = tulipArrayAdapter(
+            visibleReciters.map { it.displayName },
+            TulipRowStyle.RECITER,
+            visibleReciters.indexOf(selectedEdition)
+        )
         val selected = selectedEdition
         selectedReader.text = selected?.let { "القارئ: ${it.displayName}" } ?: "القارئ: لم يُحدد بعد"
     }
@@ -365,8 +373,9 @@ class NativeAudioActivity : Activity() {
         contentArea.addView(sectionTitle("الإذاعات المباشرة"))
         contentArea.addView(text("اختر محطة بث مباشر. يظل البث في الخدمة الصوتية الأصلية عند مغادرة الشاشة.", 11f, muted, bottom = 8))
         val stationList = ListView(this).apply {
-            divider = null
-            dividerHeight = 0
+            divider = ColorDrawable(Color.TRANSPARENT)
+            dividerHeight = dp(8)
+            setBackgroundColor(Color.TRANSPARENT)
             isNestedScrollingEnabled = false
         }
         contentArea.addView(stationList, matchWrap(dp(250)))
@@ -379,11 +388,16 @@ class NativeAudioActivity : Activity() {
         if (stations.isEmpty()) {
             stationList.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, listOf("جارٍ تحميل المحطات…"))
         } else {
-            stationList.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, stations.map { it.name })
+            stationList.adapter = tulipArrayAdapter(stations.map { it.name }, TulipRowStyle.STATION)
         }
         stationList.setOnItemClickListener { _, _, position, _ ->
             selectedStation = stations.getOrNull(position)
             selected.text = selectedStation?.let { "المحطة المختارة: ${it.name}" } ?: "اختر محطة صالحة."
+            stationList.adapter = tulipArrayAdapter(
+                stations.map { it.name },
+                TulipRowStyle.STATION,
+                position
+            )
         }
     }
 
@@ -419,7 +433,7 @@ class NativeAudioActivity : Activity() {
             val labels = (0 until series.count).map { index ->
                 "${(index + 1).toString().padStart(2, '0')} · ${series.trackTitle(index)}"
             }
-            lessonList.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, labels)
+            lessonList.adapter = tulipArrayAdapter(labels, TulipRowStyle.LESSON)
         }
         populateLessons(selectedLessonSeries)
         seriesSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -430,6 +444,10 @@ class NativeAudioActivity : Activity() {
         }
         lessonList.setOnItemClickListener { _, _, position, _ ->
             selectedLessonIndex = position
+            val labels = (0 until selectedLessonSeries.count).map { index ->
+                "${(index + 1).toString().padStart(2, '0')} · ${selectedLessonSeries.trackTitle(index)}"
+            }
+            lessonList.adapter = tulipArrayAdapter(labels, TulipRowStyle.LESSON, position)
             playLessons(selectedLessonSeries, position)
         }
     }
@@ -451,6 +469,17 @@ class NativeAudioActivity : Activity() {
             }
             copy.addView(text(track.title, 13f, navy, true))
             copy.addView(text(track.sourceLabel, 10f, muted, top = 3))
+            card.addView(
+                NativeAudioArtwork.badge(
+                    this,
+                    widthDp = 36,
+                    heightDp = 38,
+                    radiusDp = 9,
+                    borderColor = Color.rgb(213, 227, 210),
+                    backgroundColor = Color.rgb(251, 248, 235)
+                ),
+                LinearLayout.LayoutParams(dp(36), dp(38)).apply { marginEnd = dp(9) }
+            )
             card.addView(copy, LinearLayout.LayoutParams(0, -2, 1f))
             card.addView(actionButton("استماع", gold, navy) { playDevotional(track, index) },
                 LinearLayout.LayoutParams(dp(82), dp(42)).apply { marginStart = dp(10) })
@@ -678,6 +707,153 @@ class NativeAudioActivity : Activity() {
             MODE_RADIO, MODE_LESSONS, MODE_IBTIHALAT -> value
             else -> MODE_QURAN
         }
+
+
+    private enum class TulipRowStyle {
+        RECITER,
+        STATION,
+        LESSON
+    }
+
+    /**
+     * Native list row that preserves the notebook's original tulip placement
+     * while keeping list selection and playback behavior in Android views.
+     */
+    private fun tulipArrayAdapter(
+        labels: List<String>,
+        style: TulipRowStyle,
+        selectedPosition: Int = -1
+    ): ArrayAdapter<String> = object : ArrayAdapter<String>(this, 0, labels) {
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+            val label = getItem(position).orEmpty()
+            return tulipRow(label, style, position == selectedPosition)
+        }
+    }
+
+    private fun tulipRow(label: String, style: TulipRowStyle, selected: Boolean): View {
+        val rowHeight: Int
+        val badgeWidth: Int
+        val badgeHeight: Int
+        val badgeRadius: Int
+        val badgeBorder: Int
+        val badgeBackground: Int
+        val badgeCircle: Boolean
+        val cardRadius: Int
+        val normalStart: Int
+        val normalEnd: Int
+        val selectedStart: Int
+        val selectedEnd: Int
+        val normalBorder: Int
+        val selectedBorder: Int
+        val normalText: Int
+        val selectedText: Int
+        val textSize: Float
+
+        when (style) {
+            TulipRowStyle.RECITER -> {
+                rowHeight = 74
+                badgeWidth = 48
+                badgeHeight = 48
+                badgeRadius = 24
+                badgeBorder = Color.rgb(223, 197, 141)
+                badgeBackground = Color.rgb(255, 250, 240)
+                badgeCircle = true
+                cardRadius = 17
+                normalStart = Color.rgb(247, 248, 250)
+                normalEnd = Color.rgb(233, 237, 242)
+                selectedStart = Color.rgb(247, 248, 250)
+                selectedEnd = Color.rgb(233, 237, 242)
+                normalBorder = Color.rgb(212, 217, 223)
+                selectedBorder = gold
+                normalText = Color.rgb(23, 42, 58)
+                selectedText = Color.rgb(23, 42, 58)
+                textSize = 16f
+            }
+            TulipRowStyle.STATION -> {
+                rowHeight = 66
+                badgeWidth = 39
+                badgeHeight = 43
+                badgeRadius = 10
+                badgeBorder = Color.rgb(213, 227, 210)
+                badgeBackground = Color.rgb(251, 248, 235)
+                badgeCircle = false
+                cardRadius = 13
+                normalStart = Color.rgb(240, 247, 240)
+                normalEnd = Color.rgb(229, 240, 230)
+                selectedStart = Color.rgb(45, 112, 77)
+                selectedEnd = Color.rgb(32, 86, 59)
+                normalBorder = Color.rgb(201, 221, 204)
+                selectedBorder = Color.rgb(36, 92, 67)
+                normalText = Color.rgb(37, 77, 50)
+                selectedText = Color.WHITE
+                textSize = 14f
+            }
+            TulipRowStyle.LESSON -> {
+                rowHeight = 60
+                badgeWidth = 36
+                badgeHeight = 38
+                badgeRadius = 9
+                badgeBorder = Color.rgb(213, 227, 210)
+                badgeBackground = Color.rgb(251, 248, 235)
+                badgeCircle = false
+                cardRadius = 12
+                normalStart = Color.rgb(240, 247, 240)
+                normalEnd = Color.rgb(229, 240, 230)
+                selectedStart = Color.rgb(45, 112, 77)
+                selectedEnd = Color.rgb(32, 86, 59)
+                normalBorder = Color.rgb(201, 221, 204)
+                selectedBorder = Color.rgb(36, 92, 67)
+                normalText = Color.rgb(37, 77, 50)
+                selectedText = Color.WHITE
+                textSize = 13f
+            }
+        }
+
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(11), dp(7), dp(11), dp(7))
+            background = GradientDrawable(
+                GradientDrawable.Orientation.TL_BR,
+                intArrayOf(
+                    if (selected) selectedStart else normalStart,
+                    if (selected) selectedEnd else normalEnd
+                )
+            ).apply {
+                cornerRadius = dp(cardRadius).toFloat()
+                setStroke(dp(1), if (selected) selectedBorder else normalBorder)
+            }
+        }
+        row.layoutParams = AbsListView.LayoutParams(
+            AbsListView.LayoutParams.MATCH_PARENT,
+            dp(rowHeight)
+        )
+        row.addView(
+            NativeAudioArtwork.badge(
+                this,
+                widthDp = badgeWidth,
+                heightDp = badgeHeight,
+                radiusDp = badgeRadius,
+                borderColor = badgeBorder,
+                backgroundColor = badgeBackground,
+                circular = badgeCircle
+            ),
+            LinearLayout.LayoutParams(dp(badgeWidth), dp(badgeHeight))
+        )
+        val name = text(label, textSize, if (selected) selectedText else normalText, true).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            maxLines = 2
+        }
+        row.addView(
+            name,
+            LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f).apply {
+                marginStart = dp(10)
+                marginEnd = dp(6)
+            }
+        )
+        return row
+    }
 
     private fun sectionTitle(value: String) = text(value, 17f, green, true, top = 12, bottom = 5)
 
