@@ -38,11 +38,15 @@ assert.match(portal, /NativeAdhkarActivity::class\.java/);
 assert.match(portal, /NativeTasbihActivity::class\.java/);
 assert.match(portal, /LegacyWebActivity::class\.java/);
 assert.match(portal, /setOnClickListener \{ finish\(\) \}/, 'Close returns to the notebook.');
+
 assert.match(manifest, /android:name="\.ReligiousGateActivity"/);
-assert.match(manifest, /android:name="\.NativeAudioWebActivity"[\s\S]*?android:exported="false"/);
+assert.doesNotMatch(manifest, /NativeAudioWebActivity/,
+  'the dedicated audio WebView activity has been retired from the Android manifest');
+assert.match(manifest, /android:name="\.NativeAudioActivity"/,
+  'the native Media3 audio activity remains registered');
 assert.match(gradle, /versionCode = 19/);
 assert.match(gradle, /versionName = "0.10.0"/);
-assert.match(gradle, /applicationIdSuffix = "\.preview.v19"/);
+assert.match(gradle, /applicationIdSuffix = "\.preview\.v19"/);
 assert.match(workflow, /node scripts\/test-native-gateway\.mjs/);
 
-console.log('Original notebook landing, exact service labels, navigation, archive and isolated preview version are valid.');
+console.log('Native notebook landing, original service labels, native navigation and retired audio WebView registration are valid.');
