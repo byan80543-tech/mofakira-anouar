@@ -11,6 +11,7 @@ on:
       - "scripts/test-native-audio-surah-picker.mjs"
       - "scripts/test-native-audio-play-mode.mjs"
       - "scripts/test-native-book-export.mjs"
+      - "scripts/test-native-pdf-library-reader.mjs"
       - "scripts/generate-native-adhkar-catalog.mjs"
       - "official-adhkar.js"
       - ".github/workflows/android-validation.yml"
@@ -53,6 +54,8 @@ jobs:
         run: node scripts/test-native-audio-play-mode.mjs
       - name: Verify native notebook PDF book export and safe document saving
         run: node scripts/test-native-book-export.mjs
+      - name: Verify native local PDF reader and library compatibility fallback
+        run: node scripts/test-native-pdf-library-reader.mjs
       - name: Verify religious audio library opens the fully native Android screen
         run: node scripts/test-native-audio-entry-routing.mjs
       - name: Verify the original tulip artwork is rendered by native Android list rows
