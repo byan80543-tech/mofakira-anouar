@@ -58,17 +58,38 @@ const quality = readFileSync(
   "utf8"
 );
 
-test("API gateway deployment is manual and production-main only", () => {
-  const triggers = gatewayDeployment.match(/^on:\n([\s\S]*?)^permissions:/m)?.[1] || "";
-  assert.match(triggers, /^  workflow_dispatch:\s*$/m);
-  assert.doesNotMatch(triggers, /^\s+(?:push|pull_request|workflow_run):/m);
+test("API gateway deployment follows only the trusted production Quality run or a manual main dispatch", () => {
+  const triggers = gatewayDeployment.match(/^on:\\n([\\s\\S]*?)^permissions:/m)?.[1] || "";
+  assert.match(triggers, /^  workflow_dispatch:\\s*$/m);
+  assert.match(triggers, /^  workflow_run:\\s*$/m);
+  assert.match(triggers, /workflows:\\n\\s+- Quality checks/);
+  assert.match(triggers, /branches:\\n\\s+- main/);
+  assert.doesNotMatch(triggers, /^\\s+(?:push|pull_request):/m);
 
   for (const condition of [
     "github.repository == 'byan80543-tech/mofakira-anouar'",
     "github.event_name == 'workflow_dispatch'",
-    "github.ref == 'refs/heads/main'"
+    "github.ref == 'refs/heads/main'",
+    "github.event.workflow_run.conclusion == 'success'",
+    "github.event.workflow_run.event == 'push'",
+    "github.event.workflow_run.head_branch == 'main'",
+    "github.event.workflow_run.repository.full_name == github.repository",
+    "github.event.workflow_run.head_repository.full_name == github.repository",
+    "github.event.workflow_run.name == 'Quality checks'",
+    "github.event.workflow_run.path == '.github/workflows/quality.yml'",
+    "github.event.workflow_run.workflow_id == 420424205"
   ]) {
-    assert.ok(gatewayDeployment.includes(condition), `Missing API deployment gate: ${condition}`);
+    assert.ok(gatewayDeployment.includes(condition), `Missing API deployment trust gate: ${condition}`);
+  }
+
+  for (const safeguard of [
+    "actions/workflows/deploy-anwar-api-gateway.yml/runs?branch=main&status=success&per_page=1",
+    "git diff --name-only",
+    "workers/anwar-api-gateway/",
+    "deploy=true",
+    "deploy=false"
+  ]) {
+    assert.ok(gatewayDeployment.includes(safeguard), `Missing selective deployment safeguard: ${safeguard}`);
   }
 });
 
@@ -94,8 +115,15 @@ test("API gateway deployment protects and removes its temporary secret file", ()
     "umask 077",
     "chmod 600",
     "npx --yes wrangler@4.164.0 deploy",
+    "workers/subdomain",
+    "cloudflare-api-auth.conf",
+    "chmod 600",
+    "scripts/test-live-api-gateway.mjs",
+    "ANWAR_API_GATEWAY_BASE:",
     "if: always()",
-    'rm -f "$RUNNER_TEMP/anwar-api-gateway-secrets.json"'
+    'rm -f \\',
+    '"$RUNNER_TEMP/anwar-api-gateway-secrets.json"',
+    '"$RUNNER_TEMP/cloudflare-api-auth.conf"'
   ]) {
     assert.ok(gatewayDeployment.includes(required), `Missing API secret or deployment safeguard: ${required}`);
   }
