@@ -865,7 +865,7 @@ class NativeNotebookActivity : FragmentActivity() {
                     bodyValue,
                     paint(
                         note.sizeSp.coerceIn(14, 26).toFloat(),
-                        textColorFor(note.textColor),
+                        note.textColor,
                         false,
                         fontTypeface(note.font)
                     )
