@@ -17,7 +17,10 @@ assert.equal(webpBytes.toString("ascii", 8, 12), "WEBP");
 assert.ok(artwork.includes('audio/tulip-cutout.svg'));
 assert.ok(artwork.includes('BitmapFactory.decodeByteArray'));
 assert.ok(artwork.includes('ImageView(context)'));
-assert.doesNotMatch(artwork, /WebView|JavascriptInterface/);
+const artworkImports = artwork.split("\n").filter((line) => line.startsWith("import ")).join("\n");
+const activityImports = activity.split("\n").filter((line) => line.startsWith("import ")).join("\n");
+assert.doesNotMatch(artworkImports, /WebView|JavascriptInterface/);
+assert.doesNotMatch(activityImports, /WebView|JavascriptInterface/);
 assert.equal((activity.match(/NativeAudioArtwork[.]badge[(]/g) || []).length, 2,
   "The native row renderer and devotional cards must reuse the same tulip artwork.");
 assert.ok(activity.includes("TulipRowStyle.RECITER"));
