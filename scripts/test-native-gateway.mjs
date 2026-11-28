@@ -30,7 +30,7 @@ for (const label of ['أصوات الأذان','اختيار الصوت والت
 }
 assert.doesNotMatch(portal, /بوابة الدين/, 'The visible service screen must not be named بوابة الدين.');
 assert.match(portal, /NativeAudioActivity\.MODE_LESSONS/);
-assert.match(portal, /NativeAudioWebActivity::class\.java/);
+assert.doesNotMatch(portal, /NativeAudioWebActivity::class\.java/,\n  "the religious gateway must not route Quran, radio or lessons through WebView");\nassert.match(portal, /NativeAudioActivity::class\\.java/);
 assert.match(portal, /NativePrayerActivity::class\.java/);
 assert.match(portal, /NativeAdhkarActivity::class\.java/);
 assert.match(portal, /NativeTasbihActivity::class\.java/);
