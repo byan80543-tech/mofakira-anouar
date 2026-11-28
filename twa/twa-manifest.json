@@ -1,0 +1,30 @@
+{
+  "packageId": "com.anwar.mofakira.twa",
+  "host": "mofakira-anouar.pages.dev",
+  "name": "مفكرة أنوار",
+  "launcherName": "مفكرة أنوار",
+  "display": "standalone",
+  "themeColor": "#09264d",
+  "themeColorDark": "#09264d",
+  "navigationColor": "#09264d",
+  "navigationColorDark": "#09264d",
+  "navigationDividerColor": "#09264d",
+  "navigationDividerColorDark": "#09264d",
+  "backgroundColor": "#f7f3ea",
+  "enableNotifications": false,
+  "startUrl": "/mofakira-anouar/",
+  "iconUrl": "https://mofakira-anouar.pages.dev/mofakira-anouar/icon-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./twa-release.keystore",
+    "alias": "anwar-twa"
+  },
+  "appVersionCode": 1,
+  "appVersion": "1.0.0",
+  "webManifestUrl": "https://mofakira-anouar.pages.dev/mofakira-anouar/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "enableSiteSettingsShortcut": true,
+  "fullScopeUrl": "https://mofakira-anouar.pages.dev/mofakira-anouar/",
+  "minSdkVersion": 24,
+  "orientation": "portrait"
+}

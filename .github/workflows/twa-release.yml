@@ -1,0 +1,131 @@
+name: Build signed original-site TWA release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: anwar-twa-signed-release
+  cancel-in-progress: false
+
+jobs:
+  signed-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Check out the TWA packaging branch
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Install Android SDK Build Tools for signing
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$(command -v sdkmanager)"
+          mkdir -p "$ANDROID_HOME/bin"
+          ln -sf "$SDKMANAGER" "$ANDROID_HOME/bin/sdkmanager"
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.1.0"
+
+      - name: Install pinned Bubblewrap CLI
+        run: npm install --global @bubblewrap/cli@1.28.0
+
+      - name: Configure Bubblewrap toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.bubblewrap"
+          node -e 'const fs=require("node:fs"); const path=require("node:path"); const config={jdkPath:process.env.JAVA_HOME,androidSdkPath:process.env.ANDROID_HOME}; for (const [key,value] of Object.entries(config)) { if (!value || !fs.existsSync(value)) throw new Error("Missing Bubblewrap toolchain path: "+key); } fs.writeFileSync(path.join(process.env.HOME,".bubblewrap","config.json"),JSON.stringify(config),{mode:0o600});'
+          test -s "$JAVA_HOME/release"
+          test -x "$ANDROID_HOME/build-tools/36.1.0/apksigner"
+
+      - name: Check exact original-site TWA settings
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          config = json.loads(Path("twa/twa-manifest.json").read_text())
+          assert config["packageId"] == "com.anwar.mofakira.twa"
+          assert config["host"] == "mofakira-anouar.pages.dev"
+          assert config["startUrl"] == "/mofakira-anouar/"
+          assert config["fullScopeUrl"] == "https://mofakira-anouar.pages.dev/mofakira-anouar/"
+          assert config["signingKey"]["alias"] == "anwar-twa"
+          assert config["minSdkVersion"] == 24
+          statements = json.loads(Path(".well-known/assetlinks.json").read_text())
+          targets = [s["target"] for s in statements if "delegate_permission/common.handle_all_urls" in s.get("relation", [])]
+          assert any(t.get("namespace") == "android_app" and t.get("package_name") == config["packageId"] for t in targets)
+          print("TWA package, original site scope, and Digital Asset Links declaration are consistent.")
+          PY
+
+      - name: Regenerate the TWA project from the original site's configuration
+        run: |
+          bubblewrap update --directory="./twa" --manifest="./twa/twa-manifest.json" --skipVersionUpgrade
+
+      - name: Install the private release keystore from Actions secret
+        shell: bash
+        env:
+          ANWAR_TWA_KEYSTORE_BASE64: ${{ secrets.ANWAR_TWA_KEYSTORE_BASE64 }}
+          ANWAR_TWA_KEYSTORE_PASSWORD: ${{ secrets.ANWAR_TWA_KEYSTORE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          test -n "$ANWAR_TWA_KEYSTORE_BASE64" || { echo "::error::Missing ANWAR_TWA_KEYSTORE_BASE64 repository secret"; exit 1; }
+          test -n "$ANWAR_TWA_KEYSTORE_PASSWORD" || { echo "::error::Missing ANWAR_TWA_KEYSTORE_PASSWORD repository secret"; exit 1; }
+          printf '%s' "$ANWAR_TWA_KEYSTORE_BASE64" | base64 --decode > twa/twa-release.keystore
+          chmod 600 twa/twa-release.keystore
+          test -s twa/twa-release.keystore
+          keytool -list -keystore twa/twa-release.keystore -storepass "$ANWAR_TWA_KEYSTORE_PASSWORD" -alias anwar-twa >/dev/null
+          keytool -list -v -keystore twa/twa-release.keystore -storepass "$ANWAR_TWA_KEYSTORE_PASSWORD" -alias anwar-twa > "$RUNNER_TEMP/anwar-twa-certificate.txt"
+          grep -Fq "DA:39:FD:DF:01:92:50:07:C0:25:89:A8:13:CE:38:59:89:10:FA:2F:D3:5F:C0:0C:07:A9:3D:18:74:F0:E8:8C" "$RUNNER_TEMP/anwar-twa-certificate.txt"
+
+      - name: Build and sign APK and AAB with Bubblewrap
+        working-directory: twa
+        env:
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.ANWAR_TWA_KEYSTORE_PASSWORD }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.ANWAR_TWA_KEYSTORE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          bubblewrap build --directory="." --manifest="./twa-manifest.json" --signingKeyPath="./twa-release.keystore" --signingKeyAlias="anwar-twa"
+
+      - name: Verify Android APK and App Bundle signatures
+        working-directory: twa
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="./app-release-signed.apk"
+          AAB="./app-release-bundle.aab"
+          test -s "$APK"
+          test -s "$AAB"
+          "$ANDROID_HOME/build-tools/36.1.0/apksigner" verify --verbose --print-certs "$APK" | tee "$RUNNER_TEMP/anwar-apk-signature.txt"
+          grep -Fqi "DA39FDDF01925007C02589A813CE38598910FA2FD35FC00C07A93D1874F0E88C" "$RUNNER_TEMP/anwar-apk-signature.txt"
+          jarsigner -verify "$AAB"
+          sha256sum "$APK" "$AAB"
+
+      - name: Upload signed release outputs (never includes the private keystore)
+        uses: actions/upload-artifact@v4
+        with:
+          name: anwar-original-site-twa-signed-release
+          if-no-files-found: error
+          path: |
+            twa/app-release-signed.apk
+            twa/app-release-bundle.aab
+            twa/twa-manifest.json
+            .well-known/assetlinks.json

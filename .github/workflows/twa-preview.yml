@@ -1,0 +1,157 @@
+name: Validate and build Anwar original-site TWA preview
+
+on:
+  push:
+    branches:
+      - twa-packaging
+    paths:
+      - "twa/**"
+      - ".github/workflows/twa-preview.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: anwar-twa-preview
+  cancel-in-progress: false
+
+jobs:
+  validate-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out TWA packaging configuration
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Install Android SDK platforms and Bubblewrap build tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$(command -v sdkmanager)"
+          mkdir -p "$ANDROID_HOME/bin"
+          ln -sf "$SDKMANAGER" "$ANDROID_HOME/bin/sdkmanager"
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.1.0"
+
+      - name: Install pinned Bubblewrap CLI
+        run: npm install --global @bubblewrap/cli@1.28.0
+
+      - name: Configure Bubblewrap toolchain non-interactively
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.bubblewrap"
+          node -e 'const fs=require("node:fs"); const path=require("node:path"); const config={jdkPath:process.env.JAVA_HOME,androidSdkPath:process.env.ANDROID_HOME}; for (const [key,value] of Object.entries(config)) { if (!value || !fs.existsSync(value)) throw new Error("Missing Bubblewrap toolchain path: "+key); } fs.writeFileSync(path.join(process.env.HOME,".bubblewrap","config.json"),JSON.stringify(config),{mode:0o600});'
+          test -s "$JAVA_HOME/release"
+          test -x "$ANDROID_HOME/bin/sdkmanager"
+          test -x "$ANDROID_HOME/build-tools/36.1.0/apksigner"
+
+      - name: Verify the exact published PWA endpoints and launch scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const assert = (condition, message) => {
+            if (!condition) throw new Error(message);
+          };
+
+          const base = new URL("https://mofakira-anouar.pages.dev/mofakira-anouar/");
+          const urls = {
+            page: base.href,
+            manifest: new URL("manifest.webmanifest", base).href,
+            worker: new URL("service-worker.js", base).href,
+            core: new URL("app-core.js", base).href,
+            icon192: new URL("icon-192.png", base).href,
+            icon512: new URL("icon-512.png", base).href,
+          };
+
+          async function get(name, url) {
+            const response = await fetch(url, { redirect: "follow" });
+            assert(response.ok, name + " returned HTTP " + response.status + ": " + url);
+            assert(new URL(response.url).origin === base.origin, name + " left the original site origin");
+            return { response, body: await response.arrayBuffer() };
+          }
+
+          (async () => {
+            const page = await get("Original website", urls.page);
+            const html = new TextDecoder().decode(page.body);
+            assert(html.includes('rel="manifest"') && html.includes("manifest.webmanifest"),
+              "The original page does not link its Web Manifest");
+            assert(html.includes("app-core.js"), "The original page does not load app-core.js");
+
+            const manifestResult = await get("Web Manifest", urls.manifest);
+            const manifest = JSON.parse(new TextDecoder().decode(manifestResult.body));
+            assert(manifest.name === "مفكرة أنوار", "Unexpected app name in the published manifest");
+            assert(manifest.start_url === "/mofakira-anouar/", "Unexpected PWA start_url");
+            assert(manifest.scope === "/mofakira-anouar/", "Unexpected PWA scope");
+            assert(["standalone", "fullscreen", "minimal-ui"].includes(manifest.display),
+              "The published manifest does not declare an app-like display mode");
+            assert(Array.isArray(manifest.icons), "The published manifest has no icons array");
+            for (const size of [192, 512]) {
+              assert(manifest.icons.some(icon => (icon.sizes || "").split(/\s+/).includes(size + "x" + size)),
+                "The published manifest does not declare a " + size + "px icon");
+            }
+
+            const workerResult = await get("Service Worker", urls.worker);
+            const worker = new TextDecoder().decode(workerResult.body);
+            assert(worker.includes("addEventListener('install'") && worker.includes("addEventListener('fetch'"),
+              "The published Service Worker is missing install/fetch handlers");
+
+            const coreResult = await get("Application core", urls.core);
+            const core = new TextDecoder().decode(coreResult.body);
+            assert(core.includes("navigator.serviceWorker.register('./service-worker.js'"),
+              "The original application core does not register the expected Service Worker");
+
+            for (const [name, url] of [["192px icon", urls.icon192], ["512px icon", urls.icon512]]) {
+              const result = await get(name, url);
+              assert(result.body.byteLength > 1000, name + " is unexpectedly small");
+            }
+
+            console.log("PASS: live original site, manifest, service worker, core script and icons.");
+            console.log("PWA scope: " + manifest.scope);
+            console.log("Start URL: " + new URL(manifest.start_url, base).href);
+          })().catch(error => {
+            console.error(error);
+            process.exit(1);
+          });
+          NODE
+
+      - name: Generate the TWA Android project from the committed manifest
+        run: |
+          bubblewrap update --directory="./twa" --manifest="./twa/twa-manifest.json" --skipVersionUpgrade
+
+      - name: Compile unsigned release outputs
+        working-directory: twa
+        run: |
+          bubblewrap build --directory="." --manifest="./twa-manifest.json" --skipSigning
+
+      - name: Compile a debug APK for device preview
+        working-directory: twa
+        run: |
+          ./gradlew --no-daemon assembleDebug
+
+      - name: Upload TWA build outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: anwar-original-site-twa-preview
+          if-no-files-found: error
+          path: |
+            twa/app-release-unsigned-aligned.apk
+            twa/app/build/outputs/bundle/release/app-release.aab
+            twa/app/build/outputs/apk/debug/app-debug.apk

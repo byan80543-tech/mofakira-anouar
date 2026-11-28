@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.anwar.mofakira.twa",
+      "sha256_cert_fingerprints": [
+        "DA:39:FD:DF:01:92:50:07:C0:25:89:A8:13:CE:38:59:89:10:FA:2F:D3:5F:C0:0C:07:A9:3D:18:74:F0:E8:8C"
+      ]
+    }
+  }
+]
