@@ -1,0 +1,80 @@
+name: Validate and build Anwar original-site TWA preview
+
+on:
+  push:
+    branches:
+      - twa-packaging
+    paths:
+      - "twa/**"
+      - ".github/workflows/twa-preview.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: anwar-twa-preview
+  cancel-in-progress: false
+
+jobs:
+  validate-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out TWA packaging configuration
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: false
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK platforms and build tools
+        run: |
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0" "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Install pinned Bubblewrap CLI
+        run: npm install --global @bubblewrap/cli@1.28.0
+
+      - name: Configure Bubblewrap toolchain
+        run: |
+          bubblewrap updateConfig --jdkPath="$JAVA_HOME" --androidSdkPath="$ANDROID_HOME"
+
+      - name: Validate the exact published PWA
+        run: |
+          bubblewrap validate --url="https://mofakira-anouar.pages.dev/mofakira-anouar/"
+
+      - name: Generate the TWA Android project from the committed manifest
+        run: |
+          bubblewrap update --directory="./twa" --manifest="./twa/twa-manifest.json" --skipVersionUpgrade
+
+      - name: Compile unsigned release outputs
+        run: |
+          bubblewrap build --directory="./twa" --manifest="./twa/twa-manifest.json" --skipSigning
+
+      - name: Compile a debug APK for device preview
+        working-directory: twa
+        run: |
+          ./gradlew --no-daemon assembleDebug
+
+      - name: Upload TWA build outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: anwar-original-site-twa-preview
+          if-no-files-found: error
+          path: |
+            twa/app-release-unsigned-aligned.apk
+            twa/app/build/outputs/bundle/release/app-release.aab
+            twa/app/build/outputs/apk/debug/app-debug.apk
