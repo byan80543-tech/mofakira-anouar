@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { webcrypto } from "node:crypto";
-import worker, { IpRateLimiter } from "../workers/anwar-api-gateway/src/index.mjs";
+import worker, { IpRateLimiter, readTextWithLimit } from "../workers/anwar-api-gateway/src/index.mjs";
 
 const originalFetch = globalThis.fetch;
 const originalCrypto = globalThis.crypto;
@@ -256,6 +256,41 @@ try {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ clientKey, buckets: ["total", "client", routeBucket], ...extra })
   });
+
+  // Malformed JSON primitives must fail closed rather than throwing inside
+  // the Durable Object request handler.
+  const nullLimiterPayload = await limiter.fetch(new Request("https://rate-limit.internal/check", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: "null"
+  }));
+  assert.equal(nullLimiterPayload.status, 400, "a JSON null limiter payload is rejected");
+
+  // Upstream streams are bounded even when Content-Length is omitted.
+  const oversizedUpstream = new Response(new ReadableStream({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode("12345"));
+      controller.close();
+    }
+  }));
+  await assert.rejects(
+    readTextWithLimit(oversizedUpstream, 4, 100),
+    /too large/i,
+    "streamed upstream bodies cannot exceed their configured byte limit"
+  );
+
+  // A provider that never completes its body cannot hold a Worker request open.
+  let timedOutUpstreamCancelled = false;
+  const stalledUpstream = new Response(new ReadableStream({
+    pull() {},
+    cancel() { timedOutUpstreamCancelled = true; }
+  }));
+  await assert.rejects(
+    readTextWithLimit(stalledUpstream, 1024, 15),
+    /timed out/i,
+    "upstream body reads have a hard timeout"
+  );
+  assert.equal(timedOutUpstreamCancelled, true, "timed-out upstream streams are cancelled");
 
   const clientA = "a".repeat(64);
   const clientB = "b".repeat(64);
