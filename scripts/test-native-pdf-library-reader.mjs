@@ -51,7 +51,7 @@ assert.match(activity, /Executors\.newSingleThreadExecutor\(\)/,
   "Page rendering does not block the main UI thread.");
 assert.match(activity, /synchronized\(renderLock\)/,
   "The PDF renderer and file descriptor are serialized while pages render or close.");
-assert.match(activity, /private const val MAX_RENDER_WIDTH = 2600/);
+assert.match(activity, /private const val MAX_RENDER_WIDTH = 2400/);
 assert.match(activity, /private const val MAX_BITMAP_PIXELS = 12_000_000L/);
 assert.doesNotMatch(activity, /WebView|JavascriptInterface|http:\/\/|https:\/\//,
   "The local PDF reader has no WebView bridge or remote book fetch.");
