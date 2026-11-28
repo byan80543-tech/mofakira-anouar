@@ -23,6 +23,15 @@ assert.match(activity, /page\.render\(bitmap, null, null/);
 assert.match(activity, /Bitmap\.createBitmap\(/);
 assert.match(activity, /MAX_BITMAP_PIXELS/,
   "Rendered page bitmaps have an explicit memory ceiling.");
+assert.match(activity, /descriptor\.statSize/,
+  "Known PDF file sizes are checked before opening a renderer.");
+assert.match(activity, /MAX_PDF_FILE_BYTES = 100L \* 1024L \* 1024L/,
+  "The native reader rejects PDFs larger than the documented 100 MiB limit.");
+assert.match(activity, /MAX_PDF_PAGES = 2_000/,
+  "The native reader rejects pathological page counts before rendering.");
+assert.match(activity, /MAX_RENDER_WIDTH = 2400/);
+assert.match(activity, /MAX_BITMAP_PIXELS = 8_000_000L/,
+  "Each rendered page is bounded to an 8 megapixel bitmap for mid-range Android devices.");
 
 assert.match(activity, /Intent\.ACTION_OPEN_DOCUMENT/);
 assert.match(activity, /type = PDF_MIME/);
@@ -42,8 +51,8 @@ assert.match(activity, /Executors\.newSingleThreadExecutor\(\)/,
   "Page rendering does not block the main UI thread.");
 assert.match(activity, /synchronized\(renderLock\)/,
   "The PDF renderer and file descriptor are serialized while pages render or close.");
-assert.match(activity, /private const val MAX_RENDER_WIDTH = 2600/);
-assert.match(activity, /private const val MAX_BITMAP_PIXELS = 12_000_000L/);
+assert.match(activity, /private const val MAX_RENDER_WIDTH = 2400/);
+assert.match(activity, /private const val MAX_BITMAP_PIXELS = 8_000_000L/);
 assert.doesNotMatch(activity, /WebView|JavascriptInterface|http:\/\/|https:\/\//,
   "The local PDF reader has no WebView bridge or remote book fetch.");
 
