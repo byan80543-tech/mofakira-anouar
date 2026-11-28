@@ -334,7 +334,8 @@ class NativeAudioActivity : Activity() {
 
         val surahLabel = fieldLabel("السورة")
         contentArea.addView(surahLabel)
-        val surahPicker = actionButton(surahSelectionLabel(), Color.WHITE, navy) {
+        lateinit var surahPicker: TextView
+        surahPicker = actionButton(surahSelectionLabel(), Color.WHITE, navy) {
             showSurahPickerDialog(surahPicker)
         }
         contentArea.addView(surahPicker, matchWrap(dp(48)))
