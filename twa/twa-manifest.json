@@ -25,6 +25,6 @@
   "fallbackType": "customtabs",
   "enableSiteSettingsShortcut": true,
   "fullScopeUrl": "https://mofakira-anouar.pages.dev/mofakira-anouar/",
-  "minSdkVersion": 23,
+  "minSdkVersion": 24,
   "orientation": "portrait"
 }
