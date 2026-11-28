@@ -16,7 +16,7 @@ import android.widget.ImageView
  */
 internal object NativeAudioArtwork {
     private const val TULIP_ASSET = "audio/tulip-cutout.svg"
-    private val embeddedWebp = Regex("""data:image/webp;base64,([A-Za-z0-9+/=\\r\\n]+)""")
+    private val embeddedWebp = Regex("""data:image/webp;base64,([A-Za-z0-9+/=]+)""")
 
     @Volatile
     private var cachedTulip: Bitmap? = null
