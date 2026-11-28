@@ -32,7 +32,10 @@ assert.match(rootGradle, /org\.jetbrains\.kotlin\.android.*2\.3\.21/,
   "Kotlin Gradle plugin is aligned with the Media3 transitive Kotlin metadata");assert.match(manifest, /FOREGROUND_SERVICE_MEDIA_PLAYBACK/);
 assert.match(manifest, /android:name="\.NativeAudioActivity"[\s\S]*?android:exported="false"/);
 assert.match(manifest, /android:name="\.NativeAudioWebActivity"[\s\S]*?android:exported="false"/);
-assert.match(religiousGate, /NativeAudioWebActivity::class\.java/);
+assert.match(religiousGate, /NativeAudioActivity::class\.java/,
+  'Quran, radio and lessons open the fully native Android audio screen');
+assert.doesNotMatch(religiousGate, /NativeAudioWebActivity::class\.java/,
+  'the religious audio entry point must not route through the WebView screen');
 assert.match(webAudioActivity, /file:\/\/\/android_asset\/audio\/index\.html/);
 assert.match(webAudioActivity, /addJavascriptInterface\(AudioBridge\(\), "AnwarAudioBridge"\)/);
 assert.match(webAudioActivity, /NativeMediaService::class\.java/);
