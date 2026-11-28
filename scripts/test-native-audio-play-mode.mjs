@@ -25,6 +25,13 @@ assert.ok(quranScreen.includes("quranPlaybackMode == QURAN_PLAY_MODE_SINGLE"),
 assert.ok(quranScreen.includes("updateQuranPlaybackModeControls()"),
   "the active choice and play action label are synchronized");
 
+const filterBodyStart = activity.indexOf("private fun applyReciterFilter(");
+const quickPlayStart = activity.indexOf("playQuran(", filterBodyStart);
+assert.notEqual(quickPlayStart, -1, "Reciter quick-play must continue to work.");
+const quickPlayCall = activity.slice(quickPlayStart, quickPlayStart + 220);
+assert.match(quickPlayCall, /quranPlaybackMode == QURAN_PLAY_MODE_SINGLE/,
+  "the tulip reciter quick-play action must respect the selected one-surah or continuous mode");
+
 const modeUiStart = activity.indexOf("private fun setQuranPlaybackMode(");
 const playQuranStart = activity.indexOf("private fun playQuran(", modeUiStart);
 assert.notEqual(modeUiStart, -1, "The native playback mode handler must exist.");
