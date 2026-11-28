@@ -10,6 +10,15 @@ const home = read('android/app/src/main/java/com/anwar/mofakira/MainActivity.kt'
 const notebook = read('android/app/src/main/java/com/anwar/mofakira/NativeNotebookActivity.kt');
 const religiousGate = read('android/app/src/main/java/com/anwar/mofakira/ReligiousGateActivity.kt');
 const audioActivity = read('android/app/src/main/java/com/anwar/mofakira/NativeAudioActivity.kt');
+assert.match(audioActivity, /private lateinit var volumeSeekBar: SeekBar/);
+assert.match(audioActivity, /volumeSeekBar = SeekBar\(this\)/,
+  'the fully native player exposes a volume slider');
+assert.match(audioActivity, /controller\?\.volume = safePercent \/ 100f/,
+  'the slider changes Media3 playback volume directly');
+assert.match(audioActivity, /private fun updateVolumeUi\(\)/,
+  'the slider reflects the current persistent media-session volume');
+assert.match(audioActivity, /isAdjustingVolume/,
+  'player state refreshes do not fight the user's active volume adjustment');
 const webAudioActivity = read('android/app/src/main/java/com/anwar/mofakira/NativeAudioWebActivity.kt');
 const audioHtml = read('android/app/src/main/assets/audio/index.html');
 const audioCss = read('android/app/src/main/assets/audio/app.css');
