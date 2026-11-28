@@ -413,8 +413,9 @@ class NativeAudioActivity : Activity() {
         seriesSpinner.setSelection(initialIndex)
         contentArea.addView(seriesSpinner, matchWrap(dp(50)))
         val lessonList = ListView(this).apply {
-            divider = null
-            dividerHeight = 0
+            divider = ColorDrawable(Color.TRANSPARENT)
+            dividerHeight = dp(8)
+            setBackgroundColor(Color.TRANSPARENT)
             isNestedScrollingEnabled = false
         }
         contentArea.addView(lessonList, matchWrap(dp(250)))
