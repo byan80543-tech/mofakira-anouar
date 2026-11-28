@@ -35,6 +35,8 @@ internal object NativeAudioArtwork {
 
         return ImageView(context).apply {
             setImageBitmap(loadTulip(context))
+            minimumWidth = px(widthDp)
+            minimumHeight = px(heightDp)
             scaleType = ImageView.ScaleType.FIT_CENTER
             setPadding(px(3), px(3), px(3), px(3))
             background = GradientDrawable().apply {
