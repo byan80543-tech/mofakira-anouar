@@ -100,11 +100,11 @@ assert.equal(response.status, 200, 'public visitors can read the official librar
 let data = await response.json();
 assert.equal(data.initialized, false, 'an empty store is clearly marked');
 assert.deepEqual(data.entries, [], 'the public endpoint returns only official entries');
-assert.equal(edgeKeys.length, 1, 'public reads use Cloudflare edge rate limiting');
+assert.equal(edgeKeys.length, 2, 'public reads use the early per-client edge limit and the dedicated public-library limit');
+assert.match(edgeKeys[0], /^client:[a-f0-9]{64}$/, 'the early edge gate receives a prefixed hexadecimal HMAC');
 assert.notEqual(edgeKeys[0], rawPublicIp, 'the edge limiter receives no raw IP address');
-assert.equal(typeof edgeKeys[0], 'string', 'the per-network edge key is a pseudonymous HMAC');
+assert.equal(edgeKeys[1].length, 43, 'the dedicated public-library edge key is a base64url HMAC, not a raw address');
 assert.equal(ownerRateBuckets.length, 0, 'public reads do not write visitor identifiers to the app rate-limit database');
-assert.equal(edgeKeys[0].length, 43, 'the edge key is a base64url HMAC, not a raw address');
 
 edgeAllowed = false;
 response = await call('/v1/adhkar', 'GET', undefined, undefined, undefined, false);
