@@ -131,7 +131,7 @@ jobs:
             > "$RUNNER_TEMP/anwar-api-gateway-secrets.json"
           chmod 600 "$RUNNER_TEMP/anwar-api-gateway-secrets.json"
           test "$(stat -c '%a' "$RUNNER_TEMP/anwar-api-gateway-secrets.json")" = "600"
-          jq -nr --arg token "$CF_API_TOKEN" '"header = \"Authorization: Bearer \($token)\""' \
+          jq -nr --arg token "$CF_METADATA_TOKEN" '"header = \"Authorization: Bearer \($token)\""' \
             > "$RUNNER_TEMP/cloudflare-api-auth.conf"
           chmod 600 "$RUNNER_TEMP/cloudflare-api-auth.conf"
 
