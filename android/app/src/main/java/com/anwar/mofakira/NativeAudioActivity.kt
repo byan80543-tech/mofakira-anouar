@@ -539,7 +539,11 @@ class NativeAudioActivity : Activity() {
                     surahPicker.text = surahSelectionLabel()
                     selectedReader.text = "القارئ: ${edition.displayName}"
                     applyReciterFilter(search.text?.toString().orEmpty(), list, selectedReader, surahPicker, search)
-                    playQuran(edition, selectedSurah)
+                    playQuran(
+                        edition,
+                        selectedSurah,
+                        quranPlaybackMode == QURAN_PLAY_MODE_SINGLE
+                    )
                 }
             },
             isRosePlaying = { position ->
