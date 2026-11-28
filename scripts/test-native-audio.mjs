@@ -3,111 +3,104 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 
 const read = (path) => fs.readFileSync(new URL('../' + path, import.meta.url), 'utf8');
-const manifest = read('android/app/src/main/AndroidManifest.xml');
-const gradle = read('android/app/build.gradle.kts');
-const rootGradle = read('android/build.gradle.kts');
-const androidAppGradle = gradle;
-const home = read('android/app/src/main/java/com/anwar/mofakira/MainActivity.kt');
-const notebook = read('android/app/src/main/java/com/anwar/mofakira/NativeNotebookActivity.kt');
-const religiousGate = read('android/app/src/main/java/com/anwar/mofakira/ReligiousGateActivity.kt');
+const exists = (path) => fs.existsSync(new URL('../' + path, import.meta.url));
 const testPath = new URL(import.meta.url).pathname;
 const syntax = spawnSync(process.execPath, ['--check', testPath], { encoding: 'utf8' });
 assert.equal(syntax.status, 0, 'native audio test script must parse: ' + (syntax.stderr || syntax.stdout));
-const audioActivity = read('android/app/src/main/java/com/anwar/mofakira/NativeAudioActivity.kt');
-assert.match(audioActivity, /private lateinit var volumeSeekBar: SeekBar/);
-assert.match(audioActivity, /volumeSeekBar = SeekBar\(this\)/,
-  'the fully native player exposes a volume slider');
-assert.match(audioActivity, /controller\?\.volume = safePercent \/ 100f/,
-  'the slider changes Media3 playback volume directly');
-assert.match(audioActivity, /private fun updateVolumeUi\(\)/,
-  'the slider reflects the current persistent media-session volume');
-assert.match(audioActivity, /isAdjustingVolume/,
-  "player state refreshes do not fight the user’s active volume adjustment");
-const webAudioActivity = read('android/app/src/main/java/com/anwar/mofakira/NativeAudioWebActivity.kt');
-const audioHtml = read('android/app/src/main/assets/audio/index.html');
-const audioCss = read('android/app/src/main/assets/audio/app.css');
-const audioJs = read('android/app/src/main/assets/audio/app.js');
-const tulip = read('android/app/src/main/assets/audio/tulip-cutout.svg');
-const roseClosed = read('android/app/src/main/assets/audio/royal-rose-closed.svg');
-const roseOpen = read('android/app/src/main/assets/audio/royal-rose-open.svg');
-const audioService = read('android/app/src/main/java/com/anwar/mofakira/playback/NativeMediaService.kt');
+
+const manifest = read('android/app/src/main/AndroidManifest.xml');
+const gradle = read('android/app/build.gradle.kts');
+const rootGradle = read('android/build.gradle.kts');
+const home = read('android/app/src/main/java/com/anwar/mofakira/MainActivity.kt');
+const notebook = read('android/app/src/main/java/com/anwar/mofakira/NativeNotebookActivity.kt');
+const gate = read('android/app/src/main/java/com/anwar/mofakira/ReligiousGateActivity.kt');
+const activity = read('android/app/src/main/java/com/anwar/mofakira/NativeAudioActivity.kt');
+const artwork = read('android/app/src/main/java/com/anwar/mofakira/NativeAudioArtwork.kt');
+const roseButton = read('android/app/src/main/java/com/anwar/mofakira/NativeRosePlayButton.kt');
+const service = read('android/app/src/main/java/com/anwar/mofakira/playback/NativeMediaService.kt');
 const catalog = read('android/app/src/main/java/com/anwar/mofakira/playback/NativeMediaCatalog.kt');
 const legacy = read('android/app/src/main/java/com/anwar/mofakira/LegacyWebActivity.kt');
 
-assert.match(androidAppGradle, /versionCode = 19/,
-  "native tasbih migration increments the Android version code");
-assert.match(androidAppGradle, /versionName = "0.10.0"/,
-  "native tasbih migration increments the Android version name");
+assert.match(gradle, /versionCode = 19/);
+assert.match(gradle, /versionName = "0.10.0"/);
 assert.match(gradle, /androidx\.media3:media3-exoplayer:1\.11\.1/);
 assert.match(gradle, /androidx\.media3:media3-session:1\.11\.1/);
-
-assert.match(rootGradle, /org\.jetbrains\.kotlin\.android.*2\.3\.21/,
-  "Kotlin Gradle plugin is aligned with the Media3 transitive Kotlin metadata");assert.match(manifest, /FOREGROUND_SERVICE_MEDIA_PLAYBACK/);
+assert.match(rootGradle, /org\.jetbrains\.kotlin\.android.*2\.3\.21/);
+assert.match(manifest, /FOREGROUND_SERVICE_MEDIA_PLAYBACK/);
 assert.match(manifest, /android:name="\.NativeAudioActivity"[\s\S]*?android:exported="false"/);
-assert.match(manifest, /android:name="\.NativeAudioWebActivity"[\s\S]*?android:exported="false"/);
-assert.match(religiousGate, /NativeAudioActivity::class\.java/,
-  'Quran, radio and lessons open the fully native Android audio screen');
-assert.doesNotMatch(religiousGate, /NativeAudioWebActivity::class\.java/,
-  'the religious audio entry point must not route through the WebView screen');
-assert.match(webAudioActivity, /file:\/\/\/android_asset\/audio\/index\.html/);
-assert.match(webAudioActivity, /addJavascriptInterface\(AudioBridge\(\), "AnwarAudioBridge"\)/);
-assert.match(webAudioActivity, /NativeMediaService::class\.java/);
-assert.match(webAudioActivity, /NativeMediaCatalog\.loadReciters\(\)/);
-assert.match(webAudioActivity, /NativeMediaCatalog\.loadStations\(\)/);
-assert.match(webAudioActivity, /player\.setMediaItems\(items, startIndex/);
-assert.match(webAudioActivity, /@JavascriptInterface fun playEdition/);
-assert.match(webAudioActivity, /@JavascriptInterface fun playLesson/);
-assert.match(audioHtml, /id="reciterGrid"/);
-assert.match(audioHtml, /id="surahPickerModal"/);
-assert.match(audioHtml, /id="lessonSeriesModal"/);
-assert.match(audioHtml, /id="lessonList"/);
-assert.match(audioCss, /\.reciter-card/);
-assert.match(audioCss, /royal-rose-closed\.svg/);
-assert.match(audioCss, /royal-rose-open\.svg/);
-assert.match(audioCss, /surah-picker-option/);
-assert.match(audioCss, /lesson-series-option/);
-assert.match(audioJs, /AnwarAudioBridge/);
-assert.match(audioJs, /playEdition/);
-assert.match(audioJs, /playLesson/);
-assert.ok(tulip.includes('data:image/webp;base64,'), 'the original real tulip asset is bundled locally');
-assert.ok(roseClosed.includes('<svg') && roseOpen.includes('<svg'), 'the original rose play states are bundled locally');
-assert.match(manifest, /android:name="\.playback\.NativeMediaService"[\s\S]*?android:exported="true"[\s\S]*?android:foregroundServiceType="mediaPlayback"/);
-assert.match(manifest, /androidx\.media3\.session\.MediaSessionService/);
-assert.match(audioService, /class NativeMediaService : MediaSessionService\(\)/);
-assert.match(audioService, /ExoPlayer\.Builder\(this\)/);
-assert.match(audioService, /MediaSession\.Builder\(this, exoPlayer\)/);
-assert.match(audioService, /controllerInfo\.isTrusted/,
-  'only trusted controllers such as the app and Android system can control the shared media session');
-assert.match(audioService, /setHandleAudioBecomingNoisy\(true\)/);
+assert.doesNotMatch(manifest, /NativeAudioWebActivity/,
+  'the retired audio WebView activity is no longer registered');
+assert.equal(
+  exists('android/app/src/main/java/com/anwar/mofakira/NativeAudioWebActivity.kt'),
+  false,
+  'the dedicated audio WebView source file is removed'
+);
 
-assert.match(audioService, /persistPlaybackState\(\)/,
-  'native playback saves the current queue and listening position');
-assert.match(audioService, /restorePlaybackState\(exoPlayer\)/,
-  'native playback restores the last listening queue after service recreation');
-assert.match(audioService, /KEY_POSITION/);
-assert.match(audioService, /PERSIST_INTERVAL_MS = 15_000L/,
-  'playback progress is checkpointed periodically while audio is active');
-assert.match(audioService, /Deliberately do not call prepare\(\) or play\(\)/,
-  'restored playback never starts automatically');assert.match(audioActivity, /MediaController\.Builder\(this, token\)\.buildAsync\(\)/);
-assert.match(audioActivity, /c\.setMediaItems\(items, index, 0L\)/,
-  'Quran and lesson queues support starting at the selected track');
-assert.match(audioActivity, /MODE_QURAN/);
-assert.match(audioActivity, /MODE_RADIO/);
-assert.match(audioActivity, /MODE_LESSONS/);
-assert.match(audioActivity, /MODE_IBTIHALAT/);
-assert.match(audioActivity, /NativeMediaService::class\.java/);
-assert.doesNotMatch(audioActivity, /WebView|WEB_MESSAGE_LISTENER|mofakira-anouar\.pages\.dev/,
-  'the native audio screen does not depend on the web notebook');
-assert.match(audioActivity, /if \(c\.playbackState == Player\.STATE_IDLE\) c\.prepare\(\)/,
-  'resuming a restored queue prepares ExoPlayer before starting playback');
-assert.match(audioActivity, /seekToPreviousMediaItem/);
-assert.match(audioActivity, /seekToNextMediaItem/);
-assert.match(audioActivity, /setMediaItem\(item\)/,
-  'live radio uses the same native player engine as other audio');
-assert.match(religiousGate, /NativeAudioActivity\.MODE_LESSONS/,
-  'lesson mode is opened from the dedicated religious gateway rather than cluttering the first screen');
-assert.match(legacy, /WEB_MESSAGE_LISTENER/,
-  'the legacy notebook and its adhan bridge remain available during migration');
+assert.match(gate, /NativeAudioActivity::class\.java/);
+assert.match(gate, /NativeAudioActivity\.MODE_QURAN/);
+assert.match(gate, /NativeAudioActivity\.MODE_RADIO/);
+assert.match(gate, /NativeAudioActivity\.MODE_LESSONS/);
+assert.doesNotMatch(gate, /NativeAudioWebActivity::class\.java/);
+
+assert.match(activity, /class NativeAudioActivity : Activity\(\)/);
+assert.doesNotMatch(activity, /WebView|JavascriptInterface|WebViewClient|android\.webkit/,
+  'the native audio activity has no WebView or JavaScript bridge');
+assert.match(activity, /MediaController\.Builder\(this, token\)\.buildAsync\(\)/);
+assert.match(activity, /NativeMediaService::class\.java/);
+assert.match(activity, /MODE_QURAN/);
+assert.match(activity, /MODE_RADIO/);
+assert.match(activity, /MODE_LESSONS/);
+assert.match(activity, /MODE_IBTIHALAT/);
+assert.match(activity, /private fun renderQuran\(/);
+assert.match(activity, /private fun showSurahPickerDialog\(/);
+assert.match(activity, /private fun applyReciterFilter\(/);
+assert.match(activity, /private fun renderRadio\(/);
+assert.match(activity, /private fun renderLessons\(/);
+assert.match(activity, /private fun renderIbtihalat\(/);
+assert.match(activity, /private fun playQuran\(/);
+assert.match(activity, /private fun playStation\(/);
+assert.match(activity, /private fun playLessons\(/);
+assert.match(activity, /private fun playDevotional\(/);
+assert.match(activity, /seekToPreviousMediaItem/);
+assert.match(activity, /seekToNextMediaItem/);
+assert.match(activity, /private lateinit var seekBar: SeekBar/);
+assert.match(activity, /private lateinit var volumeSeekBar: SeekBar/);
+assert.match(activity, /controller\?\.volume = safePercent \/ 100f/);
+assert.match(activity, /private fun updateVolumeUi\(\)/);
+assert.match(activity, /private fun openExternal\(url: String\)/,
+  'native audio keeps the approved source-opening action without a JavaScript bridge');
+assert.match(activity, /NativeAudioArtwork\.badge/);
+assert.match(activity, /NativeRosePlayButton\(/);
+
+assert.match(artwork, /private const val TULIP_ASSET = "audio\/tulip-cutout\.svg"/);
+assert.match(artwork, /BitmapFactory\.decodeByteArray/);
+assert.match(roseButton, /R\.drawable\.anwar_rose_closed/);
+assert.match(roseButton, /R\.drawable\.anwar_rose_open/);
+assert.ok(exists('android/app/src/main/assets/audio/tulip-cutout.svg'),
+  'the exact original tulip asset remains bundled for NativeAudioArtwork');
+assert.ok(exists('android/app/src/main/res/drawable-nodpi/anwar_rose_closed.png'));
+assert.ok(exists('android/app/src/main/res/drawable-nodpi/anwar_rose_open.png'));
+
+for (const path of [
+  'android/app/src/main/assets/audio/index.html',
+  'android/app/src/main/assets/audio/app.css',
+  'android/app/src/main/assets/audio/app.js',
+  'android/app/src/main/assets/audio/royal-rose-closed.svg',
+  'android/app/src/main/assets/audio/royal-rose-open.svg'
+]) {
+  assert.equal(exists(path), false, 'obsolete audio WebView asset is removed: ' + path);
+}
+
+assert.match(service, /class NativeMediaService : MediaSessionService\(\)/);
+assert.match(service, /ExoPlayer\.Builder\(this\)/);
+assert.match(service, /MediaSession\.Builder\(this, exoPlayer\)/);
+assert.match(service, /persistPlaybackState\(\)/);
+assert.match(service, /restorePlaybackState\(exoPlayer\)/);
+assert.match(service, /KEY_POSITION/);
+assert.match(service, /PERSIST_INTERVAL_MS = 15_000L/);
+assert.match(service, /Deliberately do not call prepare\(\) or play\(\)/);
+assert.match(service, /setHandleAudioBecomingNoisy\(true\)/);
+assert.match(manifest, /android:name="\.playback\.NativeMediaService"[\s\S]*?android:foregroundServiceType="mediaPlayback"/);
 
 assert.match(catalog, /https:\/\/www\.mp3quran\.net\/api\/v3\/reciters\?language=ar/);
 assert.match(catalog, /https:\/\/www\.mp3quran\.net\/api\/v3\/radios\?language=ar/);
@@ -118,6 +111,7 @@ assert.match(catalog, /أغيب وذو اللطائف لا يغيب/);
 for (const id of ['tawhid','wasitiyya','dawa','usul','usul2','qawaid','nawqid','kashf','masail','usulIman','usulAqaid','kabair','sharia','maarij','jawhara']) {
   assert.ok(catalog.includes('"' + id + '"'), 'native audio catalog preserves lesson series ' + id);
 }
+
 assert.match(notebook, /radioToolbarButton = toolbarIconButton/);
 assert.match(notebook, /private fun toggleRadioPlayback/);
 assert.match(notebook, /NativeMediaCatalog\.quickRadioStation\(\)/);
@@ -128,7 +122,10 @@ assert.match(notebook, /controller\.pause\(\)/);
 const radioToolbar = notebook.slice(notebook.indexOf('radioToolbarButton ='), notebook.indexOf('shell.addView(toolbar)'));
 assert.doesNotMatch(radioToolbar, /startActivity|NativeAudioActivity/,
   'the home radio button starts and pauses the shared player directly instead of opening the audio library');
-assert.match(notebook, /إيقاف إذاعة القرآن مؤقتًا/);
-assert.match(religiousGate, /NativeAudioActivity\.MODE_QURAN/);
-assert.match(religiousGate, /NativeAudioActivity\.MODE_RADIO/);
-console.log('Native Media3 playback, Quran, radio, lessons and devotional catalog tests passed.');
+
+assert.match(legacy, /class LegacyWebActivity : Activity\(\)/);
+assert.match(legacy, /WebView/,
+  'the generic legacy activity remains available for features that have not yet migrated');
+assert.match(manifest, /android:name="\.LegacyWebActivity"/);
+
+console.log('Native Media3 audio is fully native: Quran, radio, lessons, devotional playback, tulip, native rose, seek and volume controls; audio WebView resources are retired.');
