@@ -110,6 +110,13 @@ test("API gateway deployment keeps GitHub permissions read-only and checkout cre
   assert.match(gatewayDeployment, /persist-credentials:\s*false/);
 });
 
+test("API gateway smoke workflow uses a Node 24 compatible pinned setup action", () => {
+  assert.ok(
+    gatewayDeployment.includes("uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1"),
+    "the live smoke job must pin the verified setup-node v7 commit"
+  );
+});
+
 test("API gateway deployment protects and removes its temporary secret file", () => {
   for (const required of [
     "secrets.CLOUDFLARE_API_TOKEN",
