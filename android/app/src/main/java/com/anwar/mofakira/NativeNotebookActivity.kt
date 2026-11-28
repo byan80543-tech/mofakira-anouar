@@ -10,7 +10,9 @@ import android.content.ClipboardManager
 import android.speech.RecognizerIntent
 import android.speech.tts.TextToSpeech
 import android.graphics.Color
+import android.graphics.Paint
 import android.graphics.Typeface
+import android.graphics.pdf.PdfDocument
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.os.Build
@@ -22,6 +24,9 @@ import android.text.TextWatcher
 import android.text.Selection
 import android.text.Spanned
 import android.text.Layout
+import android.text.StaticLayout
+import android.text.TextDirectionHeuristics
+import android.text.TextPaint
 import android.text.style.StyleSpan
 import android.text.style.UnderlineSpan
 import android.text.style.ForegroundColorSpan
@@ -143,6 +148,7 @@ class NativeNotebookActivity : FragmentActivity() {
     private var renderLimit = PAGE_SIZE
     private var pendingExportJson: String? = null
     private var pendingImportJson: String? = null
+    private var pendingBookPdf: ByteArray? = null
 
     private lateinit var rootContent: LinearLayout
     private lateinit var noteContainer: LinearLayout
@@ -615,18 +621,346 @@ class NativeNotebookActivity : FragmentActivity() {
     }
 
     private fun showArchiveMenu() {
-        val choices = arrayOf("تصدير نسخة مشفرة", "استيراد نسخة مشفرة", "فتح الخدمات الكاملة")
+        val choices = arrayOf(
+            "إنشاء كتاب PDF من الأعمال",
+            "تصدير نسخة مشفرة",
+            "استيراد نسخة مشفرة",
+            "فتح الخدمات الكاملة"
+        )
         AlertDialog.Builder(this)
             .setTitle("أرشيف أنوار")
             .setItems(choices) { _, which ->
                 when (which) {
-                    0 -> exportPortableBackup()
-                    1 -> selectBackupFile()
-                    2 -> startActivity(Intent(this, LegacyWebActivity::class.java))
+                    0 -> showNativeBookExportOptions()
+                    1 -> exportPortableBackup()
+                    2 -> selectBackupFile()
+                    3 -> startActivity(Intent(this, LegacyWebActivity::class.java))
                 }
             }
             .setNegativeButton("إغلاق", null)
             .show()
+    }
+
+    private fun showNativeBookExportOptions() {
+        if (!storageAvailable) {
+            Toast.makeText(this, storageMessage, Toast.LENGTH_LONG).show()
+            return
+        }
+        if (notes.isEmpty()) {
+            Toast.makeText(this, "لا توجد أعمال محفوظة لإنشاء كتاب.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val labels = arrayOf("كل الأعمال المحفوظة", "القصائد فقط", "النصوص والأفكار")
+        AlertDialog.Builder(this)
+            .setTitle("إنشاء كتاب PDF")
+            .setMessage("اختر الأعمال التي تريد جمعها في كتاب واحد على جهازك.")
+            .setSingleChoiceItems(labels, 0) { dialog, which ->
+                dialog.dismiss()
+                val selected = when (which) {
+                    1 -> notes.filter { it.type == "poem" }
+                    2 -> notes.filter { it.type == "text" || it.type == "idea" }
+                    else -> notes.toList()
+                }.sortedBy { it.updatedAt }
+                exportNativeBookPdf(selected)
+            }
+            .setNegativeButton("إلغاء", null)
+            .show()
+    }
+
+    private fun exportNativeBookPdf(selectedNotes: List<Note>) {
+        if (selectedNotes.isEmpty()) {
+            Toast.makeText(this, "لا توجد أعمال ضمن هذا الاختيار.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val snapshot = selectedNotes.toList()
+        val progress = AlertDialog.Builder(this)
+            .setMessage("جارٍ تجهيز كتابك محلياً…")
+            .setCancelable(false)
+            .create()
+        progress.show()
+        Thread({
+            val result = runCatching {
+                buildNativeBookPdf(snapshot, "مختارات من مفكرة أنوار")
+            }
+            runOnUiThread {
+                if (progress.isShowing) progress.dismiss()
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                result.onSuccess { bytes ->
+                    pendingBookPdf = bytes
+                    val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                        addCategory(Intent.CATEGORY_OPENABLE)
+                        type = "application/pdf"
+                        putExtra(Intent.EXTRA_TITLE, "مختارات-من-مفكرة-أنوار.pdf")
+                    }
+                    runCatching {
+                        externalActivityPending = true
+                        startActivityForResult(intent, REQUEST_BOOK_PDF_EXPORT)
+                    }.onFailure { error ->
+                        externalActivityPending = false
+                        pendingBookPdf = null
+                        Toast.makeText(
+                            this,
+                            error.message ?: "تعذّر فتح مكان حفظ الكتاب.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }.onFailure { error ->
+                    Toast.makeText(
+                        this,
+                        error.message ?: "تعذّر إنشاء كتاب PDF.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        }, "Anwar-Native-Book-PDF").start()
+    }
+
+    private fun buildNativeBookPdf(selectedNotes: List<Note>, bookTitle: String): ByteArray {
+        require(selectedNotes.isNotEmpty()) { "لا توجد أعمال لإنشاء الكتاب." }
+        val totalCharacters = selectedNotes.fold(0L) { total, note ->
+            total + (if (note.richHtml.isNotBlank()) note.richHtml.length else note.text.length).toLong()
+        }
+        require(totalCharacters <= MAX_BOOK_PDF_CHARACTERS) {
+            "حجم الأعمال كبير لكتاب واحد. اختر مجموعة أصغر ثم أعد التصدير."
+        }
+
+        val pdf = PdfDocument()
+        val output = ByteArrayOutputStream()
+        var pageNumber = 0
+        val pageWidth = BOOK_PDF_PAGE_WIDTH
+        val pageHeight = BOOK_PDF_PAGE_HEIGHT
+        val margin = BOOK_PDF_MARGIN
+        val contentWidth = pageWidth - margin * 2
+        val footerTop = pageHeight - BOOK_PDF_FOOTER_HEIGHT
+        val bodyBottom = footerTop - 18
+
+        fun layout(
+            value: CharSequence,
+            textPaint: TextPaint,
+            alignment: Layout.Alignment = Layout.Alignment.ALIGN_NORMAL
+        ): StaticLayout = StaticLayout.Builder
+            .obtain(value, 0, value.length, textPaint, contentWidth)
+            .setAlignment(alignment)
+            .setTextDirection(TextDirectionHeuristics.RTL)
+            .setLineSpacing(4f, 1.12f)
+            .setIncludePad(false)
+            .build()
+
+        fun paint(
+            size: Float,
+            color: Int,
+            bold: Boolean = false,
+            typeface: Typeface = Typeface.create("sans-serif", Typeface.NORMAL)
+        ): TextPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+            textSize = size
+            this.color = color
+            this.typeface = if (bold) Typeface.create(typeface, Typeface.BOLD) else typeface
+        }
+
+        fun drawLayout(
+            canvas: android.graphics.Canvas,
+            value: CharSequence,
+            textPaint: TextPaint,
+            top: Float,
+            alignment: Layout.Alignment = Layout.Alignment.ALIGN_NORMAL
+        ): Int {
+            val textLayout = layout(value, textPaint, alignment)
+            canvas.save()
+            canvas.translate(margin.toFloat(), top)
+            textLayout.draw(canvas)
+            canvas.restore()
+            return textLayout.height
+        }
+
+        fun startPage(): PdfDocument.Page {
+            pageNumber += 1
+            require(pageNumber <= MAX_BOOK_PDF_PAGES) {
+                "تجاوز الكتاب الحد الآمن للصفحات. قسّم الأعمال إلى كتابين."
+            }
+            val info = PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageNumber).create()
+            val page = pdf.startPage(info)
+            page.canvas.drawColor(Color.WHITE)
+            drawLayout(page.canvas, "مفكرة أنوار", paint(10f, Color.rgb(151, 119, 57), true), 25f)
+            page.canvas.drawLine(
+                margin.toFloat(),
+                48f,
+                (pageWidth - margin).toFloat(),
+                48f,
+                Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    color = Color.rgb(214, 194, 151)
+                    strokeWidth = 0.8f
+                }
+            )
+            return page
+        }
+
+        fun finishPage(page: PdfDocument.Page) {
+            drawLayout(
+                page.canvas,
+                "مفكرة أنوار  ·  $pageNumber",
+                paint(9f, Color.rgb(117, 125, 131)),
+                (pageHeight - 37).toFloat(),
+                Layout.Alignment.ALIGN_CENTER
+            )
+            pdf.finishPage(page)
+        }
+
+        try {
+            val cover = startPage()
+            var coverY = 270f
+            coverY += drawLayout(
+                cover.canvas,
+                "مفكرة أنوار",
+                paint(34f, Color.rgb(14, 48, 78), true),
+                coverY,
+                Layout.Alignment.ALIGN_CENTER
+            ) + 24
+            coverY += drawLayout(
+                cover.canvas,
+                bookTitle,
+                paint(19f, Color.rgb(31, 89, 68), true),
+                coverY,
+                Layout.Alignment.ALIGN_CENTER
+            ) + 18
+            coverY += drawLayout(
+                cover.canvas,
+                "أنوار أومليلي  ·  المغرب",
+                paint(13f, Color.rgb(111, 105, 88)),
+                coverY,
+                Layout.Alignment.ALIGN_CENTER
+            ) + 10
+            drawLayout(
+                cover.canvas,
+                "تاريخ التصدير: " + formatDate(System.currentTimeMillis()),
+                paint(12f, Color.rgb(111, 105, 88)),
+                coverY,
+                Layout.Alignment.ALIGN_CENTER
+            )
+            finishPage(cover)
+
+            selectedNotes.forEach { note ->
+                var page = startPage()
+                var y = 78f
+                val titleValue = note.title.ifBlank { "بلا عنوان" }
+                y += drawLayout(
+                    page.canvas,
+                    titleValue,
+                    paint(20f, green, true, fontTypeface(note.font)),
+                    y
+                ) + 8
+                y += drawLayout(
+                    page.canvas,
+                    typeName(note.type) + "  ·  " + formatDate(note.updatedAt),
+                    paint(10f, muted),
+                    y
+                ) + 20
+
+                val body: CharSequence = if (note.richHtml.isNotBlank()) {
+                    richHtmlToText(note.richHtml)
+                } else {
+                    note.text
+                }
+                val bodyValue: CharSequence = if (body.isBlank()) "لا يوجد محتوى نصي." else body
+                val bodyLayout = layout(
+                    bodyValue,
+                    paint(
+                        note.sizeSp.coerceIn(14, 26).toFloat(),
+                        textColorFor(note.textColor),
+                        false,
+                        fontTypeface(note.font)
+                    )
+                )
+                var firstLine = 0
+                while (firstLine < bodyLayout.lineCount) {
+                    val available = (bodyBottom - y).toInt()
+                    if (available < 34) {
+                        finishPage(page)
+                        page = startPage()
+                        y = 78f
+                        y += drawLayout(
+                            page.canvas,
+                            "متابعة: $titleValue",
+                            paint(11f, muted, true),
+                            y
+                        ) + 12
+                        continue
+                    }
+
+                    val firstTop = bodyLayout.getLineTop(firstLine)
+                    val maxBottom = firstTop + available
+                    var endLine = firstLine
+                    while (
+                        endLine < bodyLayout.lineCount &&
+                        bodyLayout.getLineBottom(endLine) <= maxBottom
+                    ) {
+                        endLine += 1
+                    }
+                    if (endLine == firstLine) {
+                        finishPage(page)
+                        page = startPage()
+                        y = 78f
+                        continue
+                    }
+                    val lastBottom = bodyLayout.getLineBottom(endLine - 1)
+                    val chunkHeight = lastBottom - firstTop
+                    page.canvas.save()
+                    page.canvas.translate(margin.toFloat(), y - firstTop.toFloat())
+                    page.canvas.clipRect(
+                        0f,
+                        firstTop.toFloat(),
+                        contentWidth.toFloat(),
+                        lastBottom.toFloat()
+                    )
+                    bodyLayout.draw(page.canvas)
+                    page.canvas.restore()
+                    y += chunkHeight + 12
+                    firstLine = endLine
+                    if (firstLine < bodyLayout.lineCount) {
+                        finishPage(page)
+                        page = startPage()
+                        y = 78f
+                        y += drawLayout(
+                            page.canvas,
+                            "متابعة: $titleValue",
+                            paint(11f, muted, true),
+                            y
+                        ) + 12
+                    }
+                }
+                finishPage(page)
+            }
+
+            pdf.writeTo(output)
+            val bytes = output.toByteArray()
+            require(bytes.size <= MAX_BOOK_PDF_BYTES) {
+                "حجم كتاب PDF الناتج يتجاوز الحد الآمن."
+            }
+            return bytes
+        } finally {
+            pdf.close()
+            output.close()
+        }
+    }
+
+    private fun persistNativeBookPdf(uri: android.net.Uri) {
+        val bytes = pendingBookPdf ?: return
+        try {
+            contentResolver.openOutputStream(uri, "w")?.use { output ->
+                output.write(bytes)
+                output.flush()
+            } ?: throw IllegalStateException("تعذّر فتح ملف الكتاب للكتابة.")
+            val readBack = contentResolver.openInputStream(uri)?.use { input ->
+                readLimited(input, MAX_BOOK_PDF_BYTES)
+            } ?: throw IllegalStateException("تعذّرت مراجعة كتاب PDF بعد الحفظ.")
+            require(readBack.contentEquals(bytes)) {
+                "لم تتطابق مراجعة ملف الكتاب مع النسخة التي أُنشئت."
+            }
+            pendingBookPdf = null
+            Toast.makeText(this, "تم حفظ كتاب PDF والتحقق من الملف.", Toast.LENGTH_LONG).show()
+        } catch (error: Exception) {
+            pendingBookPdf = null
+            Toast.makeText(this, error.message ?: "تعذّر حفظ كتاب PDF.", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun applySavedAppearance(shell: View) {
@@ -2561,7 +2895,7 @@ class NativeNotebookActivity : FragmentActivity() {
             }
             return
         }
-        if (requestCode == REQUEST_SPEECH || requestCode == REQUEST_EXPORT || requestCode == REQUEST_IMPORT) {
+        if (requestCode == REQUEST_SPEECH || requestCode == REQUEST_EXPORT || requestCode == REQUEST_IMPORT || requestCode == REQUEST_BOOK_PDF_EXPORT) {
             externalActivityPending = false
         }
         if (requestCode == REQUEST_SPEECH) {
@@ -2589,17 +2923,20 @@ class NativeNotebookActivity : FragmentActivity() {
         if (resultCode != RESULT_OK) {
             if (requestCode == REQUEST_EXPORT) pendingExportJson = null
             if (requestCode == REQUEST_IMPORT) pendingImportJson = null
+            if (requestCode == REQUEST_BOOK_PDF_EXPORT) pendingBookPdf = null
             return
         }
         val uri = data?.data
         if (uri == null) {
             if (requestCode == REQUEST_EXPORT) pendingExportJson = null
             if (requestCode == REQUEST_IMPORT) pendingImportJson = null
+            if (requestCode == REQUEST_BOOK_PDF_EXPORT) pendingBookPdf = null
             return
         }
         when (requestCode) {
             REQUEST_EXPORT -> persistExportFile(uri)
             REQUEST_IMPORT -> handleImportFile(uri)
+            REQUEST_BOOK_PDF_EXPORT -> persistNativeBookPdf(uri)
         }
     }
 
@@ -2770,6 +3107,14 @@ class NativeNotebookActivity : FragmentActivity() {
         private const val REQUEST_DEVICE_UNLOCK = 7299
         private const val REQUEST_EXPORT = 7301
         private const val REQUEST_IMPORT = 7302
+        private const val REQUEST_BOOK_PDF_EXPORT = 7303
+        private const val MAX_BOOK_PDF_CHARACTERS = 600_000L
+        private const val MAX_BOOK_PDF_PAGES = 400
+        private const val MAX_BOOK_PDF_BYTES = 24 * 1024 * 1024
+        private const val BOOK_PDF_PAGE_WIDTH = 595
+        private const val BOOK_PDF_PAGE_HEIGHT = 842
+        private const val BOOK_PDF_MARGIN = 46
+        private const val BOOK_PDF_FOOTER_HEIGHT = 48
         private const val REQUEST_MICROPHONE = 7401
         private const val REQUEST_SPEECH = 7402
         private val ALLOWED_TYPES = setOf("poem", "text", "idea")
