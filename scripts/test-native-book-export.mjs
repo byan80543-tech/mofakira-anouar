@@ -35,6 +35,8 @@ assert.match(notebook, /note\.text/,
   "Plain-text notebook content is included in the export.");
 assert.match(notebook, /note\.title/);
 assert.match(notebook, /note\.updatedAt/);
+assert.match(notebook, /note\.textColor/,
+  "the PDF preserves the saved Android note text color without reinterpreting it as a palette key");
 assert.match(notebook, /MAX_BOOK_PDF_CHARACTERS/);
 assert.match(notebook, /MAX_BOOK_PDF_PAGES/);
 assert.match(notebook, /MAX_BOOK_PDF_BYTES/);
