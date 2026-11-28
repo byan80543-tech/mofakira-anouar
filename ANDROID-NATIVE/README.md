@@ -22,7 +22,7 @@
 
 ## إعدادات البناء
 
-- Android Gradle Plugin: 8.10.2
+- Android Gradle Plugin: 8.10.1
 - Kotlin: 2.2.20
 - KSP: 2.2.20-2.0.4
 - Gradle: 8.11.1
