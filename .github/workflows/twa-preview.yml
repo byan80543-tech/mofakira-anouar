@@ -47,9 +47,14 @@ jobs:
       - name: Install pinned Bubblewrap CLI
         run: npm install --global @bubblewrap/cli@1.28.0
 
-      - name: Configure Bubblewrap toolchain
+      - name: Configure Bubblewrap toolchain non-interactively
+        shell: bash
         run: |
-          bubblewrap updateConfig --jdkPath="$JAVA_HOME" --androidSdkPath="$ANDROID_HOME"
+          set -euo pipefail
+          mkdir -p "$HOME/.bubblewrap"
+          node -e 'const fs=require("node:fs"); const path=require("node:path"); const config={jdkPath:process.env.JAVA_HOME,androidSdkPath:process.env.ANDROID_HOME}; for (const [key,value] of Object.entries(config)) { if (!value || !fs.existsSync(value)) throw new Error("Missing Bubblewrap toolchain path: "+key); } fs.writeFileSync(path.join(process.env.HOME,".bubblewrap","config.json"),JSON.stringify(config)+"\\n",{mode:0o600});'
+          test -s "$JAVA_HOME/release"
+          test -d "$ANDROID_HOME/build"
 
       - name: Validate the exact published PWA
         run: |
