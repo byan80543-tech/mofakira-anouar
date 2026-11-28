@@ -63,10 +63,17 @@ class NativeAudioActivity : Activity() {
     private lateinit var contentArea: LinearLayout
     private lateinit var statusText: TextView
     private lateinit var nowPlayingText: TextView
-    private lateinit var playPauseButton: TextView
+    private lateinit var playPauseButton: NativeRosePlayButton
     private lateinit var seekBar: SeekBar
     private lateinit var timeText: TextView
     private lateinit var tabButtons: Map<String, TextView>
+    private var reciterListView: ListView? = null
+    private var stationListView: ListView? = null
+    private var lessonListView: ListView? = null
+    private val devotionalRoseButtons = mutableListOf<Pair<String, NativeRosePlayButton>>()
+    private val pendingRoseBloomKeys = mutableSetOf<String>()
+    private var lastRosePlaybackMediaId: String? = null
+    private var lastRosePlaybackWasPlaying = false
 
     private var mode = MODE_QURAN
     private var controller: MediaController? = null
@@ -251,8 +258,13 @@ class NativeAudioActivity : Activity() {
         controls.addView(actionButton("السابق", Color.rgb(249, 247, 241), navy) {
             controller?.seekToPreviousMediaItem()
         }, LinearLayout.LayoutParams(0, dp(40), 1f).apply { marginEnd = dp(3); marginStart = dp(3) })
-        playPauseButton = actionButton("تشغيل", gold, navy) { togglePlayback() }
-        controls.addView(playPauseButton, LinearLayout.LayoutParams(0, dp(42), 1.2f).apply {
+        playPauseButton = NativeRosePlayButton(
+            context = this,
+            itemLabel = "المشغل الرئيسي",
+            viewSizeDp = 48,
+            artworkSizeDp = 31
+        ) { togglePlayback() }
+        controls.addView(playPauseButton, LinearLayout.LayoutParams(dp(48), dp(48)).apply {
             marginStart = dp(3); marginEnd = dp(3)
         })
         controls.addView(actionButton("التالي", Color.rgb(249, 247, 241), navy) {
@@ -274,6 +286,10 @@ class NativeAudioActivity : Activity() {
     }
 
     private fun renderMode() {
+        reciterListView = null
+        stationListView = null
+        lessonListView = null
+        devotionalRoseButtons.clear()
         contentArea.removeAllViews()
         tabButtons.forEach { (key, button) ->
             val selected = key == mode
@@ -310,6 +326,7 @@ class NativeAudioActivity : Activity() {
             setBackgroundColor(Color.TRANSPARENT)
             isNestedScrollingEnabled = false
         }
+        reciterListView = reciterList
         contentArea.addView(reciterList, matchWrap(dp(190)))
         val selectedReader = text("القارئ: لم يُحدد بعد", 11f, green, true, top = 6, bottom = 8)
         contentArea.addView(selectedReader)
@@ -338,7 +355,7 @@ class NativeAudioActivity : Activity() {
             reciterList.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, listOf("جارٍ تحميل القراء…"))
         } else {
             selectedEdition = selectedEdition ?: reciters.first()
-            applyReciterFilter("", reciterList, selectedReader)
+            applyReciterFilter("", reciterList, selectedReader, surahSpinner, search)
         }
         reciterList.setOnItemClickListener { _, _, position, _ ->
             val edition = visibleReciters.getOrNull(position) ?: return@setOnItemClickListener
@@ -347,23 +364,53 @@ class NativeAudioActivity : Activity() {
             selectedReader.text = "القارئ: ${edition.displayName}"
             val targetPosition = (selectedSurah - 1).coerceIn(0, 113)
             surahSpinner.setSelection(targetPosition)
+            applyReciterFilter(search.text?.toString().orEmpty(), reciterList, selectedReader, surahSpinner, search)
         }
         search.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                applyReciterFilter(s?.toString().orEmpty(), reciterList, selectedReader)
+                applyReciterFilter(s?.toString().orEmpty(), reciterList, selectedReader, surahSpinner, search)
             }
             override fun afterTextChanged(s: Editable?) = Unit
         })
     }
 
-    private fun applyReciterFilter(query: String, list: ListView, selectedReader: TextView) {
+    private fun applyReciterFilter(
+        query: String,
+        list: ListView,
+        selectedReader: TextView,
+        surahSpinner: Spinner,
+        search: EditText
+    ) {
         val q = query.trim().lowercase(Locale.forLanguageTag("ar"))
         visibleReciters = reciters.filter { q.isBlank() || it.displayName.lowercase(Locale.forLanguageTag("ar")).contains(q) }
         list.adapter = tulipArrayAdapter(
-            visibleReciters.map { it.displayName },
-            TulipRowStyle.RECITER,
-            visibleReciters.indexOf(selectedEdition)
+            labels = visibleReciters.map { it.displayName },
+            style = TulipRowStyle.RECITER,
+            selectedPosition = visibleReciters.indexOf(selectedEdition),
+            onRoseClick = { position ->
+                val edition = visibleReciters.getOrNull(position)
+                if (edition != null) {
+                    selectedEdition = edition
+                    if (selectedSurah !in edition.availableSurahs) {
+                        selectedSurah = edition.availableSurahs.firstOrNull() ?: 1
+                    }
+                    surahSpinner.setSelection((selectedSurah - 1).coerceIn(0, 113))
+                    selectedReader.text = "القارئ: ${edition.displayName}"
+                    applyReciterFilter(search.text?.toString().orEmpty(), list, selectedReader, surahSpinner, search)
+                    playQuran(edition, selectedSurah)
+                }
+            },
+            isRosePlaying = { position ->
+                val edition = visibleReciters.getOrNull(position)
+                val currentId = controller?.currentMediaItem?.mediaId.orEmpty()
+                edition != null && controller?.isPlaying == true &&
+                    currentId.startsWith("quran:${edition.serverUrl}:")
+            },
+            shouldAnimateRose = { position ->
+                val edition = visibleReciters.getOrNull(position)
+                edition != null && consumePendingRoseBloom("quran:${edition.serverUrl}")
+            }
         )
         val selected = selectedEdition
         selectedReader.text = selected?.let { "القارئ: ${it.displayName}" } ?: "القارئ: لم يُحدد بعد"
@@ -378,6 +425,7 @@ class NativeAudioActivity : Activity() {
             setBackgroundColor(Color.TRANSPARENT)
             isNestedScrollingEnabled = false
         }
+        stationListView = stationList
         contentArea.addView(stationList, matchWrap(dp(250)))
         val selected = text("لم تُحدد محطة بعد.", 11f, green, true, top = 5)
         contentArea.addView(selected)
@@ -385,19 +433,40 @@ class NativeAudioActivity : Activity() {
             selectedStation?.let { playStation(it) } ?: run { statusText.text = "اختر محطة من القائمة أولا." }
         }, marginTop(dp(8)))
 
+        fun showStationRows(selectedPosition: Int = stations.indexOf(selectedStation)) {
+            stationList.adapter = tulipArrayAdapter(
+                labels = stations.map { it.name },
+                style = TulipRowStyle.STATION,
+                selectedPosition = selectedPosition,
+                onRoseClick = { position ->
+                    val station = stations.getOrNull(position)
+                    if (station != null) {
+                        selectedStation = station
+                        selected.text = "المحطة المختارة: ${station.name}"
+                        showStationRows(position)
+                        playStation(station)
+                    }
+                },
+                isRosePlaying = { position ->
+                    val station = stations.getOrNull(position)
+                    station != null && controller?.isPlaying == true &&
+                        controller?.currentMediaItem?.mediaId == "radio:${station.url}"
+                },
+                shouldAnimateRose = { position ->
+                    val station = stations.getOrNull(position)
+                    station != null && consumePendingRoseBloom("radio:${station.url}")
+                }
+            )
+        }
         if (stations.isEmpty()) {
             stationList.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, listOf("جارٍ تحميل المحطات…"))
         } else {
-            stationList.adapter = tulipArrayAdapter(stations.map { it.name }, TulipRowStyle.STATION)
+            showStationRows()
         }
         stationList.setOnItemClickListener { _, _, position, _ ->
             selectedStation = stations.getOrNull(position)
             selected.text = selectedStation?.let { "المحطة المختارة: ${it.name}" } ?: "اختر محطة صالحة."
-            stationList.adapter = tulipArrayAdapter(
-                stations.map { it.name },
-                TulipRowStyle.STATION,
-                position
-            )
+            showStationRows(position)
         }
     }
 
@@ -418,6 +487,7 @@ class NativeAudioActivity : Activity() {
             setBackgroundColor(Color.TRANSPARENT)
             isNestedScrollingEnabled = false
         }
+        lessonListView = lessonList
         contentArea.addView(lessonList, matchWrap(dp(250)))
         val playSeries = actionButton("تشغيل السلسلة من الدرس الأول", gold, navy) {
             playLessons(selectedLessonSeries, selectedLessonIndex)
@@ -428,13 +498,34 @@ class NativeAudioActivity : Activity() {
         }
         contentArea.addView(sourceButton, marginTop(dp(7)))
 
-        fun populateLessons(series: LessonSeries) {
-            selectedLessonSeries = series
-            selectedLessonIndex = 0
+        fun showLessonRows(selectedPosition: Int = selectedLessonIndex) {
+            val series = selectedLessonSeries
             val labels = (0 until series.count).map { index ->
                 "${(index + 1).toString().padStart(2, '0')} · ${series.trackTitle(index)}"
             }
-            lessonList.adapter = tulipArrayAdapter(labels, TulipRowStyle.LESSON)
+            lessonList.adapter = tulipArrayAdapter(
+                labels = labels,
+                style = TulipRowStyle.LESSON,
+                selectedPosition = selectedPosition,
+                onRoseClick = { position ->
+                    selectedLessonIndex = position
+                    showLessonRows(position)
+                    playLessons(series, position)
+                },
+                isRosePlaying = { position ->
+                    controller?.isPlaying == true &&
+                        controller?.currentMediaItem?.mediaId == "lesson:${series.id}:$position"
+                },
+                shouldAnimateRose = { position ->
+                    consumePendingRoseBloom("lesson:${series.id}:$position")
+                }
+            )
+        }
+
+        fun populateLessons(series: LessonSeries) {
+            selectedLessonSeries = series
+            selectedLessonIndex = 0
+            showLessonRows()
         }
         populateLessons(selectedLessonSeries)
         seriesSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -445,10 +536,7 @@ class NativeAudioActivity : Activity() {
         }
         lessonList.setOnItemClickListener { _, _, position, _ ->
             selectedLessonIndex = position
-            val labels = (0 until selectedLessonSeries.count).map { index ->
-                "${(index + 1).toString().padStart(2, '0')} · ${selectedLessonSeries.trackTitle(index)}"
-            }
-            lessonList.adapter = tulipArrayAdapter(labels, TulipRowStyle.LESSON, position)
+            showLessonRows(position)
             playLessons(selectedLessonSeries, position)
         }
     }
@@ -482,8 +570,17 @@ class NativeAudioActivity : Activity() {
                 LinearLayout.LayoutParams(dp(36), dp(38)).apply { marginEnd = dp(9) }
             )
             card.addView(copy, LinearLayout.LayoutParams(0, -2, 1f))
-            card.addView(actionButton("استماع", gold, navy) { playDevotional(track, index) },
-                LinearLayout.LayoutParams(dp(82), dp(42)).apply { marginStart = dp(10) })
+            val roseButton = NativeRosePlayButton(
+                context = this,
+                itemLabel = track.title,
+                viewSizeDp = 42,
+                artworkSizeDp = 31
+            ) { playDevotional(track, index) }
+            devotionalRoseButtons += track.id to roseButton
+            card.addView(
+                roseButton,
+                LinearLayout.LayoutParams(dp(42), dp(42)).apply { marginStart = dp(10) }
+            )
             contentArea.addView(card, marginTop(dp(7)))
         }
         contentArea.addView(actionButton("فتح صفحة المجموعة الصوتية", Color.WHITE, green) {
@@ -661,8 +758,24 @@ class NativeAudioActivity : Activity() {
             artist.isBlank() -> title
             else -> "$title · $artist"
         }
-        playPauseButton.text = if (c?.isPlaying == true) "إيقاف مؤقت" else "استئناف"
+        val isPlaying = c?.isPlaying == true
+        val currentMediaId = c?.currentMediaItem?.mediaId.orEmpty()
+        if (isPlaying && (!lastRosePlaybackWasPlaying || currentMediaId != lastRosePlaybackMediaId)) {
+            pendingRoseBloomKeys.clear()
+            pendingRoseBloomKeyFor(currentMediaId)?.let(pendingRoseBloomKeys::add)
+        } else if (!isPlaying) {
+            pendingRoseBloomKeys.clear()
+        }
+        lastRosePlaybackWasPlaying = isPlaying
+        lastRosePlaybackMediaId = currentMediaId
+        playPauseButton.setPlaybackActive(isPlaying)
         playPauseButton.alpha = if ((c?.mediaItemCount ?: 0) > 0) 1f else 0.55f
+        reciterListView?.invalidateViews()
+        stationListView?.invalidateViews()
+        lessonListView?.invalidateViews()
+        devotionalRoseButtons.forEach { (trackId, button) ->
+            button.setPlaybackActive(isPlaying && currentMediaId == "ibtihal:$trackId")
+        }
         updateProgress()
     }
 
@@ -723,15 +836,34 @@ class NativeAudioActivity : Activity() {
     private fun tulipArrayAdapter(
         labels: List<String>,
         style: TulipRowStyle,
-        selectedPosition: Int = -1
+        selectedPosition: Int = -1,
+        onRoseClick: ((Int) -> Unit)? = null,
+        isRosePlaying: (Int) -> Boolean = { false },
+        shouldAnimateRose: (Int) -> Boolean = { false }
     ): ArrayAdapter<String> = object : ArrayAdapter<String>(this, 0, labels) {
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
             val label = getItem(position).orEmpty()
-            return tulipRow(label, style, position == selectedPosition)
+            val click = onRoseClick?.let { action -> { action(position) } }
+            val playing = isRosePlaying(position)
+            return tulipRow(
+                label = label,
+                style = style,
+                selected = position == selectedPosition,
+                roseClick = click,
+                rosePlaying = playing,
+                animateRose = playing && shouldAnimateRose(position)
+            )
         }
     }
 
-    private fun tulipRow(label: String, style: TulipRowStyle, selected: Boolean): View {
+    private fun tulipRow(
+        label: String,
+        style: TulipRowStyle,
+        selected: Boolean,
+        roseClick: (() -> Unit)?,
+        rosePlaying: Boolean,
+        animateRose: Boolean
+    ): View {
         val rowHeight: Int
         val badgeWidth: Int
         val badgeHeight: Int
@@ -749,6 +881,8 @@ class NativeAudioActivity : Activity() {
         val normalText: Int
         val selectedText: Int
         val textSize: Float
+        val roseViewSize: Int
+        val roseArtworkSize: Int
 
         when (style) {
             TulipRowStyle.RECITER -> {
@@ -769,6 +903,8 @@ class NativeAudioActivity : Activity() {
                 normalText = Color.rgb(23, 42, 58)
                 selectedText = Color.rgb(23, 42, 58)
                 textSize = 16f
+                roseViewSize = 42
+                roseArtworkSize = 31
             }
             TulipRowStyle.STATION -> {
                 rowHeight = 66
@@ -788,6 +924,8 @@ class NativeAudioActivity : Activity() {
                 normalText = Color.rgb(37, 77, 50)
                 selectedText = Color.WHITE
                 textSize = 14f
+                roseViewSize = 42
+                roseArtworkSize = 31
             }
             TulipRowStyle.LESSON -> {
                 rowHeight = 60
@@ -807,6 +945,8 @@ class NativeAudioActivity : Activity() {
                 normalText = Color.rgb(37, 77, 50)
                 selectedText = Color.WHITE
                 textSize = 13f
+                roseViewSize = 36
+                roseArtworkSize = 28
             }
         }
 
@@ -853,7 +993,38 @@ class NativeAudioActivity : Activity() {
                 marginEnd = dp(6)
             }
         )
+        if (roseClick != null) {
+            val rose = NativeRosePlayButton(
+                context = this,
+                itemLabel = label,
+                viewSizeDp = roseViewSize,
+                artworkSizeDp = roseArtworkSize,
+                onClick = roseClick
+            )
+            rose.setPlaybackActive(rosePlaying, animate = animateRose)
+            row.addView(
+                rose,
+                LinearLayout.LayoutParams(dp(roseViewSize), dp(roseViewSize)).apply {
+                    marginStart = dp(2)
+                    marginEnd = dp(2)
+                }
+            )
+        }
         return row
+    }
+
+    private fun consumePendingRoseBloom(key: String): Boolean =
+        pendingRoseBloomKeys.remove(key)
+
+    private fun pendingRoseBloomKeyFor(mediaId: String): String? = when {
+        mediaId.startsWith("quran:") -> {
+            val edition = reciters.firstOrNull { mediaId.startsWith("quran:${it.serverUrl}:") }
+            edition?.let { "quran:${it.serverUrl}" }
+        }
+        mediaId.startsWith("radio:") -> mediaId
+        mediaId.startsWith("lesson:") -> mediaId
+        mediaId.startsWith("ibtihal:") -> mediaId
+        else -> null
     }
 
     private fun sectionTitle(value: String) = text(value, 17f, green, true, top = 12, bottom = 5)
