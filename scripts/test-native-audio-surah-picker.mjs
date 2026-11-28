@@ -12,6 +12,8 @@ assert.notEqual(quranStart, -1, "The native Quran section must exist.");
 assert.notEqual(filterStart, -1, "The native reciter filter must exist.");
 const quranScreen = activity.slice(quranStart, filterStart);
 
+assert.ok(quranScreen.includes("lateinit var surahPicker: TextView"));
+assert.ok(quranScreen.includes("surahPicker = actionButton(surahSelectionLabel(), Color.WHITE, navy)"));
 assert.ok(quranScreen.includes("showSurahPickerDialog(surahPicker)"));
 assert.ok(quranScreen.includes("surahSelectionLabel()"));
 assert.doesNotMatch(quranScreen, /surahSpinner|Spinner\(/,
