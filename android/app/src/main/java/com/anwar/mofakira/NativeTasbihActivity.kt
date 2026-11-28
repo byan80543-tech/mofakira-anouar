@@ -13,6 +13,7 @@ import android.graphics.Shader
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -1071,8 +1072,18 @@ class NativeTasbihActivity : Activity() {
     }
 
     private fun startVoice() {
-        if (!SpeechRecognizer.isRecognitionAvailable(this)) {
-            setVoiceStatus("خدمة التعرف الصوتي غير متاحة على هذا الجهاز. يمكنك متابعة العد اليدوي.", true)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            setVoiceStatus(
+                "العد الصوتي المحلي يحتاج Android 12 أو أحدث. يمكنك متابعة العد اليدوي.",
+                true
+            )
+            return
+        }
+        if (!SpeechRecognizer.isOnDeviceRecognitionAvailable(this)) {
+            setVoiceStatus(
+                "التعرف الصوتي المحلي غير متاح على هذا الجهاز. لم نستخدم خدمة خارجية؛ يمكنك متابعة العد اليدوي.",
+                true
+            )
             return
         }
         if (selectedText.isBlank()) {
@@ -1081,7 +1092,7 @@ class NativeTasbihActivity : Activity() {
         }
         try {
             if (speechRecognizer == null) {
-                speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
+                speechRecognizer = SpeechRecognizer.createOnDeviceSpeechRecognizer(this)
                 speechRecognizer?.setRecognitionListener(recognitionListener)
             }
             voiceRequested = true
@@ -1090,17 +1101,20 @@ class NativeTasbihActivity : Activity() {
             countedSpeechMatches = 0
             partialSpeechText = ""
             finalSpeechSegments.clear()
-            setVoiceStatus("جارٍ تشغيل الميكروفون.", false)
+            setVoiceStatus("جارٍ تشغيل التعرف الصوتي المحلي على الجهاز.", false)
             startListeningSession()
         } catch (error: Exception) {
             voiceRequested = false
-            setVoiceStatus("تعذر تهيئة التعرف الصوتي. يمكنك متابعة العد اليدوي.", true)
+            setVoiceStatus(
+                "تعذر تهيئة التعرف الصوتي المحلي. لم يتم الرجوع إلى خدمة خارجية؛ يمكنك متابعة العد اليدوي.",
+                true
+            )
         }
     }
 
     private val recognitionListener = object : RecognitionListener {
         override fun onReadyForSpeech(params: Bundle?) {
-            if (voiceRequested) setVoiceStatus("الميكروفون نشط.", false)
+            if (voiceRequested) setVoiceStatus("الميكروفون نشط؛ التعرف محلي على الجهاز.", false)
         }
 
         override fun onBeginningOfSpeech() {
@@ -1111,7 +1125,7 @@ class NativeTasbihActivity : Activity() {
         override fun onRmsChanged(rmsdB: Float) = Unit
         override fun onBufferReceived(buffer: ByteArray?) = Unit
         override fun onEndOfSpeech() {
-            if (voiceRequested) setVoiceStatus("جارٍ التحقق من الذكر المنطوق.", false)
+            if (voiceRequested) setVoiceStatus("جارٍ مطابقة الذكر محلياً.", false)
         }
 
         override fun onError(error: Int) {
@@ -1126,25 +1140,24 @@ class NativeTasbihActivity : Activity() {
             }
             val recoverable = error == SpeechRecognizer.ERROR_NO_MATCH ||
                 error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT ||
-                error == SpeechRecognizer.ERROR_NETWORK ||
-                error == SpeechRecognizer.ERROR_NETWORK_TIMEOUT ||
-                error == SpeechRecognizer.ERROR_RECOGNIZER_BUSY ||
-                error == SpeechRecognizer.ERROR_SERVER ||
-                error == SpeechRecognizer.ERROR_SERVER_DISCONNECTED
+                error == SpeechRecognizer.ERROR_RECOGNIZER_BUSY
             if (recoverable) {
                 val message = when (error) {
                     SpeechRecognizer.ERROR_NO_MATCH,
-                    SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "لم نلتقط الذكر بوضوح؛ سنعيد الاستماع تلقائياً."
-                    SpeechRecognizer.ERROR_NETWORK,
-                    SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "انقطع اتصال خدمة التعرف الصوتي؛ سنحاول مجدداً."
-                    else -> "انتهت جلسة الاستماع؛ جارٍ استئنافها."
+                    SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "لم نلتقط الذكر بوضوح؛ سنعيد الاستماع محلياً."
+                    else -> "انتهت جلسة الاستماع المحلية؛ جارٍ استئنافها."
                 }
                 scheduleVoiceRestart(400, countRetry = true, message = message)
             } else {
                 val message = when (error) {
                     SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "لم يُسمح بالميكروفون. راجع أذونات التطبيق."
                     SpeechRecognizer.ERROR_AUDIO -> "تعذر الوصول إلى الميكروفون."
-                    else -> "تعذر استمرار التعرف الصوتي. أوقفه ثم حاول مرة أخرى."
+                    SpeechRecognizer.ERROR_NETWORK,
+                    SpeechRecognizer.ERROR_NETWORK_TIMEOUT,
+                    SpeechRecognizer.ERROR_SERVER,
+                    SpeechRecognizer.ERROR_SERVER_DISCONNECTED ->
+                        "تعذر إكمال التعرف الصوتي المحلي. لن نستخدم خدمة خارجية؛ يمكنك متابعة العد اليدوي."
+                    else -> "تعذر استمرار التعرف الصوتي المحلي. أوقفه ثم حاول مرة أخرى."
                 }
                 stopVoice(message)
             }
@@ -1171,6 +1184,7 @@ class NativeTasbihActivity : Activity() {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, speechLanguages[speechLanguageIndex])
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, speechLanguages[speechLanguageIndex])
             putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+            putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
             putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
             putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, packageName)
         }

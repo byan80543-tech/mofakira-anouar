@@ -112,6 +112,28 @@ assert.doesNotMatch(activity, /http:\/\/|https:\/\//,
   'the native tasbih does not use the old web screen as its interface');
 
 assert.match(activity, /SpeechRecognizer/);
+assert.match(activity, /Build\.VERSION\.SDK_INT < Build\.VERSION_CODES\.S/,
+  "voice counting fails closed below Android 12 rather than using a general recognizer");
+assert.match(activity, /SpeechRecognizer\.isOnDeviceRecognitionAvailable\(this\)/,
+  "the app checks that an on-device speech service is actually present");
+assert.match(activity, /SpeechRecognizer\.createOnDeviceSpeechRecognizer\(this\)/,
+  "the tasbih uses Android's dedicated on-device recognizer");
+assert.doesNotMatch(activity, /SpeechRecognizer\.createSpeechRecognizer\(this\)/,
+  "the app never falls back to the general recognizer that may use remote processing");
+assert.match(activity, /RecognizerIntent\.EXTRA_PREFER_OFFLINE/,
+  "the recognition request also prefers offline processing");
+assert.match(activity, /لم يتم الرجوع إلى خدمة خارجية/,
+  "the user is told that unavailable local recognition does not trigger a remote fallback");
+const recognitionErrorHandler = activity.slice(
+  activity.indexOf("override fun onError(error: Int)"),
+  activity.indexOf("override fun onResults(results: Bundle?)")
+);
+assert.doesNotMatch(recognitionErrorHandler, /ERROR_NETWORK(?:_TIMEOUT)?\s*\|\|/,
+  "network errors are not automatically retried as if remote recognition were acceptable");
+assert.match(recognitionErrorHandler, /ERROR_NETWORK[\s\S]*?stopVoice\(message\)/,
+  "network errors stop the local voice session and keep manual counting available");
+assert.doesNotMatch(activity, /Cloudflare|Workers AI|fetch\(/,
+  "native tasbih recognition never uploads audio to a cloud endpoint");
 assert.match(activity, /listOf\("ar-MA", "ar-SA", "ar"\)/);
 assert.match(activity, /private fun normalizeSpeech/);
 assert.match(activity, /private fun countPhraseMatches/);
