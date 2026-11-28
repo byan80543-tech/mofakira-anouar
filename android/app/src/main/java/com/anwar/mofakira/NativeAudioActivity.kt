@@ -404,8 +404,12 @@ class NativeAudioActivity : Activity() {
         }
         pickerContent.addView(surahList, LinearLayout.LayoutParams(-1, dp(390)))
 
-        val allSurahs = NativeMediaCatalog.surahNames.mapIndexed { index, name ->
-            (index + 1) to "${index + 1}. $name"
+        val availableSurahNumbers = selectedEdition?.availableSurahs
+            ?.takeIf { it.isNotEmpty() } ?: (1..NativeMediaCatalog.surahNames.size).toList()
+        val allSurahs = availableSurahNumbers.mapNotNull { number ->
+            NativeMediaCatalog.surahNames.getOrNull(number - 1)?.let { name ->
+                number to "$number. $name"
+            }
         }
         val visibleSurahNumbers = mutableListOf<Int>()
         val adapter = object : ArrayAdapter<String>(
@@ -433,10 +437,28 @@ class NativeAudioActivity : Activity() {
 
         fun filterSurahs(query: String) {
             val normalized = query.trim().lowercase(Locale.forLanguageTag("ar"))
+            val latinDigits = normalized.map { digit ->
+                when (digit) {
+                    '٠' -> '0'
+                    '١' -> '1'
+                    '٢' -> '2'
+                    '٣' -> '3'
+                    '٤' -> '4'
+                    '٥' -> '5'
+                    '٦' -> '6'
+                    '٧' -> '7'
+                    '٨' -> '8'
+                    '٩' -> '9'
+                    else -> digit
+                }
+            }.joinToString("")
             adapter.clear()
             visibleSurahNumbers.clear()
             allSurahs.forEach { (number, label) ->
-                if (normalized.isBlank() || label.lowercase(Locale.forLanguageTag("ar")).contains(normalized)) {
+                if (normalized.isBlank() ||
+                    label.lowercase(Locale.forLanguageTag("ar")).contains(normalized) ||
+                    number.toString().contains(latinDigits)
+                ) {
                     visibleSurahNumbers += number
                     adapter.add(label)
                 }
