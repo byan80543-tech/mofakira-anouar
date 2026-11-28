@@ -1,6 +1,7 @@
 package com.anwar.mofakira
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
@@ -78,9 +79,26 @@ class ReligiousGateActivity : Activity() {
         content.addView(text("الأقسام الرئيسية", 16f, green, true, top = 18, bottom = 10))
         content.addView(serviceGrid())
         content.addView(actionButton("المكتبة", Color.WHITE, navy) {
-            startActivity(Intent(this, LegacyWebActivity::class.java))
+            openLibraryOptions()
         }, marginTop(8))
         return scroll
+    }
+
+    private fun openLibraryOptions() {
+        val options = arrayOf(
+            "قارئ الكتب PDF الأصلي من الجهاز",
+            "المكتبة الكاملة الحالية"
+        )
+        AlertDialog.Builder(this)
+            .setTitle("مكتبة أنوار")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> startActivity(Intent(this, NativePdfLibraryActivity::class.java))
+                    1 -> startActivity(Intent(this, LegacyWebActivity::class.java))
+                }
+            }
+            .setNegativeButton("إغلاق", null)
+            .show()
     }
 
     private fun serviceGrid(): View {
