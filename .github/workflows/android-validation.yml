@@ -11,6 +11,7 @@ on:
       - "scripts/test-native-audio-surah-picker.mjs"
       - "scripts/test-native-audio-play-mode.mjs"
       - "scripts/test-native-audio.mjs"
+      - "scripts/test-native-web-audio.mjs"
       - "scripts/test-native-book-export.mjs"
       - "scripts/test-native-pdf-library-reader.mjs"
       - "scripts/generate-native-adhkar-catalog.mjs"
@@ -55,6 +56,8 @@ jobs:
         run: node scripts/test-native-audio-play-mode.mjs
       - name: Verify the native audio screen retains complete Media3 player controls including volume
         run: node scripts/test-native-audio.mjs
+      - name: Verify dedicated audio WebView retirement and preserved native artwork
+        run: node scripts/test-native-web-audio.mjs
       - name: Verify native notebook PDF book export and safe document saving
         run: node scripts/test-native-book-export.mjs
       - name: Verify native local PDF reader and library compatibility fallback
