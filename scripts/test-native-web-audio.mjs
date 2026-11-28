@@ -21,7 +21,8 @@ assert.match(gradle, /versionCode = 19/);
 assert.match(gradle, /versionName = "0.10.0"/);
 assert.match(gradle, /applicationIdSuffix = "\.preview.v19"/);
 assert.match(manifest, /android:name="\.NativeAudioWebActivity"[\s\S]*?android:exported="false"/);
-assert.match(gate, /NativeAudioWebActivity::class\.java/);
+assert.doesNotMatch(gate, /NativeAudioWebActivity::class\.java/,
+  'the religious gateway now opens the native audio screen while the legacy WebView screen remains available for compatibility checks');
 assert.match(gate, /NativeAudioActivity\.MODE_QURAN/);
 assert.match(gate, /NativeAudioActivity\.MODE_RADIO/);
 assert.match(gate, /NativeAudioActivity\.MODE_LESSONS/);
