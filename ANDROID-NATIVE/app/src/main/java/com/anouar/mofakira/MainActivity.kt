@@ -62,6 +62,7 @@ import androidx.compose.ui.unit.sp
 import com.anouar.mofakira.data.Note
 import com.anouar.mofakira.data.NoteDao
 import com.anouar.mofakira.data.NotesDatabase
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
@@ -282,29 +283,47 @@ private fun EditorScreen(
     val latestExit by rememberUpdatedState(onExit)
 
     suspend fun saveCurrent(): Boolean = saveMutex.withLock {
-        val hasContent = title.isNotBlank() || body.isNotBlank()
-        if (draft && !hasContent) return@withLock true
-        if (title == lastSavedTitle && body == lastSavedBody) return@withLock true
+        while (true) {
+            // Capture a stable snapshot before suspending for the database write.
+            val targetTitle = title
+            val targetBody = body
+            val hasContent = targetTitle.isNotBlank() || targetBody.isNotBlank()
 
-        saveState = SaveState.SAVING
-        try {
-            val saved = latestPersist(
-                workingNote.copy(
-                    title = title,
-                    body = body,
-                    updatedAt = System.currentTimeMillis()
+            if (draft && !hasContent) return@withLock true
+            if (targetTitle == lastSavedTitle && targetBody == lastSavedBody) {
+                saveState = SaveState.SAVED
+                return@withLock true
+            }
+
+            saveState = SaveState.SAVING
+            try {
+                val saved = latestPersist(
+                    workingNote.copy(
+                        title = targetTitle,
+                        body = targetBody,
+                        updatedAt = System.currentTimeMillis()
+                    )
                 )
-            )
-            workingNote = saved
-            draft = false
-            lastSavedTitle = title
-            lastSavedBody = body
-            saveState = SaveState.SAVED
-            true
-        } catch (_: Exception) {
-            saveState = SaveState.FAILED
-            false
+                workingNote = saved
+                draft = false
+                lastSavedTitle = targetTitle
+                lastSavedBody = targetBody
+
+                // If text changed while Room was saving, persist the newer snapshot too.
+                if (title == targetTitle && body == targetBody) {
+                    saveState = SaveState.SAVED
+                    return@withLock true
+                }
+                saveState = SaveState.READY
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                saveState = SaveState.FAILED
+                return@withLock false
+            }
         }
+        @Suppress("UNREACHABLE_CODE")
+        false
     }
 
     suspend fun saveThenExit() {
