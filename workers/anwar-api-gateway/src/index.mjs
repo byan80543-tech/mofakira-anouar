@@ -865,6 +865,25 @@ export class AdhkarStore {
 
 export default {
   async fetch(request, env, ctx) {
+    // Apply a per-client edge limit before trusting Origin or route details.
+    // A rejected cross-origin request must not bypass rate limiting entirely.
+    let edgeClientDecision;
+    try {
+      if (!env.EDGE_LIMITER) throw new Error("Edge rate limiter binding missing");
+      const rawClientIp = request.headers.get("CF-Connecting-IP") || "unknown";
+      const clientKey = await hmacClientKey(rawClientIp, env.IP_HASH_SECRET);
+      edgeClientDecision = await env.EDGE_LIMITER.limit({ key: "client:" + clientKey });
+    } catch {
+      return json({ error: "بوابة تحديد المعدل الطرفية غير متاحة مؤقتًا." }, 503);
+    }
+    if (!edgeClientDecision.success) {
+      return json(
+        { error: "تم تجاوز الحد الطرفي لطلبات هذه الشبكة. انتظر قليلًا ثم أعد المحاولة." },
+        429,
+        { "Retry-After": "60" }
+      );
+    }
+
     const configuredOrigins = String(env.ALLOWED_ORIGINS || env.ALLOWED_ORIGIN || "");
     const allowedOrigins = configuredOrigins.split(",").map(value => value.trim()).filter(Boolean);
     const origin = request.headers.get("Origin") || "";
