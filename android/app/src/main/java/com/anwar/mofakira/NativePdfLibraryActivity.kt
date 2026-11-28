@@ -12,6 +12,7 @@ import android.os.ParcelFileDescriptor
 import android.provider.OpenableColumns
 import android.view.Gravity
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.HorizontalScrollView
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -156,9 +157,9 @@ class NativePdfLibraryActivity : Activity() {
         pageHorizontalScroll = HorizontalScrollView(this).apply {
             isFillViewport = true
             isHorizontalScrollBarEnabled = true
-            addView(pageImage, HorizontalScrollView.LayoutParams(
-                HorizontalScrollView.LayoutParams.MATCH_PARENT,
-                HorizontalScrollView.LayoutParams.WRAP_CONTENT
+            addView(pageImage, FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
             ))
         }
         pageScroll = ScrollView(this).apply {
@@ -166,9 +167,9 @@ class NativePdfLibraryActivity : Activity() {
             clipToPadding = false
             setPadding(dp(3), dp(3), dp(3), dp(3))
             setBackgroundColor(Color.rgb(232, 229, 220))
-            addView(pageHorizontalScroll, ScrollView.LayoutParams(
-                ScrollView.LayoutParams.MATCH_PARENT,
-                ScrollView.LayoutParams.MATCH_PARENT
+            addView(pageHorizontalScroll, FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
             ))
         }
         root.addView(pageScroll, LinearLayout.LayoutParams(0, 0, 1f).apply {
