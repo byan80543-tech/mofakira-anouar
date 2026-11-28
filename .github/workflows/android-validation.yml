@@ -6,6 +6,7 @@ on:
       - "scripts/test-native-tasbih.mjs"
       - "scripts/test-android-private-storage.mjs"
       - "scripts/test-android-notebook-auth-bound-key.mjs"
+      - "scripts/test-native-audio-tulip.mjs"
       - "scripts/generate-native-adhkar-catalog.mjs"
       - "official-adhkar.js"
       - ".github/workflows/android-validation.yml"
@@ -40,6 +41,8 @@ jobs:
         run: node scripts/test-native-tasbih.mjs
       - name: Verify encrypted Android private storage and device re-authentication
         run: node scripts/test-android-private-storage.mjs
+      - name: Verify the original tulip artwork is rendered by native Android list rows
+        run: node scripts/test-native-audio-tulip.mjs
       - name: Verify the native notebook key requires device authentication
         run: node scripts/test-android-notebook-auth-bound-key.mjs
       - name: Compile the Android debug package
