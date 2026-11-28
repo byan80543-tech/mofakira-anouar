@@ -14,6 +14,7 @@ on:
       - "scripts/test-native-gateway.mjs"
       - "scripts/test-native-adhan.mjs"
       - "scripts/test-native-audio.mjs"
+      - "scripts/test-native-audio-play-mode.mjs"
       - "scripts/test-native-web-audio.mjs"
       - "scripts/test-android-unified-web-shell.mjs"
       - "scripts/test-native-adhkar.mjs"
@@ -29,6 +30,7 @@ on:
       - "scripts/test-native-notebook.mjs"
       - "scripts/test-native-notebook-archive.mjs"
       - "scripts/test-native-audio.mjs"
+      - "scripts/test-native-audio-play-mode.mjs"
       - "scripts/test-native-web-audio.mjs"
       - "scripts/test-native-adhkar.mjs"
       - ".github/workflows/build-anwar-android.yml"
@@ -65,6 +67,8 @@ jobs:
         run: node scripts/test-android-updater.mjs
       - name: Validate native Media3 audio engine and catalogs
         run: node scripts/test-native-audio.mjs
+      - name: Validate native Quran single-surah and continuous playback modes
+        run: node scripts/test-native-audio-play-mode.mjs
       - name: Validate native personal adhkar screen and local storage
         run: node scripts/test-native-adhkar.mjs
       - name: Generate the complete native adhkar catalog from its canonical source

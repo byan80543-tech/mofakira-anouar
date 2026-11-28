@@ -88,6 +88,10 @@ class NativeAudioActivity : Activity() {
     private var selectedStation: LiveStation? = null
     private var selectedLessonSeries: LessonSeries = NativeMediaCatalog.lessonSeries.first()
     private var selectedLessonIndex = 0
+    private var quranPlaybackMode = QURAN_PLAY_MODE_CONTINUOUS
+    private var quranContinuousButton: TextView? = null
+    private var quranSingleButton: TextView? = null
+    private var quranPlayButton: TextView? = null
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) = syncPlayerUi()
 
@@ -340,15 +344,42 @@ class NativeAudioActivity : Activity() {
         }
         contentArea.addView(surahPicker, matchWrap(dp(48)))
 
-        val play = actionButton("تشغيل التلاوة المتتابعة", gold, navy) {
+        contentArea.addView(fieldLabel("طريقة التشغيل"), marginTop(dp(8)))
+        val playbackModeRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            gravity = Gravity.CENTER
+        }
+        quranContinuousButton = actionButton("تلاوة متتابعة", Color.WHITE, navy) {
+            setQuranPlaybackMode(QURAN_PLAY_MODE_CONTINUOUS)
+        }
+        quranSingleButton = actionButton("سورة واحدة", Color.WHITE, navy) {
+            setQuranPlaybackMode(QURAN_PLAY_MODE_SINGLE)
+        }
+        playbackModeRow.addView(quranContinuousButton, LinearLayout.LayoutParams(0, dp(43), 1f).apply {
+            marginStart = dp(4)
+            marginEnd = dp(4)
+        })
+        playbackModeRow.addView(quranSingleButton, LinearLayout.LayoutParams(0, dp(43), 1f).apply {
+            marginStart = dp(4)
+            marginEnd = dp(4)
+        })
+        contentArea.addView(playbackModeRow, marginTop(dp(4)))
+
+        quranPlayButton = actionButton(quranPlayButtonLabel(), gold, navy) {
             val edition = selectedEdition
             if (edition == null) {
                 statusText.text = "اختر قارئاً أولا."
             } else {
-                playQuran(edition, selectedSurah)
+                playQuran(
+                    edition,
+                    selectedSurah,
+                    quranPlaybackMode == QURAN_PLAY_MODE_SINGLE
+                )
             }
         }
-        contentArea.addView(play, marginTop(dp(10)))
+        contentArea.addView(quranPlayButton, marginTop(dp(10)))
+        updateQuranPlaybackModeControls()
 
         if (reciters.isEmpty()) {
             reciterList.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, listOf("جارٍ تحميل القراء…"))
@@ -508,7 +539,11 @@ class NativeAudioActivity : Activity() {
                     surahPicker.text = surahSelectionLabel()
                     selectedReader.text = "القارئ: ${edition.displayName}"
                     applyReciterFilter(search.text?.toString().orEmpty(), list, selectedReader, surahPicker, search)
-                    playQuran(edition, selectedSurah)
+                    playQuran(
+                        edition,
+                        selectedSurah,
+                        quranPlaybackMode == QURAN_PLAY_MODE_SINGLE
+                    )
                 }
             },
             isRosePlaying = { position ->
@@ -758,10 +793,43 @@ class NativeAudioActivity : Activity() {
         }, directExecutor)
     }
 
-    private fun playQuran(edition: QuranEdition, startSurah: Int) {
+    private fun setQuranPlaybackMode(nextMode: String) {
+        if (nextMode != QURAN_PLAY_MODE_CONTINUOUS && nextMode != QURAN_PLAY_MODE_SINGLE) return
+        quranPlaybackMode = nextMode
+        updateQuranPlaybackModeControls()
+    }
+
+    private fun quranPlayButtonLabel(): String =
+        if (quranPlaybackMode == QURAN_PLAY_MODE_SINGLE) "تشغيل سورة واحدة"
+        else "تشغيل التلاوة المتتابعة"
+
+    private fun updateQuranPlaybackModeControls() {
+        val continuousSelected = quranPlaybackMode == QURAN_PLAY_MODE_CONTINUOUS
+        quranContinuousButton?.apply {
+            background = rounded(
+                if (continuousSelected) gold else Color.WHITE,
+                11,
+                if (continuousSelected) navy else Color.rgb(225, 219, 207)
+            )
+            setTextColor(navy)
+        }
+        quranSingleButton?.apply {
+            background = rounded(
+                if (continuousSelected) Color.WHITE else gold,
+                11,
+                if (continuousSelected) Color.rgb(225, 219, 207) else navy
+            )
+            setTextColor(navy)
+        }
+        quranPlayButton?.text = quranPlayButtonLabel()
+    }
+
+    private fun playQuran(edition: QuranEdition, startSurah: Int, singleSurahOnly: Boolean) {
         val c = controller ?: return notConnected()
         val available = edition.availableSurahs.ifEmpty { (1..114).toList() }
-        val items = available.map { number ->
+        val startIndex = available.indexOf(startSurah).coerceAtLeast(0)
+        val queueSurahs = if (singleSurahOnly) listOf(available[startIndex]) else available
+        val items = queueSurahs.map { number ->
             mediaItem(
                 id = "quran:${edition.serverUrl}:$number",
                 url = edition.surahUrl(number),
@@ -770,9 +838,15 @@ class NativeAudioActivity : Activity() {
                 album = "القرآن الكريم · مفكرة أنوار"
             )
         }
-        val startIndex = available.indexOf(startSurah).coerceAtLeast(0)
-        startPlaylist(c, items, startIndex,
-            "تلاوة ${edition.displayName} · سورة ${NativeMediaCatalog.surahNames[available[startIndex] - 1]}")
+        val queueStartIndex = if (singleSurahOnly) 0 else startIndex
+        val selectedSurahName = NativeMediaCatalog.surahNames[available[startIndex] - 1]
+        val modeLabel = if (singleSurahOnly) "سورة واحدة" else "تلاوة متتابعة"
+        startPlaylist(
+            c,
+            items,
+            queueStartIndex,
+            "$modeLabel · ${edition.displayName} · سورة $selectedSurahName"
+        )
     }
 
     private fun playStation(station: LiveStation) {
@@ -1201,5 +1275,7 @@ class NativeAudioActivity : Activity() {
         const val MODE_RADIO = "radio"
         const val MODE_LESSONS = "lessons"
         const val MODE_IBTIHALAT = "ibtihalat"
+        const val QURAN_PLAY_MODE_CONTINUOUS = "continuous"
+        const val QURAN_PLAY_MODE_SINGLE = "single"
     }
 }
