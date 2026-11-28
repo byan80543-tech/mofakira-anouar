@@ -67,6 +67,8 @@ class NativeAudioActivity : Activity() {
     private lateinit var playPauseButton: NativeRosePlayButton
     private lateinit var seekBar: SeekBar
     private lateinit var timeText: TextView
+    private lateinit var volumeSeekBar: SeekBar
+    private lateinit var volumePercentText: TextView
     private lateinit var tabButtons: Map<String, TextView>
     private var reciterListView: ListView? = null
     private var stationListView: ListView? = null
@@ -80,6 +82,7 @@ class NativeAudioActivity : Activity() {
     private var controller: MediaController? = null
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var isSeeking = false
+    private var isAdjustingVolume = false
     private var reciters: List<QuranEdition> = emptyList()
     private var visibleReciters: List<QuranEdition> = emptyList()
     private var stations: List<LiveStation> = emptyList()
@@ -255,6 +258,36 @@ class NativeAudioActivity : Activity() {
             })
         }
         panel.addView(seekBar, LinearLayout.LayoutParams(-1, dp(34)))
+        val volumeRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        volumeRow.addView(text("الصوت", 10f, muted, true),
+            LinearLayout.LayoutParams(dp(42), dp(34)))
+        volumeSeekBar = SeekBar(this).apply {
+            max = 100
+            progress = 100
+            contentDescription = "مستوى صوت المشغل"
+            setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(bar: SeekBar?, progress: Int, fromUser: Boolean) {
+                    val safePercent = progress.coerceIn(0, 100)
+                    volumePercentText.text = "$safePercent٪"
+                    if (fromUser) controller?.volume = safePercent / 100f
+                }
+                override fun onStartTrackingTouch(bar: SeekBar?) {
+                    isAdjustingVolume = true
+                }
+                override fun onStopTrackingTouch(bar: SeekBar?) {
+                    isAdjustingVolume = false
+                    updateVolumeUi()
+                }
+            })
+        }
+        volumeRow.addView(volumeSeekBar, LinearLayout.LayoutParams(0, dp(34), 1f))
+        volumePercentText = text("100٪", 10f, muted, true)
+        volumeRow.addView(volumePercentText, LinearLayout.LayoutParams(dp(44), dp(34)))
+        panel.addView(volumeRow)
         val controls = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             layoutDirection = View.LAYOUT_DIRECTION_RTL
@@ -954,6 +987,7 @@ class NativeAudioActivity : Activity() {
         lastRosePlaybackMediaId = currentMediaId
         playPauseButton.setPlaybackActive(isPlaying)
         playPauseButton.alpha = if ((c?.mediaItemCount ?: 0) > 0) 1f else 0.55f
+        updateVolumeUi()
         reciterListView?.invalidateViews()
         stationListView?.invalidateViews()
         lessonListView?.invalidateViews()
@@ -961,6 +995,15 @@ class NativeAudioActivity : Activity() {
             button.setPlaybackActive(isPlaying && currentMediaId == "ibtihal:$trackId")
         }
         updateProgress()
+    }
+
+    private fun updateVolumeUi() {
+        if (!::volumeSeekBar.isInitialized || !::volumePercentText.isInitialized) return
+        val percent = (((controller?.volume ?: 1f).coerceIn(0f, 1f) * 100f) + 0.5f)
+            .toInt()
+            .coerceIn(0, 100)
+        if (!isAdjustingVolume) volumeSeekBar.progress = percent
+        volumePercentText.text = "$percent٪"
     }
 
     private fun updateProgress() {
