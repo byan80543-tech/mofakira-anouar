@@ -16,6 +16,7 @@ on:
       - "scripts/test-native-audio.mjs"
       - "scripts/test-native-audio-play-mode.mjs"
       - "scripts/test-native-book-export.mjs"
+      - "scripts/test-native-pdf-library-reader.mjs"
       - "scripts/test-native-web-audio.mjs"
       - "scripts/test-android-unified-web-shell.mjs"
       - "scripts/test-native-adhkar.mjs"
@@ -72,6 +73,8 @@ jobs:
         run: node scripts/test-native-audio-play-mode.mjs
       - name: Validate native notebook PDF book export and safe document saving
         run: node scripts/test-native-book-export.mjs
+      - name: Validate native local PDF reader and library compatibility fallback
+        run: node scripts/test-native-pdf-library-reader.mjs
       - name: Validate native personal adhkar screen and local storage
         run: node scripts/test-native-adhkar.mjs
       - name: Generate the complete native adhkar catalog from its canonical source
