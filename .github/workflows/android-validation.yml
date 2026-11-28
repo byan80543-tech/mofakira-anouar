@@ -8,6 +8,7 @@ on:
       - "scripts/test-android-notebook-auth-bound-key.mjs"
       - "scripts/test-native-audio-tulip.mjs"
       - "scripts/test-native-audio-rose.mjs"
+      - "scripts/test-native-audio-surah-picker.mjs"
       - "scripts/generate-native-adhkar-catalog.mjs"
       - "official-adhkar.js"
       - ".github/workflows/android-validation.yml"
@@ -44,6 +45,8 @@ jobs:
         run: node scripts/test-android-private-storage.mjs
       - name: Verify the original rose play control and bloom animation are native Android
         run: node scripts/test-native-audio-rose.mjs
+      - name: Verify the native Quran surah picker searches and selects from all surahs
+        run: node scripts/test-native-audio-surah-picker.mjs
       - name: Verify the original tulip artwork is rendered by native Android list rows
         run: node scripts/test-native-audio-tulip.mjs
       - name: Verify the native notebook key requires device authentication
