@@ -35,8 +35,10 @@ assert.doesNotMatch(rose, /android\.webkit\.WebView|JavascriptInterface/);
 assert.ok(activity.includes("NativeRosePlayButton"));
 assert.ok(activity.includes("playPauseButton.setPlaybackActive(isPlaying)"));
 assert.ok(activity.includes("onRoseClick"));
-assert.ok(activity.includes('currentId == "radio:'));
+assert.ok(activity.includes('currentMediaItem?.mediaId == "radio:${station.url}"'));
 assert.ok(activity.includes('currentMediaId == "ibtihal:$trackId"'));
+assert.ok(activity.includes('pendingRoseBloomKeys.remove(key)'));
+assert.ok(activity.includes('animateRose = playing && shouldAnimateRose(position)'));
 assert.doesNotMatch(activity, /android\.webkit\.WebView|JavascriptInterface/);
 
 assert.match(webCss, /anwarFlowerBloom/);
