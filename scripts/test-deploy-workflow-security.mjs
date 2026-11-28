@@ -58,6 +58,13 @@ const quality = readFileSync(
   "utf8"
 );
 
+test("live API gateway deployment probe is syntax checked by the main Quality workflow", () => {
+  assert.ok(
+    quality.includes("node --check scripts/test-live-api-gateway.mjs"),
+    "the production API smoke test must be parsed before any production deployment"
+  );
+});
+
 test("API gateway deployment follows only the trusted production Quality run or a manual main dispatch", () => {
   const triggers = gatewayDeployment.match(/^on:\n([\s\S]*?)^permissions:/m)?.[1] || "";
   assert.match(triggers, /^  workflow_dispatch:\s*$/m);
