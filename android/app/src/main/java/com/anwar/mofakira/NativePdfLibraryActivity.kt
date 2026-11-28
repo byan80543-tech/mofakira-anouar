@@ -240,6 +240,11 @@ class NativePdfLibraryActivity : Activity() {
         try {
             val descriptor = contentResolver.openFileDescriptor(uri, "r")
                 ?: throw IllegalStateException("تعذّر فتح الملف للقراءة.")
+            val fileSize = descriptor.statSize
+            if (fileSize > MAX_PDF_FILE_BYTES) {
+                descriptor.close()
+                throw IllegalArgumentException("حجم الكتاب يتجاوز 100 ميغابايت. اختر نسخة أصغر.")
+            }
             val renderer = try {
                 PdfRenderer(descriptor)
             } catch (error: Exception) {
@@ -250,6 +255,12 @@ class NativePdfLibraryActivity : Activity() {
                 renderer.close()
                 descriptor.close()
                 throw IllegalStateException("هذا الملف لا يحتوي صفحات PDF قابلة للعرض.")
+            }
+            if (renderer.pageCount > MAX_PDF_PAGES) {
+                val count = renderer.pageCount
+                renderer.close()
+                descriptor.close()
+                throw IllegalArgumentException("الكتاب يحتوي على $count صفحة، والحد الحالي $MAX_PDF_PAGES صفحة.")
             }
             synchronized(renderLock) {
                 fileDescriptor = descriptor
@@ -440,7 +451,9 @@ class NativePdfLibraryActivity : Activity() {
         private const val MIN_ZOOM = 0.75f
         private const val MAX_ZOOM = 2.25f
         private const val MIN_RENDER_WIDTH = 480
-        private const val MAX_RENDER_WIDTH = 2600
-        private const val MAX_BITMAP_PIXELS = 12_000_000L
+        private const val MAX_RENDER_WIDTH = 2400
+        private const val MAX_BITMAP_PIXELS = 8_000_000L
+        private const val MAX_PDF_FILE_BYTES = 100L * 1024L * 1024L
+        private const val MAX_PDF_PAGES = 2_000
     }
 }
