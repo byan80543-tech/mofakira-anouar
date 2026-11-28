@@ -53,6 +53,13 @@ jobs:
               .github/*|workers/*|scripts/*|android/*|_recovery/*|*.md|_headers)
                 continue
                 ;;
+              # Digital Asset Links must be served from the origin root,
+              # not from the nested PWA application scope.
+              .well-known/*)
+                mkdir -p "dist/$(dirname "$file")"
+                cp "$file" "dist/$file"
+                continue
+                ;;
               robots.txt|sitemap.xml|privacy-security.html|privacy-security.json)
                 cp "$file" "dist/$file"
                 continue
@@ -61,6 +68,30 @@ jobs:
             mkdir -p "dist/mofakira-anouar/$(dirname "$file")"
             cp "$file" "dist/mofakira-anouar/$file"
           done < <(git ls-files -z)
+
+          # Validate the association file when the final signing certificate
+          # has been approved and the file has been added to the repository.
+          if [ -f .well-known/assetlinks.json ]; then
+            test -s dist/.well-known/assetlinks.json
+            python3 -m json.tool dist/.well-known/assetlinks.json >/dev/null
+            python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          statements = json.loads(Path("dist/.well-known/assetlinks.json").read_text())
+          assert isinstance(statements, list) and statements, "assetlinks.json must contain at least one statement"
+          matches = [
+              item for item in statements
+              if "delegate_permission/common.handle_all_urls" in item.get("relation", [])
+              and item.get("target", {}).get("namespace") == "android_app"
+              and item.get("target", {}).get("package_name") == "com.anwar.mofakira.twa"
+          ]
+          assert matches, "assetlinks.json must authorize the configured TWA package"
+          for statement in matches:
+              fingerprints = statement.get("target", {}).get("sha256_cert_fingerprints", [])
+              assert fingerprints and all(len(x) == 95 and x.count(":") == 31 for x in fingerprints), "Invalid SHA-256 signing certificate fingerprint"
+          PY
+          fi
 
           # Cloudflare Pages reads _headers from the output directory root,
           # not from the nested PWA application directory.
